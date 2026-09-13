@@ -2588,6 +2588,7 @@ function handleImgError(el, isWatermark = false) {
             <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStartPause()">بدء</button>
             <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStartPause(true)">استراحة</button>
             <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStopTimer()">توقف وحفظ</button>
+<button type="button" class="action-btn btn-danger" onclick="recordAbsenceTime()">🚫 غياب</button>
           </div>
         
           
@@ -2648,8 +2649,8 @@ function handleImgError(el, isWatermark = false) {
       </div>
       <div class="wafdeen-score-total">المجموع: <span id="wafdeen-auto-total">30</span> من 30</div>
       <div class="wafdeen-daily-save">
-        <button type="button" class="action-btn btn-save" onclick="saveWafdeenDailyRecord()">💾 حفظ الرصد اليومي</button>
-        <button type="button" class="action-btn btn-danger" onclick="markWafdeenAbsent()">🚫 غياب (صفر في كل الخانات)</button>
+        <button type="button" id="wafdeen-daily-save-btn" class="action-btn btn-save" onclick="wafdeenGuardedDailySave()" aria-disabled="false">💾 حفظ الرصد اليومي</button>
+
       </div>
       <div id="wafdeen-missing-fields" class="wafdeen-missing-fields" aria-live="polite">
         <strong>⚠️ الخانات الناقصة:</strong> <span id="wafdeen-missing-fields-list">أكمل البيانات المطلوبة قبل الحفظ.</span>
@@ -2908,7 +2909,7 @@ function handleImgError(el, isWatermark = false) {
       <div id="daily-tab" class="tab-content active">
         <!-- إعدادات مخفية تُضبط تلقائياً من النظام -->
         <div class="daily-hidden-field" aria-hidden="true">
-          <div class="form-group"><input type="date" id="recordDate"></div>
+          <div class="form-group"><input type="date" id="recordDate" onchange="updateMainDailySaveButton_()"></div>
           <input type="text" id="daySelect">
           <select id="classSelect" onchange="updateStudentListDropdown(); updateFifthGradeFields(this.value);">
             <option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
@@ -2937,7 +2938,7 @@ function handleImgError(el, isWatermark = false) {
               </div>
               <div class="form-group">
                 <label>اسم الطالب/الطالبة:</label>
-                <select id="studentNameSelect" onchange="showDailyStudentWorkspace()">
+                <select id="studentNameSelect" onchange="showDailyStudentWorkspace();updateMainDailySaveButton_()">
                 </select>
               </div>
             </div>
@@ -3023,7 +3024,7 @@ function handleImgError(el, isWatermark = false) {
             </div>
             <div class="btn-group">
               <button type="button" class="action-btn btn-save" onclick="addGrade()">💾 حفظ الدرجات والوقت (من 70)</button>
-              <button type="button" class="action-btn btn-danger" onclick="markAbsent()">🚫 غياب (صفر في كل الخانات)</button>
+
               <button type="button" class="action-btn btn-export" id="dailyExportBtn" onclick="exportToExcel('gradesTable', 'الرصد_اليومي')">📊 تصدير إكسل</button>
             </div>
           </div>
@@ -4777,7 +4778,18 @@ function syncDataFromCloud() {
 
   syncCollection_('notes', () => notesData, v => { notesData=v; },
     () => { renderNotesTable(); updateNotesStudentList(); }, {storageKey:'notesData'});
-  // درجات الموقع لا تُخزَّن في Firebase؛ مصدرها Google Sheets، والنسخة المحلية للعرض السريع.
+
+  // مزامنة الرصد اليومي لحظياً بين أجهزة المعلمين والمشرف.
+  // هذا لا يلغي Google Sheets؛ الشيت يظل نسخة الدرجات، بينما Firebase
+  // يوفر تحديث حالة الرصد فوراً على الأجهزة الأخرى.
+  syncCollection_('dailyRecords', () => dailyRecords, v => { dailyRecords=v; },
+    () => {
+      try { localStorage.setItem('dailyRecords', JSON.stringify(dailyRecords)); } catch (_) {}
+      renderClassStatusTable();
+      if (typeof renderDailyTable === 'function') renderDailyTable();
+      if (typeof renderManagerView === 'function') renderManagerView();
+    }, {storageKey:'dailyRecords'});
+
   // نتائج الطلاب درجات أيضاً؛ لا تُخزَّن في Firebase.
 }
 
@@ -5842,6 +5854,11 @@ function stopDailyTimer(){
 function markAbsent() {
   const studentName = document.getElementById('studentNameSelect').value;
   if (!studentName) return showMessage('app-msg', 'يرجى اختيار الاسم بشكل صحيح', 'error');
+  const existing=hasDailyRecordForSelectedStudent_();
+  if(existing){
+    updateMainDailySaveButton_();
+    return showMessage('app-msg', `⚠️ تم تسجيل الطالب ${studentName} بالفعل اليوم. لا يمكن تسجيله مرة أخرى. استخدم «تعديل» أو «مسح» أولاً.`, 'error');
+  }
 
   ['attendance','behavior','tajweed','oldRevision','newLesson','recitation','homework'].forEach(id => {
     document.getElementById(id).value = 0;
@@ -5850,7 +5867,7 @@ function markAbsent() {
   ['newTopicToday','newTopicRecited','oldTopicToday','oldTopicRecited','recitationTopicToday','recitationTopicRecited'].forEach(id => { if (document.getElementById(id)) document.getElementById(id).value = '-'; });
   dailyResetCounters();
   dailyRenderCounters();
-  addGrade();
+  addGrade(true);
 }
 
 function dailyGradeFromRecitationCount(count){
@@ -5907,7 +5924,78 @@ function resetDailyExtraFieldsFromRecord(record){
   });
 }
 
-async function addGrade() {
+function hasDailyRecordForSelectedStudent_(){
+  const className=document.getElementById('classSelect')?.value||'';
+  const dateISO=document.getElementById('recordDate')?.value||'';
+  const studentName=String(document.getElementById('studentNameSelect')?.value||'').trim();
+  if(!className||!dateISO||!studentName)return null;
+  return (dailyRecords||[]).find(r=>!r._deleted && String(r.className||'')===String(className) && String(r.dateISO||'').slice(0,10)===String(dateISO).slice(0,10) && String(r.studentName||'').trim()===studentName) || null;
+}
+function updateMainDailySaveButton_(){
+  const btn=document.querySelector('#studentNameSelect')?.closest('.card')?.querySelector('button[onclick="addGrade()"]') || document.querySelector('button[onclick="addGrade()"]');
+  if(!btn)return;
+  const exists=!!hasDailyRecordForSelectedStudent_();
+  btn.classList.toggle('wafdeen-save-blocked',exists);
+  btn.setAttribute('aria-disabled',exists?'true':'false');
+  btn.title=exists?'تم تسجيل هذا الطالب اليوم — استخدم تعديل أو مسح أولاً.':'';
+  btn.textContent=exists?'🔒 تم تسجيل الطالب اليوم':'💾 حفظ الدرجات والوقت (من 70)';
+  btn.style.opacity=exists?'0.65':'1';
+  btn.style.cursor=exists?'not-allowed':'pointer';
+}
+
+
+function recordAbsenceTime() {
+    const studentId = document.getElementById('studentSelect')?.value || document.getElementById('wafdeenStudentSelect')?.value;
+    const date = document.getElementById('gradeDate')?.value || document.getElementById('wafdeenDate')?.value || new Date().toISOString().slice(0,10);
+    if (!studentId) {
+        showMessage('app-msg', 'من فضلك اختر الطالب أولاً!', 'error');
+        return;
+    }
+
+    const now = new Date();
+    const timeText = now.toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'});
+    const zeroTime = 0;
+
+    // Record a dedicated absence event with time = 0, without asking for grades.
+    const rec = {
+        id: 'absence-' + studentId + '-' + date + '-' + Date.now(),
+        studentId: studentId,
+        date: date,
+        attendanceStatus: 'absent',
+        isAbsent: true,
+        absence: true,
+        absenceTime: zeroTime,
+        time: zeroTime,
+        recordedAt: now.toISOString(),
+        recordedTimeText: timeText,
+    };
+
+    if (Array.isArray(window.dailyRecords)) {
+        window.dailyRecords.push(rec);
+        try { localStorage.setItem('dailyRecords', JSON.stringify(window.dailyRecords)); } catch(e) {}
+    }
+
+    // Also update any available Wafdeen collection.
+    if (Array.isArray(window.wafdeenDailyRecords)) {
+        window.wafdeenDailyRecords.push(rec);
+        try { localStorage.setItem('wafdeenDailyRecords', JSON.stringify(window.wafdeenDailyRecords)); } catch(e) {}
+    }
+
+    try {
+        if (typeof window.syncCollection_ === 'function') {
+            window.syncCollection_('dailyRecords', window.dailyRecords || []);
+        }
+    } catch(e) {}
+
+    try {
+        if (typeof window.renderDailyRecords === 'function') window.renderDailyRecords();
+        if (typeof window.renderWafdeenDailyRecords === 'function') window.renderWafdeenDailyRecords();
+    } catch(e) {}
+
+    showMessage('app-msg', `تم تسجيل غياب الطالب — الوقت: ${zeroTime}`, 'success');
+}
+
+async function addGrade(forceAbsent=false) {
   const className = document.getElementById('classSelect').value;
   const dateISO = document.getElementById('recordDate').value;
   const dayName = document.getElementById('daySelect').value;
@@ -5934,9 +6022,24 @@ async function addGrade() {
 
   if (!studentName) return showMessage('app-msg', 'يرجى اختيار الاسم بشكل صحيح', 'error');
   if (!dateISO) return showMessage('app-msg', 'يرجى اختيار التاريخ بشكل صحيح', 'error');
+
+  // حماية نهائية: لا يمكن إنشاء أو استبدال رصد لنفس الطالب في نفس اليوم من زر الحفظ.
+  // التعديل أو المسح فقط هما الاستثناءان المقصودان.
+  const existingToday=hasDailyRecordForSelectedStudent_();
+  if(existingToday){
+    updateMainDailySaveButton_();
+    return showMessage('app-msg', `⚠️ تم تسجيل الطالب ${studentName} بالفعل اليوم. لا يمكن حفظه مرة أخرى، والدرجة المسجلة لن تتغير. استخدم «تعديل» أو «مسح» أولاً.`, 'error');
+  }
   const fifth = isFifthClass(className);
-  const isAbsent = Number(attVal) === 0;
-  const missingFields = wafdeenValidateDailyRequiredFields_();
+  const isAbsent = !!forceAbsent || Number(attVal) === 0;
+  // الغياب: صفر في كل الدرجات والأوقات والعدادات، وتجاوز فحص الخانات المطلوبة.
+  if (isAbsent) {
+    ['attendance','behavior','tajweed','oldRevision','newLesson','recitation','homework'].forEach(id => { const el=document.getElementById(id); if(el) el.value=0; });
+    ['newTopicToday','newTopicRecited','oldTopicToday','oldTopicRecited','recitationTopicToday','recitationTopicRecited'].forEach(id => { const el=document.getElementById(id); if(el) el.value='-'; });
+    dailyResetCounters();
+    dailyRenderCounters();
+  }
+  const missingFields = isAbsent ? [] : wafdeenValidateDailyRequiredFields_();
   if (missingFields.length) {
     return showMessage('app-msg', 'يوجد بيانات ناقصة باللون الأحمر. أكمل الخانات المطلوبة ثم اضغط حفظ.', 'error');
   }
@@ -5985,20 +6088,22 @@ async function addGrade() {
     oldRecitationCount: fifth ? '' : Number(oldRecitationCount),
     recitationRecitationCount: Number(recitationRecitationCount),
     attendance: clampGrade(attVal), behavior: clampGrade(behVal), tajweed: clampGrade(tajweedVal),
+    attendanceStatus: isAbsent ? 'absent' : 'present',
+    isAbsent: !!isAbsent,
     oldRevision: fifth ? 0 : clampGrade(oldRVal), newLesson: fifth ? 0 : clampGrade(newLVal),
     recitation: clampGrade(recVal), homework: clampGrade(hwVal),
-    newLessonTimeSeconds: Number(dailyTimerSeconds.new||previous.newLessonTimeSeconds||0),
-    oldRevisionTimeSeconds: Number(dailyTimerSeconds.old||previous.oldRevisionTimeSeconds||0),
-    recitationTimeSeconds: Number(dailyTimerSeconds.recitation||previous.recitationTimeSeconds||0),
-    newErrors: Number(dailyErrorCounters.new?.errors||0),
-    newTashkeel: Number(dailyErrorCounters.new?.tashkeel||0),
-    newRepetition: Number(dailyErrorCounters.new?.repetition||0),
-    oldErrors: Number(dailyErrorCounters.old?.errors||0),
-    oldTashkeel: Number(dailyErrorCounters.old?.tashkeel||0),
-    oldRepetition: Number(dailyErrorCounters.old?.repetition||0),
-    recitationErrors: Number(dailyErrorCounters.recitation?.errors||0),
-    recitationTashkeel: Number(dailyErrorCounters.recitation?.tashkeel||0),
-    recitationRepetition: Number(dailyErrorCounters.recitation?.repetition||0),
+    newLessonTimeSeconds: isAbsent ? 0 : Number(dailyTimerSeconds.new||previous.newLessonTimeSeconds||0),
+    oldRevisionTimeSeconds: isAbsent ? 0 : Number(dailyTimerSeconds.old||previous.oldRevisionTimeSeconds||0),
+    recitationTimeSeconds: isAbsent ? 0 : Number(dailyTimerSeconds.recitation||previous.recitationTimeSeconds||0),
+    newErrors: isAbsent ? 0 : Number(dailyErrorCounters.new?.errors||0),
+    newTashkeel: isAbsent ? 0 : Number(dailyErrorCounters.new?.tashkeel||0),
+    newRepetition: isAbsent ? 0 : Number(dailyErrorCounters.new?.repetition||0),
+    oldErrors: isAbsent ? 0 : Number(dailyErrorCounters.old?.errors||0),
+    oldTashkeel: isAbsent ? 0 : Number(dailyErrorCounters.old?.tashkeel||0),
+    oldRepetition: isAbsent ? 0 : Number(dailyErrorCounters.old?.repetition||0),
+    recitationErrors: isAbsent ? 0 : Number(dailyErrorCounters.recitation?.errors||0),
+    recitationTashkeel: isAbsent ? 0 : Number(dailyErrorCounters.recitation?.tashkeel||0),
+    recitationRepetition: isAbsent ? 0 : Number(dailyErrorCounters.recitation?.repetition||0),
     timeRecordedAt: new Date().toISOString(),
     recitation1: 0, recitation2: 0, recitation3: 0, recitation4: 0
   };
@@ -6007,14 +6112,26 @@ async function addGrade() {
   const idx=dailyRecords.findIndex(r=>r.id===record.id);
   if(idx>-1) dailyRecords[idx]=record; else dailyRecords.push(record);
   localStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
-  try{
-    // Firebase هو المصدر السحابي، وGoogle Sheets نسخة إضافية للدرجات.
-    await sendGradeToGoogleSheet('saveDailyGrade', record);
-  }catch(cloudError){
-    console.error('Cloud save warning:',cloudError);
-    showMessage('app-msg', 'تم حفظ الرصد على الجهاز، لكن تعذر رفعه للسحابة الآن. ستتم المزامنة عند عودة الاتصال.', 'error');
+
+  // ارفع سجل الرصد إلى Firebase فوراً حتى يظهر للمشرف وباقي الأجهزة
+  // مباشرة في حالة إنجاز الرصد. Google Sheets يستقبل نسخة الدرجات أيضاً.
+  const cloudJobs = [];
+  if (useFirebase && db) {
+    cloudJobs.push(
+      db.collection('dailyRecords').doc(String(record.id)).set(
+        {...record, updatedAt: new Date().toISOString()}, {merge:true}
+      ).catch(e => console.error('Firebase daily record save warning:', e))
+    );
   }
-  renderDailyTable(); renderAttendanceTable(); renderWeeklyTable(); renderMonthlyReport(); renderManagerView(); renderClassStatusTable(); if(document.getElementById('student-analysis-section') && !document.getElementById('student-analysis-section').classList.contains('hidden')){ populateAnalysisWeeks(); renderStudentDataAnalysis(); }
+  cloudJobs.push(
+    Promise.resolve(sendGradeToGoogleSheet('saveDailyGrade', record)).catch(e => {
+      console.error('Google Sheets save warning:', e);
+      showMessage('app-msg', 'تم حفظ الرصد، وسيتم رفع نسخة الشيت عند عودة الاتصال.', 'error');
+    })
+  );
+  // لا نوقف واجهة المعلم في انتظار السحابة.
+  Promise.allSettled(cloudJobs);
+  renderDailyTable(); renderAttendanceTable(); renderWeeklyTable(); renderMonthlyReport(); renderManagerView(); renderClassStatusTable(); updateMainDailySaveButton_(); if(document.getElementById('student-analysis-section') && !document.getElementById('student-analysis-section').classList.contains('hidden')){ populateAnalysisWeeks(); renderStudentDataAnalysis(); }
   const savedTimes={new:Number(record.newLessonTimeSeconds||0),old:Number(record.oldRevisionTimeSeconds||0),recitation:Number(record.recitationTimeSeconds||0)};
   const savedTimeText=`الجديد: ${formatTimerSeconds(savedTimes.new)} | الماضي: ${formatTimerSeconds(savedTimes.old)} | التلاوة: ${formatTimerSeconds(savedTimes.recitation)}`;
   wafdeenResetDailyEntryForm_();
@@ -6452,44 +6569,79 @@ function renderClassStatusTable() {
   if (!tbody) return;
   tbody.innerHTML = '';
 
+  let grandTotal = 0;
+  let grandRecorded = 0;
+
   ALL_CLASSES.forEach(cName => {
     const classStudents = studentsData.filter(s => s.className === cName);
     const totalCount = classStudents.length;
+    const classRecords = dailyRecords.filter(r => r.className === cName && r.dateISO === dateVal && !r._deleted);
+    const recordedNames = new Set(classRecords.map(r => String(r.studentName || '').trim()).filter(Boolean));
+    const unrecorded = classStudents.filter(s => !recordedNames.has(String(s.name || '').trim()));
+    const recordedCount = Math.min(recordedNames.size, totalCount);
 
-    const classRecords = dailyRecords.filter(r => r.className === cName && r.dateISO === dateVal);
-    const recordedNames = classRecords.map(r => r.studentName);
-
-    const unrecorded = classStudents.filter(s => !recordedNames.includes(s.name));
-    const recordedCount = totalCount - unrecorded.length;
+    grandTotal += totalCount;
+    grandRecorded += recordedCount;
 
     let statusBadge = '';
     if (totalCount === 0) {
-      statusBadge = '<span class="badge" style="background-color: #7f8c8d;">لا يوجد طلاب</span>';
+      statusBadge = '<span class="badge" style="background-color:#7f8c8d;">لا يوجد طلاب</span>';
     } else if (unrecorded.length === 0) {
-      statusBadge = '<span class="badge badge-green">أكمل</span>';
+      statusBadge = '<span class="badge badge-green">✅ تم تسجيل جميع الطلاب</span>';
+    } else if (recordedCount > 0) {
+      statusBadge = `<span class="badge" style="background:#eaf8f1;color:#0f7a4a;border:1px solid #8fd3ae;">🟢 تم تسجيل ${recordedCount} طالب</span>`;
     } else {
-      statusBadge = '<span class="badge" style="background-color: var(--danger-color);">لم يكمل</span>';
+      statusBadge = '<span class="badge" style="background-color:var(--danger-color);">لم يبدأ الرصد</span>';
     }
 
     let actionBtn = '';
     if (totalCount === 0) {
       actionBtn = '<span style="color:#7f8c8d;">-</span>';
     } else if (unrecorded.length === 0) {
-      actionBtn = '<span style="color:var(--success-color); font-weight:bold;">✨ اكتمل الرصد بالكامل</span>';
+      actionBtn = `<span style="color:var(--success-color);font-weight:bold;">🎉 ${recordedCount} / ${totalCount} — اكتمل الرصد بالكامل</span>`;
     } else {
-      actionBtn = `<button type="button" class="action-btn btn-warning" style="padding:4px 10px; font-size:0.82em; min-width:auto;" onclick="showUnrecordedStudents('${cName}', '${dateVal}')">عرض الطالب الذي لم يتم تسجيله (${unrecorded.length}) 👁️</button>`;
+      actionBtn = `<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start;">
+        <strong style="color:var(--primary-color);">تم تسجيل: ${recordedCount} من ${totalCount}</strong>
+        <span style="color:#a04000;font-weight:bold;">متبقي: ${unrecorded.length}</span>
+        <button type="button" class="action-btn btn-warning" style="padding:4px 10px;font-size:.82em;min-width:auto;" onclick="showUnrecordedStudents('${cName}', '${dateVal}')">عرض غير المسجل (${unrecorded.length}) 👁️</button>
+      </div>`;
     }
 
     tbody.innerHTML += `
       <tr>
-        <td style="font-weight:bold; color:var(--primary-dark);">${cName}</td>
+        <td style="font-weight:bold;color:var(--primary-dark);">${cName}</td>
         <td><strong>${totalCount}</strong></td>
-        <td style="color:var(--primary-color); font-weight:bold;">${recordedCount}</td>
+        <td style="color:var(--primary-color);font-weight:900;font-size:1.08em;">${recordedCount}</td>
         <td>${statusBadge}</td>
         <td>${actionBtn}</td>
       </tr>
     `;
   });
+
+  // ملخص سريع أعلى الجدول: يتحدث فور وصول سجل جديد من أي جهاز.
+  let summary = document.getElementById('classStatusLiveSummary');
+  if (!summary) {
+    summary = document.createElement('div');
+    summary.id = 'classStatusLiveSummary';
+    const tableWrap = document.querySelector('#classStatusTable')?.closest('.table-responsive');
+    if (tableWrap) tableWrap.parentNode.insertBefore(summary, tableWrap);
+  }
+  const remaining = Math.max(0, grandTotal - grandRecorded);
+  summary.innerHTML = `
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0;">
+      <div style="flex:1;min-width:150px;background:#eaf8f1;border:1px solid #8fd3ae;border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:.85em;color:#48685a;font-weight:700;">تم تسجيلهم</div>
+        <div style="font-size:1.65em;color:#0f7a4a;font-weight:900;">${grandRecorded}</div>
+      </div>
+      <div style="flex:1;min-width:150px;background:#fff7e5;border:1px solid #e4c56a;border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:.85em;color:#806a2b;font-weight:700;">المتبقي</div>
+        <div style="font-size:1.65em;color:#a56b00;font-weight:900;">${remaining}</div>
+      </div>
+      <div style="flex:1;min-width:150px;background:#f5f7f7;border:1px solid #d5dddd;border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:.85em;color:#5b6666;font-weight:700;">إجمالي الطلاب</div>
+        <div style="font-size:1.65em;color:var(--primary-dark);font-weight:900;">${grandTotal}</div>
+      </div>
+    </div>`;
 }
 
 function showUnrecordedStudents(className, dateVal) {
@@ -8630,6 +8782,47 @@ function wafdeenQuranReset(){
 function wafdeenEduStartPause(forcePause=false){if(currentWafdeenTeacher?.role==='student')return;if(!wafdeenEduSelectedSubject)return showMessage('wafdeen-save-msg','اختر المادة أولاً: فقه أو منطق أو حديث أو اللغة العربية','error');if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');if(forcePause){if(!wafdeenEduTimerRunning)return;wafdeenEduTick();clearInterval(wafdeenEduTimerInterval);wafdeenEduTimerInterval=null;wafdeenEduTimerRunning=false;wafdeenEduTimerStartedAt=null;document.getElementById('wafdeen-edu-timer-status').innerText='استراحة — اضغط بدء لاستكمال الوقت';return;}if(wafdeenEduTimerRunning)return;wafdeenEduTimerStartedAt=Date.now()-wafdeenEduElapsedSeconds*1000;wafdeenEduTimerRunning=true;wafdeenEduTimerInterval=setInterval(wafdeenEduTick,250);document.getElementById('wafdeen-edu-timer-status').innerText='جارٍ احتساب الوقت — '+wafdeenEduSelectedSubject+' — '+wafdeenEduSelectedType;}
 async function wafdeenEduStopTimer(){if(currentWafdeenTeacher?.role==='student')return;if(!wafdeenEduSelectedSubject)return showMessage('wafdeen-save-msg','اختر المادة أولاً','error');if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');if(wafdeenEduTimerRunning)wafdeenEduTick();if(wafdeenEduTimerInterval)clearInterval(wafdeenEduTimerInterval);wafdeenEduTimerInterval=null;wafdeenEduTimerRunning=false;wafdeenEduTimerStartedAt=null;const seconds=Math.floor(wafdeenEduElapsedSeconds);if(seconds<=0)return showMessage('wafdeen-save-msg','لم يتم احتساب وقت في مؤقت المواد التعليمية حتى الآن','error');const student=wafdeenStudentsData.find(s=>String(s.id)===String(document.getElementById('wafdeenStudentSelect').value));const rec={id:(Date.now()+1).toString(),teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,category:'educational',subject:wafdeenEduSelectedSubject,seconds,dateISO:new Date().toISOString(),month:wafdeenTodayMonth()};try{wafdeenUsageData.push(rec);wafdeenPersistLocal();if(useFirebase&&db)await db.collection('wafdeenUsage').doc(rec.id).set(rec,{merge:true});showMessage('wafdeen-save-msg',`تم حفظ ${wafdeenFormat(seconds)} للطالب ${student.name} في ${wafdeenEduSelectedSubject} ✅`,'success');wafdeenEduReset();if(currentWafdeenTeacher?.isAdmin)renderWafdeenMonthlyReport();}catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ وقت المواد التعليمية على السحابة','error');}}
 function wafdeenEduReset(){if(wafdeenEduTimerRunning)return;wafdeenEduElapsedSeconds=0;wafdeenUpdateEduTimer();wafdeenEduSelectedSubject='';wafdeenEduSelectedType='';document.querySelectorAll('[data-edu-subject],[data-edu-type]').forEach(b=>b.classList.remove('active'));const st=document.getElementById('wafdeen-edu-timer-status');if(st)st.innerText='اختر المادة ثم اضغط بدء';}
+function wafdeenHasTodayRecordForSelectedStudent(){
+  const sel=document.getElementById('wafdeenStudentSelect');
+  const studentId=String(sel?.value||'');
+  if(!studentId)return false;
+  const student=wafdeenStudentsData.find(x=>String(x.id)===studentId);
+  const studentName=String(student?.name||'').trim();
+  const today=wafdeenDateKeyLocal(new Date());
+  return (wafdeenDailyRecords||[]).some(r=>{
+    if(r._deleted || String(r.dateISO||'').slice(0,10)!==today)return false;
+    const sameId=studentId && String(r.studentId||'')===studentId;
+    const sameName=studentName && String(r.studentName||'').trim()===studentName;
+    return !!(sameId||sameName);
+  });
+}
+
+function wafdeenUpdateDailySaveButton(){
+  const btn=document.getElementById('wafdeen-daily-save-btn');
+  const sel=document.getElementById('wafdeenStudentSelect');
+  if(!btn)return;
+  const exists=wafdeenHasTodayRecordForSelectedStudent();
+  const hasStudent=!!String(sel?.value||'');
+  btn.classList.toggle('wafdeen-save-blocked',exists);
+  btn.setAttribute('aria-disabled',exists?'true':'false');
+  btn.title=exists?'تم تسجيل هذا الطالب اليوم — استخدم تعديل أو مسح أولاً.':'';
+  btn.textContent=exists?'🔒 تم تسجيل الطالب اليوم':'💾 حفظ الرصد اليومي';
+  btn.disabled=false; // نترك الضغط يصل للحارس ليعرض الرسالة، لكن لا يسمح بأي حفظ.
+  btn.style.opacity=exists?'0.65':'1';
+  btn.style.cursor=exists?'not-allowed':'pointer';
+  if(!hasStudent){btn.classList.remove('wafdeen-save-blocked');btn.textContent='💾 حفظ الرصد اليومي';btn.style.opacity='1';btn.style.cursor='pointer';}
+}
+function wafdeenGuardedDailySave(isAbsent=false){
+  if(wafdeenHasTodayRecordForSelectedStudent()){
+    const sel=document.getElementById('wafdeenStudentSelect');
+    const student=wafdeenStudentsData.find(x=>String(x.id)===String(sel?.value||''));
+    showMessage('wafdeen-save-msg',`⚠️ تم تسجيل الطالب ${student?.name||''} بالفعل اليوم. لا يمكن حفظه مرة أخرى. استخدم «تعديل» أو «مسح» أولاً.`,'error');
+    wafdeenUpdateDailySaveButton();
+    return;
+  }
+  return saveWafdeenDailyRecord(isAbsent);
+}
+
 async function saveWafdeenDailyRecord(isAbsent=false){
   if(currentWafdeenTeacher?.role==='student')return;
   const sel=document.getElementById('wafdeenStudentSelect');
@@ -8687,12 +8880,26 @@ async function saveWafdeenDailyRecord(isAbsent=false){
 
   const val=id=>document.getElementById(id)?.value ?? '';
   const num=id=>{const n=Number(val(id));return Number.isFinite(n)?Math.max(0,Math.min(10,n)):0;};
-  const dateISO=new Date().toISOString().slice(0,10), d=new Date(dateISO);
+  const dateISO=wafdeenDateKeyLocal(new Date()), d=new Date();
+
+  // حماية إضافية داخل دالة الحفظ نفسها لمنع أي استدعاء برمجي مباشر من تكرار الرصد.
+  const existingToday=wafdeenDailyRecords.find(r=>
+    !r._deleted &&
+    String(r.studentId||'')===String(student.id) &&
+    String(r.dateISO||'').slice(0,10)===dateISO
+  );
+  if(existingToday){
+    showMessage('wafdeen-save-msg',`⚠️ تم تسجيل الطالب ${student.name} بالفعل اليوم. لا يمكن تغيير الدرجة من زر الحفظ. استخدم «تعديل» أو «مسح» أولاً.`,'error');
+    wafdeenUpdateDailySaveButton();
+    return;
+  }
+
   const id=`wafdeen_${student.id}_${dateISO}`;
   const todayUsage=(wafdeenUsageData||[]).filter(r=>!r._deleted&&String(r.studentId)===String(student.id)&&String(r.category)==='quran'&&String(r.dateISO||'').slice(0,10)===dateISO);
   const timeFor=type=>todayUsage.filter(r=>String(r.type)===type).reduce((sum,r)=>sum+Math.max(0,Number(r.seconds)||0),0);
   const record={
     id,teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,dateISO,
+    attendanceStatus:isAbsent?'absent':'present',isAbsent:!!isAbsent,status:isAbsent?'absent':'present',
     dayName:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][d.getDay()],
     newLesson:isAbsent?0:num('wafdeenNewLesson'),newPagesCount:isAbsent?'':val('wafdeenNewPagesCount'),newTopicRecited:isAbsent?'':val('wafdeenNewTopicRecited'),
     oldRevision:isAbsent?0:num('wafdeenOldRevision'),oldPagesCount:isAbsent?'':val('wafdeenOldPagesCount'),oldTopicRecited:isAbsent?'':val('wafdeenOldTopicRecited'),
@@ -8704,49 +8911,21 @@ async function saveWafdeenDailyRecord(isAbsent=false){
     recitationErrors:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].errors,recitationTashkeel:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].tashkeel,recitationRepetition:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].repetition,
     savedAt:new Date().toISOString()
   };
-  record.total=Math.max(0,Math.min(30,Number(record.newLesson||0)+Number(record.oldRevision||0)+Number(record.recitation||0)));
-  try{
-    // الحفظ المحلي هو المصدر الفوري: لا ننتظر Firebase أو Google Sheets حتى تظهر الدرجة.
-    record.updatedAt=new Date().toISOString();
-    const i=wafdeenDailyRecords.findIndex(r=>String(r.id)===String(record.id));
-    if(i>-1)wafdeenDailyRecords[i]={...wafdeenDailyRecords[i],...record};else wafdeenDailyRecords.push(record);
-    wafdeenPersistLocal();
 
-    // تحديث قائمة الدرجات فوراً من البيانات المحلية.
-    if(typeof wafdeenRenderGrades==='function')wafdeenRenderGrades();
-    if(wafdeenCurrentGradeStudentId && String(wafdeenCurrentGradeStudentId)===String(student.id) && typeof wafdeenShowStudentGrades==='function')wafdeenShowStudentGrades(student.id);
-    wafdeenUpdateDailyScoresVisibility();
+  const existingIndex=wafdeenDailyRecords.findIndex(r=>String(r.id)===String(record.id));
+  if(existingIndex>=0) wafdeenDailyRecords[existingIndex]=record; else wafdeenDailyRecords.push(record);
+  try{localStorage.setItem('wafdeenDailyRecords',JSON.stringify(wafdeenDailyRecords));}catch(e){console.error('local save warning',e);}
 
-    // نفرغ النموذج بعد تثبيت السجل محلياً، ثم نرفع للسحابة في الخلفية.
-    wafdeenResetWafdeenGradeFields?.();
-    wafdeenShowMissingFields_([]);
-    showMessage('wafdeen-save-msg',isAbsent?`تم تسجيل غياب ${student.name} بصفر في كل الخانات 🚫`:`تم حفظ الرصد الكامل للطالب ${student.name} بنجاح ✅`,'success');
+  wafdeenRenderGrades();
+  wafdeenUpdateDailySaveButton();
+  showMessage('wafdeen-save-msg',isAbsent?`تم تسجيل غياب ${student.name} بصفر في كل الخانات 🚫`:`تم حفظ الرصد اليومي للطالب ${student.name} ✅`,'success');
+  wafdeenResetQuranCounters();
 
-    // Firebase لا يعطل الحفظ المحلي ولا ظهور الدرجة إذا كان بطيئاً أو غير متصل.
-    if(useFirebase && db){
-      db.collection('wafdeenDailyRecords').doc(record.id).set(record,{merge:true})
-        .catch(e=>{console.warn('Firebase grade sync failed; local grade محفوظ:',e);});
-    }
-    // Google Sheets مزامنة خلفية مستقلة.
-    try{
-      Promise.resolve(sendGradeToGoogleSheet('saveWafdeenDailyGrade',record))
-        .catch(e=>console.warn('Google Sheet sync failed; local grade محفوظ:',e));
-    }catch(sheetErr){ console.warn('Google Sheet sync failed; local grade محفوظ:',sheetErr); }
-  }catch(e){
-    console.error(e);
-    showMessage('wafdeen-save-msg','حدث خطأ أثناء حفظ الدرجة محلياً. لم يتم مسح الخانات، حاول مرة أخرى.','error');
-  }
+  const cloudJobs=[];
+  if(useFirebase && db) cloudJobs.push(db.collection('wafdeenDailyRecords').doc(String(record.id)).set({...record,updatedAt:new Date().toISOString()},{merge:true}).catch(e=>console.error(e)));
+  if(typeof sendGradeToGoogleSheet==='function') cloudJobs.push(Promise.resolve(sendGradeToGoogleSheet('saveWafdeenDailyGrade',record)).catch(e=>console.error(e)));
+  Promise.allSettled(cloudJobs);
 }
-function wafdeenResetWafdeenGradeFields(){
-  ['wafdeenNewPagesCount','wafdeenNewTopicRecited','wafdeenOldPagesCount','wafdeenOldTopicRecited','wafdeenRecitationPagesCount','wafdeenRecitationTopicRecited'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['wafdeenNewLesson','wafdeenOldRevision','wafdeenRecitation'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.disabled=true;el.readOnly=true;}});
-  if(typeof dailyResetCounters==='function')dailyResetCounters();
-  if(typeof wafdeenResetQuranCounters==='function')wafdeenResetQuranCounters();
-  if(typeof wafdeenQuranReset==='function')wafdeenQuranReset();
-  document.querySelectorAll('#wafdeen-daily-scores-panel .field-missing,#wafdeen-daily-scores-panel .field-missing-group').forEach(el=>el.classList.remove('field-missing','field-missing-group'));
-  wafdeenShowMissingFields_([]);
-}
-
 function wafdeenUpdateDailyScoresVisibility(){
   // لا نخفي نموذج الدرجات بعد وجود رصد سابق؛ إخفاؤه كان سببًا في اعتقاد المستخدم
   // أن باقي الخانات اختفت. النموذج يظل ظاهرًا ويمكن مراجعة/تعديل البيانات.
@@ -8766,6 +8945,7 @@ function wafdeenUpdateDailyScoresVisibility(){
   }
   note.textContent=hasTodayRecord?'يوجد رصد محفوظ لهذا الطالب اليوم. يمكنك مراجعة الخانات وتعديلها ثم الحفظ مرة أخرى.':'يمكنك إدخال جميع بيانات الرصد للطالب ثم حفظها.';
   note.classList.toggle('hidden',!studentId);
+  wafdeenUpdateDailySaveButton();
 }
 
 function wafdeenDateKeyLocal(date=new Date()){const d=new Date(date);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
@@ -8938,7 +9118,16 @@ function wafdeenShowStudentEducationTime(studentId){
   document.getElementById('wafdeen-education-time-today').innerHTML=wafdeenEducationTimeTable(todayRecs,'اليوم'); document.getElementById('wafdeen-education-time-week').innerHTML=wafdeenEducationTimeTable(weekRecs,'الأسبوع'); document.getElementById('wafdeen-education-time-month').innerHTML=wafdeenEducationTimeTable(monthRecs,'الشهر');
   wafdeenShowEducationTimePeriod('today',document.querySelector('#wafdeen-panel-educationTime .wafdeen-grade-period-btn'));
 }
-function markWafdeenAbsent(){wafdeenResetQuranCounters();saveWafdeenDailyRecord(true);}
+function markWafdeenAbsent(){
+  if(wafdeenHasTodayRecordForSelectedStudent()){
+    const sel=document.getElementById('wafdeenStudentSelect');
+    const student=wafdeenStudentsData.find(x=>String(x.id)===String(sel?.value||''));
+    wafdeenUpdateDailySaveButton();
+    return showMessage('wafdeen-save-msg',`⚠️ تم تسجيل الطالب ${student?.name||''} بالفعل اليوم. لا يمكن تسجيله مرة أخرى، والدرجة المسجلة لن تتغير. استخدم «تعديل» أو «مسح» أولاً.`,'error');
+  }
+  wafdeenResetQuranCounters();
+  saveWafdeenDailyRecord(true);
+}
 // توافق مع أي استدعاءات قديمة
 function wafdeenResetTimer(){wafdeenQuranReset();wafdeenEduReset();}
 function toggleWafdeenMenu(){document.getElementById('wafdeen-drawer').classList.toggle('open');document.getElementById('wafdeen-menu-overlay').classList.toggle('open');}
@@ -9361,6 +9550,11 @@ function renderWafdeenMonthlyReport(){
   const formatHours=(secs,base)=>(Math.max(0,secs)/60/base).toFixed(2);
   tb.innerHTML=Object.entries(map).sort((a,b)=>b[1].total-a[1].total).map(([u,x])=>`<tr><td>${escapeHtml(u)}</td><td>${formatMonthlyTime(x.new)}</td><td>${formatMonthlyTime(x.old)}</td><td>${formatMonthlyTime(x.rec)}</td><td>${formatMonthlyTime(x.educational)}</td><td><strong>${formatMonthlyTime(x.total)}</strong></td><td>${formatHours(x.total,50)}</td><td>${formatHours(x.total,60)}</td></tr>`).join('')||'<tr><td colspan="8">لا توجد جلسات محفوظة لهذا الشهر</td></tr>';
 }
+</script>
+<script>
+window.wafdeenGuardedDailySave=window.wafdeenGuardedDailySave||wafdeenGuardedDailySave;
+window.markWafdeenAbsent=window.markWafdeenAbsent||markWafdeenAbsent;
+window.saveWafdeenDailyRecord=window.saveWafdeenDailyRecord||saveWafdeenDailyRecord;
 </script>
 </body>
 </html>
