@@ -1508,6 +1508,19 @@ body.fifth-selected .fifth-hide-on-class { display: none !important; }
 .wafdeen-admin-materials{margin-top:18px;border-top:1px dashed var(--accent-gold);padding-top:18px}.wafdeen-book-reader{margin-top:16px;border:1px solid var(--border-soft-strong);border-radius:16px;overflow:hidden;background:var(--surface)}.wafdeen-book-reader iframe{width:100%;height:78vh;min-height:650px;border:0;background:#fff}.wafdeen-book-reader .reader-head a{text-decoration:none}.wafdeen-book-reader .reader-head{padding:11px 14px;background:var(--surface-alt);display:flex;justify-content:space-between;gap:10px;align-items:center}
 .wafdeen-exam-box{margin-top:12px;padding:10px;border:1px dashed var(--border-soft);border-radius:11px;background:rgba(212,175,55,.05)}
 .wafdeen-score{font-weight:900;color:var(--accent-gold-light)}.wafdeen-progress-wrap{margin:12px 0;padding:10px 12px;border:1px solid var(--border-soft);border-radius:12px;background:var(--surface-alt)}.wafdeen-progress-label{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:7px}.wafdeen-progress-track{height:12px;background:rgba(18,58,36,.1);border-radius:999px;overflow:hidden}.wafdeen-progress-bar{height:100%;width:0;background:#20b66b;border-radius:999px;transition:width .25s ease}.wafdeen-upload-percent{font-weight:900;color:#20b66b}.wafdeen-student-only-note{margin:12px 0;padding:11px 13px;border-right:4px solid var(--accent-gold);border-radius:10px;background:rgba(212,175,55,.07);color:var(--text-muted);line-height:1.8}.wafdeen-daily-scores{margin-top:16px;border-top:4px solid var(--primary-color)}.wafdeen-daily-scores .form-grid{margin-bottom:14px}.wafdeen-daily-scores input,.wafdeen-daily-scores select{background:#fff}.wafdeen-daily-save{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media(max-width:650px){.wafdeen-daily-save{grid-template-columns:1fr}}
+/* إصلاح ظهور جميع خانات درجات الوافدين على الهاتف وعدم قصها */
+#wafdeen-daily-scores-panel{display:block;visibility:visible;overflow:visible!important;height:auto!important;max-height:none!important;min-height:0!important;}
+#wafdeen-missing-fields{margin-top:12px;padding:12px 14px;border:2px solid #d32f2f;border-radius:12px;background:#fff5f5;color:#b71c1c;font-weight:800;line-height:1.9;}#wafdeen-missing-fields.hidden{display:none!important;}#wafdeen-missing-fields-list{font-weight:700;}#wafdeen-daily-scores-panel .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}#wafdeen-daily-scores-panel .field-missing-group>label{color:#d32f2f!important;font-weight:900;}#wafdeen-daily-scores-panel .field-missing-group{color:#b71c1c;}
+#wafdeen-daily-scores-panel .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;overflow:visible!important;}
+#wafdeen-daily-scores-panel .form-group{display:block!important;visibility:visible!important;min-width:0;}
+#wafdeen-daily-scores-panel input,#wafdeen-daily-scores-panel select{width:100%;box-sizing:border-box;min-height:54px;}
+@media(max-width:650px){
+  #wafdeen-daily-scores-panel .form-grid{grid-template-columns:1fr!important;}
+  #wafdeen-daily-scores-panel .form-group{width:100%!important;}
+  #wafdeen-daily-scores-panel .wafdeen-score-summary{grid-template-columns:repeat(3,minmax(0,1fr));}
+  #wafdeen-daily-scores-panel{margin-bottom:24px;padding-bottom:18px;}
+}
+
 @media(max-width:750px){.wafdeen-materials-layout{grid-template-columns:1fr}.wafdeen-book-reader iframe{height:500px}}
 </style>
 <style>
@@ -2429,7 +2442,7 @@ function handleImgError(el, isWatermark = false) {
 
   <div class="form-group" style="margin-bottom: 14px;">
     <label>اسم المستخدم:</label>
-    <input type="text" id="username" placeholder="مثال: admin" style="text-align: center; font-weight: bold;">
+    <input type="text" id="username" placeholder="اكتب اسم المستخدم" style="text-align: center; font-weight: bold;">
   </div>
 
   <div class="form-group" style="margin-bottom: 22px;">
@@ -2565,7 +2578,12 @@ function handleImgError(el, isWatermark = false) {
             <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStopTimer()">توقف وحفظ</button>
           </div>
         
-          <div id="wafdeen-daily-scores-panel" class="wafdeen-panel wafdeen-daily-scores">
+          
+
+        </div>
+      </div>
+
+      <div id="wafdeen-daily-scores-panel" class="wafdeen-panel wafdeen-daily-scores">
       <h3>📝 الدرجات بالمعيار</h3>
       <div class="wafdeen-note">استخدم السهم ▲ للزيادة والسهم ▼ للنقصان. كل ضغطة تغيّر العدد بمقدار واحد. كل خطأ = درجة، وكل تشكيل = نصف درجة، وكل تردد = ربع درجة. الدرجة تبدأ من 10 وتُخصم تلقائيًا، بحد أدنى صفر.</div>
 
@@ -2621,10 +2639,10 @@ function handleImgError(el, isWatermark = false) {
         <button type="button" class="action-btn btn-save" onclick="saveWafdeenDailyRecord()">💾 حفظ الرصد اليومي</button>
         <button type="button" class="action-btn btn-danger" onclick="markWafdeenAbsent()">🚫 غياب (صفر في كل الخانات)</button>
       </div>
-    </div>
-
-        </div>
+      <div id="wafdeen-missing-fields" class="wafdeen-missing-fields" aria-live="polite">
+        <strong>⚠️ الخانات الناقصة:</strong> <span id="wafdeen-missing-fields-list">أكمل البيانات المطلوبة قبل الحفظ.</span>
       </div>
+    </div>
 
       <div class="wafdeen-panel wafdeen-monitor-card wafdeen-edu-card">
         <button type="button" class="wafdeen-edu-box" onclick="toggleWafdeenEducationalMonitor()" aria-expanded="false">
@@ -3476,6 +3494,21 @@ function handleImgError(el, isWatermark = false) {
             🔎 اختبار اتصال Firebase و Google Sheets
           </button>
           <div id="connection-test-box" class="toast-msg" style="margin-top:10px; text-align:right; display:none;"></div>
+          <button type="button" class="action-btn" style="height:44px; margin-top:10px; background:linear-gradient(135deg,#0f766e,#115e59);" onclick="runFullCloudTest()">
+            ☁️ اختبار السحابة الكامل (Firebase + الشيتين)
+          </button>
+          <div id="full-cloud-test-box" class="toast-msg" style="margin-top:10px; text-align:right; display:none;"></div>
+
+          <div style="margin-top:16px; padding:14px; border-radius:12px; background:#fff8e1; border:1px solid #f1d98a;">
+            <h3 style="margin:0 0 8px; font-size:1.08em; color:#8a5a00; font-family:'Amiri',serif;">🚚 نقل الدرجات من الشيت القديم</h3>
+            <p style="font-size:.86em; color:#5f6368; margin:0 0 10px; line-height:1.8;">
+              ينقل كل الدرجات من الشيت القديم إلى الشيت الجديد، ويتأكد من وصولها أولًا، ثم يعرض عليك حذفها من الشيت القديم.
+            </p>
+            <button type="button" class="action-btn btn-warning" style="height:44px; width:100%;" onclick="migrateOldGoogleSheetsGrades()">
+              🚚 نقل الدرجات ثم حذف القديم بعد التأكد
+            </button>
+            <div id="google-sheets-migration-box" class="toast-msg" style="margin-top:10px; text-align:right; display:none;"></div>
+          </div>
         </div>
         
         <div style="background: #eef7f2; padding: 18px; border-radius: 12px; margin-bottom: 22px; border: 1px solid #bce1ce; border-top: 4px solid var(--primary-color);">
@@ -3704,7 +3737,10 @@ let wafdeenStorage = null;
    الطلاب والمعلمون وباقي بيانات النظام تبقى في Firebase.
    درجات الرصد اليومي ودرجات جلسة الوافدين تُرسل إلى Google Sheets.
 */
-const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzgOJGh_qzrU0c5NvMrOrG8yvTutfi_cy1FVKFxDiahn5TuFUs0MmPMItECR1ya92m4iA/exec";
+const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfcOK3ZmV5svXOD_q61oigr-O7fA3PyOjwFdUAMV_GDE5C3Q8bhYm4epgPqjjUvXdR/exec";
+
+// رابط Google Sheets القديم — يُستخدم فقط أثناء عملية الترحيل ثم يمكن تعطيله.
+const OLD_GOOGLE_SHEETS_WEB_APP_URL = "";
 
 /* ================= Google Drive: كتب الوافدين =================
    الرفع يتم إلى مجلد "كتب" عبر Google Apps Script.
@@ -3849,6 +3885,273 @@ function googleSheetsHealthCheck_() {
   });
 }
 
+function googleSheetsGetGrades_(sheetKey) {
+  return new Promise((resolve, reject) => {
+    if (!GOOGLE_SHEETS_WEB_APP_URL) return reject(new Error('رابط Google Sheets غير موجود'));
+    const callbackName = '__gradesRead_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    const script = document.createElement('script');
+    let finished = false;
+    const timer = setTimeout(() => finishError(new Error('انتهت مهلة قراءة Google Sheets')), 12000);
+    function cleanup(){ try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer); }
+    function finishOk(v){ if(finished)return; finished=true; cleanup(); resolve(v); }
+    function finishError(e){ if(finished)return; finished=true; cleanup(); reject(e); }
+    window[callbackName] = result => {
+      if(result && result.ok) return finishOk(result);
+      finishError(new Error((result && result.error) || 'فشل قراءة الشيت'));
+    };
+    script.onerror = () => finishError(new Error('تعذر الوصول إلى Google Sheets لقراءة البيانات'));
+    script.src = GOOGLE_SHEETS_WEB_APP_URL + '?action=getGrades&sheet=' + encodeURIComponent(sheetKey) + '&callback=' + encodeURIComponent(callbackName) + '&t=' + Date.now();
+    (document.head || document.documentElement).appendChild(script);
+  });
+}
+
+function googleSheetsGetGrade_(sheetKey, recordId) {
+  return new Promise((resolve, reject) => {
+    if (!GOOGLE_SHEETS_WEB_APP_URL) return reject(new Error('رابط Google Sheets غير موجود'));
+    const callbackName = '__gradeOne_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    const script = document.createElement('script');
+    let finished = false;
+    const timer = setTimeout(() => finishError(new Error('انتهت مهلة قراءة السجل من Google Sheets')), 10000);
+    function cleanup(){ try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer); }
+    function finishOk(v){ if(finished)return; finished=true; cleanup(); resolve(v); }
+    function finishError(e){ if(finished)return; finished=true; cleanup(); reject(e instanceof Error ? e : new Error(String(e||'فشل قراءة السجل'))); }
+    window[callbackName] = result => {
+      if(result && result.ok) return finishOk(result);
+      finishError(new Error((result && result.error) || 'فشل قراءة السجل من الشيت'));
+    };
+    script.onerror = () => finishError(new Error('تعذر الوصول إلى Google Sheets لقراءة السجل'));
+    script.src = GOOGLE_SHEETS_WEB_APP_URL + '?action=getGrade&sheet=' + encodeURIComponent(sheetKey) + '&recordId=' + encodeURIComponent(recordId) + '&callback=' + encodeURIComponent(callbackName) + '&t=' + Date.now();
+    (document.head || document.documentElement).appendChild(script);
+  });
+}
+
+async function waitForGoogleSheetRecord_(sheetKey, recordId, shouldExist, timeoutMs=15000){
+  const started=Date.now();
+  while(Date.now()-started<timeoutMs){
+    try{
+      const r=await googleSheetsGetGrade_(sheetKey, recordId);
+      const found=!!r.found && !!r.row;
+      if(found===shouldExist)return {ok:true,found,row:r.row||null};
+    }catch(e){
+      // نحاول مرة أخرى؛ لا نقرأ الشيت كله لأن البيانات الكبيرة كانت تسبب انتهاء المهلة.
+    }
+    await new Promise(res=>setTimeout(res,1000));
+  }
+  return {ok:false,found:!shouldExist};
+}
+
+function oldGoogleSheetsGetGrades_(sheetKey) {
+  return new Promise((resolve, reject) => {
+    const oldUrl = String(localStorage.getItem('OLD_GOOGLE_SHEETS_WEB_APP_URL') || '').trim();
+    if (!oldUrl) return reject(new Error('رابط الشيت القديم غير موجود'));
+    const callbackName = '__oldGradesRead_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    const script = document.createElement('script');
+    let finished = false;
+    const timer = setTimeout(() => finishError(new Error('انتهت مهلة قراءة الشيت القديم')), 15000);
+    function cleanup(){ try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer); }
+    function finishOk(v){ if(finished)return; finished=true; cleanup(); resolve(v); }
+    function finishError(e){ if(finished)return; finished=true; cleanup(); reject(e instanceof Error ? e : new Error(String(e||'فشل قراءة الشيت القديم'))); }
+    window[callbackName] = result => {
+      if(result && result.ok) return finishOk(result);
+      finishError(new Error((result && result.error) || 'فشل قراءة الشيت القديم'));
+    };
+    script.onerror = () => finishError(new Error('تعذر الوصول إلى الشيت القديم'));
+    script.src = oldUrl + '?action=getGrades&sheet=' + encodeURIComponent(sheetKey) + '&callback=' + encodeURIComponent(callbackName) + '&t=' + Date.now();
+    (document.head || document.documentElement).appendChild(script);
+  });
+}
+
+async function postGoogleSheetsJson_(url, payload){
+  const response = await fetch(url, {
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload),
+    cache:'no-store',
+    keepalive:true
+  });
+  return response;
+}
+
+async function importGradesBatchToNewSheet_(sheetKey, rows){
+  if(!rows.length)return;
+  const sheetName = sheetKey === 'wafdeen' ? 'الوافدين' : 'درجات الطلاب';
+  const action = sheetKey === 'wafdeen' ? 'saveWafdeenDailyGrade' : 'saveDailyGrade';
+  const batchSize = 50;
+  for(let i=0;i<rows.length;i+=batchSize){
+    const batch = rows.slice(i,i+batchSize).map(row => ({
+      recordId:String(row.recordId || row.id || ''),
+      data:row,
+      action,
+      sheetName
+    })).filter(x => x.recordId);
+    if(!batch.length)continue;
+    await postGoogleSheetsJson_(GOOGLE_SHEETS_WEB_APP_URL, {
+      action:'importGradesBatch',
+      sheetName,
+      sheet:sheetKey,
+      records:batch,
+      timestamp:new Date().toISOString()
+    });
+    await new Promise(r=>setTimeout(r,250));
+  }
+}
+
+async function deleteOldGoogleSheetRows_(sheetKey, rows, box, offsetStart){
+  const sheetName = sheetKey === 'wafdeen' ? 'الوافدين' : 'درجات الطلاب';
+  let done = 0;
+  for(const row of rows){
+    const id = String(row.recordId || row.id || '').trim();
+    if(!id)continue;
+    const oldUrl = String(localStorage.getItem('OLD_GOOGLE_SHEETS_WEB_APP_URL') || '').trim();
+    await postGoogleSheetsJson_(oldUrl, {
+      action: sheetKey === 'wafdeen' ? 'deleteWafdeenDailyGrade' : 'deleteDailyGrade',
+      recordId:id,
+      sheetName,
+      data:{id}
+    });
+    done++;
+    if(box && (done % 10 === 0 || done === rows.length)) box.innerHTML = '🗑️ حذف القديم: ' + done + ' / ' + rows.length + ' من شيت «' + sheetName + '»';
+    await new Promise(r=>setTimeout(r,120));
+  }
+}
+
+function googleSheetsAdminAction_(action, timeoutMs=120000) {
+  return new Promise((resolve, reject) => {
+    if (!GOOGLE_SHEETS_WEB_APP_URL) return reject(new Error('رابط Google Sheets الجديد غير موجود'));
+    const callbackName='__adminSheets_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+    const script=document.createElement('script');
+    let finished=false;
+    const timer=setTimeout(()=>finishError(new Error('انتهت مهلة العملية. تأكد أن آخر نسخة من Apps Script منشورة كـ Web App.')),timeoutMs);
+    function cleanup(){try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer);}
+    function finishOk(v){if(finished)return;finished=true;cleanup();resolve(v);}
+    function finishError(e){if(finished)return;finished=true;cleanup();reject(e instanceof Error?e:new Error(String(e||'فشلت العملية')));}
+    window[callbackName]=result=>{ if(result&&result.ok)return finishOk(result); finishError(new Error((result&&result.error)||'فشلت العملية على Google Sheets')); };
+    script.onerror=()=>finishError(new Error('تعذر الوصول إلى Web App الجديد'));
+    const parts=String(action||'').split('&');
+    const actionName=parts.shift()||'';
+    script.src=GOOGLE_SHEETS_WEB_APP_URL+'?action='+encodeURIComponent(actionName)+(parts.length?'&'+parts.join('&'):'')+'&callback='+encodeURIComponent(callbackName)+'&t='+Date.now();
+    (document.head||document.documentElement).appendChild(script);
+  });
+}
+
+async function migrateOldGoogleSheetsGrades(){
+  const box=document.getElementById('google-sheets-migration-box');
+  if(!box)return;
+  if(!(currentTeacher?.username==='admin' || currentWafdeenTeacher?.isAdmin)){
+    box.style.display='block'; box.innerHTML='❌ هذه العملية متاحة للإدارة فقط.'; return;
+  }
+  if(!GOOGLE_SHEETS_WEB_APP_URL){
+    box.style.display='block'; box.innerHTML='❌ رابط الشيت الجديد غير مضبوط.'; return;
+  }
+  const start=confirm('سيتم نقل كل الدرجات من الشيت القديم إلى الشيت الجديد باستخدام recordId.\n\nلن يتم حذف القديم إلا بعد نجاح النقل والتحقق.\n\nهل تريد البدء؟');
+  if(!start)return;
+  box.style.display='block'; box.className='toast-msg';
+  try{
+    let oldSheetUrl='';
+    try{ oldSheetUrl=localStorage.getItem('OLD_GOOGLE_SHEET_FILE_URL')||''; }catch(_){ }
+    if(!oldSheetUrl){
+      oldSheetUrl=prompt('الصق هنا رابط ملف Google Sheets القديم نفسه (الرابط الذي يفتح الجدول)، وليس رابط Apps Script.');
+      if(!oldSheetUrl){ box.innerHTML='⏸️ تم إلغاء العملية.'; return; }
+      try{localStorage.setItem('OLD_GOOGLE_SHEET_FILE_URL',oldSheetUrl);}catch(_){ }
+    }
+    box.innerHTML='🔗 جاري التحقق من الشيت القديم...';
+    const source=await googleSheetsAdminAction_('setMigrationSource&sourceUrl='+encodeURIComponent(oldSheetUrl),60000);
+    if(!source || !source.ok) throw new Error('تعذر فتح الشيت القديم من حساب Google المرتبط بالـApps Script.');
+    box.innerHTML='⏳ جاري نقل الدرجات مباشرة من الشيت القديم إلى الجديد...<br><small>'+String(source.name||'')+'</small>';
+    const r=await googleSheetsAdminAction_('migrateOldGrades',300000);
+    const w=r.wafdeen||{}, s=r.students||{};
+    box.innerHTML='✅ تم نقل الدرجات بنجاح.<br>الوافدين: '+(w.imported||0)+' سجل<br>درجات الطلاب: '+(s.imported||0)+' سجل<br>⏳ جاري التحقق...';
+    const nw=await googleSheetsGetGrades_('wafdeen');
+    const ns=await googleSheetsGetGrades_('students');
+    const expectedW=Number(w.imported||0), expectedS=Number(s.imported||0);
+    const actualW=Array.isArray(nw.rows)?nw.rows.filter(x=>!String(x.studentName||'').includes('اختبار سحابي')).length:0;
+    const actualS=Array.isArray(ns.rows)?ns.rows.filter(x=>!String(x.studentName||'').includes('اختبار سحابي')).length:0;
+    if((expectedW && actualW < expectedW) || (expectedS && actualS < expectedS)){
+      box.innerHTML='❌ تم إيقاف الحذف حفاظًا على البيانات: لم يكتمل التحقق من الشيت الجديد.'; return;
+    }
+    const remove=confirm('تم نقل الدرجات والتحقق منها في الشيت الجديد.\n\nهل تريد الآن حذف الدرجات من الشيت القديم نهائيًا؟');
+    if(!remove){ box.innerHTML+='⏸️ تم النقل فقط. لم يتم حذف أي شيء من الشيت القديم.'; return; }
+    box.innerHTML='🗑️ جاري حذف الدرجات من الشيت القديم بعد نجاح التحقق...';
+    const d=await googleSheetsAdminAction_('deleteOldGrades',300000);
+    if(d.ok && Number(d.leftW||0)===0 && Number(d.leftS||0)===0){
+      box.innerHTML='🎉 تمت العملية بالكامل بنجاح.<br>تم نقل الدرجات إلى الشيت الجديد ثم حذفها من القديم.<br>الوافدين: '+(d.deletedW||0)+' — درجات الطلاب: '+(d.deletedS||0);
+      try{localStorage.removeItem('OLD_GOOGLE_SHEET_FILE_URL');}catch(_){ }
+    }else{
+      box.innerHTML='⚠️ تم النقل بنجاح، لكن لم يكتمل حذف القديم. لم يتم فقد أي بيانات.<br>متبقي — الوافدين: '+(d.leftW||0)+' — درجات الطلاب: '+(d.leftS||0);
+    }
+  }catch(e){
+    box.innerHTML='❌ العملية توقفت ولم يتم تنفيذ الحذف.<br><small>'+String(e.message||e)+'</small><br><small>تأكد أن آخر نسخة من Apps Script الجديد منشورة كـ Web App بصلاحية Anyone، وأن الشيت القديم متاح لنفس حساب Google.</small>';
+  }
+}
+async function runFullCloudTest(){
+  const box=document.getElementById('full-cloud-test-box');
+  if(!box)return;
+  box.style.display='block'; box.className='toast-msg';
+  const results=[];
+  const add=(name,ok,msg)=>{
+    results.push({name,ok,msg});
+    const passed=results.filter(x=>x.ok).length;
+    box.innerHTML='<div style="line-height:1.9">'+results.map(x=>(x.ok?'✅ ':'❌ ')+x.name+' — '+x.msg).join('<br>')+
+      '<br><strong>النتيجة الحالية: '+passed+'/'+results.length+'</strong></div>';
+  };
+  const base='__CLOUD_TEST__'+Date.now()+'_'+Math.floor(Math.random()*1000);
+  const tests=[
+    {key:'wafdeen',sheet:'الوافدين',id:base+'_W',save:'saveWafdeenDailyGrade',update:'updateWafdeenDailyGrade',del:'deleteWafdeenDailyGrade',name:'الوافدين'},
+    {key:'students',sheet:'درجات الطلاب',id:base+'_S',save:'saveDailyGrade',update:'updateDailyGrade',del:'deleteDailyGrade',name:'درجات الطلاب'}
+  ];
+  box.innerHTML='⏳ جاري تنفيذ الاختبار الحقيقي: حفظ ← قراءة ← تعديل ← قراءة ← حذف ← قراءة...';
+
+  try{
+    if(!db)throw new Error('Firebase غير مهيأ');
+    await db.collection('students').limit(1).get();
+    add('Firebase',true,'قراءة حسابات الطلاب نجحت');
+  }catch(e){ add('Firebase',false,String(e.message||e)); }
+
+  try{
+    const h=await googleSheetsHealthCheck_();
+    add('Google Sheets الاتصال',true,'الرابط يستجيب — الشيتان متاحان');
+  }catch(e){
+    add('Google Sheets الاتصال',false,String(e.message||e));
+    return;
+  }
+
+  for(const t of tests){
+    const data={
+      id:t.id,recordId:t.id,studentName:'اختبار سحابي — لا تحذف',student:'اختبار سحابي — لا تحذف',
+      className:'اختبار النظام',teacher:'SYSTEM TEST',__CLOUD_TEST__:true,testMarker:base,
+      testValue:'SAVE_OK',grade:29,dailyTotal:29,newLessonTimeSeconds:60,oldRevisionTimeSeconds:60,recitationTimeSeconds:60,
+      updatedAt:new Date().toISOString()
+    };
+    try{
+      await postGradeToGoogleSheet_({action:t.save,recordId:t.id,source:t.key==='wafdeen'?'wafdeen_daily_grades':'daily_grades',sheetName:t.sheet,timestamp:new Date().toISOString(),data});
+      const r=await waitForGoogleSheetRecord_(t.key,t.id,true);
+      add(t.name+' — حفظ',r.ok,r.ok?'تم حفظ السجل وقراءته من الشيت':'لم يظهر السجل بعد الحفظ');
+    }catch(e){ add(t.name+' — حفظ',false,String(e.message||e)); continue; }
+
+    try{
+      data.testValue='UPDATE_OK'; data.grade=27; data.dailyTotal=27; data.updatedAt=new Date().toISOString();
+      await postGradeToGoogleSheet_({action:t.update,recordId:t.id,source:t.key==='wafdeen'?'wafdeen_daily_grades':'daily_grades',sheetName:t.sheet,timestamp:new Date().toISOString(),data});
+      const r=await googleSheetsGetGrade_(t.key,t.id);
+      const row=r.row||null;
+      const ok=!!r.found && !!row && String(row.testValue)==='UPDATE_OK' && String(row.grade)==='27' && String(row.dailyTotal)==='27';
+      add(t.name+' — تعديل',ok,ok?'تم تعديل نفس السجل بدون إنشاء سجل مكرر':'التعديل لم يظهر بالقيمة الجديدة');
+    }catch(e){ add(t.name+' — تعديل',false,String(e.message||e)); }
+
+    try{
+      await postGradeToGoogleSheet_({action:t.del,recordId:t.id,source:t.key==='wafdeen'?'wafdeen_daily_grades':'daily_grades',sheetName:t.sheet,timestamp:new Date().toISOString(),data:{id:t.id,__CLOUD_TEST__:true}});
+      const r=await waitForGoogleSheetRecord_(t.key,t.id,false);
+      add(t.name+' — حذف',r.ok,r.ok?'تم حذف سجل الاختبار والتأكد من اختفائه':'سجل الاختبار ما زال موجودًا');
+    }catch(e){ add(t.name+' — حذف',false,String(e.message||e)); }
+  }
+
+  const passed=results.filter(x=>x.ok).length,total=results.length;
+  const allOps=tests.every(t=>['حفظ','تعديل','حذف'].every(op=>results.some(x=>x.name===t.name+' — '+op && x.ok)));
+  box.innerHTML+='<br><strong style="font-size:1.05em">'+
+    (allOps?'🎉 الحفظ والتعديل والحذف شغالين في الشيتين بالكامل':'⚠️ الاختبار اكتمل لكن يوجد جزء يحتاج إصلاح')+
+    '</strong><br><strong>النتيجة النهائية: '+passed+'/'+total+'</strong>';
+}
+
 async function runSystemConnectionTest() {
   const box = document.getElementById('connection-test-box');
   if (!box) return;
@@ -3891,7 +4194,7 @@ async function flushGoogleSheetsQueue_(){
 }
 async function sendGradeToGoogleSheet(action,data){
   if(!GOOGLE_SHEETS_WEB_APP_URL)return false;
-  const payload={action,recordId:String(data?.id||data?.recordId||`${action}_${Date.now()}`),source:action==='saveWafdeenExam'?'wafdeen_exam':action==='saveWafdeenDailyGrade'?'wafdeen_daily_grades':'daily_grades',timestamp:new Date().toISOString(),data:data||{}};
+  const isWafdeen=action==='saveWafdeenExam'||action==='saveWafdeenDailyGrade'; const payload={action,recordId:String(data?.id||data?.recordId||`${action}_${Date.now()}`),source:isWafdeen?(action==='saveWafdeenExam'?'wafdeen_exam':'wafdeen_daily_grades'):'daily_grades',sheetName:isWafdeen?'الوافدين':'درجات الطلاب',timestamp:new Date().toISOString(),data:data||{}};
   const queue=getPendingGoogleSheetsGrades_().filter(x=>String(x.recordId)!==String(payload.recordId));
   queue.push(payload);setPendingGoogleSheetsGrades_(queue);
   try{await flushGoogleSheetsQueue_();}catch(e){console.warn('تعذر إرسال الدرجة إلى Google Sheets:',e);}
@@ -4460,26 +4763,8 @@ function syncDataFromCloud() {
 
   syncCollection_('notes', () => notesData, v => { notesData=v; },
     () => { renderNotesTable(); updateNotesStudentList(); }, {storageKey:'notesData'});
-
-  syncCollection_('dailyRecords', () => dailyRecords, v => {
-    dailyRecords=v.map(r => {
-      if (isFifthClass(r.className)) {
-        const legacySum=Number(r.recitation1||0)+Number(r.recitation2||0)+Number(r.recitation3||0)+Number(r.recitation4||0);
-        if ((!Number(r.recitation)||Number(r.recitation)===0)&&legacySum>0) r.recitation=Math.min(10,legacySum);
-        r.recitation1=0; r.recitation2=0; r.recitation3=0; r.recitation4=0;
-      }
-      return r;
-    });
-  }, () => {
-    renderDailyTable(); populateWeeks(); renderWeeklyTable(); renderMonthlyReport();
-    renderTopStudents(); renderManagerView(); renderAttendanceTable(); renderClassStatusTable();
-    const sec=document.getElementById('student-analysis-section');
-    if(sec && !sec.classList.contains('hidden')) { populateAnalysisWeeks(); renderStudentDataAnalysis(); }
-  }, {storageKey:'dailyRecords'});
-
-  syncCollection_('results', () => resultsData, v => { resultsData=v; },
-    () => { if (currentTeacher?.username==='admin') renderResultsAdminSummary(); },
-    {storageKey:'resultsData'});
+  // درجات الموقع لا تُخزَّن في Firebase؛ مصدرها Google Sheets، والنسخة المحلية للعرض السريع.
+  // نتائج الطلاب درجات أيضاً؛ لا تُخزَّن في Firebase.
 }
 
 function showMessage(elementId, msg, type) {
@@ -5596,15 +5881,11 @@ async function addGrade() {
 
   if (!studentName) return showMessage('app-msg', 'يرجى اختيار الاسم بشكل صحيح', 'error');
   if (!dateISO) return showMessage('app-msg', 'يرجى اختيار التاريخ بشكل صحيح', 'error');
-  const recordedTiming = Object.values(dailyTimerSeconds).some(v => Number(v || 0) > 0);
-  if (!recordedTiming) return showMessage('app-msg', 'لا يمكن حفظ الدرجات: يجب تسجيل وقت التسميع أولاً من خلال التايمر ثم الضغط على توقف.', 'error');
   const fifth = isFifthClass(className);
-  if (!recitationTopicToday || !recitationTopicRecited || (!fifth && (!oldTopicToday || !oldTopicRecited || !newTopicToday || !newTopicRecited))) {
-    return showMessage('app-msg', fifth ? 'عذراً، يجب إدخال مقرر التلاوة اليوم ومقرر التلاوة الذي تم تسميعه!' : 'عذراً، يجب إدخال مقرري الجديد والماضي (اليوم والتسميع) ومقرري التلاوة (اليوم والتسميع)!', 'error');
-  }
   const isAbsent = Number(attVal) === 0;
-  if (!isAbsent && (!recitationPagesCount || !recitationRecitationCount || (!fifth && (!newPagesCount || !oldPagesCount || !newRecitationCount || !oldRecitationCount)))) {
-    return showMessage('app-msg', fifth ? 'عذراً، اختر عدد أجزاء التلاوة وعدد مرات التسميع.' : 'عذراً، اختر عدد الصفحات لكل مقرر وعدد مرات التسميع لكل مقرر.', 'error');
+  const missingFields = wafdeenValidateDailyRequiredFields_();
+  if (missingFields.length) {
+    return showMessage('app-msg', 'يوجد بيانات ناقصة باللون الأحمر. أكمل الخانات المطلوبة ثم اضغط حفظ.', 'error');
   }
   dailyCalculateGrade('new');
   dailyCalculateGrade('old');
@@ -5669,19 +5950,22 @@ async function addGrade() {
     recitation1: 0, recitation2: 0, recitation3: 0, recitation4: 0
   };
 
-  if (useFirebase) await db.collection('dailyRecords').doc(record.id).set(record, {merge:true});
-  else {
-    const idx=dailyRecords.findIndex(r=>r.id===record.id); if(idx>-1) dailyRecords[idx]=record; else dailyRecords.push(record);
-    localStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
+  // احفظ محليًا أولاً حتى لا تختفي الدرجات إذا تأخرت السحابة أو انقطع الاتصال.
+  const idx=dailyRecords.findIndex(r=>r.id===record.id);
+  if(idx>-1) dailyRecords[idx]=record; else dailyRecords.push(record);
+  localStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
+  try{
+    // Firebase هو المصدر السحابي، وGoogle Sheets نسخة إضافية للدرجات.
+    await sendGradeToGoogleSheet('saveDailyGrade', record);
+  }catch(cloudError){
+    console.error('Cloud save warning:',cloudError);
+    showMessage('app-msg', 'تم حفظ الرصد على الجهاز، لكن تعذر رفعه للسحابة الآن. ستتم المزامنة عند عودة الاتصال.', 'error');
   }
-  // Firebase هو مصدر بيانات النظام، وGoogle Sheets نسخة الدرجات.
-  await sendGradeToGoogleSheet('saveDailyGrade', record);
   renderDailyTable(); renderAttendanceTable(); renderWeeklyTable(); renderMonthlyReport(); renderManagerView(); renderClassStatusTable(); if(document.getElementById('student-analysis-section') && !document.getElementById('student-analysis-section').classList.contains('hidden')){ populateAnalysisWeeks(); renderStudentDataAnalysis(); }
-  dailyTimerSeconds={new:Number(record.newLessonTimeSeconds||0),old:Number(record.oldRevisionTimeSeconds||0),recitation:Number(record.recitationTimeSeconds||0)};
-  updateDailyTypeTimes();
-  document.getElementById('daily-score-time-summary').textContent=`تم حفظ الوقت — الجديد: ${formatTimerSeconds(dailyTimerSeconds.new)} | الماضي: ${formatTimerSeconds(dailyTimerSeconds.old)} | التلاوة: ${formatTimerSeconds(dailyTimerSeconds.recitation)}`;
-  try{ localStorage.removeItem(wafdeenDailyDraftKey_()); }catch(_){}
-  showMessage('app-msg', 'تم حفظ الدرجات ووقت التسميع بنجاح ✨', 'success');
+  const savedTimes={new:Number(record.newLessonTimeSeconds||0),old:Number(record.oldRevisionTimeSeconds||0),recitation:Number(record.recitationTimeSeconds||0)};
+  const savedTimeText=`الجديد: ${formatTimerSeconds(savedTimes.new)} | الماضي: ${formatTimerSeconds(savedTimes.old)} | التلاوة: ${formatTimerSeconds(savedTimes.recitation)}`;
+  wafdeenResetDailyEntryForm_();
+  showMessage('app-msg', `تم حفظ الدرجات ووقت التسميع بنجاح ✨ (${savedTimeText})`, 'success');
 }
 
 /* ================= أدوات واجهة الموقع الداخلية ================= */
@@ -5850,7 +6134,66 @@ function dailyMissingCell(value, label='لم تُسجل') {
   return missing ? `<span class="missing-cell" title="${label}">${label}</span>` : String(value);
 }
 function dailyMissingTimeCell(seconds) {
-  return Number(seconds || 0) > 0 ? formatTimerSeconds(seconds) : '<span class="missing-cell" title="الوقت لم يُسجل">الوقت لم يُسجل</span>';
+  return Number(seconds || 0) > 0 ? `<span class="recorded-time">${formatTimerSeconds(seconds)}</span>` : '<span class="missing-cell" title="الوقت لم يُسجل">الوقت لم يُسجل</span>';
+}
+function wafdeenIsMissingValue_(value){
+  return value === null || value === undefined || String(value).trim() === '';
+}
+function wafdeenMarkMissingField_(id, missing){
+  const el=document.getElementById(id);
+  const group=el?.closest('.form-group');
+  if(el) el.classList.toggle('field-missing',!!missing);
+  if(group) group.classList.toggle('field-missing-group',!!missing);
+}
+function wafdeenClearMissingMarks_(){
+  document.querySelectorAll('#wafdeen-daily-scores-panel .field-missing,#wafdeen-daily-scores-panel .field-missing-group').forEach(el=>el.classList.remove('field-missing','field-missing-group'));
+  const box=document.getElementById('wafdeen-missing-fields');
+  const list=document.getElementById('wafdeen-missing-fields-list');
+  if(list)list.textContent='أكمل البيانات المطلوبة قبل الحفظ.';
+  if(box)box.classList.add('hidden');
+}
+function wafdeenShowMissingFields_(items){
+  const box=document.getElementById('wafdeen-missing-fields');
+  const list=document.getElementById('wafdeen-missing-fields-list');
+  if(!box||!list)return;
+  if(items&&items.length){list.innerHTML=items.map(x=>`<span style="display:inline-block;margin:2px 4px;padding:2px 8px;border-radius:8px;background:#ffd9d9;color:#b71c1c">${String(x).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}</span>`).join(' ');box.classList.remove('hidden');}
+  else box.classList.add('hidden');
+}
+function wafdeenValidateDailyRequiredFields_(){
+  wafdeenClearMissingMarks_();
+  const fifth=isFifthClass(document.getElementById('classSelect')?.value||'');
+  const attendance=Number(document.getElementById('attendance')?.value);
+  const isAbsent=attendance===0;
+  const required=['attendance','behavior','tajweed','homework','recitationTopicToday','recitationTopicRecited'];
+  // في حالة الغياب: الصفر ومقررات الغياب يكفيان، ولا نطلب صفحات/مرات/وقت تسميع.
+  if(!isAbsent){
+    required.push('recitationPagesCount','recitationRecitationCount');
+    if(!fifth) required.push('newLesson','newTopicToday','newPagesCount','newRecitationCount','newTopicRecited','oldRevision','oldTopicToday','oldPagesCount','oldRecitationCount','oldTopicRecited');
+  }
+  const missing=required.filter(id=>{const el=document.getElementById(id);return !el || wafdeenIsMissingValue_(el.value);});
+  // الوقت جزء من الرصد، ويظهر باللون الأحمر إذا لم يسجل. لا يلزم للغائب.
+  if(!isAbsent){
+    if(!fifth && Number(dailyTimerSeconds.new||0)<=0) missing.push('__newTime');
+    if(!fifth && Number(dailyTimerSeconds.old||0)<=0) missing.push('__oldTime');
+    if(Number(dailyTimerSeconds.recitation||0)<=0) missing.push('__recitationTime');
+  }
+  const timeMap={__newTime:'newLessonTimeLabel',__oldTime:'oldRevisionTimeLabel',__recitationTime:'recitationTimeLabel'};
+  missing.forEach(id=>{if(id.startsWith('__')) wafdeenMarkMissingField_(timeMap[id],true); else wafdeenMarkMissingField_(id,true);});
+  return missing;
+}
+function wafdeenResetDailyEntryForm_(){
+  ['attendance','behavior','tajweed','homework','newTopicToday','newTopicRecited','oldTopicToday','oldTopicRecited','recitationTopicToday','recitationTopicRecited','newPagesCount','oldPagesCount','recitationPagesCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['newRecitationCount','oldRecitationCount','recitationRecitationCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['newLesson','oldRevision','recitation'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.disabled=true;el.readOnly=true;el.classList.add('daily-auto-grade');}});
+  dailyTimerSeconds={new:0,old:0,recitation:0};
+  dailyTimerType='new'; dailyCounterType=''; dailyTimerRunning=false; dailyTimerStartedAt=0; dailyTimerBaseSeconds=0;
+  clearInterval(dailyTimerInterval); dailyTimerInterval=null;
+  dailyResetCounters();
+  updateDailyTypeTimes(); renderDailyTimer(); dailyRenderCounters();
+  const summary=document.getElementById('daily-score-time-summary');
+  if(summary)summary.textContent='تم الحفظ بنجاح. الخانات جاهزة لرصد طالب آخر أو رصد جديد.';
+  try{localStorage.removeItem(wafdeenDailyDraftKey_());}catch(_){}
+  wafdeenClearMissingMarks_();
 }
 
 function renderDailyTable() {
@@ -7933,6 +8276,24 @@ document.addEventListener('click', function(e) {
 .wafdeen-grade-summary{padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;font-weight:900;min-height:20px}
  .wafdeen-grade-period-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.wafdeen-grade-period-btn{flex:1;min-width:100px;padding:10px 14px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface);color:var(--ink);font-family:inherit;font-weight:800;cursor:pointer}.wafdeen-grade-period-btn.active{background:linear-gradient(120deg,var(--primary-color),var(--primary-dark));color:#fff;border-color:var(--accent-gold)}.wafdeen-grade-period-panel{overflow:auto}.wafdeen-grade-period-panel table{width:100%;min-width:900px;border-collapse:collapse}.wafdeen-grade-period-panel th,.wafdeen-grade-period-panel td{padding:9px 7px;border:1px solid var(--border-soft);text-align:center;font-size:.84em}.wafdeen-grade-period-panel th{background:linear-gradient(180deg,var(--brand-dark-2),var(--primary-dark));color:var(--on-dark-gold)}.wafdeen-grade-period-panel tbody tr:nth-child(even){background:var(--surface-alt)}.wafdeen-grade-period-panel .grade-total{font-weight:900;color:var(--primary-color)}
 
+
+/* تحسين عرض قائمة درجات الوافدين: بطاقة رأسية مناسبة للهاتف */
+.grade-missing,.missing-cell{color:#d90429!important;background:#fff0f1!important;border:1px solid #ffb3bd;border-radius:7px;padding:3px 7px;font-weight:900;display:inline-block}
+.grade-time,.recorded-time{color:#0b6b53!important;font-weight:900}
+.field-missing{border:2px solid #e63946!important;background:#fff5f5!important;box-shadow:0 0 0 2px rgba(230,57,70,.08)}
+.field-missing-group>label{color:#c1121f!important;font-weight:900}
+.wafdeen-grade-period-panel{overflow:visible!important}
+.wafdeen-horizontal-grades{width:100%;box-sizing:border-box;margin-bottom:14px}.wafdeen-horizontal-scroll{width:100%;overflow-x:auto!important;overflow-y:hidden;-webkit-overflow-scrolling:touch}.wafdeen-horizontal-grade-table{width:max-content;min-width:1200px;border-collapse:collapse;direction:rtl}.wafdeen-horizontal-grade-table th,.wafdeen-horizontal-grade-table td{white-space:nowrap;vertical-align:middle}.wafdeen-horizontal-grade-table td{min-width:90px}.wafdeen-horizontal-grade-table .grade-missing{display:inline-block}.wafdeen-horizontal-grade-table .grade-time{white-space:nowrap}.wafdeen-horizontal-grade-table .grade-total{font-size:1.05em}
+
+.wafdeen-grade-record-card{width:100%;box-sizing:border-box;border:1px solid var(--border-soft);border-radius:16px;background:var(--surface);margin:0 0 14px;padding:12px;box-shadow:0 3px 12px rgba(0,0,0,.06)}
+.grade-record-head{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-bottom:10px;margin-bottom:8px;border-bottom:2px solid var(--border-soft);color:var(--primary-dark)}
+.grade-record-fields{display:flex;flex-direction:column;gap:7px}
+.grade-record-row{display:grid;grid-template-columns:minmax(125px,38%) 1fr;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px dashed var(--border-soft)}
+.grade-record-label{font-weight:900;color:var(--ink);font-size:.9rem}
+.grade-record-value{min-width:0;text-align:right;overflow-wrap:anywhere;font-weight:700}
+.grade-card-actions{display:flex;gap:8px;margin-top:12px}.grade-card-actions button{flex:1}
+@media(max-width:600px){.wafdeen-grade-record-card{padding:10px}.grade-record-row{grid-template-columns:1fr;gap:3px}.grade-record-label{font-size:.82rem;color:var(--primary-dark)}.grade-record-value{text-align:right}.grade-card-actions{flex-direction:column}}
+
 </style>
 <script>
 /* ================= منطق جلسة الوافدين ================= */
@@ -8078,19 +8439,9 @@ function wafdeenLoadCloud(){
   syncCollection_('wafdeenStudents', ()=>wafdeenStudentsData, v=>{wafdeenStudentsData=v;},
     ()=>{wafdeenPersistLocal();wafdeenRenderStudentSelect();if(currentWafdeenTeacher?.isAdmin)wafdeenRenderStudentsTable();},
     {storageKey:'wafdeenStudentsData'});
-
-  syncCollection_('wafdeenUsage', ()=>wafdeenUsageData, v=>{wafdeenUsageData=v;},
-    ()=>{wafdeenPersistLocal();if(currentWafdeenTeacher?.isAdmin)renderWafdeenMonthlyReport();
-      if(document.getElementById('wafdeen-panel-educationTime')&&!document.getElementById('wafdeen-panel-educationTime').classList.contains('hidden'))wafdeenRenderEducationTime();},
-    {storageKey:'wafdeenUsageData'});
-
-  syncCollection_('wafdeenDailyRecords', ()=>wafdeenDailyRecords, v=>{wafdeenDailyRecords=(v||[]).filter(r=>!r._deleted);},
-    ()=>{wafdeenPersistLocal();if(document.getElementById('wafdeen-panel-grades')&&!document.getElementById('wafdeen-panel-grades').classList.contains('hidden'))wafdeenRenderGrades();wafdeenUpdateDailyScoresVisibility();},
-    {storageKey:'wafdeenDailyRecords'});
-
-  syncCollection_('wafdeenExams', ()=>wafdeenExamsData, v=>{wafdeenExamsData=v;},
-    ()=>{wafdeenPersistLocal();if(document.getElementById('wafdeen-panel-materials')&&!document.getElementById('wafdeen-panel-materials').classList.contains('hidden'))wafdeenRenderMaterials(wafdeenSelectedSubject);},
-    {storageKey:'wafdeenExamsData'});
+  // أوقات التسميع جزء من الرصد؛ تُحفظ محلياً وتُرسل مع الدرجة إلى Google Sheets فقط.
+  // درجات الوافدين لا تُخزَّن في Firebase؛ مصدرها Google Sheets، والنسخة المحلية للعرض السريع.
+  // امتحانات الوافدين درجات؛ تُرسل إلى ورقة الوافدين فقط.
 }
 
 function wafdeenRenderStudentSelect(){
@@ -8232,47 +8583,136 @@ async function saveWafdeenDailyRecord(isAbsent=false){
   if(!sel?.value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');
   const student=wafdeenStudentsData.find(x=>String(x.id)===String(sel.value));
   if(!student)return showMessage('wafdeen-save-msg','الطالب غير موجود','error');
+
+  // لا يسمح بالحفظ العادي إلا بعد اكتمال جميع خانات الرصد الأساسية.
+  // زر الغياب استثناء مقصود: يسجل صفرًا في الرصد بالكامل.
+  if(!isAbsent){
+    const required=[
+      ['wafdeenNewLesson','درجة الجديد'],
+      ['wafdeenNewPagesCount','عدد صفحات الجديد'],
+      ['wafdeenNewTopicRecited','مقرر الجديد الذي تم تسميعه'],
+      ['wafdeenOldRevision','درجة الماضي'],
+      ['wafdeenOldPagesCount','عدد صفحات الماضي'],
+      ['wafdeenOldTopicRecited','مقرر الماضي الذي تم تسميعه'],
+      ['wafdeenRecitation','درجة التلاوة'],
+      ['wafdeenRecitationPagesCount','عدد صفحات/أجزاء التلاوة'],
+      ['wafdeenRecitationTopicRecited','مقرر التلاوة الذي تم تسميعه']
+    ];
+    const missing=[];
+    required.forEach(([id,label])=>{
+      const el=document.getElementById(id);
+      if(!el || String(el.value??'').trim()===''){
+        wafdeenMarkMissingField_(id,true);
+        missing.push(label);
+      }else wafdeenMarkMissingField_(id,false);
+    });
+
+    // الوقت لا يعتبر مسجلاً إلا إذا تم إيقاف وحفظ مؤقت النوع نفسه.
+    const today=wafdeenDateKeyLocal(new Date());
+    const quranToday=(wafdeenUsageData||[]).filter(r=>
+      !r._deleted && String(r.studentId)===String(student.id) &&
+      String(r.category)==='quran' && String(r.dateISO||'').slice(0,10)===today
+    );
+    const timeByType={};
+    ['الجديد','الماضي','التلاوة'].forEach(type=>{
+      const seconds=quranToday.filter(r=>String(r.type)===type)
+        .reduce((sum,r)=>sum+Math.max(0,Number(r.seconds)||0),0);
+      timeByType[type]=seconds;
+      const labelId=type==='الجديد'?'wafdeen-new-time-label':type==='الماضي'?'wafdeen-old-time-label':'wafdeen-recitation-time-label';
+      const el=document.getElementById(labelId);
+      if(el)el.classList.toggle('field-missing',seconds<=0);
+      if(seconds<=0)missing.push('وقت '+type);
+    });
+
+    if(missing.length){
+      wafdeenShowMissingFields_(missing);
+      showMessage('wafdeen-save-msg','❌ لا يمكن الحفظ. أكمل كل الخانات الناقصة (بالأحمر): '+missing.join('، '),'error');
+      return;
+    }
+    wafdeenShowMissingFields_([]);
+  }
+
   const val=id=>document.getElementById(id)?.value ?? '';
   const num=id=>{const n=Number(val(id));return Number.isFinite(n)?Math.max(0,Math.min(10,n)):0;};
   const dateISO=new Date().toISOString().slice(0,10), d=new Date(dateISO);
   const id=`wafdeen_${student.id}_${dateISO}`;
-  const record={id,teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,dateISO,
+  const todayUsage=(wafdeenUsageData||[]).filter(r=>!r._deleted&&String(r.studentId)===String(student.id)&&String(r.category)==='quran'&&String(r.dateISO||'').slice(0,10)===dateISO);
+  const timeFor=type=>todayUsage.filter(r=>String(r.type)===type).reduce((sum,r)=>sum+Math.max(0,Number(r.seconds)||0),0);
+  const record={
+    id,teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,dateISO,
     dayName:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][d.getDay()],
     newLesson:isAbsent?0:num('wafdeenNewLesson'),newPagesCount:isAbsent?'':val('wafdeenNewPagesCount'),newTopicRecited:isAbsent?'':val('wafdeenNewTopicRecited'),
     oldRevision:isAbsent?0:num('wafdeenOldRevision'),oldPagesCount:isAbsent?'':val('wafdeenOldPagesCount'),oldTopicRecited:isAbsent?'':val('wafdeenOldTopicRecited'),
     recitation:isAbsent?0:num('wafdeenRecitation'),recitationPagesCount:isAbsent?'':val('wafdeenRecitationPagesCount'),recitationTopicRecited:isAbsent?'':val('wafdeenRecitationTopicRecited'),
-    newLessonTimeSeconds:0,oldRevisionTimeSeconds:0,recitationTimeSeconds:0,
-    quranNewTimeSeconds:0,quranOldTimeSeconds:0,quranRecitationTimeSeconds:0,
-    newErrors:isAbsent?0:wafdeenQuranErrorCounters['الجديد'].errors,
-    newTashkeel:isAbsent?0:wafdeenQuranErrorCounters['الجديد'].tashkeel,
-    newRepetition:isAbsent?0:wafdeenQuranErrorCounters['الجديد'].repetition,
-    oldErrors:isAbsent?0:wafdeenQuranErrorCounters['الماضي'].errors,
-    oldTashkeel:isAbsent?0:wafdeenQuranErrorCounters['الماضي'].tashkeel,
-    oldRepetition:isAbsent?0:wafdeenQuranErrorCounters['الماضي'].repetition,
-    recitationErrors:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].errors,
-    recitationTashkeel:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].tashkeel,
-    recitationRepetition:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].repetition,
-    savedAt:new Date().toISOString()};
-  record.total=record.newLesson+record.oldRevision+record.recitation;
+    newLessonTimeSeconds:isAbsent?0:timeFor('الجديد'),oldRevisionTimeSeconds:isAbsent?0:timeFor('الماضي'),recitationTimeSeconds:isAbsent?0:timeFor('التلاوة'),
+    quranNewTimeSeconds:isAbsent?0:timeFor('الجديد'),quranOldTimeSeconds:isAbsent?0:timeFor('الماضي'),quranRecitationTimeSeconds:isAbsent?0:timeFor('التلاوة'),
+    newErrors:isAbsent?0:wafdeenQuranErrorCounters['الجديد'].errors,newTashkeel:isAbsent?0:wafdeenQuranErrorCounters['الجديد'].tashkeel,newRepetition:isAbsent?0:wafdeenQuranErrorCounters['الجديد'].repetition,
+    oldErrors:isAbsent?0:wafdeenQuranErrorCounters['الماضي'].errors,oldTashkeel:isAbsent?0:wafdeenQuranErrorCounters['الماضي'].tashkeel,oldRepetition:isAbsent?0:wafdeenQuranErrorCounters['الماضي'].repetition,
+    recitationErrors:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].errors,recitationTashkeel:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].tashkeel,recitationRepetition:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].repetition,
+    savedAt:new Date().toISOString()
+  };
+  record.total=Math.max(0,Math.min(30,Number(record.newLesson||0)+Number(record.oldRevision||0)+Number(record.recitation||0)));
   try{
-    record.updatedAt=record.updatedAt||new Date().toISOString();
-    const i=wafdeenDailyRecords.findIndex(r=>r.id===record.id);
+    // الحفظ المحلي هو المصدر الفوري: لا ننتظر Firebase أو Google Sheets حتى تظهر الدرجة.
+    record.updatedAt=new Date().toISOString();
+    const i=wafdeenDailyRecords.findIndex(r=>String(r.id)===String(record.id));
     if(i>-1)wafdeenDailyRecords[i]={...wafdeenDailyRecords[i],...record};else wafdeenDailyRecords.push(record);
     wafdeenPersistLocal();
-    if(useFirebase && db) await db.collection('wafdeenDailyRecords').doc(record.id).set(record,{merge:true});
-    await sendGradeToGoogleSheet('saveWafdeenDailyGrade',record);
-    showMessage('wafdeen-save-msg',isAbsent?`تم تسجيل غياب ${student.name} بصفر في كل الخانات 🚫`:`تم حفظ الرصد اليومي للطالب ${student.name} ✅`,'success');
+
+    // تحديث قائمة الدرجات فوراً من البيانات المحلية.
+    if(typeof wafdeenRenderGrades==='function')wafdeenRenderGrades();
+    if(wafdeenCurrentGradeStudentId && String(wafdeenCurrentGradeStudentId)===String(student.id) && typeof wafdeenShowStudentGrades==='function')wafdeenShowStudentGrades(student.id);
     wafdeenUpdateDailyScoresVisibility();
-  }catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ الرصد اليومي للوافدين','error');}
+
+    // نفرغ النموذج بعد تثبيت السجل محلياً، ثم نرفع للسحابة في الخلفية.
+    wafdeenResetWafdeenGradeFields?.();
+    wafdeenShowMissingFields_([]);
+    showMessage('wafdeen-save-msg',isAbsent?`تم تسجيل غياب ${student.name} بصفر في كل الخانات 🚫`:`تم حفظ الرصد الكامل للطالب ${student.name} بنجاح ✅`,'success');
+
+    // Firebase لا يعطل الحفظ المحلي ولا ظهور الدرجة إذا كان بطيئاً أو غير متصل.
+    if(useFirebase && db){
+      db.collection('wafdeenDailyRecords').doc(record.id).set(record,{merge:true})
+        .catch(e=>{console.warn('Firebase grade sync failed; local grade محفوظ:',e);});
+    }
+    // Google Sheets مزامنة خلفية مستقلة.
+    try{
+      Promise.resolve(sendGradeToGoogleSheet('saveWafdeenDailyGrade',record))
+        .catch(e=>console.warn('Google Sheet sync failed; local grade محفوظ:',e));
+    }catch(sheetErr){ console.warn('Google Sheet sync failed; local grade محفوظ:',sheetErr); }
+  }catch(e){
+    console.error(e);
+    showMessage('wafdeen-save-msg','حدث خطأ أثناء حفظ الدرجة محلياً. لم يتم مسح الخانات، حاول مرة أخرى.','error');
+  }
 }
+function wafdeenResetWafdeenGradeFields(){
+  ['wafdeenNewPagesCount','wafdeenNewTopicRecited','wafdeenOldPagesCount','wafdeenOldTopicRecited','wafdeenRecitationPagesCount','wafdeenRecitationTopicRecited'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['wafdeenNewLesson','wafdeenOldRevision','wafdeenRecitation'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.disabled=true;el.readOnly=true;}});
+  if(typeof dailyResetCounters==='function')dailyResetCounters();
+  if(typeof wafdeenResetQuranCounters==='function')wafdeenResetQuranCounters();
+  if(typeof wafdeenQuranReset==='function')wafdeenQuranReset();
+  document.querySelectorAll('#wafdeen-daily-scores-panel .field-missing,#wafdeen-daily-scores-panel .field-missing-group').forEach(el=>el.classList.remove('field-missing','field-missing-group'));
+  wafdeenShowMissingFields_([]);
+}
+
 function wafdeenUpdateDailyScoresVisibility(){
+  // لا نخفي نموذج الدرجات بعد وجود رصد سابق؛ إخفاؤه كان سببًا في اعتقاد المستخدم
+  // أن باقي الخانات اختفت. النموذج يظل ظاهرًا ويمكن مراجعة/تعديل البيانات.
   const panel=document.getElementById('wafdeen-daily-scores-panel');
   const sel=document.getElementById('wafdeenStudentSelect');
   if(!panel||!sel)return;
+  panel.classList.remove('hidden');
   const studentId=String(sel.value||'');
   const today=wafdeenDateKeyLocal(new Date());
   const hasTodayRecord=studentId && wafdeenDailyRecords.some(r=>String(r.studentId)===studentId && String(r.dateISO||'').slice(0,10)===today);
-  panel.classList.toggle('hidden',!!hasTodayRecord);
+  let note=document.getElementById('wafdeen-existing-today-note');
+  if(!note){
+    note=document.createElement('div');
+    note.id='wafdeen-existing-today-note';
+    note.className='wafdeen-note';
+    panel.insertBefore(note,panel.firstChild?.nextSibling || panel.firstChild);
+  }
+  note.textContent=hasTodayRecord?'يوجد رصد محفوظ لهذا الطالب اليوم. يمكنك مراجعة الخانات وتعديلها ثم الحفظ مرة أخرى.':'يمكنك إدخال جميع بيانات الرصد للطالب ثم حفظها.';
+  note.classList.toggle('hidden',!studentId);
 }
 
 function wafdeenDateKeyLocal(date=new Date()){const d=new Date(date);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
@@ -8290,20 +8730,57 @@ function wafdeenRenderGrades(){
   const list=document.getElementById('wafdeen-grades-students-list'); if(!list)return;
   const students=[...wafdeenStudentsData].sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
   list.innerHTML='';
-  students.forEach(st=>{const b=document.createElement('button');b.type='button';b.className='wafdeen-grade-student-btn';b.textContent=st.name;b.onclick=()=>wafdeenShowStudentGrades(st.id);list.appendChild(b);});
+  students.forEach(st=>{const b=document.createElement('button');b.type='button';b.className='wafdeen-grade-student-btn';b.dataset.studentId=st.id;b.textContent=st.name;b.onclick=()=>wafdeenShowStudentGrades(st.id);list.appendChild(b);});
   if(!students.length)list.innerHTML='<div class="wafdeen-note">لا يوجد طلاب مسجلون.</div>';
 }
 function wafdeenCanManageGrades(){
   return !!currentWafdeenTeacher && currentWafdeenTeacher.role!=='student';
 }
-function wafdeenGradeTable(records, title){
+function wafdeenGradeTable(records, title, layout='vertical'){
   const sorted=[...records].sort((a,b)=>String(b.dateISO||'').localeCompare(String(a.dateISO||'')));
   if(!sorted.length) return `<div class="wafdeen-note">لا توجد درجات مسجلة في ${title}.</div>`;
   const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const canManage=wafdeenCanManageGrades();
-  return `<div class="card-view" style="margin-bottom:0"><h4 class="card-title">📊 رصد ${title}</h4><div class="table-responsive"><table><thead><tr>
-    <th>التاريخ</th><th>الجديد</th><th>وقت الجديد</th><th>مقرر الجديد الذي تم تسميعه</th><th>الماضي</th><th>وقت الماضي</th><th>مقرر الماضي الذي تم تسميعه</th><th>التلاوة</th><th>وقت التلاوة</th><th>مقرر التلاوة الذي تم تسميعه</th><th>المجموع من 30</th>${canManage?'<th>الإجراءات</th>':''}
-  </tr></thead><tbody>${sorted.map(r=>`<tr><td>${esc(String(r.dateISO||'').slice(0,10))}</td><td>${r.newLesson??0}</td><td>${esc(r.newTime||'')}</td><td>${esc(r.newTopicRecited)}</td><td>${r.oldRevision??0}</td><td>${esc(r.oldTime||'')}</td><td>${esc(r.oldTopicRecited)}</td><td>${r.recitation??0}</td><td>${esc(r.recitationTime||'')}</td><td>${esc(r.recitationTopicRecited)}</td><td class="grade-total">${r.total??0}</td>${canManage?`<td style="min-width:90px"><div style="display:flex;flex-direction:column;gap:6px"><button type="button" class="action-btn btn-save" style="width:100%" onclick='window.wafdeenEditGrade(${JSON.stringify(String(r.id))})'>تعديل</button><button type="button" class="action-btn btn-danger" style="width:100%" onclick='window.wafdeenDeleteGrade(${JSON.stringify(String(r.id))})'>مسح</button></div></td>`:''}</tr>`).join('')}</tbody></table></div></div>`;
+  const valueCell=(value)=>{
+    const missing=wafdeenIsMissingValue_(value);
+    return missing ? `<span class="grade-missing">لم تُسجل</span>` : `<span class="grade-value">${esc(value)}</span>`;
+  };
+  const timeCell=seconds=>Number(seconds||0)>0 ? `<span class="grade-time">⏱️ ${formatTimerSeconds(seconds)}</span>` : `<span class="grade-missing">الوقت لم يُسجل</span>`;
+  const totalCell=r=>`<strong class="grade-total">${Math.max(0,Math.min(30,Number(r.total)||0))}</strong> / 30`;
+
+  if(layout==='horizontal'){
+    const hasFifth=sorted.some(r=>isFifthClass(r.className));
+    const head=hasFifth
+      ? `<th>التاريخ</th><th>التلاوة</th><th>وقت التلاوة</th><th>مقرر التلاوة اليوم</th><th>صفحات/أجزاء التلاوة</th><th>مقرر التلاوة الذي تم تسميعه</th><th>عدد تسميع التلاوة</th><th>المجموع / 30</th>${canManage?'<th>الإجراءات</th>':''}`
+      : `<th>التاريخ</th><th>الجديد</th><th>وقت الجديد</th><th>مقرر الجديد اليوم</th><th>صفحات الجديد</th><th>مقرر الجديد الذي تم تسميعه</th><th>عدد تسميع الجديد</th><th>الماضي</th><th>وقت الماضي</th><th>مقرر الماضي اليوم</th><th>صفحات الماضي</th><th>مقرر الماضي الذي تم تسميعه</th><th>عدد تسميع الماضي</th><th>التلاوة</th><th>وقت التلاوة</th><th>مقرر التلاوة اليوم</th><th>صفحات/أجزاء التلاوة</th><th>مقرر التلاوة الذي تم تسميعه</th><th>عدد تسميع التلاوة</th><th>المجموع / 30</th>${canManage?'<th>الإجراءات</th>':''}`;
+    const body=sorted.map((r,i)=>{
+      const fifth=isFifthClass(r.className);
+      const actions=canManage?`<td><div class="grade-card-actions" style="justify-content:center;flex-direction:column"><button type="button" class="action-btn btn-save" onclick='window.wafdeenEditGrade(${JSON.stringify(String(r.id))})'>✏️ تعديل</button><button type="button" class="action-btn btn-danger" onclick='window.wafdeenDeleteGrade(${JSON.stringify(String(r.id))})'>🗑️ مسح</button></div></td>`:'';
+      if(fifth) return `<tr><td>${esc(String(r.dateISO||'').slice(0,10))}</td><td>${valueCell(r.recitation)}</td><td>${timeCell(r.recitationTimeSeconds)}</td><td>${valueCell(r.recitationTopicToday||r.recitationTopic)}</td><td>${valueCell(r.recitationPagesCount)}</td><td>${valueCell(r.recitationTopicRecited)}</td><td>${valueCell(r.recitationRecitationCount)}</td><td>${totalCell(r)}</td>${actions}</tr>`;
+      return `<tr><td>${esc(String(r.dateISO||'').slice(0,10))}</td><td>${valueCell(r.newLesson)}</td><td>${timeCell(r.newLessonTimeSeconds)}</td><td>${valueCell(r.newTopicToday||r.newTopicText)}</td><td>${valueCell(r.newPagesCount)}</td><td>${valueCell(r.newTopicRecited)}</td><td>${valueCell(r.newRecitationCount)}</td><td>${valueCell(r.oldRevision)}</td><td>${timeCell(r.oldRevisionTimeSeconds)}</td><td>${valueCell(r.oldTopicToday||r.oldTopicText)}</td><td>${valueCell(r.oldPagesCount)}</td><td>${valueCell(r.oldTopicRecited)}</td><td>${valueCell(r.oldRecitationCount)}</td><td>${valueCell(r.recitation)}</td><td>${timeCell(r.recitationTimeSeconds)}</td><td>${valueCell(r.recitationTopicToday||r.recitationTopic)}</td><td>${valueCell(r.recitationPagesCount)}</td><td>${valueCell(r.recitationTopicRecited)}</td><td>${valueCell(r.recitationRecitationCount)}</td><td>${totalCell(r)}</td>${actions}</tr>`;
+    }).join('');
+    return `<div class="card-view wafdeen-horizontal-grades"><h4 class="card-title">📊 رصد ${esc(title)}</h4><div class="table-responsive wafdeen-horizontal-scroll"><table class="wafdeen-horizontal-grade-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+  }
+
+  return sorted.map((r,i)=>{
+    const fifth=isFifthClass(r.className);
+    const rows=[];
+    rows.push(['التاريخ',esc(String(r.dateISO||'').slice(0,10))]);
+    if(!fifth){
+      rows.push(['الجديد',valueCell(r.newLesson)]); rows.push(['وقت الجديد',timeCell(r.newLessonTimeSeconds)]);
+      rows.push(['مقرر الجديد اليوم',valueCell(r.newTopicToday||r.newTopicText)]); rows.push(['صفحات الجديد',valueCell(r.newPagesCount)]);
+      rows.push(['مقرر الجديد الذي تم تسميعه',valueCell(r.newTopicRecited)]); rows.push(['عدد تسميع الجديد',valueCell(r.newRecitationCount)]);
+      rows.push(['الماضي',valueCell(r.oldRevision)]); rows.push(['وقت الماضي',timeCell(r.oldRevisionTimeSeconds)]);
+      rows.push(['مقرر الماضي اليوم',valueCell(r.oldTopicToday||r.oldTopicText)]); rows.push(['صفحات الماضي',valueCell(r.oldPagesCount)]);
+      rows.push(['مقرر الماضي الذي تم تسميعه',valueCell(r.oldTopicRecited)]); rows.push(['عدد تسميع الماضي',valueCell(r.oldRecitationCount)]);
+    }
+    rows.push(['التلاوة',valueCell(r.recitation)]); rows.push(['وقت التلاوة',timeCell(r.recitationTimeSeconds)]);
+    rows.push(['مقرر التلاوة اليوم',valueCell(r.recitationTopicToday||r.recitationTopic)]); rows.push(['صفحات/أجزاء التلاوة',valueCell(r.recitationPagesCount)]);
+    rows.push(['مقرر التلاوة الذي تم تسميعه',valueCell(r.recitationTopicRecited)]); rows.push(['عدد تسميع التلاوة',valueCell(r.recitationRecitationCount)]);
+    rows.push(['المجموع من 30',totalCell(r)]);
+    const actions=canManage?`<div class="grade-card-actions"><button type="button" class="action-btn btn-save" onclick='window.wafdeenEditGrade(${JSON.stringify(String(r.id))})'>✏️ تعديل</button><button type="button" class="action-btn btn-danger" onclick='window.wafdeenDeleteGrade(${JSON.stringify(String(r.id))})'>🗑️ مسح</button></div>`:'';
+    return `<article class="wafdeen-grade-record-card"><div class="grade-record-head"><strong>رصد ${i+1}</strong><span>${esc(r.dayName||'')} — ${esc(String(r.dateISO||'').slice(0,10))}</span></div><div class="grade-record-fields">${rows.map(([label,val])=>`<div class="grade-record-row"><span class="grade-record-label">${label}</span><span class="grade-record-value">${val}</span></div>`).join('')}</div>${actions}</article>`;
+  }).join('');
 }
 function wafdeenShowGradePeriod(period, btn){
   document.querySelectorAll('.wafdeen-grade-period-btn').forEach(b=>b.classList.remove('active'));
@@ -8313,18 +8790,20 @@ function wafdeenShowGradePeriod(period, btn){
 let wafdeenCurrentGradeStudentId=null;
 function wafdeenShowStudentGrades(studentId){
   const st=wafdeenStudentsData.find(x=>String(x.id)===String(studentId)); if(!st)return;
+  document.querySelectorAll('.wafdeen-grade-student-btn').forEach(b=>b.classList.toggle('active',String(b.dataset.studentId)===String(studentId)));
   wafdeenCurrentGradeStudentId=studentId;
   document.getElementById('wafdeen-grades-details').classList.remove('hidden');
   document.getElementById('wafdeen-grades-student-name').textContent=st.name;
   const now=new Date(), today=wafdeenDateKeyLocal(now), weekStart=wafdeenStartOfWeek(now), weekStartKey=wafdeenDateKeyLocal(weekStart), monthPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const recs=wafdeenDailyRecords.filter(r=>String(r.studentId)===String(studentId));
+  const recs=wafdeenDailyRecords.filter(r=>String(r.studentId||'')===String(studentId)||String(r.studentName||'')===String(st.name));
   const todayRecs=recs.filter(r=>String(r.dateISO||'').slice(0,10)===today);
   const weekRecs=recs.filter(r=>{const k=String(r.dateISO||'').slice(0,10);return k>=weekStartKey&&k<=today;});
   const monthRecs=recs.filter(r=>String(r.dateISO||'').slice(0,7)===monthPrefix);
   document.getElementById('wafdeen-grade-today').innerHTML=wafdeenGradeTable(todayRecs,'اليوم');
-  document.getElementById('wafdeen-grade-week').innerHTML=wafdeenGradeTable(weekRecs,'الأسبوع');
-  document.getElementById('wafdeen-grade-month').innerHTML=wafdeenGradeTable(monthRecs,'الشهر');
+  document.getElementById('wafdeen-grade-week').innerHTML=wafdeenGradeTable(weekRecs,'الأسبوع','horizontal');
+  document.getElementById('wafdeen-grade-month').innerHTML=wafdeenGradeTable(monthRecs,'الشهر','horizontal');
   wafdeenShowGradePeriod('today',document.querySelector('.wafdeen-grade-period-btn'));
+  document.getElementById('wafdeen-grades-details').scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function wafdeenEditGrade(recordId){
   try{
@@ -8337,14 +8816,14 @@ async function wafdeenEditGrade(recordId){
     const q=prompt('درجة التلاوة من 10:',String(r.recitation??0)); if(q===null)return;
     const grade=v=>Math.max(0,Math.min(10,Number(v)||0));
     const updated={newLesson:grade(n),oldRevision:grade(o),recitation:grade(q)};
-    updated.total=updated.newLesson+updated.oldRevision+updated.recitation;
+    updated.total=Math.max(0,Math.min(30,updated.newLesson+updated.oldRevision+updated.recitation));
     updated.editedAt=new Date().toISOString();
     updated.editedBy=currentWafdeenTeacher.username||'';
     Object.assign(r,updated);
     wafdeenPersistLocal();
-    if(useFirebase&&db) await db.collection('wafdeenDailyRecords').doc(id).set({...updated,updatedAt:new Date().toISOString()},{merge:true});
+    Promise.resolve(sendGradeToGoogleSheet('updateWafdeenDailyGrade',r)).catch(e=>console.warn('Sheet update failed:',e));
     if(wafdeenCurrentGradeStudentId)wafdeenShowStudentGrades(wafdeenCurrentGradeStudentId);
-    showMessage('wafdeen-save-msg','تم تعديل الدرجات بنجاح ✅','success');
+    showMessage('wafdeen-save-msg','تم تعديل الدرجات بنجاح وتسجيل التعديل في شيت الوافدين ✅','success');
   }catch(e){
     console.error('wafdeenEditGrade error:',e);
     showMessage('wafdeen-save-msg','تعذر تعديل الدرجة','error');
@@ -8363,9 +8842,10 @@ async function wafdeenDeleteGrade(recordId){
     }
     if(!confirm('هل تريد مسح هذا الرصد نهائياً؟'))return;
     const deleteStamp=new Date().toISOString();
+    const deletedRecord=wafdeenDailyRecords.find(x=>String(x.id)===id);
     wafdeenDailyRecords=wafdeenDailyRecords.filter(x=>String(x.id)!==id);
     wafdeenPersistLocal();
-    if(useFirebase&&db) await db.collection('wafdeenDailyRecords').doc(id).set({_deleted:true,updatedAt:deleteStamp},{merge:true});
+    if(deletedRecord)Promise.resolve(sendGradeToGoogleSheet('deleteWafdeenDailyGrade',deletedRecord)).catch(e=>console.warn('Sheet delete failed:',e));
     if(wafdeenCurrentGradeStudentId)wafdeenShowStudentGrades(wafdeenCurrentGradeStudentId);
     wafdeenUpdateDailyScoresVisibility();
     showMessage('wafdeen-save-msg','تم مسح الرصد بنجاح ✅','success');
@@ -8394,7 +8874,7 @@ function wafdeenShowEducationTimePeriod(period,btn){
 function wafdeenRenderEducationTime(){
   const list=document.getElementById('wafdeen-education-time-students-list'); if(!list)return;
   const students=[...wafdeenStudentsData].sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
-  list.innerHTML=''; students.forEach(st=>{const b=document.createElement('button');b.type='button';b.className='wafdeen-grade-student-btn';b.textContent=st.name;b.onclick=()=>wafdeenShowStudentEducationTime(st.id);list.appendChild(b);}); if(!students.length)list.innerHTML='<div class="wafdeen-note">لا يوجد طلاب مسجلون.</div>';
+  list.innerHTML=''; students.forEach(st=>{const b=document.createElement('button');b.type='button';b.className='wafdeen-grade-student-btn';b.dataset.studentId=st.id;b.textContent=st.name;b.onclick=()=>wafdeenShowStudentEducationTime(st.id);list.appendChild(b);}); if(!students.length)list.innerHTML='<div class="wafdeen-note">لا يوجد طلاب مسجلون.</div>';
 }
 function wafdeenShowStudentEducationTime(studentId){
   const st=wafdeenStudentsData.find(x=>String(x.id)===String(studentId)); if(!st)return;
