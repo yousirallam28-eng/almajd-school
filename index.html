@@ -1525,6 +1525,8 @@ body.fifth-selected .fifth-hide-on-class { display: none !important; }
 #wafdeen-missing-fields{margin-top:12px;padding:12px 14px;border:2px solid #d32f2f;border-radius:12px;background:#fff5f5;color:#b71c1c;font-weight:800;line-height:1.9;}#wafdeen-missing-fields.hidden{display:none!important;}#wafdeen-missing-fields-list{font-weight:700;}#wafdeen-daily-scores-panel .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}#wafdeen-daily-scores-panel .field-missing-group>label{color:#d32f2f!important;font-weight:900;}#wafdeen-daily-scores-panel .field-missing-group{color:#b71c1c;}
 #wafdeen-daily-scores-panel .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;overflow:visible!important;}
 #wafdeen-daily-scores-panel .form-group{display:block!important;visibility:visible!important;min-width:0;}
+#wafdeen-daily-scores-panel .wafdeen-save-type-btn{width:100%;margin-top:10px;min-height:48px;}
+#wafdeen-daily-scores-panel .field-missing,#wafdeen-daily-scores-panel .field-missing-group{border:1px solid transparent!important;box-shadow:none!important;background:inherit!important;color:inherit!important;}
 /* ===== الدرجات بالمعيار: اختيار النوع ثم إظهار خاناته فقط ===== */
 #wafdeen-daily-scores-panel .wafdeen-grade-type-selector{
   display:grid;
@@ -2627,7 +2629,7 @@ function handleImgError(el, isWatermark = false) {
     <h3>📝 الرصد اليومي</h3>
     <div class="wafdeen-panel">
       <h3>اختيار الطالب</h3>
-      <select id="wafdeenStudentSelect" style="width:100%;font-weight:800" onchange="wafdeenResetTimer();wafdeenUpdateDailyScoresVisibility()"></select>
+      <select id="wafdeenStudentSelect" style="width:100%;font-weight:800" onchange="wafdeenResetTimer();wafdeenLoadSelectedStudentGradeData();wafdeenUpdateDailyScoresVisibility()"></select>
       <div id="wafdeen-student-info" class="wafdeen-note" style="margin-top:8px"></div>
     </div>
 
@@ -2637,22 +2639,16 @@ function handleImgError(el, isWatermark = false) {
           <span>📖 القرآن الكريم</span><span id="wafdeen-quran-toggle-icon">▼</span>
         </button>
         <div id="wafdeen-quran-monitor-content" class="hidden">
-          <div class="wafdeen-note">اختر نوع التسميع ثم استخدم مؤقت القرآن الكريم بشكل مستقل.</div>
-          <h4>نوع التسميع</h4>
-          <div class="wafdeen-type-grid">
-            <button type="button" class="wafdeen-type-btn" data-quran-type="الجديد" onclick="selectWafdeenQuranType('الجديد',this)">الجديد</button>
-            <button type="button" class="wafdeen-type-btn" data-quran-type="الماضي" onclick="selectWafdeenQuranType('الماضي',this)">الماضي</button>
-            <button type="button" class="wafdeen-type-btn" data-quran-type="التلاوة" onclick="selectWafdeenQuranType('التلاوة',this)">التلاوة</button>
-          </div>
+          <div class="wafdeen-note">⏱️ مؤقت مستقل لجلسة التسميع، وليس له أي علاقة بدرجات الجديد أو الماضي أو التلاوة.</div>
+          <h4>جلسة التسميع</h4>
           <div class="wafdeen-timer-box">
             <div id="wafdeen-quran-timer">00:00:00</div>
-            <div id="wafdeen-quran-timer-status" class="wafdeen-timer-status">اختر نوع التسميع ثم اضغط بدء</div>
+            <div id="wafdeen-quran-timer-status" class="wafdeen-timer-status">اضغط بدء لبدء جلسة التسميع — الحد الأقصى ساعتان</div>
           </div>
           <div class="wafdeen-controls">
             <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStartPause()">بدء</button>
             <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStartPause(true)">استراحة</button>
             <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStopTimer()">توقف وحفظ</button>
-<button type="button" class="action-btn btn-danger" onclick="recordAbsenceTime()">🚫 غياب</button>
           </div>
         
           
@@ -2704,38 +2700,34 @@ function handleImgError(el, isWatermark = false) {
         <div class="wafdeen-grade-type-fields" data-grade-fields="الجديد">
           <h4 class="grade-type-heading">📖 بيانات الجديد</h4>
           <div class="form-grid">
-            <div class="form-group"><label>درجة الجديد (تلقائي):</label><input type="text" id="wafdeenNewLesson" placeholder="لم يسمع بعد" readonly></div>
+            <div class="form-group"><label>درجة الجديد (تلقائي):</label><input type="text" id="wafdeenNewLesson" value="10" readonly></div>
             <div class="form-group"><label>عدد الصفحات (الجديد):</label><input type="text" id="wafdeenNewPagesCount" placeholder="عدد الصفحات"></div>
             <div class="form-group"><label>مقرر الجديد الذي تم تسميعه:</label><input type="text" id="wafdeenNewTopicRecited" placeholder="المقرر الذي تم تسميعه"></div>
           </div>
+          <button type="button" class="action-btn btn-save wafdeen-save-type-btn" onclick="wafdeenSaveGradeType('الجديد')">💾 حفظ الجديد فقط</button>
         </div>
 
         <div class="wafdeen-grade-type-fields" data-grade-fields="الماضي">
           <h4 class="grade-type-heading">📚 بيانات الماضي</h4>
           <div class="form-grid">
-            <div class="form-group"><label>درجة الماضي (تلقائي):</label><input type="text" id="wafdeenOldRevision" placeholder="لم يسمع بعد" readonly></div>
+            <div class="form-group"><label>درجة الماضي (تلقائي):</label><input type="text" id="wafdeenOldRevision" value="10" readonly></div>
             <div class="form-group"><label>عدد الصفحات (الماضي):</label><input type="text" id="wafdeenOldPagesCount" placeholder="عدد الصفحات"></div>
             <div class="form-group"><label>مقرر الماضي الذي تم تسميعه:</label><input type="text" id="wafdeenOldTopicRecited" placeholder="المقرر الذي تم تسميعه"></div>
           </div>
+          <button type="button" class="action-btn btn-save wafdeen-save-type-btn" onclick="wafdeenSaveGradeType('الماضي')">💾 حفظ الماضي فقط</button>
         </div>
 
         <div class="wafdeen-grade-type-fields" data-grade-fields="التلاوة">
           <h4 class="grade-type-heading">🎙️ بيانات التلاوة</h4>
           <div class="form-grid">
-            <div class="form-group"><label>درجة التلاوة (تلقائي):</label><input type="text" id="wafdeenRecitation" placeholder="لم يسمع بعد" readonly></div>
+            <div class="form-group"><label>درجة التلاوة (تلقائي):</label><input type="text" id="wafdeenRecitation" value="10" readonly></div>
             <div class="form-group"><label>عدد الصفحات/الأجزاء (التلاوة):</label><input type="text" id="wafdeenRecitationPagesCount" placeholder="عدد الصفحات أو الأجزاء"></div>
             <div class="form-group"><label>مقرر التلاوة الذي تم تسميعه:</label><input type="text" id="wafdeenRecitationTopicRecited" placeholder="المقرر الذي تم تسميعه"></div>
           </div>
+          <button type="button" class="action-btn btn-save wafdeen-save-type-btn" onclick="wafdeenSaveGradeType('التلاوة')">💾 حفظ التلاوة فقط</button>
         </div>
       </div>
-      <div class="wafdeen-score-total">المجموع: <span id="wafdeen-auto-total">30</span> من 30</div>
-      <div class="wafdeen-daily-save">
-        <button type="button" id="wafdeen-daily-save-btn" class="action-btn btn-save" onclick="wafdeenGuardedDailySave()" aria-disabled="false">💾 حفظ الرصد اليومي</button>
-
-      </div>
-      <div id="wafdeen-missing-fields" class="wafdeen-missing-fields" aria-live="polite">
-        <strong>⚠️ الخانات الناقصة:</strong> <span id="wafdeen-missing-fields-list">أكمل البيانات المطلوبة قبل الحفظ.</span>
-      </div>
+      <div class="wafdeen-note" style="margin-top:12px">كل نوع يُحفظ بمفرده. حفظ الجديد لا يتطلب حفظ الماضي أو التلاوة، والعكس صحيح. وإذا لم تُستخدم العدادات تُحفظ الدرجة 10 من 10.</div>
     </div>
 
       <div class="wafdeen-panel wafdeen-monitor-card wafdeen-edu-card">
@@ -2824,7 +2816,7 @@ function handleImgError(el, isWatermark = false) {
         <div class="form-group"><label>الشهر:</label><input type="month" id="wafdeenReportMonth" onchange="renderWafdeenMonthlyReport()"></div>
       </div>
       <div class="wafdeen-note">يتم حساب الساعة الخاصة بجلسة الوافدين = <strong>50 دقيقة</strong>، ويظهر أيضًا إجمالي الدقائق والوقت بالنظام المعتاد 60 دقيقة.</div>
-      <div class="wafdeen-table-wrap" style="margin-top:15px"><table class="wafdeen-table" id="wafdeenReportTable"><thead><tr><th>المعلم</th><th>وقت الجديد</th><th>وقت الماضي</th><th>وقت التلاوة</th><th>وقت المواد التعليمية</th><th>إجمالي الوقت</th><th>إجمالي الساعات (50 دقيقة)</th><th>إجمالي الساعات (60 دقيقة)</th></tr></thead><tbody></tbody></table></div>
+      <div class="wafdeen-table-wrap" style="margin-top:15px"><table class="wafdeen-table" id="wafdeenReportTable"><thead><tr><th>المعلم</th><th>جلسات التسميع</th><th>وقت المواد التعليمية</th><th>إجمالي الوقت</th><th>إجمالي الساعات (50 دقيقة)</th><th>إجمالي الساعات (60 دقيقة)</th></tr></thead><tbody></tbody></table></div>
     </div>
   </div>
 </div>
@@ -8605,6 +8597,8 @@ let wafdeenQuranElapsedSeconds = 0;
 let wafdeenQuranTimerStartedAt = null;
 let wafdeenQuranTimerInterval = null;
 let wafdeenQuranTimerRunning = false;
+const WAFDEEN_QURAN_SESSION_MAX_SECONDS = 2 * 60 * 60;
+let wafdeenQuranSessionSaved = false;
 let wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};
 let wafdeenQuranErrorCounters = {
   الجديد:{errors:0,tashkeel:0,repetition:0},
@@ -8755,126 +8749,65 @@ function wafdeenTick(){if(!wafdeenTimerRunning||!wafdeenTimerStartedAt)return;wa
 
 function wafdeenUpdateQuranTimer(){const el=document.getElementById('wafdeen-quran-timer');if(el)el.innerText=wafdeenFormatTimer(wafdeenQuranElapsedSeconds);}
 function wafdeenUpdateEduTimer(){const el=document.getElementById('wafdeen-edu-timer');if(el)el.innerText=wafdeenFormatTimer(wafdeenEduElapsedSeconds);}
-function wafdeenQuranTick(){if(!wafdeenQuranTimerRunning||!wafdeenQuranTimerStartedAt)return;wafdeenQuranElapsedSeconds=Math.floor((Date.now()-wafdeenQuranTimerStartedAt)/1000);wafdeenUpdateQuranTimer();}
+function wafdeenQuranTick(){
+  if(!wafdeenQuranTimerRunning||!wafdeenQuranTimerStartedAt)return;
+  wafdeenQuranElapsedSeconds=Math.floor((Date.now()-wafdeenQuranTimerStartedAt)/1000);
+  if(wafdeenQuranElapsedSeconds>=WAFDEEN_QURAN_SESSION_MAX_SECONDS){
+    wafdeenQuranElapsedSeconds=WAFDEEN_QURAN_SESSION_MAX_SECONDS;
+    wafdeenUpdateQuranTimer();
+    wafdeenQuranStopTimer(true);
+    return;
+  }
+  wafdeenUpdateQuranTimer();
+}
 function wafdeenEduTick(){if(!wafdeenEduTimerRunning||!wafdeenEduTimerStartedAt)return;wafdeenEduElapsedSeconds=Math.floor((Date.now()-wafdeenEduTimerStartedAt)/1000);wafdeenUpdateEduTimer();}
-function selectWafdeenQuranType(type,btn){
-  if(wafdeenQuranTimerRunning)return showMessage('wafdeen-save-msg','أوقف مؤقت القرآن أولاً قبل تغيير النوع','error');
-  wafdeenQuranSelectedType=type;
-  document.querySelectorAll('[data-quran-type]').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('wafdeen-quran-timer-status').innerText='القرآن الكريم — '+type+' — جاهز للبدء';
-  wafdeenRenderQuranCounters();
-}
-function wafdeenCurrentCounterSet(){
-  return wafdeenQuranErrorCounters[wafdeenQuranSelectedType] || wafdeenQuranErrorCounters['الجديد'];
-}
-function wafdeenCalculateQuranScore(c){
-  const deduction=(Number(c.errors)||0)+(Number(c.tashkeel)||0)*0.5+(Number(c.repetition)||0)*0.25;
-  return Math.max(0,Math.min(10,10-deduction));
-}
-function wafdeenRenderQuranCounters(){
-  const box=document.querySelector('.wafdeen-error-counters');
-  if(box) box.classList.toggle('is-visible',!!wafdeenQuranSelectedType);
-
-  const c=wafdeenGetCounterSet();
-  ['errors','tashkeel','repetition'].forEach(k=>{
-    const el=document.getElementById('wafdeen-counter-'+k);
-    if(el) el.textContent=String(Math.max(0,parseInt(c[k],10)||0));
-  });
-
-  const scores={
-    الجديد:wafdeenCalculateQuranScore(wafdeenQuranErrorCounters['الجديد']),
-    الماضي:wafdeenCalculateQuranScore(wafdeenQuranErrorCounters['الماضي']),
-    التلاوة:wafdeenCalculateQuranScore(wafdeenQuranErrorCounters['التلاوة'])
-  };
-
-  const fieldMap={الجديد:'wafdeenNewLesson',الماضي:'wafdeenOldRevision',التلاوة:'wafdeenRecitation'};
-  ['الجديد','الماضي','التلاوة'].forEach(type=>{
-    const el=document.getElementById(fieldMap[type]);
-    if(!el)return;
-    if(wafdeenQuranHeardTypes[type]){
-      el.value=Number(scores[type]).toFixed(2).replace(/\.00$/,'');
-    }else{
-      el.value='';
-      el.placeholder='لم يسمع بعد';
-    }
-  });
-}
-function wafdeenSelectGradeType(type,btn){
-  if(wafdeenQuranTimerRunning)return showMessage('wafdeen-save-msg','أوقف مؤقت القرآن أولاً قبل تغيير النوع','error');
-  wafdeenQuranSelectedType=type;
-  document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-btn').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  const details=document.getElementById('wafdeen-grade-details');
-  if(details)details.classList.add('is-visible');
-  document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-fields').forEach(box=>{
-    box.classList.toggle('is-visible',box.dataset.gradeFields===type);
-  });
-  wafdeenRenderQuranCounters();
-}
+function selectWafdeenQuranType(type,btn){wafdeenSelectGradeType(type,btn);}
+function wafdeenCalculateQuranScore(c){const deduction=(Number(c.errors)||0)+(Number(c.tashkeel)||0)*0.5+(Number(c.repetition)||0)*0.25;return Math.max(0,Math.min(10,10-deduction));}
 function wafdeenGetCounterSet(){
-  if(!wafdeenQuranErrorCounters){
-    wafdeenQuranErrorCounters={
-      الجديد:{errors:0,tashkeel:0,repetition:0},
-      الماضي:{errors:0,tashkeel:0,repetition:0},
-      التلاوة:{errors:0,tashkeel:0,repetition:0}
-    };
-  }
-  const type=wafdeenQuranSelectedType || 'الجديد';
-  if(!wafdeenQuranErrorCounters[type]){
-    wafdeenQuranErrorCounters[type]={errors:0,tashkeel:0,repetition:0};
-  }
+  if(!wafdeenQuranErrorCounters)wafdeenQuranErrorCounters={الجديد:{errors:0,tashkeel:0,repetition:0},الماضي:{errors:0,tashkeel:0,repetition:0},التلاوة:{errors:0,tashkeel:0,repetition:0}};
+  const type=wafdeenQuranSelectedType||'الجديد';
+  if(!wafdeenQuranErrorCounters[type])wafdeenQuranErrorCounters[type]={errors:0,tashkeel:0,repetition:0};
   return wafdeenQuranErrorCounters[type];
 }
-function wafdeenIncrementCounter(kind){
-  if(wafdeenQuranSelectedType){wafdeenQuranHeardTypes[wafdeenQuranSelectedType]=true;}
+function wafdeenRenderQuranCounters(){
+  const box=document.querySelector('.wafdeen-error-counters');if(box)box.classList.toggle('is-visible',!!wafdeenQuranSelectedType);
   const c=wafdeenGetCounterSet();
-  if(!Object.prototype.hasOwnProperty.call(c,kind)) return false;
-  c[kind]=(parseInt(c[kind],10)||0)+1;
-  wafdeenRenderQuranCounters();
-  wafdeenAnimateCounterValue(kind);
-  return false;
+  ['errors','tashkeel','repetition'].forEach(k=>{const el=document.getElementById('wafdeen-counter-'+k);if(el)el.textContent=String(Math.max(0,parseInt(c[k],10)||0));});
+  const fieldMap={الجديد:'wafdeenNewLesson',الماضي:'wafdeenOldRevision',التلاوة:'wafdeenRecitation'};
+  const type=wafdeenQuranSelectedType||'الجديد';const field=document.getElementById(fieldMap[type]);
+  if(field){const score=wafdeenCalculateQuranScore(c);field.value=Number(score).toFixed(2).replace(/\.00$/,'');field.placeholder='';}
 }
-function wafdeenDecrementCounter(kind){
-  if(wafdeenQuranSelectedType){wafdeenQuranHeardTypes[wafdeenQuranSelectedType]=true;}
-  const c=wafdeenGetCounterSet();
-  if(!Object.prototype.hasOwnProperty.call(c,kind)) return false;
-  c[kind]=Math.max(0,(parseInt(c[kind],10)||0)-1);
-  wafdeenRenderQuranCounters();
-  wafdeenAnimateCounterValue(kind);
-  return false;
-}
-function wafdeenAnimateCounterValue(kind){
-  const el=document.getElementById('wafdeen-counter-'+kind);
-  if(!el)return;
-  el.classList.remove('wafdeen-counter-value-pop');
-  void el.offsetWidth;
-  el.classList.add('wafdeen-counter-value-pop');
-}
-function wafdeenResetQuranCounters(){
-  wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};
-  wafdeenQuranErrorCounters={
-    الجديد:{errors:0,tashkeel:0,repetition:0},
-    الماضي:{errors:0,tashkeel:0,repetition:0},
-    التلاوة:{errors:0,tashkeel:0,repetition:0}
-  };
-  wafdeenQuranSelectedType='';
-  const box=document.querySelector('.wafdeen-error-counters');
-  if(box) box.classList.remove('is-visible');
+function wafdeenSelectGradeType(type,btn){
+  wafdeenQuranSelectedType=type;
+  document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
+  const details=document.getElementById('wafdeen-grade-details');if(details)details.classList.add('is-visible');
+  document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-fields').forEach(box=>box.classList.toggle('is-visible',box.dataset.gradeFields===type));
   wafdeenRenderQuranCounters();
 }
+function wafdeenIncrementCounter(kind){const c=wafdeenGetCounterSet();if(!Object.prototype.hasOwnProperty.call(c,kind))return false;wafdeenQuranHeardTypes[wafdeenQuranSelectedType||'الجديد']=true;c[kind]=(parseInt(c[kind],10)||0)+1;wafdeenRenderQuranCounters();wafdeenAnimateCounterValue(kind);return false;}
+function wafdeenDecrementCounter(kind){const c=wafdeenGetCounterSet();if(!Object.prototype.hasOwnProperty.call(c,kind))return false;c[kind]=Math.max(0,(parseInt(c[kind],10)||0)-1);wafdeenRenderQuranCounters();wafdeenAnimateCounterValue(kind);return false;}
+function wafdeenAnimateCounterValue(kind){const el=document.getElementById('wafdeen-counter-'+kind);if(!el)return;el.classList.remove('wafdeen-counter-value-pop');void el.offsetWidth;el.classList.add('wafdeen-counter-value-pop');}
+function wafdeenResetQuranCounters(){wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};wafdeenQuranErrorCounters={الجديد:{errors:0,tashkeel:0,repetition:0},الماضي:{errors:0,tashkeel:0,repetition:0},التلاوة:{errors:0,tashkeel:0,repetition:0}};wafdeenQuranSelectedType='';const box=document.querySelector('.wafdeen-error-counters');if(box)box.classList.remove('is-visible');wafdeenRenderQuranCounters();}
+function wafdeenQuranStartPause(forcePause=false){
+  if(currentWafdeenTeacher?.role==='student')return;
+  if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');
+  if(forcePause){if(!wafdeenQuranTimerRunning)return;wafdeenQuranTick();clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=null;wafdeenQuranTimerRunning=false;wafdeenQuranTimerStartedAt=null;document.getElementById('wafdeen-quran-timer-status').innerText='استراحة — اضغط بدء لاستكمال جلسة التسميع';return;}
+  if(wafdeenQuranElapsedSeconds>=WAFDEEN_QURAN_SESSION_MAX_SECONDS)return showMessage('wafdeen-save-msg','تم بلوغ الحد الأقصى لجلسة التسميع: ساعتان','error');
+  if(wafdeenQuranTimerRunning)return;
+  wafdeenQuranTimerStartedAt=Date.now()-wafdeenQuranElapsedSeconds*1000;wafdeenQuranTimerRunning=true;wafdeenQuranSessionSaved=false;wafdeenQuranTimerInterval=setInterval(wafdeenQuranTick,250);document.getElementById('wafdeen-quran-timer-status').innerText='جلسة التسميع جارية — الحد الأقصى ساعتان';
+}
+async function wafdeenQuranStopTimer(auto=false){
+  if(currentWafdeenTeacher?.role==='student')return;
+  const studentId=document.getElementById('wafdeenStudentSelect')?.value;if(!studentId)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');
+  if(wafdeenQuranTimerRunning&&!auto)wafdeenQuranTick();if(wafdeenQuranTimerInterval)clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=null;wafdeenQuranTimerRunning=false;wafdeenQuranTimerStartedAt=null;
+  const seconds=Math.min(WAFDEEN_QURAN_SESSION_MAX_SECONDS,Math.floor(wafdeenQuranElapsedSeconds));if(seconds<=0)return showMessage('wafdeen-save-msg','لم يتم احتساب وقت في جلسة التسميع حتى الآن','error');
+  const student=wafdeenStudentsData.find(s=>String(s.id)===String(studentId));if(!student)return showMessage('wafdeen-save-msg','الطالب غير موجود','error');
+  const rec={id:Date.now().toString(),teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,category:'quran',subject:'القرآن الكريم',type:'جلسة التسميع',seconds,dateISO:new Date().toISOString(),month:wafdeenTodayMonth(),sessionMaxSeconds:WAFDEEN_QURAN_SESSION_MAX_SECONDS,completedInTwoHours:seconds>=WAFDEEN_QURAN_SESSION_MAX_SECONDS};
+  try{wafdeenUsageData.push(rec);wafdeenPersistLocal();if(useFirebase&&db)await db.collection('wafdeenUsage').doc(rec.id).set(rec,{merge:true});wafdeenQuranSessionSaved=true;document.getElementById('wafdeen-quran-timer').innerText=wafdeenFormatTimer(seconds);const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText=seconds>=WAFDEEN_QURAN_SESSION_MAX_SECONDS?'تم حفظ جلسة التسميع — ساعتان كاملتان ✅':`تم حفظ جلسة التسميع — ${wafdeenFormat(seconds)} ✅`;if(currentWafdeenTeacher?.isAdmin)renderWafdeenMonthlyReport();}catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ وقت جلسة التسميع على السحابة','error');}
+}
+function wafdeenQuranReset(){if(wafdeenQuranTimerRunning)return;wafdeenQuranElapsedSeconds=0;wafdeenQuranSessionSaved=false;wafdeenUpdateQuranTimer();const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText='اضغط بدء لبدء جلسة التسميع — الحد الأقصى ساعتان';}
 function selectWafdeenEduSubject(subject,btn){if(wafdeenEduTimerRunning)return showMessage('wafdeen-save-msg','أوقف مؤقت المواد التعليمية أولاً قبل تغيير المادة','error');wafdeenEduSelectedSubject=subject;document.querySelectorAll('[data-edu-subject]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('wafdeen-edu-timer-status').innerText=subject+' — جاهز للبدء';}
 function selectWafdeenEduType(type,btn){if(wafdeenEduTimerRunning)return showMessage('wafdeen-save-msg','أوقف مؤقت المواد التعليمية أولاً قبل تغيير النوع','error');if(!wafdeenEduSelectedSubject)return showMessage('wafdeen-save-msg','اختر المادة أولاً: فقه أو منطق أو حديث أو اللغة العربية','error');wafdeenEduSelectedType=type;document.querySelectorAll('[data-edu-type]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('wafdeen-edu-timer-status').innerText=wafdeenEduSelectedSubject+' — '+type+' — جاهز للبدء';}
-function wafdeenQuranStartPause(forcePause=false){if(currentWafdeenTeacher?.role==='student')return;if(!wafdeenQuranSelectedType)return showMessage('wafdeen-save-msg','اختر نوع تسميع القرآن أولاً','error');if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');if(forcePause){if(!wafdeenQuranTimerRunning)return;wafdeenQuranTick();clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=null;wafdeenQuranTimerRunning=false;wafdeenQuranTimerStartedAt=null;document.getElementById('wafdeen-quran-timer-status').innerText='استراحة — اضغط بدء لاستكمال الوقت';return;}wafdeenQuranHeardTypes[wafdeenQuranSelectedType]=true;wafdeenRenderQuranCounters();if(wafdeenQuranTimerRunning)return;wafdeenQuranTimerStartedAt=Date.now()-wafdeenQuranElapsedSeconds*1000;wafdeenQuranTimerRunning=true;wafdeenQuranTimerInterval=setInterval(wafdeenQuranTick,250);document.getElementById('wafdeen-quran-timer-status').innerText='جارٍ احتساب الوقت — '+wafdeenQuranSelectedType;}
-async function wafdeenQuranStopTimer(){if(currentWafdeenTeacher?.role==='student')return;if(!wafdeenQuranSelectedType)return showMessage('wafdeen-save-msg','اختر نوع تسميع القرآن أولاً','error');if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');if(wafdeenQuranTimerRunning)wafdeenQuranTick();if(wafdeenQuranTimerInterval)clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=null;wafdeenQuranTimerRunning=false;wafdeenQuranTimerStartedAt=null;const seconds=Math.floor(wafdeenQuranElapsedSeconds);if(seconds<=0)return showMessage('wafdeen-save-msg','لم يتم احتساب وقت في مؤقت القرآن حتى الآن','error');const student=wafdeenStudentsData.find(s=>String(s.id)===String(document.getElementById('wafdeenStudentSelect').value));const rec={id:Date.now().toString(),teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,category:'quran',subject:'القرآن الكريم',type:wafdeenQuranSelectedType,seconds,dateISO:new Date().toISOString(),month:wafdeenTodayMonth()};try{wafdeenUsageData.push(rec);wafdeenPersistLocal();if(useFirebase&&db)await db.collection('wafdeenUsage').doc(rec.id).set(rec,{merge:true});showMessage('wafdeen-save-msg',`تم حفظ ${wafdeenFormat(seconds)} للطالب ${student.name} في القرآن الكريم — ${wafdeenQuranSelectedType} ✅`,'success');wafdeenQuranReset();if(currentWafdeenTeacher?.isAdmin)renderWafdeenMonthlyReport();}catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ وقت القرآن على السحابة','error');}}
-function wafdeenQuranReset(){
-  if(wafdeenQuranTimerRunning)return;
-  wafdeenQuranElapsedSeconds=0; wafdeenUpdateQuranTimer();
-  wafdeenQuranSelectedType='';
-  document.querySelectorAll('[data-quran-type]').forEach(b=>b.classList.remove('active'));
-  wafdeenResetQuranCounters();
-  const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText='اختر نوع التسميع ثم اضغط بدء';
-}
 function wafdeenEduStartPause(forcePause=false){if(currentWafdeenTeacher?.role==='student')return;if(!wafdeenEduSelectedSubject)return showMessage('wafdeen-save-msg','اختر المادة أولاً: فقه أو منطق أو حديث أو اللغة العربية','error');if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');if(forcePause){if(!wafdeenEduTimerRunning)return;wafdeenEduTick();clearInterval(wafdeenEduTimerInterval);wafdeenEduTimerInterval=null;wafdeenEduTimerRunning=false;wafdeenEduTimerStartedAt=null;document.getElementById('wafdeen-edu-timer-status').innerText='استراحة — اضغط بدء لاستكمال الوقت';return;}if(wafdeenEduTimerRunning)return;wafdeenEduTimerStartedAt=Date.now()-wafdeenEduElapsedSeconds*1000;wafdeenEduTimerRunning=true;wafdeenEduTimerInterval=setInterval(wafdeenEduTick,250);document.getElementById('wafdeen-edu-timer-status').innerText='جارٍ احتساب الوقت — '+wafdeenEduSelectedSubject+' — '+wafdeenEduSelectedType;}
 async function wafdeenEduStopTimer(){if(currentWafdeenTeacher?.role==='student')return;if(!wafdeenEduSelectedSubject)return showMessage('wafdeen-save-msg','اختر المادة أولاً','error');if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');if(wafdeenEduTimerRunning)wafdeenEduTick();if(wafdeenEduTimerInterval)clearInterval(wafdeenEduTimerInterval);wafdeenEduTimerInterval=null;wafdeenEduTimerRunning=false;wafdeenEduTimerStartedAt=null;const seconds=Math.floor(wafdeenEduElapsedSeconds);if(seconds<=0)return showMessage('wafdeen-save-msg','لم يتم احتساب وقت في مؤقت المواد التعليمية حتى الآن','error');const student=wafdeenStudentsData.find(s=>String(s.id)===String(document.getElementById('wafdeenStudentSelect').value));const rec={id:(Date.now()+1).toString(),teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,category:'educational',subject:wafdeenEduSelectedSubject,seconds,dateISO:new Date().toISOString(),month:wafdeenTodayMonth()};try{wafdeenUsageData.push(rec);wafdeenPersistLocal();if(useFirebase&&db)await db.collection('wafdeenUsage').doc(rec.id).set(rec,{merge:true});showMessage('wafdeen-save-msg',`تم حفظ ${wafdeenFormat(seconds)} للطالب ${student.name} في ${wafdeenEduSelectedSubject} ✅`,'success');wafdeenEduReset();if(currentWafdeenTeacher?.isAdmin)renderWafdeenMonthlyReport();}catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ وقت المواد التعليمية على السحابة','error');}}
 function wafdeenEduReset(){if(wafdeenEduTimerRunning)return;wafdeenEduElapsedSeconds=0;wafdeenUpdateEduTimer();wafdeenEduSelectedSubject='';wafdeenEduSelectedType='';document.querySelectorAll('[data-edu-subject],[data-edu-type]').forEach(b=>b.classList.remove('active'));const st=document.getElementById('wafdeen-edu-timer-status');if(st)st.innerText='اختر المادة ثم اضغط بدء';}
@@ -8908,17 +8841,89 @@ function wafdeenUpdateDailySaveButton(){
   btn.style.cursor=exists?'not-allowed':'pointer';
   if(!hasStudent){btn.classList.remove('wafdeen-save-blocked');btn.textContent='💾 حفظ الرصد اليومي';btn.style.opacity='1';btn.style.cursor='pointer';}
 }
-function wafdeenGuardedDailySave(isAbsent=false){
-  if(wafdeenHasTodayRecordForSelectedStudent()){
-    const sel=document.getElementById('wafdeenStudentSelect');
-    const student=wafdeenStudentsData.find(x=>String(x.id)===String(sel?.value||''));
-    showMessage('wafdeen-save-msg',`⚠️ تم تسجيل الطالب ${student?.name||''} بالفعل اليوم. لا يمكن حفظه مرة أخرى. استخدم «تعديل» أو «مسح» أولاً.`,'error');
-    wafdeenUpdateDailySaveButton();
-    return;
-  }
-  return saveWafdeenDailyRecord(isAbsent);
+function wafdeenGetTodayGradeRecord(studentId){
+  const today=wafdeenDateKeyLocal(new Date());
+  return (wafdeenDailyRecords||[]).find(r=>!r._deleted && String(r.studentId||'')===String(studentId||'') && String(r.dateISO||'').slice(0,10)===today) || null;
 }
+function wafdeenLoadSelectedStudentGradeData(){
+  const studentId=document.getElementById('wafdeenStudentSelect')?.value;
+  const r=wafdeenGetTodayGradeRecord(studentId);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=(v===undefined||v===null||v==='')?'':String(v);};
+  const resetCounters={الجديد:{errors:0,tashkeel:0,repetition:0},الماضي:{errors:0,tashkeel:0,repetition:0},التلاوة:{errors:0,tashkeel:0,repetition:0}};
+  wafdeenQuranErrorCounters={...resetCounters};
+  wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};
+  if(r){
+    set('wafdeenNewLesson',r.newLesson);set('wafdeenNewPagesCount',r.newPagesCount);set('wafdeenNewTopicRecited',r.newTopicRecited);
+    set('wafdeenOldRevision',r.oldRevision);set('wafdeenOldPagesCount',r.oldPagesCount);set('wafdeenOldTopicRecited',r.oldTopicRecited);
+    set('wafdeenRecitation',r.recitation);set('wafdeenRecitationPagesCount',r.recitationPagesCount);set('wafdeenRecitationTopicRecited',r.recitationTopicRecited);
+    wafdeenQuranErrorCounters={
+      الجديد:{errors:Number(r.newErrors)||0,tashkeel:Number(r.newTashkeel)||0,repetition:Number(r.newRepetition)||0},
+      الماضي:{errors:Number(r.oldErrors)||0,tashkeel:Number(r.oldTashkeel)||0,repetition:Number(r.oldRepetition)||0},
+      التلاوة:{errors:Number(r.recitationErrors)||0,tashkeel:Number(r.recitationTashkeel)||0,repetition:Number(r.recitationRepetition)||0}
+    };
+    ['الجديد','الماضي','التلاوة'].forEach((type,i)=>{
+      const key=i===0?'newLesson':i===1?'oldRevision':'recitation';
+      wafdeenQuranHeardTypes[type]=r[key]!==undefined && r[key]!==null && r[key]!=='';
+    });
+  }else{
+    ['wafdeenNewLesson','wafdeenOldRevision','wafdeenRecitation'].forEach(id=>set(id,'10'));
+    ['wafdeenNewPagesCount','wafdeenNewTopicRecited','wafdeenOldPagesCount','wafdeenOldTopicRecited','wafdeenRecitationPagesCount','wafdeenRecitationTopicRecited'].forEach(id=>set(id,''));
+  }
+  wafdeenQuranSelectedType=wafdeenQuranSelectedType||'الجديد';
+  wafdeenRenderQuranCounters();
+}
+async function wafdeenSaveGradeType(type){
+  if(currentWafdeenTeacher?.role==='student')return;
+  const studentId=document.getElementById('wafdeenStudentSelect')?.value;
+  if(!studentId)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');
+  const student=wafdeenStudentsData.find(s=>String(s.id)===String(studentId));
+  if(!student)return showMessage('wafdeen-save-msg','الطالب غير موجود','error');
+  const dateISO=wafdeenDateKeyLocal(new Date());
+  let record=wafdeenGetTodayGradeRecord(studentId);
+  const hadRecord=!!record;
+  if(!record){
+    record={id:`wafdeen_${student.id}_${dateISO}`,teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,dateISO,
+      attendanceStatus:'present',isAbsent:false,status:'present',dayName:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][new Date().getDay()],
+      newLesson:'',newPagesCount:'',newTopicRecited:'',oldRevision:'',oldPagesCount:'',oldTopicRecited:'',recitation:'',recitationPagesCount:'',recitationTopicRecited:'',savedAt:new Date().toISOString()};
+    wafdeenDailyRecords.push(record);
+  }
+  const val=id=>document.getElementById(id)?.value ?? '';
+  const c=wafdeenQuranErrorCounters[type]||{errors:0,tashkeel:0,repetition:0};
+  const score=Number(wafdeenCalculateQuranScore(c).toFixed(2));
+  if(type==='الجديد'){
+    Object.assign(record,{newLesson:score,newPagesCount:val('wafdeenNewPagesCount'),newTopicRecited:val('wafdeenNewTopicRecited'),newErrors:Number(c.errors)||0,newTashkeel:Number(c.tashkeel)||0,newRepetition:Number(c.repetition)||0});
+  }else if(type==='الماضي'){
+    Object.assign(record,{oldRevision:score,oldPagesCount:val('wafdeenOldPagesCount'),oldTopicRecited:val('wafdeenOldTopicRecited'),oldErrors:Number(c.errors)||0,oldTashkeel:Number(c.tashkeel)||0,oldRepetition:Number(c.repetition)||0});
+  }else{
+    Object.assign(record,{recitation:score,recitationPagesCount:val('wafdeenRecitationPagesCount'),recitationTopicRecited:val('wafdeenRecitationTopicRecited'),recitationErrors:Number(c.errors)||0,recitationTashkeel:Number(c.tashkeel)||0,recitationRepetition:Number(c.repetition)||0});
+  }
+  record.total=['newLesson','oldRevision','recitation'].reduce((sum,k)=>sum+(record[k]===''?0:Number(record[k])||0),0);
+  record.updatedAt=new Date().toISOString();
+  wafdeenQuranHeardTypes[type]=true;
+  try{localStorage.setItem('wafdeenDailyRecords',JSON.stringify(wafdeenDailyRecords));}catch(e){console.error(e);}
 
+  // بعد حفظ النوع: إعادة خانة النوع نفسه للوضع الابتدائي، بدون المساس بالأنواع الأخرى.
+  // الدرجة المحفوظة تظل محفوظة في record/السحابة، لكن شاشة الإدخال ترجع إلى 10 وخاناتها فارغة لرصد جديد.
+  const resetMap={
+    'الجديد':['wafdeenNewLesson','wafdeenNewPagesCount','wafdeenNewTopicRecited'],
+    'الماضي':['wafdeenOldRevision','wafdeenOldPagesCount','wafdeenOldTopicRecited'],
+    'التلاوة':['wafdeenRecitation','wafdeenRecitationPagesCount','wafdeenRecitationTopicRecited']
+  };
+  (resetMap[type]||[]).forEach(id=>{const el=document.getElementById(id);if(el)el.value=(id==='wafdeenNewLesson'||id==='wafdeenOldRevision'||id==='wafdeenRecitation')?'10':'';});
+  if(wafdeenQuranErrorCounters[type])wafdeenQuranErrorCounters[type]={errors:0,tashkeel:0,repetition:0};
+  wafdeenQuranSelectedType=type;
+  wafdeenRenderQuranCounters();
+  // التأكيد يظهر حسب الخانة التي تم حفظها، ثم تبقى بقية الخانات مستقلة كما هي.
+  wafdeenRenderGrades();
+  const msg=`تم تسميع ${type} للطالب ${student.name} — الدرجة ${score}/10 وتم حفظ ${type} بنجاح، والخانات جاهزة لرصد جديد ✅`;
+  showMessage('wafdeen-save-msg',msg,'success');
+  const cloudJobs=[];
+  if(useFirebase&&db)cloudJobs.push(db.collection('wafdeenDailyRecords').doc(String(record.id)).set({...record,updatedAt:new Date().toISOString()},{merge:true}).catch(e=>console.error(e)));
+  if(typeof sendGradeToGoogleSheet==='function')cloudJobs.push(Promise.resolve(sendGradeToGoogleSheet(hadRecord?'updateWafdeenDailyGrade':'saveWafdeenDailyGrade',record)).catch(e=>console.error(e)));
+  record._syncedBefore=true;
+  Promise.allSettled(cloudJobs);
+}
+function wafdeenGuardedDailySave(){ return wafdeenSaveGradeType(wafdeenQuranSelectedType||'الجديد'); }
 async function saveWafdeenDailyRecord(isAbsent=false){
   if(currentWafdeenTeacher?.role==='student')return;
   const sel=document.getElementById('wafdeenStudentSelect');
@@ -8926,53 +8931,7 @@ async function saveWafdeenDailyRecord(isAbsent=false){
   const student=wafdeenStudentsData.find(x=>String(x.id)===String(sel.value));
   if(!student)return showMessage('wafdeen-save-msg','الطالب غير موجود','error');
 
-  // لا يسمح بالحفظ العادي إلا بعد اكتمال جميع خانات الرصد الأساسية.
-  // زر الغياب استثناء مقصود: يسجل صفرًا في الرصد بالكامل.
-  if(!isAbsent){
-    const required=[
-      ['wafdeenNewLesson','درجة الجديد'],
-      ['wafdeenNewPagesCount','عدد صفحات الجديد'],
-      ['wafdeenNewTopicRecited','مقرر الجديد الذي تم تسميعه'],
-      ['wafdeenOldRevision','درجة الماضي'],
-      ['wafdeenOldPagesCount','عدد صفحات الماضي'],
-      ['wafdeenOldTopicRecited','مقرر الماضي الذي تم تسميعه'],
-      ['wafdeenRecitation','درجة التلاوة'],
-      ['wafdeenRecitationPagesCount','عدد صفحات/أجزاء التلاوة'],
-      ['wafdeenRecitationTopicRecited','مقرر التلاوة الذي تم تسميعه']
-    ];
-    const missing=[];
-    required.forEach(([id,label])=>{
-      const el=document.getElementById(id);
-      if(!el || String(el.value??'').trim()===''){
-        wafdeenMarkMissingField_(id,true);
-        missing.push(label);
-      }else wafdeenMarkMissingField_(id,false);
-    });
-
-    // الوقت لا يعتبر مسجلاً إلا إذا تم إيقاف وحفظ مؤقت النوع نفسه.
-    const today=wafdeenDateKeyLocal(new Date());
-    const quranToday=(wafdeenUsageData||[]).filter(r=>
-      !r._deleted && String(r.studentId)===String(student.id) &&
-      String(r.category)==='quran' && String(r.dateISO||'').slice(0,10)===today
-    );
-    const timeByType={};
-    ['الجديد','الماضي','التلاوة'].forEach(type=>{
-      const seconds=quranToday.filter(r=>String(r.type)===type)
-        .reduce((sum,r)=>sum+Math.max(0,Number(r.seconds)||0),0);
-      timeByType[type]=seconds;
-      const labelId=type==='الجديد'?'wafdeen-new-time-label':type==='الماضي'?'wafdeen-old-time-label':'wafdeen-recitation-time-label';
-      const el=document.getElementById(labelId);
-      if(el)el.classList.toggle('field-missing',seconds<=0);
-      if(seconds<=0)missing.push('وقت '+type);
-    });
-
-    if(missing.length){
-      wafdeenShowMissingFields_(missing);
-      showMessage('wafdeen-save-msg','❌ لا يمكن الحفظ. أكمل كل الخانات الناقصة (بالأحمر): '+missing.join('، '),'error');
-      return;
-    }
-    wafdeenShowMissingFields_([]);
-  }
+  // الحفظ المستقل لكل نوع يتم عبر wafdeenSaveGradeType؛ لا توجد خانات إجبارية ولا علامات حمراء.
 
   const val=id=>document.getElementById(id)?.value ?? '';
   const num=id=>{const n=Number(val(id));return Number.isFinite(n)?Math.max(0,Math.min(10,n)):0;};
@@ -8991,8 +8950,6 @@ async function saveWafdeenDailyRecord(isAbsent=false){
   }
 
   const id=`wafdeen_${student.id}_${dateISO}`;
-  const todayUsage=(wafdeenUsageData||[]).filter(r=>!r._deleted&&String(r.studentId)===String(student.id)&&String(r.category)==='quran'&&String(r.dateISO||'').slice(0,10)===dateISO);
-  const timeFor=type=>todayUsage.filter(r=>String(r.type)===type).reduce((sum,r)=>sum+Math.max(0,Number(r.seconds)||0),0);
   const record={
     id,teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,dateISO,
     attendanceStatus:isAbsent?'absent':'present',isAbsent:!!isAbsent,status:isAbsent?'absent':'present',
@@ -9000,8 +8957,6 @@ async function saveWafdeenDailyRecord(isAbsent=false){
     newLesson:isAbsent?0:num('wafdeenNewLesson'),newPagesCount:isAbsent?'':val('wafdeenNewPagesCount'),newTopicRecited:isAbsent?'':val('wafdeenNewTopicRecited'),
     oldRevision:isAbsent?0:num('wafdeenOldRevision'),oldPagesCount:isAbsent?'':val('wafdeenOldPagesCount'),oldTopicRecited:isAbsent?'':val('wafdeenOldTopicRecited'),
     recitation:isAbsent?0:num('wafdeenRecitation'),recitationPagesCount:isAbsent?'':val('wafdeenRecitationPagesCount'),recitationTopicRecited:isAbsent?'':val('wafdeenRecitationTopicRecited'),
-    newLessonTimeSeconds:isAbsent?0:timeFor('الجديد'),oldRevisionTimeSeconds:isAbsent?0:timeFor('الماضي'),recitationTimeSeconds:isAbsent?0:timeFor('التلاوة'),
-    quranNewTimeSeconds:isAbsent?0:timeFor('الجديد'),quranOldTimeSeconds:isAbsent?0:timeFor('الماضي'),quranRecitationTimeSeconds:isAbsent?0:timeFor('التلاوة'),
     newErrors:isAbsent?0:wafdeenQuranErrorCounters['الجديد'].errors,newTashkeel:isAbsent?0:wafdeenQuranErrorCounters['الجديد'].tashkeel,newRepetition:isAbsent?0:wafdeenQuranErrorCounters['الجديد'].repetition,
     oldErrors:isAbsent?0:wafdeenQuranErrorCounters['الماضي'].errors,oldTashkeel:isAbsent?0:wafdeenQuranErrorCounters['الماضي'].tashkeel,oldRepetition:isAbsent?0:wafdeenQuranErrorCounters['الماضي'].repetition,
     recitationErrors:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].errors,recitationTashkeel:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].tashkeel,recitationRepetition:isAbsent?0:wafdeenQuranErrorCounters['التلاوة'].repetition,
@@ -9074,19 +9029,18 @@ function wafdeenGradeTable(records, title, layout='vertical'){
     const missing=wafdeenIsMissingValue_(value);
     return missing ? `<span class="grade-missing">لم تُسجل</span>` : `<span class="grade-value">${esc(value)}</span>`;
   };
-  const timeCell=seconds=>Number(seconds||0)>0 ? `<span class="grade-time">⏱️ ${formatTimerSeconds(seconds)}</span>` : `<span class="grade-missing">الوقت لم يُسجل</span>`;
-  const totalCell=r=>`<strong class="grade-total">${Math.max(0,Math.min(30,Number(r.total)||0))}</strong> / 30`;
+    const totalCell=r=>`<strong class="grade-total">${Math.max(0,Math.min(30,Number(r.total)||0))}</strong> / 30`;
 
   if(layout==='horizontal'){
     const hasFifth=sorted.some(r=>isFifthClass(r.className));
     const head=hasFifth
-      ? `<th>التاريخ</th><th>التلاوة</th><th>وقت التلاوة</th><th>مقرر التلاوة اليوم</th><th>صفحات/أجزاء التلاوة</th><th>مقرر التلاوة الذي تم تسميعه</th><th>عدد تسميع التلاوة</th><th>المجموع / 30</th>${canManage?'<th>الإجراءات</th>':''}`
-      : `<th>التاريخ</th><th>الجديد</th><th>وقت الجديد</th><th>مقرر الجديد اليوم</th><th>صفحات الجديد</th><th>مقرر الجديد الذي تم تسميعه</th><th>عدد تسميع الجديد</th><th>الماضي</th><th>وقت الماضي</th><th>مقرر الماضي اليوم</th><th>صفحات الماضي</th><th>مقرر الماضي الذي تم تسميعه</th><th>عدد تسميع الماضي</th><th>التلاوة</th><th>وقت التلاوة</th><th>مقرر التلاوة اليوم</th><th>صفحات/أجزاء التلاوة</th><th>مقرر التلاوة الذي تم تسميعه</th><th>عدد تسميع التلاوة</th><th>المجموع / 30</th>${canManage?'<th>الإجراءات</th>':''}`;
+      ? `<th>التاريخ</th><th>التلاوة</th><th>مقرر التلاوة الذي تم تسميعه</th><th>صفحات/أجزاء التلاوة</th><th>المجموع / 30</th>${canManage?'<th>الإجراءات</th>':''}`
+      : `<th>التاريخ</th><th>الجديد</th><th>مقرر الجديد الذي تم تسميعه</th><th>صفحات الجديد</th><th>الماضي</th><th>مقرر الماضي الذي تم تسميعه</th><th>صفحات الماضي</th><th>التلاوة</th><th>مقرر التلاوة الذي تم تسميعه</th><th>صفحات/أجزاء التلاوة</th><th>المجموع / 30</th>${canManage?'<th>الإجراءات</th>':''}`;
     const body=sorted.map((r,i)=>{
       const fifth=isFifthClass(r.className);
       const actions=canManage?`<td><div class="grade-card-actions" style="justify-content:center;flex-direction:column"><button type="button" class="action-btn btn-save" onclick='window.wafdeenEditGrade(${JSON.stringify(String(r.id))})'>✏️ تعديل</button><button type="button" class="action-btn btn-danger" onclick='window.wafdeenDeleteGrade(${JSON.stringify(String(r.id))})'>🗑️ مسح</button></div></td>`:'';
-      if(fifth) return `<tr><td>${esc(String(r.dateISO||'').slice(0,10))}</td><td>${valueCell(r.recitation)}</td><td>${timeCell(r.recitationTimeSeconds)}</td><td>${valueCell(r.recitationTopicToday||r.recitationTopic)}</td><td>${valueCell(r.recitationPagesCount)}</td><td>${valueCell(r.recitationTopicRecited)}</td><td>${valueCell(r.recitationRecitationCount)}</td><td>${totalCell(r)}</td>${actions}</tr>`;
-      return `<tr><td>${esc(String(r.dateISO||'').slice(0,10))}</td><td>${valueCell(r.newLesson)}</td><td>${timeCell(r.newLessonTimeSeconds)}</td><td>${valueCell(r.newTopicToday||r.newTopicText)}</td><td>${valueCell(r.newPagesCount)}</td><td>${valueCell(r.newTopicRecited)}</td><td>${valueCell(r.newRecitationCount)}</td><td>${valueCell(r.oldRevision)}</td><td>${timeCell(r.oldRevisionTimeSeconds)}</td><td>${valueCell(r.oldTopicToday||r.oldTopicText)}</td><td>${valueCell(r.oldPagesCount)}</td><td>${valueCell(r.oldTopicRecited)}</td><td>${valueCell(r.oldRecitationCount)}</td><td>${valueCell(r.recitation)}</td><td>${timeCell(r.recitationTimeSeconds)}</td><td>${valueCell(r.recitationTopicToday||r.recitationTopic)}</td><td>${valueCell(r.recitationPagesCount)}</td><td>${valueCell(r.recitationTopicRecited)}</td><td>${valueCell(r.recitationRecitationCount)}</td><td>${totalCell(r)}</td>${actions}</tr>`;
+      if(fifth) return `<tr><td>${esc(String(r.dateISO||'').slice(0,10))}</td><td>${valueCell(r.recitation)}</td><td>${valueCell(r.recitationTopicRecited)}</td><td>${valueCell(r.recitationPagesCount)}</td><td>${totalCell(r)}</td>${actions}</tr>`;
+      return `<tr><td>${esc(String(r.dateISO||'').slice(0,10))}</td><td>${valueCell(r.newLesson)}</td><td>${valueCell(r.newTopicRecited)}</td><td>${valueCell(r.newPagesCount)}</td><td>${valueCell(r.oldRevision)}</td><td>${valueCell(r.oldTopicRecited)}</td><td>${valueCell(r.oldPagesCount)}</td><td>${valueCell(r.recitation)}</td><td>${valueCell(r.recitationTopicRecited)}</td><td>${valueCell(r.recitationPagesCount)}</td><td>${totalCell(r)}</td>${actions}</tr>`;
     }).join('');
     return `<div class="card-view wafdeen-horizontal-grades"><h4 class="card-title">📊 رصد ${esc(title)}</h4><div class="table-responsive wafdeen-horizontal-scroll"><table class="wafdeen-horizontal-grade-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></div>`;
   }
@@ -9096,16 +9050,12 @@ function wafdeenGradeTable(records, title, layout='vertical'){
     const rows=[];
     rows.push(['التاريخ',esc(String(r.dateISO||'').slice(0,10))]);
     if(!fifth){
-      rows.push(['الجديد',valueCell(r.newLesson)]); rows.push(['وقت الجديد',timeCell(r.newLessonTimeSeconds)]);
-      rows.push(['مقرر الجديد اليوم',valueCell(r.newTopicToday||r.newTopicText)]); rows.push(['صفحات الجديد',valueCell(r.newPagesCount)]);
-      rows.push(['مقرر الجديد الذي تم تسميعه',valueCell(r.newTopicRecited)]); rows.push(['عدد تسميع الجديد',valueCell(r.newRecitationCount)]);
-      rows.push(['الماضي',valueCell(r.oldRevision)]); rows.push(['وقت الماضي',timeCell(r.oldRevisionTimeSeconds)]);
-      rows.push(['مقرر الماضي اليوم',valueCell(r.oldTopicToday||r.oldTopicText)]); rows.push(['صفحات الماضي',valueCell(r.oldPagesCount)]);
-      rows.push(['مقرر الماضي الذي تم تسميعه',valueCell(r.oldTopicRecited)]); rows.push(['عدد تسميع الماضي',valueCell(r.oldRecitationCount)]);
+      rows.push(['الجديد',valueCell(r.newLesson)]); rows.push(['مقرر الجديد الذي تم تسميعه',valueCell(r.newTopicRecited)]); rows.push(['صفحات الجديد',valueCell(r.newPagesCount)]);
+      rows.push(['الماضي',valueCell(r.oldRevision)]); rows.push(['مقرر الماضي الذي تم تسميعه',valueCell(r.oldTopicRecited)]); rows.push(['صفحات الماضي',valueCell(r.oldPagesCount)]);
     }
-    rows.push(['التلاوة',valueCell(r.recitation)]); rows.push(['وقت التلاوة',timeCell(r.recitationTimeSeconds)]);
-    rows.push(['مقرر التلاوة اليوم',valueCell(r.recitationTopicToday||r.recitationTopic)]); rows.push(['صفحات/أجزاء التلاوة',valueCell(r.recitationPagesCount)]);
-    rows.push(['مقرر التلاوة الذي تم تسميعه',valueCell(r.recitationTopicRecited)]); rows.push(['عدد تسميع التلاوة',valueCell(r.recitationRecitationCount)]);
+    rows.push(['التلاوة',valueCell(r.recitation)]);
+    rows.push(['مقرر التلاوة الذي تم تسميعه',valueCell(r.recitationTopicRecited)]);
+    rows.push(['صفحات/أجزاء التلاوة',valueCell(r.recitationPagesCount)]);
     rows.push(['المجموع من 30',totalCell(r)]);
     const actions=canManage?`<div class="grade-card-actions"><button type="button" class="action-btn btn-save" onclick='window.wafdeenEditGrade(${JSON.stringify(String(r.id))})'>✏️ تعديل</button><button type="button" class="action-btn btn-danger" onclick='window.wafdeenDeleteGrade(${JSON.stringify(String(r.id))})'>🗑️ مسح</button></div>`:'';
     return `<article class="wafdeen-grade-record-card"><div class="grade-record-head"><strong>رصد ${i+1}</strong><span>${esc(r.dayName||'')} — ${esc(String(r.dateISO||'').slice(0,10))}</span></div><div class="grade-record-fields">${rows.map(([label,val])=>`<div class="grade-record-row"><span class="grade-record-label">${label}</span><span class="grade-record-value">${val}</span></div>`).join('')}</div>${actions}</article>`;
@@ -9641,10 +9591,10 @@ function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;',
 function renderWafdeenMonthlyReport(){
   const tb=document.querySelector('#wafdeenReportTable tbody');if(!tb)return;
   const month=document.getElementById('wafdeenReportMonth')?.value||wafdeenTodayMonth();const map={};
-  wafdeenUsageData.filter(r=>String(r.month||'')===month).forEach(r=>{const u=r.teacherUsername||'غير معروف';if(!map[u])map[u]={new:0,old:0,rec:0,educational:0,total:0};const secs=Math.max(0,Number(r.seconds||0));map[u].total+=secs;if(r.type==='الجديد')map[u].new+=secs;else if(r.type==='الماضي')map[u].old+=secs;else if(r.type==='التلاوة')map[u].rec+=secs;else if(r.category==='educational')map[u].educational+=secs;});
+  wafdeenUsageData.filter(r=>String(r.month||'')===month).forEach(r=>{const u=r.teacherUsername||'غير معروف';if(!map[u])map[u]={session:0,educational:0,total:0};const secs=Math.max(0,Number(r.seconds||0));if(r.category==='quran'&&r.type==='جلسة التسميع')map[u].session+=secs;else if(r.category==='educational')map[u].educational+=secs;map[u].total+=secs;});
   const formatMonthlyTime=(secs)=>{secs=Math.max(0,Math.floor(Number(secs)||0));const hours50=Math.floor(secs/3000),remAfterHours=secs%3000,minutes=Math.floor(remAfterHours/60),seconds=remAfterHours%60;return `${hours50} س ${minutes} د ${seconds} ث`;};
   const formatHours=(secs,base)=>(Math.max(0,secs)/60/base).toFixed(2);
-  tb.innerHTML=Object.entries(map).sort((a,b)=>b[1].total-a[1].total).map(([u,x])=>`<tr><td>${escapeHtml(u)}</td><td>${formatMonthlyTime(x.new)}</td><td>${formatMonthlyTime(x.old)}</td><td>${formatMonthlyTime(x.rec)}</td><td>${formatMonthlyTime(x.educational)}</td><td><strong>${formatMonthlyTime(x.total)}</strong></td><td>${formatHours(x.total,50)}</td><td>${formatHours(x.total,60)}</td></tr>`).join('')||'<tr><td colspan="8">لا توجد جلسات محفوظة لهذا الشهر</td></tr>';
+  tb.innerHTML=Object.entries(map).sort((a,b)=>b[1].total-a[1].total).map(([u,x])=>`<tr><td>${escapeHtml(u)}</td><td>${formatMonthlyTime(x.session)}</td><td>${formatMonthlyTime(x.educational)}</td><td><strong>${formatMonthlyTime(x.total)}</strong></td><td>${formatHours(x.total,50)}</td><td>${formatHours(x.total,60)}</td></tr>`).join('')||'<tr><td colspan="6">لا توجد جلسات محفوظة لهذا الشهر</td></tr>';
 }
 </script>
 <script>
