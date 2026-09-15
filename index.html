@@ -1461,6 +1461,19 @@ body.fifth-selected .fifth-hide-on-class { display: none !important; }
 .daily-auto-grade{background:#f7faf8!important;color:var(--primary-dark)!important;font-weight:900!important;}
 @media(max-width:650px){.daily-error-counters{grid-template-columns:1fr;}}
 
+.behavior-reason-grid{display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 4px;}
+.behavior-reason-grid.is-visible{display:grid;}
+.behavior-reason-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--border-soft);background:var(--surface);border-radius:12px;padding:6px 10px;}
+.behavior-reason-label{font-size:.78em;font-weight:700;color:var(--text-muted);}
+.behavior-reason-points{color:var(--danger-color);font-weight:800;font-size:.9em;}
+.behavior-reason-controls{display:flex;align-items:center;gap:6px;flex:none;}
+.behavior-reason-count{min-width:1.3em;text-align:center;font-weight:900;color:var(--primary-dark);font-variant-numeric:tabular-nums;}
+.behavior-reason-btn{appearance:none;border:1px solid var(--primary-dark)!important;border-radius:8px;min-width:26px;min-height:26px;padding:0;background:var(--primary-color)!important;color:#fff!important;font-weight:900;line-height:1;cursor:pointer;}
+.behavior-reason-btn:hover{background:var(--primary-dark)!important;}
+.behavior-reason-btn:active{transform:scale(.94);background:var(--accent-gold)!important;}
+.behavior-reason-icon{cursor:pointer;margin-inline-start:4px;}
+@media(max-width:650px){.behavior-reason-grid{grid-template-columns:1fr;}}
+
 .daily-hidden-field{display:none!important;}
 @media(max-width:600px){
   .daily-type-grid,.daily-timer-actions{grid-template-columns:1fr;}
@@ -2600,6 +2613,15 @@ function handleImgError(el, isWatermark = false) {
         <button type="button" class="wafdeen-grade-period-btn" onclick="wafdeenShowGradePeriod('week',this)">الأسبوع</button>
         <button type="button" class="wafdeen-grade-period-btn" onclick="wafdeenShowGradePeriod('month',this)">الشهر</button>
       </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">
+        <button type="button" class="action-btn btn-export" onclick="wafdeenExportGradePeriod('week')">📊 تصدير درجات الأسبوع إكسل</button>
+        <button type="button" class="action-btn btn-export" onclick="wafdeenExportGradePeriod('month')">📊 تصدير درجات الشهر إكسل</button>
+      </div>
+      <div class="wafdeen-note" style="margin-top:8px">📥 يمكنك رفع ملف درجات الأسبوع أو الشهر الذي تم تصديره من الموقع، وسيتم قراءته وإظهار الدرجات في رصد الطالب.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">
+        <button type="button" class="action-btn btn-save" onclick="document.getElementById('wafdeenGradeImportFile').click()">📥 استيراد درجات من Excel</button>
+        <input type="file" id="wafdeenGradeImportFile" accept=".xlsx,.xls" style="display:none" onchange="wafdeenImportGradePeriodExcel(event)">
+      </div>
       <div id="wafdeen-grade-today" class="wafdeen-grade-period-panel"></div>
       <div id="wafdeen-grade-week" class="wafdeen-grade-period-panel hidden"></div>
       <div id="wafdeen-grade-month" class="wafdeen-grade-period-panel hidden"></div>
@@ -2813,9 +2835,20 @@ function handleImgError(el, isWatermark = false) {
     <div id="wafdeen-panel-report" class="wafdeen-panel hidden">
       <h3>📊 التقرير الشهري لاستخدام المعلمين</h3>
       <div class="wafdeen-grid">
-        <div class="form-group"><label>الشهر:</label><input type="month" id="wafdeenReportMonth" onchange="renderWafdeenMonthlyReport()"></div>
+        <div class="form-group"><label>الشهر:</label><input type="month" id="wafdeenReportMonth" onchange="renderWafdeenMonthlyReport()">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button type="button" class="action-btn btn-save" onclick="exportWafdeenMonthlyReportExcel()">📤 تصدير تقرير الشهر Excel</button>
+          <button type="button" class="action-btn btn-save" onclick="saveWafdeenMonthlyReportToGoogleSheets()">☁️ حفظ تقرير الشهر في Google Sheets</button>
+          <label class="action-btn btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+            📥 استيراد تقرير الشهر Excel
+            <input type="file" id="wafdeenMonthlyReportImport" accept=".xlsx,.xls,.csv" style="display:none" onchange="importWafdeenMonthlyReportExcel(this)">
+          </label>
+        </div></div>
       </div>
       <div class="wafdeen-note">يتم حساب الساعة الخاصة بجلسة الوافدين = <strong>50 دقيقة</strong>، ويظهر أيضًا إجمالي الدقائق والوقت بالنظام المعتاد 60 دقيقة.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:15px">
+        <button type="button" class="action-btn btn-export" onclick="exportToExcel('wafdeenReportTable','تقرير_الوافدين_الشهري')">📊 تصدير تقرير الشهر إكسل</button>
+      </div>
       <div class="wafdeen-table-wrap" style="margin-top:15px"><table class="wafdeen-table" id="wafdeenReportTable"><thead><tr><th>المعلم</th><th>جلسات التسميع</th><th>وقت المواد التعليمية</th><th>إجمالي الوقت</th><th>إجمالي الساعات (50 دقيقة)</th><th>إجمالي الساعات (60 دقيقة)</th></tr></thead><tbody></tbody></table></div>
     </div>
   </div>
@@ -2971,6 +3004,8 @@ function handleImgError(el, isWatermark = false) {
         <button type="button" class="tab-btn" id="top-students-tab-btn" onclick="switchTab('top-students-tab', event)">🏆 الأوائل</button>
         <button type="button" class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)">🗒️ الملاحظات</button>
         <button type="button" class="tab-btn hidden" id="admin-tab-btn" style="background-color: var(--warning-color); color: white;" onclick="switchTab('admin-tab', event)">⚙️ لوحة الإدارة</button>
+        <button type="button" class="tab-btn hidden" id="payments-tab-btn" style="background-color:#0d9488;color:white;" onclick="switchTab('payments-tab', event)">💰 المصروفات</button>
+        <button type="button" class="tab-btn hidden" id="payment-report-tab-btn" style="background-color:#0d9488;color:white;" onclick="switchTab('payment-report-tab', event)">🧾 مقرر الدفع</button>
         <button type="button" class="tab-btn hidden" id="analysis-tab-btn" onclick="openStudentDataAnalysis(); closeMainMenu()">📈 تحليل البيانات</button>
         <button type="button" class="tab-btn hidden" id="backup-tab-btn" style="background-color: var(--primary-dark); color: white;" onclick="switchTab('backup-tab', event)">💾 النسخة الاحتياطية</button>
       </div>
@@ -3074,7 +3109,15 @@ function handleImgError(el, isWatermark = false) {
             <div id="daily-score-auto-note" class="daily-score-note">اضغط على الجديد أو الماضي أو التلاوة لإظهار العدادات. كل ضغطة تغيّر العدد بمقدار واحد.</div>
             <div class="form-grid">
               <div class="form-group"><label>الحضور (10):</label><input type="number" id="attendance" min="0" max="10" placeholder="0-10" required></div>
-              <div class="form-group"><label>السلوك (10):</label><input type="number" id="behavior" min="0" max="10" placeholder="0-10" required></div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label>السلوك (10):</label>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <input type="number" id="behavior" min="0" max="10" value="10" readonly required style="max-width:90px;">
+                  <button type="button" class="action-btn btn-warning" style="padding:6px 12px;font-size:.82em;min-width:auto;" onclick="wafdeenToggleBehaviorPanel('daily')">📋 اختيار سبب الخصم إن وُجد</button>
+                </div>
+                <div id="daily-behavior-summary" class="daily-score-note">لا يوجد خصم — الدرجة: 10/10</div>
+                <div id="daily-behavior-grid" class="behavior-reason-grid"></div>
+              </div>
               <div class="form-group fifth-hide-on-class"><label>الجديد (10):<span id="newLessonTimeLabel" class="daily-score-time"></span></label><input type="number" id="newLesson" class="daily-grade-input daily-auto-grade" min="0" max="10" placeholder="اختر عدد المرات أولاً" required disabled readonly oninput="enforceDailyRecitationGrade('new')"></div>
               <div class="form-group fifth-hide-on-class"><label>مقرر الجديد اليوم <span style="color:var(--danger-color);">*</span>:</label><input type="text" id="newTopicToday" placeholder="اكتب مقرر الجديد اليوم..." required></div>
               <div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الجديد):</label><input type="text" id="newPagesCount" placeholder="اكتب عدد الصفحات" required></div>
@@ -3501,6 +3544,70 @@ function handleImgError(el, isWatermark = false) {
         </div>
       </div>
 
+      <!-- تبويب المصروفات -->
+      <div id="payments-tab" class="tab-content">
+        <div class="card-view">
+          <h3 class="card-title">💰 تسجيل مصروفات الطلاب</h3>
+          <p style="font-size:.9em;color:#666;margin-top:-6px;">
+            اختر الفصل ثم الطالب، وحدد الشهر المدفوع والمبلغ، ثم اضغط «تم الدفع» ليُحفظ في جوجل شيت.
+          </p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>الصف الدراسي:</label>
+              <select id="paymentsClassSelect" onchange="updatePaymentsStudentList()"></select>
+            </div>
+            <div class="form-group">
+              <label>الطالب/الطالبة:</label>
+              <select id="paymentsStudentSelect" onchange="updatePaymentsStudentPaidMonths()"></select>
+            </div>
+            <div class="form-group">
+              <label>الشهر المدفوع:</label>
+              <select id="paymentsMonthSelect"></select>
+            </div>
+            <div class="form-group">
+              <label>المبلغ المدفوع:</label>
+              <input type="number" id="paymentsAmountInput" inputmode="numeric" min="0" step="1" placeholder="اكتب المبلغ بالأرقام فقط">
+            </div>
+          </div>
+          <div id="payments-paid-months" style="font-size:.85em;color:#0d9488;margin-top:6px;"></div>
+          <div class="btn-group">
+            <button type="button" class="action-btn btn-save" onclick="savePaymentRecord()">✅ تم الدفع</button>
+          </div>
+          <div id="payments-msg" class="toast-msg"></div>
+        </div>
+      </div>
+
+      <!-- تبويب مقرر الدفع -->
+      <div id="payment-report-tab" class="tab-content">
+        <div class="card-view">
+          <h3 class="card-title">🧾 مقرر الدفع</h3>
+          <p style="font-size:.9em;color:#666;margin-top:-6px;">
+            اختر الفصل ثم الطالب لعرض كل ما تم دفعه من شهور وتواريخ.
+          </p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>الصف الدراسي:</label>
+              <select id="paymentReportClassSelect" onchange="updatePaymentReportStudentList()"></select>
+            </div>
+            <div class="form-group">
+              <label>الطالب/الطالبة:</label>
+              <select id="paymentReportStudentSelect" onchange="renderPaymentReportTable()"></select>
+            </div>
+          </div>
+          <div id="payment-report-msg" class="toast-msg"></div>
+        </div>
+        <div class="card-view">
+          <div class="table-responsive notes-table">
+            <table id="paymentReportTable">
+              <thead>
+                <tr><th>الشهر المدفوع</th><th>المبلغ</th><th>تاريخ الدفع</th><th>سجّل بواسطة</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- 7. تبويب لوحة التحكم والإدارة المتقدمة -->
       <div id="admin-tab" class="tab-content">
 
@@ -3826,7 +3933,7 @@ let wafdeenStorage = null;
    الطلاب والمعلمون وباقي بيانات النظام تبقى في Firebase.
    درجات الرصد اليومي ودرجات جلسة الوافدين تُرسل إلى Google Sheets.
 */
-const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfcOK3ZmV5svXOD_q61oigr-O7fA3PyOjwFdUAMV_GDE5C3Q8bhYm4epgPqjjUvXdR/exec";
+const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyQJ-QwdccGZ-TYaE0LQTAbyDQO9u979tZkODiO1I1Pj1QdnxGhhoGN5dxWtO9jlgawcsA/exec";
 
 // رابط Google Sheets القديم — يُستخدم فقط أثناء عملية الترحيل ثم يمكن تعطيله.
 const OLD_GOOGLE_SHEETS_WEB_APP_URL = "";
@@ -4283,7 +4390,7 @@ async function flushGoogleSheetsQueue_(){
 }
 async function sendGradeToGoogleSheet(action,data){
   if(!GOOGLE_SHEETS_WEB_APP_URL)return false;
-  const isWafdeen=action==='saveWafdeenExam'||action==='saveWafdeenDailyGrade'; const payload={action,recordId:String(data?.id||data?.recordId||`${action}_${Date.now()}`),source:isWafdeen?(action==='saveWafdeenExam'?'wafdeen_exam':'wafdeen_daily_grades'):'daily_grades',sheetName:isWafdeen?'الوافدين':'درجات الطلاب',timestamp:new Date().toISOString(),data:data||{}};
+  const isWafdeen=action==='saveWafdeenExam'||action==='saveWafdeenDailyGrade'||action==='saveWafdeenMonthlyReport'; const payload={action,recordId:String(data?.id||data?.recordId||`${action}_${Date.now()}`),source:isWafdeen?(action==='saveWafdeenExam'?'wafdeen_exam':(action==='saveWafdeenMonthlyReport'?'wafdeen_monthly_report':'wafdeen_daily_grades')):'daily_grades',sheetName:isWafdeen?(action==='saveWafdeenMonthlyReport'?'تقرير الوافدين الشهري':'الوافدين'):'درجات الطلاب',timestamp:new Date().toISOString(),data:data||{}};
   const queue=getPendingGoogleSheetsGrades_().filter(x=>String(x.recordId)!==String(payload.recordId));
   queue.push(payload);setPendingGoogleSheetsGrades_(queue);
   try{await flushGoogleSheetsQueue_();}catch(e){console.warn('تعذر إرسال الدرجة إلى Google Sheets:',e);}
@@ -4291,6 +4398,214 @@ async function sendGradeToGoogleSheet(action,data){
 }
 window.addEventListener('online',()=>flushGoogleSheetsQueue_());
 setTimeout(()=>flushGoogleSheetsQueue_(),2500);
+
+/* ================= المصروفات: حفظ وقراءة من Google Sheets ================= */
+const PAYMENTS_QUEUE_KEY='pendingGoogleSheetsPayments_v1';
+const PAYMENTS_LOCAL_KEY='wafdeenPaymentsLocal_v1';
+let paymentsFlushRunning=false;
+function getLocalPayments_(){try{const a=JSON.parse(localStorage.getItem(PAYMENTS_LOCAL_KEY)||'[]');return Array.isArray(a)?a:[];}catch(_){return [];}}
+function setLocalPayments_(a){try{localStorage.setItem(PAYMENTS_LOCAL_KEY,JSON.stringify(a.slice(-1000)));}catch(_){} }
+function upsertLocalPayment_(record){const rows=getLocalPayments_();const i=rows.findIndex(x=>String(x.recordId)===String(record.recordId));if(i>=0)rows[i]={...rows[i],...record};else rows.push(record);setLocalPayments_(rows);}
+function mergePaymentRows_(cloudRows){const cloud=Array.isArray(cloudRows)?cloudRows:[],local=getLocalPayments_(),out=cloud.slice();for(const row of local){const i=out.findIndex(x=>String(x.recordId||'')===String(row.recordId||''));if(i>=0)out[i]={...out[i],...row};else out.push(row);}return out;}
+
+function getPendingPayments_(){try{const a=JSON.parse(localStorage.getItem(PAYMENTS_QUEUE_KEY)||'[]');return Array.isArray(a)?a:[];}catch(_){return [];}}
+function setPendingPayments_(a){try{localStorage.setItem(PAYMENTS_QUEUE_KEY,JSON.stringify(a.slice(-300)));}catch(_){}}
+async function flushPaymentsQueue_(){
+  if(paymentsFlushRunning||!navigator.onLine||!GOOGLE_SHEETS_WEB_APP_URL)return;
+  paymentsFlushRunning=true;
+  try{
+    const queue=getPendingPayments_(); if(!queue.length)return;
+    const remaining=[];
+    for(const payload of queue){try{await postGoogleSheetsJson_(GOOGLE_SHEETS_WEB_APP_URL,payload);}catch(e){remaining.push(payload);}}
+    setPendingPayments_(remaining);
+  }finally{paymentsFlushRunning=false;}
+}
+async function sendPaymentToGoogleSheet_(action,recordId,data){
+  if(!GOOGLE_SHEETS_WEB_APP_URL)return false;
+  const payload={action,recordId:String(recordId),sheetName:'المصروفات',sheet:'payments',timestamp:new Date().toISOString(),data:data||{}};
+  const queue=getPendingPayments_().filter(x=>String(x.recordId)!==String(payload.recordId));
+  queue.push(payload);setPendingPayments_(queue);
+  try{
+    await flushPaymentsQueue_();
+    // POST يستخدم no-cors، لذلك لا يمكن الاعتماد على استجابة fetch لمعرفة هل Apps Script حفظ السجل.
+    // نتحقق فعليًا من السجل عبر GET/JSONP قبل اعتبار العملية ناجحة.
+    for(let attempt=0;attempt<4;attempt++){
+      try{
+        const r=await googleSheetsGetPayments_({recordId:String(recordId),className:data?.className||'',studentName:data?.studentName||''});
+        if((r.rows||[]).some(row=>String(row.recordId||'')===String(recordId))){
+          const left=getPendingPayments_().filter(x=>String(x.recordId)!==String(recordId));
+          setPendingPayments_(left);
+          return true;
+        }
+      }catch(_){}
+      await new Promise(r=>setTimeout(r,500*(attempt+1)));
+    }
+  }catch(e){console.warn('تعذر إرسال المصروفات إلى Google Sheets:',e);}
+  return false;
+}
+window.addEventListener('online',()=>flushPaymentsQueue_());
+setTimeout(()=>flushPaymentsQueue_(),3000);
+
+function googleSheetsGetPayments_(filters){
+  return new Promise((resolve, reject) => {
+    if (!GOOGLE_SHEETS_WEB_APP_URL) return reject(new Error('رابط Google Sheets غير موجود'));
+    const callbackName = '__paymentsRead_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    const script = document.createElement('script');
+    let finished = false;
+    const timer = setTimeout(() => finishError(new Error('انتهت مهلة قراءة المصروفات من Google Sheets')), 12000);
+    function cleanup(){ try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer); }
+    function finishOk(v){ if(finished)return; finished=true; cleanup(); resolve(v); }
+    function finishError(e){ if(finished)return; finished=true; cleanup(); reject(e); }
+    window[callbackName] = result => {
+      if(result && result.ok) return finishOk(result);
+      finishError(new Error((result && result.error) || 'فشل قراءة المصروفات'));
+    };
+    script.onerror = () => finishError(new Error('تعذر الوصول إلى Google Sheets لقراءة المصروفات'));
+    const f=filters||{};
+    let src = GOOGLE_SHEETS_WEB_APP_URL + '?action=getGrades&sheet=payments';
+    if(f.recordId) src += '&recordId=' + encodeURIComponent(f.recordId);
+    if(f.className) src += '&className=' + encodeURIComponent(f.className);
+    if(f.studentName) src += '&studentName=' + encodeURIComponent(f.studentName);
+    src += '&callback=' + encodeURIComponent(callbackName) + '&t=' + Date.now();
+    script.src = src;
+    (document.head || document.documentElement).appendChild(script);
+  });
+}
+
+const PAYMENT_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+function normalizePaymentIdPart_(v){
+  return String(v||'').trim().replace(/[^\p{L}\p{N}_-]/gu,'_').slice(0,60) || 'x';
+}
+function paymentRecordId_(studentId,studentName,month){
+  return 'payment_' + normalizePaymentIdPart_(studentId||studentName) + '_' + normalizePaymentIdPart_(month);
+}
+
+function populatePaymentsClasses(){
+  const sel = document.getElementById('paymentsClassSelect');
+  if(!sel) return;
+  const isManagerNow = currentTeacher && (currentTeacher.username === 'admin' || currentTeacher.assignedClass === 'الكل' || currentTeacher.center === 'مشرف');
+  const classes = isManagerNow ? ALL_CLASSES : [currentTeacher.assignedClass];
+  const current = sel.value;
+  sel.innerHTML = classes.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (classes.includes(current)) sel.value = current;
+  const monthSel = document.getElementById('paymentsMonthSelect');
+  if (monthSel && !monthSel.options.length) {
+    monthSel.innerHTML = PAYMENT_MONTHS.map(m => `<option value="${m}">${m}</option>`).join('');
+  }
+}
+
+function updatePaymentsStudentList(){
+  const classSel = document.getElementById('paymentsClassSelect');
+  const studentSel = document.getElementById('paymentsStudentSelect');
+  if (!classSel || !studentSel) return;
+  const className = classSel.value;
+  const current = studentSel.value;
+  const students = studentsData.filter(s => s.className === className).sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  studentSel.innerHTML = students.length
+    ? students.map(st => `<option value="${st.name}" data-id="${st.id}">${st.name}</option>`).join('')
+    : '<option value="">لا توجد أسماء مسجلة في هذا الصف</option>';
+  if (students.some(st => st.name === current)) studentSel.value = current;
+  updatePaymentsStudentPaidMonths();
+}
+
+async function updatePaymentsStudentPaidMonths(){
+  const box = document.getElementById('payments-paid-months');
+  const classSel = document.getElementById('paymentsClassSelect');
+  const studentSel = document.getElementById('paymentsStudentSelect');
+  if (!box || !classSel || !studentSel || !studentSel.value) { if(box) box.innerText=''; return; }
+  box.innerText = 'جاري تحميل الأشهر المدفوعة سابقًا...';
+  try {
+    const r = await googleSheetsGetPayments_({className: classSel.value, studentName: studentSel.value});
+    const months = mergePaymentRows_(r.rows||[]).filter(row => row.className === classSel.value && row.studentName === studentSel.value).map(row => row.month).filter(Boolean);
+    box.innerText = months.length ? ('✅ الأشهر المدفوعة سابقًا: ' + months.join('، ')) : 'لا توجد دفعات مسجلة لهذا الطالب بعد.';
+  } catch (e) {
+    box.innerText = '';
+  }
+}
+
+async function savePaymentRecord(){
+  const classSel = document.getElementById('paymentsClassSelect');
+  const studentSel = document.getElementById('paymentsStudentSelect');
+  const monthSel = document.getElementById('paymentsMonthSelect');
+  const amountInput = document.getElementById('paymentsAmountInput');
+  const className = classSel?.value || '';
+  const studentName = studentSel?.value || '';
+  const studentId = studentSel?.selectedOptions?.[0]?.dataset?.id || '';
+  const month = monthSel?.value || '';
+  const amountRaw = String(amountInput?.value || '').trim();
+
+  if (!className || !studentName) return showMessage('payments-msg', 'يرجى اختيار الصف والطالب.', 'error');
+  if (!month) return showMessage('payments-msg', 'يرجى اختيار الشهر المدفوع.', 'error');
+  if (!amountRaw || !/^\d+$/.test(amountRaw)) return showMessage('payments-msg', 'يرجى كتابة المبلغ بالأرقام فقط.', 'error');
+
+  const id = paymentRecordId_(studentId, studentName, month);
+  const localRows = getLocalPayments_();
+  const existing = localRows.some(row => row.className === className && row.studentName === studentName && row.month === month)
+    || await googleSheetsGetPayments_({className, studentName}).then(r => (r.rows||[]).some(row => row.month === month)).catch(()=>false);
+
+  const data = {
+    studentName, studentId, className, month,
+    amount: Number(amountRaw),
+    paidDate: new Date().toISOString().slice(0,10),
+    recordedBy: currentTeacher?.username || '',
+    recordId: id
+  };
+  upsertLocalPayment_(data);
+  const ok = await sendPaymentToGoogleSheet_(existing ? 'updatePayment' : 'savePayment', id, data);
+  showMessage('payments-msg', ok ? 'تم حفظ الدفعة ومزامنتها بنجاح ✅' : 'تم حفظ الدفعة على هذا الجهاز، وستتم مزامنتها تلقائيًا عند عودة الاتصال.', ok ? 'success' : 'info');
+  amountInput.value = '';
+  updatePaymentsStudentPaidMonths();
+}
+
+function populatePaymentReportClasses(){
+  const sel = document.getElementById('paymentReportClassSelect');
+  if(!sel) return;
+  const isManagerNow = currentTeacher && (currentTeacher.username === 'admin' || currentTeacher.assignedClass === 'الكل' || currentTeacher.center === 'مشرف');
+  const classes = isManagerNow ? ALL_CLASSES : [currentTeacher.assignedClass];
+  const current = sel.value;
+  sel.innerHTML = classes.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (classes.includes(current)) sel.value = current;
+}
+
+function updatePaymentReportStudentList(){
+  const classSel = document.getElementById('paymentReportClassSelect');
+  const studentSel = document.getElementById('paymentReportStudentSelect');
+  if (!classSel || !studentSel) return;
+  const className = classSel.value;
+  const current = studentSel.value;
+  const students = studentsData.filter(s => s.className === className).sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  studentSel.innerHTML = students.length
+    ? students.map(st => `<option value="${st.name}">${st.name}</option>`).join('')
+    : '<option value="">لا توجد أسماء مسجلة في هذا الصف</option>';
+  if (students.some(st => st.name === current)) studentSel.value = current;
+  renderPaymentReportTable();
+}
+
+async function renderPaymentReportTable(){
+  const tbody = document.querySelector('#paymentReportTable tbody');
+  const classSel = document.getElementById('paymentReportClassSelect');
+  const studentSel = document.getElementById('paymentReportStudentSelect');
+  if (!tbody) return;
+  if (!classSel?.value || !studentSel?.value) {
+    tbody.innerHTML = '<tr><td colspan="4" style="padding:25px;color:#777;">اختر الصف والطالب لعرض مقرر الدفع.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '<tr><td colspan="4" style="padding:25px;color:#777;">⏳ جاري التحميل...</td></tr>';
+  try {
+    const r = await googleSheetsGetPayments_({className: classSel.value, studentName: studentSel.value});
+    const rows = mergePaymentRows_(r.rows||[]).filter(row => row.className === classSel.value && row.studentName === studentSel.value).slice().sort((a,b)=>PAYMENT_MONTHS.indexOf(a.month)-PAYMENT_MONTHS.indexOf(b.month));
+    tbody.innerHTML = rows.length ? rows.map(row => `
+      <tr>
+        <td>${row.month || '-'}</td>
+        <td>${row.amount || '-'}</td>
+        <td>${row.paidDate || '-'}</td>
+        <td>${row.recordedBy || '-'}</td>
+      </tr>`).join('') : '<tr><td colspan="4" style="padding:25px;color:#777;">لا توجد دفعات مسجلة لهذا الطالب.</td></tr>';
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="4" style="padding:25px;color:#b00;">تعذر تحميل بيانات الدفع الآن.</td></tr>';
+  }
+}
 
 
 try {
@@ -4750,6 +5065,30 @@ async function wafdeenRestoreRegistrationState_() {
 }
 
 const cloudSyncState_ = {};
+async function initializeWafdeenSheetsInGoogle_(students){
+  if(!GOOGLE_SHEETS_WEB_APP_URL || !Array.isArray(students)) return;
+  const clean=students.filter(s=>s && !s._deleted).map(s=>({
+    id:s.id || s.studentId || s.studentID || '',
+    name:s.name || s.studentName || s.studentFullName || s['اسم الطالب'] || ''
+  })).filter(s=>String(s.name).trim());
+  if(!clean.length) return;
+  // إعادة الإرسال آمنة: إنشاء الشيتات عملية idempotent، وهذا يضمن أن أي طلاب
+  // تمت إضافتهم أو فشل إرسالهم سابقًا سيتم إنشاء شيتاتهم أيضًا.
+  const key='wafdeenGoogleSheetsStudentsSyncVersion';
+  const version='v3';
+  try{
+    await postGradeToGoogleSheet_({
+      action:'initializeWafdeenSheets',
+      timestamp:new Date().toISOString(),
+      students:clean
+    });
+    localStorage.setItem(key,version);
+    console.log('تم إرسال قائمة الوافدين لإنشاء الشيتات:',clean.length);
+  }catch(e){
+    console.warn('تعذر إنشاء شيتات الوافدين تلقائيًا:',e);
+  }
+}
+
 async function syncCollection_(collectionName, localGetter, localSetter, renderFn, options={}) {
   if (!useFirebase || !db || cloudSyncListeners[collectionName]) return;
   cloudSyncListeners[collectionName] = db.collection(collectionName).onSnapshot(
@@ -4799,6 +5138,9 @@ async function syncCollection_(collectionName, localGetter, localSetter, renderF
         const merged = Array.from(mergedById.values()).filter(x => !x?._deleted);
         localSetter(merged);
         try { localStorage.setItem(options.storageKey || collectionName, JSON.stringify(merged)); } catch (_) {}
+        if (collectionName === 'wafdeenStudents') {
+          initializeWafdeenSheetsInGoogle_(merged);
+        }
         if (typeof renderFn === 'function') renderFn();
       } catch (err) {
         console.error('Sync error [' + collectionName + ']:', err);
@@ -5042,6 +5384,8 @@ function showAppScreen() {
     statusBtn.classList.remove('hidden');
     document.getElementById('notes-tab-btn')?.classList.remove('hidden');
     document.getElementById('top-students-tab-btn')?.classList.remove('hidden');
+    document.getElementById('payments-tab-btn')?.classList.remove('hidden');
+    document.getElementById('payment-report-tab-btn')?.classList.remove('hidden');
     reportsMenuWrap.classList.add('hidden');
     dailyExportBtn.classList.add('hidden');
     notesExportBtn.classList.add('hidden');
@@ -5084,6 +5428,8 @@ function showAppScreen() {
 
   if (isManager) {
     adminBtn.classList.remove('hidden');
+    document.getElementById('payments-tab-btn')?.classList.remove('hidden');
+    document.getElementById('payment-report-tab-btn')?.classList.remove('hidden');
     document.getElementById('analysis-tab-btn')?.classList.remove('hidden');
     backupBtn.classList.remove('hidden');
     managerBtn.classList.remove('hidden');
@@ -5116,6 +5462,8 @@ function showAppScreen() {
     const visibleDailyClass = document.getElementById('dailyClassSelect');
     if (visibleDailyClass) visibleDailyClass.disabled = true;
     adminBtn.classList.add('hidden');
+    document.getElementById('payments-tab-btn')?.classList.add('hidden');
+    document.getElementById('payment-report-tab-btn')?.classList.add('hidden');
     backupBtn.classList.add('hidden');
     managerBtn.classList.add('hidden');
     weeklyBtn.classList.add('hidden');
@@ -5613,8 +5961,8 @@ function renderStudentDataAnalysis() {
 }
 
 function switchTab(tabId, event) {
-  // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، والأوائل.
-  if (currentTeacher?.center === 'مشرف' && !['status-tab','notes-tab','top-students-tab'].includes(tabId)) {
+  // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، الأوائل، المصروفات، ومقرر الدفع.
+  if (currentTeacher?.center === 'مشرف' && !['status-tab','notes-tab','top-students-tab','payments-tab','payment-report-tab'].includes(tabId)) {
     tabId = 'status-tab';
   }
   if (tabId !== 'admin-tab') {
@@ -5646,6 +5994,8 @@ function switchTab(tabId, event) {
   else if (tabId === 'top-students-tab') renderTopStudents();
   else if (tabId === 'notes-tab') { populateNotesClasses(); updateNotesStudentList(); renderNotesTable(); }
   else if (tabId === 'admin-tab') { renderClassCards(); renderStudentsTable(); renderTeachersTable(); renderResultsAdminSummary(); }
+  else if (tabId === 'payments-tab') { populatePaymentsClasses(); updatePaymentsStudentList(); }
+  else if (tabId === 'payment-report-tab') { populatePaymentReportClasses(); updatePaymentReportStudentList(); }
 }
 
 
@@ -5675,6 +6025,103 @@ function getDailyTotal(record) {
   return (record.attendance || 0) + (record.behavior || 0) + (record.newLesson || 0) +
          (record.oldRevision || 0) + (record.recitation || 0) + (record.homework || 0) + (record.tajweed || 0);
 }
+
+/* ================= أسباب خصم السلوك ================= */
+const WAFDEEN_BEHAVIOR_REASONS = [
+  {key:'delay', label:'التاخير', points:1},
+  {key:'makeup', label:'المكياج', points:2},
+  {key:'hijab', label:'الطرحه', points:2},
+  {key:'noreview', label:'عدم المراجعه', points:2},
+  {key:'talkback', label:'الرد علي الشيخ', points:3},
+  {key:'lying', label:'الكذب', points:3},
+  {key:'laughing', label:'الضحك والهزار', points:2},
+  {key:'loudvoice', label:'رفع الصوت', points:2},
+  {key:'objecting', label:'الاعتراض علي الشيخ', points:2},
+  {key:'focus', label:'التركيز', points:2},
+  {key:'parentsobedience', label:'طاعه الوالدين', points:3},
+  {key:'tongue', label:'حفظ اللسان', points:2},
+  {key:'cleanliness', label:'النظافه', points:2},
+  {key:'permission', label:'الاستذان', points:2},
+  {key:'order', label:'النظام', points:1},
+  {key:'harassment', label:'التحرش', points:9},
+  {key:'cursing', label:'السباب', points:3},
+  {key:'uniform', label:'عدم الالتزام بالزي', points:2}
+];
+let wafdeenBehaviorState = {daily:{}, modal:{}};
+
+function wafdeenBehaviorReasonsRowsHtml(prefix){
+  return WAFDEEN_BEHAVIOR_REASONS.map(r=>`
+    <div class="behavior-reason-row">
+      <span class="behavior-reason-label">${r.label} <span class="behavior-reason-points">(-${r.points})</span></span>
+      <div class="behavior-reason-controls">
+        <button type="button" class="behavior-reason-btn" onclick="event.preventDefault();wafdeenBehaviorChange('${prefix}','${r.key}',-1);return false;">−</button>
+        <span id="${prefix}-behavior-count-${r.key}" class="behavior-reason-count">0</span>
+        <button type="button" class="behavior-reason-btn" onclick="event.preventDefault();wafdeenBehaviorChange('${prefix}','${r.key}',1);return false;">+</button>
+      </div>
+    </div>`).join('');
+}
+function wafdeenMountBehaviorPanel(containerId, prefix){
+  const el=document.getElementById(containerId);
+  if(el) el.innerHTML=wafdeenBehaviorReasonsRowsHtml(prefix);
+}
+function wafdeenToggleBehaviorPanel(prefix){
+  const grid=document.getElementById(`${prefix}-behavior-grid`);
+  if(grid) grid.classList.toggle('is-visible');
+}
+function wafdeenBehaviorDeduction(prefix){
+  const state=wafdeenBehaviorState[prefix]||{};
+  return WAFDEEN_BEHAVIOR_REASONS.reduce((sum,r)=>sum+(Math.max(0,parseInt(state[r.key],10)||0))*r.points,0);
+}
+function wafdeenBehaviorSummaryText(prefix){
+  const state=wafdeenBehaviorState[prefix]||{};
+  return WAFDEEN_BEHAVIOR_REASONS
+    .filter(r=>(parseInt(state[r.key],10)||0)>0)
+    .map(r=>{const n=parseInt(state[r.key],10)||0; return `${r.label} ×${n} (-${n*r.points})`;})
+    .join('، ');
+}
+function wafdeenRecalcBehavior(prefix){
+  const deduction=wafdeenBehaviorDeduction(prefix);
+  const score=Math.max(0,Math.min(10,10-deduction));
+  const input=document.getElementById(prefix==='daily' ? 'behavior' : 'modalBehavior');
+  if(input) input.value=score;
+  const summaryEl=document.getElementById(`${prefix}-behavior-summary`);
+  const text=wafdeenBehaviorSummaryText(prefix);
+  if(summaryEl) summaryEl.textContent=text ? `سبب الخصم: ${text} — الدرجة: ${score}/10` : `لا يوجد خصم — الدرجة: 10/10`;
+  return score;
+}
+function wafdeenBehaviorChange(prefix,key,delta){
+  if(!wafdeenBehaviorState[prefix]) wafdeenBehaviorState[prefix]={};
+  const cur=Math.max(0,(parseInt(wafdeenBehaviorState[prefix][key],10)||0)+delta);
+  wafdeenBehaviorState[prefix][key]=cur;
+  const el=document.getElementById(`${prefix}-behavior-count-${key}`);
+  if(el) el.textContent=String(cur);
+  wafdeenRecalcBehavior(prefix);
+  if(prefix==='daily'){ try{ wafdeenSaveDailyDraft_(); }catch(_){} }
+}
+function wafdeenResetBehaviorState(prefix, counts){
+  counts=counts||{};
+  const state={};
+  WAFDEEN_BEHAVIOR_REASONS.forEach(r=>{ state[r.key]=Math.max(0,parseInt(counts[r.key],10)||0); });
+  wafdeenBehaviorState[prefix]=state;
+  WAFDEEN_BEHAVIOR_REASONS.forEach(r=>{
+    const el=document.getElementById(`${prefix}-behavior-count-${r.key}`);
+    if(el) el.textContent=String(state[r.key]);
+  });
+  const grid=document.getElementById(`${prefix}-behavior-grid`);
+  if(grid) grid.classList.remove('is-visible');
+  wafdeenRecalcBehavior(prefix);
+}
+function wafdeenShowBehaviorReasons(text){
+  showSiteModal(
+    '📋 سبب خصم السلوك',
+    text ? `<div style="line-height:2;">${String(text).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}</div>` : '<div>لا يوجد خصم — الطالب حاصل على الدرجة كاملة.</div>',
+    `<button type="button" class="action-btn modal-success" onclick="closeSiteModal()">حسناً</button>`
+  );
+}
+document.addEventListener('DOMContentLoaded', function(){
+  wafdeenMountBehaviorPanel('daily-behavior-grid','daily');
+  wafdeenResetBehaviorState('daily', {});
+});
 
 
 /* ================= تايمر الرصد اليومي ================= */
@@ -5762,7 +6209,8 @@ function wafdeenSaveDailyDraft_(){
       recitationErrors:Number(dailyErrorCounters?.recitation?.errors||0),
       recitationTashkeel:Number(dailyErrorCounters?.recitation?.tashkeel||0),
       recitationRepetition:Number(dailyErrorCounters?.recitation?.repetition||0),
-      counterType:dailyCounterType||dailyTimerType||''
+      counterType:dailyCounterType||dailyTimerType||'',
+      behaviorCounts:{...(wafdeenBehaviorState.daily||{})}
     };
     localStorage.setItem(wafdeenDailyDraftKey_(),JSON.stringify(draft));
   }catch(_){}
@@ -5782,6 +6230,7 @@ function wafdeenRestoreDailyDraft_(){
     };
     if(draft.counterType) dailyCounterType=draft.counterType;
     dailyRenderCounters();
+    wafdeenResetBehaviorState('daily', draft.behaviorCounts||{});
   }catch(_){}
 }
 
@@ -5898,6 +6347,7 @@ function showDailyStudentWorkspace(){
   resetDailyExtraFieldsFromRecord(existing||{});
   dailyLoadCountersFromRecord(existing||{});
   dailyRenderCounters();
+  wafdeenResetBehaviorState('daily', existing?.behaviorReasons||{});
   updateDailyTypeTimes(); renderDailyTimer();
 }
 function startDailyTimer(){
@@ -6112,6 +6562,10 @@ async function addGrade(forceAbsent=false) {
     ['newTopicToday','newTopicRecited','oldTopicToday','oldTopicRecited','recitationTopicToday','recitationTopicRecited'].forEach(id => { const el=document.getElementById(id); if(el) el.value='-'; });
     dailyResetCounters();
     dailyRenderCounters();
+    wafdeenBehaviorState.daily={};
+    const behSummary=document.getElementById('daily-behavior-summary');
+    if(behSummary) behSummary.textContent='غياب — الدرجة: 0/10';
+    WAFDEEN_BEHAVIOR_REASONS.forEach(r=>{const el=document.getElementById(`daily-behavior-count-${r.key}`);if(el)el.textContent='0';});
   }
   const missingFields = isAbsent ? [] : wafdeenValidateDailyRequiredFields_();
   if (missingFields.length) {
@@ -6178,6 +6632,8 @@ async function addGrade(forceAbsent=false) {
     recitationErrors: isAbsent ? 0 : Number(dailyErrorCounters.recitation?.errors||0),
     recitationTashkeel: isAbsent ? 0 : Number(dailyErrorCounters.recitation?.tashkeel||0),
     recitationRepetition: isAbsent ? 0 : Number(dailyErrorCounters.recitation?.repetition||0),
+    behaviorReasons: isAbsent ? {} : {...(wafdeenBehaviorState.daily||{})},
+    behaviorReasonsText: isAbsent ? '' : wafdeenBehaviorSummaryText('daily'),
     timeRecordedAt: new Date().toISOString(),
     recitation1: 0, recitation2: 0, recitation3: 0, recitation4: 0
   };
@@ -6426,13 +6882,14 @@ function wafdeenValidateDailyRequiredFields_(){
   return missing;
 }
 function wafdeenResetDailyEntryForm_(){
-  ['attendance','behavior','tajweed','homework','newTopicToday','newTopicRecited','oldTopicToday','oldTopicRecited','recitationTopicToday','recitationTopicRecited','newPagesCount','oldPagesCount','recitationPagesCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['attendance','tajweed','homework','newTopicToday','newTopicRecited','oldTopicToday','oldTopicRecited','recitationTopicToday','recitationTopicRecited','newPagesCount','oldPagesCount','recitationPagesCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['newRecitationCount','oldRecitationCount','recitationRecitationCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['newLesson','oldRevision','recitation'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.disabled=true;el.readOnly=true;el.classList.add('daily-auto-grade');}});
   dailyTimerSeconds={new:0,old:0,recitation:0};
   dailyTimerType='new'; dailyCounterType=''; dailyTimerRunning=false; dailyTimerStartedAt=0; dailyTimerBaseSeconds=0;
   clearInterval(dailyTimerInterval); dailyTimerInterval=null;
   dailyResetCounters();
+  wafdeenResetBehaviorState('daily', {});
   updateDailyTypeTimes(); renderDailyTimer(); dailyRenderCounters();
   const summary=document.getElementById('daily-score-time-summary');
   if(summary)summary.textContent='تم الحفظ بنجاح. الخانات جاهزة لرصد طالب آخر أو رصد جديد.';
@@ -6479,6 +6936,9 @@ function renderDailyTable() {
            <button type="button" class="action-btn btn-danger" style="padding:3px 8px;font-size:0.8em;min-width:auto;" onclick="deleteRecord('${r.id}')">🗑️ حذف</button>
          </div>`
       : '-';
+    const behaviorReasonIcon = (!isAbsentRow && r.behaviorReasonsText)
+      ? ` <span class="behavior-reason-icon" title="عرض سبب الخصم" onclick="wafdeenShowBehaviorReasons('${String(r.behaviorReasonsText).replace(/'/g,"\\'")}')">ℹ️</span>`
+      : '';
 
     tbody.innerHTML += `
       <tr>
@@ -6487,7 +6947,7 @@ function renderDailyTable() {
         <td>${r.teacherName}</td>
         <td style="font-weight:bold;">${r.studentName}</td>
         <td>${isAbsentRow ? '<span class="badge" style="background:var(--danger-color);color:#fff;padding:4px 10px;">🚫 غائب</span>' : dailyMissingCell(r.attendance)}</td>
-        <td>${gradeCell(r.behavior)}</td>
+        <td>${gradeCell(r.behavior)}${behaviorReasonIcon}</td>
         <td class="fifth-hide-on-class">${gradeCell(r.newLesson)}<span class="daily-score-time">${r.newLessonTimeSeconds ? `تم التسميع في ${formatTimerSeconds(r.newLessonTimeSeconds)}` : ''}</span></td>
         <td class="fifth-hide-on-class daily-score-time">${timeCellFn(r.newLessonTimeSeconds)}</td>
         <td class="fifth-hide-on-class" style="color:#e67e22;">${dailyMissingCell(r.newTopicToday || r.newTopicText)}</td>
@@ -6528,7 +6988,15 @@ async function editRecord(id) {
         <input value="${String(record.studentName || '').replace(/"/g,'&quot;')}" readonly>
       </div>
       <div class="form-group"><label>الحضور (10):</label><input type="number" id="modalAttendance" min="0" max="10" value="${record.attendance ?? 0}"></div>
-      <div class="form-group"><label>السلوك (10):</label><input type="number" id="modalBehavior" min="0" max="10" value="${record.behavior ?? 0}"></div>
+      <div class="form-group full">
+        <label>السلوك (10):</label>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <input type="number" id="modalBehavior" min="0" max="10" value="${record.behavior ?? 0}" readonly style="max-width:90px;">
+          <button type="button" class="action-btn btn-warning" style="padding:6px 12px;font-size:.82em;min-width:auto;" onclick="wafdeenToggleBehaviorPanel('modal')">📋 اختيار سبب الخصم إن وُجد</button>
+        </div>
+        <div id="modal-behavior-summary" class="daily-score-note">لا يوجد خصم — الدرجة: 10/10</div>
+        <div id="modal-behavior-grid" class="behavior-reason-grid">${wafdeenBehaviorReasonsRowsHtml('modal')}</div>
+      </div>
       <div class="form-group fifth-hide-on-class"><label>الجديد (10):</label><input type="number" id="modalNewLesson" min="0" max="10" value="${record.newLesson ?? 0}"></div>
       <div class="form-group fifth-hide-on-class"><label>مقرر الجديد اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="modalNewTopicToday" value="${String(record.newTopicToday || record.newTopicText || '').replace(/"/g,'&quot;')}"></div>
       <div class="form-group fifth-hide-on-class"><label>مقرر الجديد الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="modalNewTopicRecited" value="${String(record.newTopicRecited || '').replace(/"/g,'&quot;')}"></div>
@@ -6547,6 +7015,7 @@ async function editRecord(id) {
     `<button type="button" class="action-btn modal-success" id="saveRecordEditBtn">💾 حفظ التعديل</button>
      <button type="button" class="action-btn modal-cancel" id="cancelRecordEditBtn">إلغاء</button>`
   );
+  wafdeenResetBehaviorState('modal', record.behaviorReasons||{});
 
   document.getElementById('saveRecordEditBtn').onclick = async () => {
     const dateISO = document.getElementById('modalRecordDate').value;
@@ -6588,6 +7057,8 @@ async function editRecord(id) {
       newTopicText: fifth ? '' : newTopicToday,
       attendance: clampGrade(values[0]),
       behavior: clampGrade(values[1]),
+      behaviorReasons: {...(wafdeenBehaviorState.modal||{})},
+      behaviorReasonsText: wafdeenBehaviorSummaryText('modal'),
       newLesson: fifth ? 0 : clampGrade(values[2]),
       oldRevision: fifth ? 0 : clampGrade(values[3]),
       recitation: fifth ? clampGrade(values[2]) : clampGrade(values[4]),
@@ -7295,7 +7766,7 @@ function renderManagerView() {
     dailyClassRecs.forEach(r => {
             tDaily.innerHTML += `<tr>
         <td>${r.dateISO}</td><td>${r.teacherName}</td><td style="font-weight:bold;">${r.studentName}</td>
-        <td>${r.attendance ?? 0}</td><td>${r.behavior ?? 0}</td><td class="fifth-hide-on-class">${r.newLesson ?? 0}</td>
+        <td>${r.attendance ?? 0}</td><td>${r.behavior ?? 0}${r.behaviorReasonsText ? ` <span class="behavior-reason-icon" title="عرض سبب الخصم" onclick="wafdeenShowBehaviorReasons('${String(r.behaviorReasonsText).replace(/'/g,"\\'")}')">ℹ️</span>` : ''}</td><td class="fifth-hide-on-class">${r.newLesson ?? 0}</td>
         <td class="fifth-hide-on-class" style="color:#e67e22;">${r.newTopicToday || r.newTopicText || '-'}</td><td class="fifth-hide-on-class">${r.newTopicRecited || '-'}</td><td class="fifth-hide-on-class">${r.oldRevision ?? 0}</td>
         <td class="fifth-hide-on-class" style="color:#27ae60;">${r.oldTopicToday || r.oldTopicText || '-'}</td><td class="fifth-hide-on-class">${r.oldTopicRecited || '-'}</td><td>${r.recitation ?? 0}</td>
         <td style="color:var(--primary-color);">${r.recitationTopicToday || r.recitationTopic || '-'}</td><td style="color:#7d3c98;">${r.recitationTopicRecited || '-'}</td><td>${r.homework ?? 0}</td>
@@ -8107,6 +8578,7 @@ function studentLogin() {
       <div class="result-field-card">
         <div class="result-field-label">السلوك</div>
         <div class="result-field-value">${stats.todayRec.behavior ?? 0} / 10</div>
+        ${stats.todayRec.behaviorReasonsText ? `<div style="font-size:.75em;color:var(--danger-color);margin-top:4px;">سبب الخصم: ${String(stats.todayRec.behaviorReasonsText).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}</div>` : ''}
       </div>
       <div class="result-field-card">
         <div class="result-field-label">📖 التجويد — خارج المجموع</div>
@@ -8241,7 +8713,7 @@ function lookupResultByCode() {
 /* -------- 1) نسخة درجات الرصد اليومي (كل السنين) -------- */
 const gradesHeaderMap = [
   ['المعرف', 'id'], ['المدرس', 'teacherName'], ['الصف', 'className'], ['التاريخ', 'dateISO'], ['اليوم', 'dayName'],
-  ['اسم الطالب', 'studentName'], ['الحضور', 'attendance'], ['السلوك', 'behavior'], ['الجديد', 'newLesson'], ['مقرر الجديد اليوم', 'newTopicToday'], ['مقرر الجديد الذي تم تسميعه', 'newTopicRecited'],
+  ['اسم الطالب', 'studentName'], ['الحضور', 'attendance'], ['السلوك', 'behavior'], ['سبب خصم السلوك', 'behaviorReasonsText'], ['الجديد', 'newLesson'], ['مقرر الجديد اليوم', 'newTopicToday'], ['مقرر الجديد الذي تم تسميعه', 'newTopicRecited'],
   ['الماضي', 'oldRevision'], ['مقرر الماضي اليوم', 'oldTopicToday'], ['مقرر الماضي الذي تم تسميعه', 'oldTopicRecited'], ['التلاوة', 'recitation'], ['مقرر التلاوة اليوم', 'recitationTopicToday'], ['مقرر التلاوة الذي تم تسميعه', 'recitationTopicRecited'],
   ['الواجب', 'homework'], ['التجويد', 'tajweed']
 ];
@@ -8585,6 +9057,7 @@ let wafdeenUsageData = [];
 let wafdeenDailyRecords = [];
 let wafdeenBooksData = [];
 let wafdeenExamsData = [];
+let wafdeenMonthlyImportedReports = {};
 let currentWafdeenTeacher = null;
 let wafdeenSelectedType = '';
 let wafdeenSelectedSubject = '';
@@ -8631,6 +9104,7 @@ function wafdeenLocalLoad(){
   wafdeenDailyRecords = JSON.parse(localStorage.getItem('wafdeenDailyRecords') || '[]');
   wafdeenBooksData = JSON.parse(localStorage.getItem('wafdeenBooksData') || '[]');
   wafdeenExamsData = JSON.parse(localStorage.getItem('wafdeenExamsData') || '[]');
+  wafdeenMonthlyImportedReports = JSON.parse(localStorage.getItem('wafdeenMonthlyImportedReports') || '{}');
 }
 function wafdeenPersistLocal(){
   localStorage.setItem('wafdeenTeachersData', JSON.stringify(wafdeenTeachersData));
@@ -8639,6 +9113,7 @@ function wafdeenPersistLocal(){
   localStorage.setItem('wafdeenDailyRecords', JSON.stringify(wafdeenDailyRecords));
   localStorage.setItem('wafdeenBooksData', JSON.stringify(wafdeenBooksData));
   localStorage.setItem('wafdeenExamsData', JSON.stringify(wafdeenExamsData));
+  localStorage.setItem('wafdeenMonthlyImportedReports', JSON.stringify(wafdeenMonthlyImportedReports));
 }
 function wafdeenTodayMonth(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
@@ -9042,7 +9517,8 @@ function wafdeenGradeTable(records, title, layout='vertical'){
       if(fifth) return `<tr><td>${esc(String(r.dateISO||'').slice(0,10))}</td><td>${valueCell(r.recitation)}</td><td>${valueCell(r.recitationTopicRecited)}</td><td>${valueCell(r.recitationPagesCount)}</td><td>${totalCell(r)}</td>${actions}</tr>`;
       return `<tr><td>${esc(String(r.dateISO||'').slice(0,10))}</td><td>${valueCell(r.newLesson)}</td><td>${valueCell(r.newTopicRecited)}</td><td>${valueCell(r.newPagesCount)}</td><td>${valueCell(r.oldRevision)}</td><td>${valueCell(r.oldTopicRecited)}</td><td>${valueCell(r.oldPagesCount)}</td><td>${valueCell(r.recitation)}</td><td>${valueCell(r.recitationTopicRecited)}</td><td>${valueCell(r.recitationPagesCount)}</td><td>${totalCell(r)}</td>${actions}</tr>`;
     }).join('');
-    return `<div class="card-view wafdeen-horizontal-grades"><h4 class="card-title">📊 رصد ${esc(title)}</h4><div class="table-responsive wafdeen-horizontal-scroll"><table class="wafdeen-horizontal-grade-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+    const exportTableId=title==='الأسبوع'?'wafdeenGradeWeekTable':(title==='الشهر'?'wafdeenGradeMonthTable':'wafdeenGradeHorizontalTable');
+    return `<div class="card-view wafdeen-horizontal-grades"><h4 class="card-title">📊 رصد ${esc(title)}</h4><div class="table-responsive wafdeen-horizontal-scroll"><table id="${exportTableId}" class="wafdeen-horizontal-grade-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></div>`;
   }
 
   return sorted.map((r,i)=>{
@@ -9061,6 +9537,92 @@ function wafdeenGradeTable(records, title, layout='vertical'){
     return `<article class="wafdeen-grade-record-card"><div class="grade-record-head"><strong>رصد ${i+1}</strong><span>${esc(r.dayName||'')} — ${esc(String(r.dateISO||'').slice(0,10))}</span></div><div class="grade-record-fields">${rows.map(([label,val])=>`<div class="grade-record-row"><span class="grade-record-label">${label}</span><span class="grade-record-value">${val}</span></div>`).join('')}</div>${actions}</article>`;
   }).join('');
 }
+function wafdeenExportGradePeriod(period){
+  const tableId=period==='week'?'wafdeenGradeWeekTable':'wafdeenGradeMonthTable';
+  const studentName=document.getElementById('wafdeen-grades-student-name')?.textContent||'الطالب';
+  const title=period==='week'?'درجات_الأسبوع':'درجات_الشهر';
+  const table=document.getElementById(tableId);
+  if(!table){ showMessage('wafdeen-save-msg','لا توجد درجات مسجلة للتصدير في '+(period==='week'?'الأسبوع':'الشهر'),'error'); return; }
+  exportToExcel(tableId,`${title}_${studentName}`);
+}
+async function wafdeenImportGradePeriodExcel(event){
+  const file=event.target.files?.[0];
+  if(!file)return;
+  try{
+    const studentId=wafdeenCurrentGradeStudentId || document.getElementById('wafdeenStudentSelect')?.value;
+    if(!studentId) throw new Error('اختر الطالب أولاً من قائمة الدرجات');
+    const student=wafdeenStudentsData.find(s=>String(s.id)===String(studentId));
+    if(!student) throw new Error('الطالب غير موجود');
+    const rows=await readExcelFile(file);
+    if(!rows.length) throw new Error('ملف الإكسل فارغ');
+
+    const normalizeKey=v=>String(v??'').trim().replace(/\s+/g,' ').replace(/ي/g,'ى');
+    const get=(row,names)=>{
+      const keys=Object.keys(row);
+      const wanted=names.map(normalizeKey);
+      const key=keys.find(k=>wanted.includes(normalizeKey(k)));
+      return key===undefined?'':row[key];
+    };
+    const num=v=>{
+      if(v===null||v===undefined||v==='')return '';
+      const n=Number(String(v).replace(',','.').replace(/[^0-9.\-]/g,''));
+      return Number.isFinite(n)?n:'';
+    };
+    const cleanText=v=>String(v??'').trim();
+    const dateFromRow=r=>{
+      let v=get(r,['التاريخ','date']);
+      if(v instanceof Date)return wafdeenDateKeyLocal(v);
+      if(typeof v==='number' && v>20000){
+        const d=new Date(Math.round((v-25569)*86400*1000));
+        return wafdeenDateKeyLocal(d);
+      }
+      v=cleanText(v);
+      const m=v.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      return m?`${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`:'';
+    };
+
+    const imported=[];
+    for(const r of rows){
+      const dateISO=dateFromRow(r);
+      if(!dateISO)continue;
+      const existing=wafdeenDailyRecords.find(x=>!x._deleted && String(x.studentId||'')===String(student.id) && String(x.dateISO||'').slice(0,10)===dateISO);
+      const rec=existing || {
+        id:`wafdeen_${student.id}_${dateISO}`, teacherUsername:currentWafdeenTeacher?.username||'', studentId:student.id, studentName:student.name, dateISO,
+        attendanceStatus:'present',isAbsent:false,status:'present',dayName:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][new Date(dateISO+'T12:00:00').getDay()],
+        newLesson:'',newPagesCount:'',newTopicRecited:'',oldRevision:'',oldPagesCount:'',oldTopicRecited:'',recitation:'',recitationPagesCount:'',recitationTopicRecited:''
+      };
+      const setIfPresent=(prop,names,asNum=false)=>{const v=get(r,names);if(v!==''&&v!==null&&v!==undefined)rec[prop]=asNum?num(v):cleanText(v);};
+      setIfPresent('newLesson',['الجديد']);
+      setIfPresent('newTopicRecited',['مقرر الجديد الذي تم تسميعه','مقرر الجديد']);
+      setIfPresent('newPagesCount',['صفحات الجديد','عدد صفحات الجديد']);
+      setIfPresent('oldRevision',['الماضي']);
+      setIfPresent('oldTopicRecited',['مقرر الماضي الذي تم تسميعه','مقرر الماضي']);
+      setIfPresent('oldPagesCount',['صفحات الماضي','عدد صفحات الماضي']);
+      setIfPresent('recitation',['التلاوة']);
+      setIfPresent('recitationTopicRecited',['مقرر التلاوة الذي تم تسميعه','مقرر التلاوة']);
+      setIfPresent('recitationPagesCount',['صفحات/أجزاء التلاوة','صفحات التلاوة','عدد صفحات التلاوة']);
+      const total=num(get(r,['المجموع / 30','المجموع من 30','المجموع']));
+      if(total!=='')rec.total=total;
+      if(rec.total==null || rec.total==='')rec.total=['newLesson','oldRevision','recitation'].reduce((a,k)=>a+(rec[k]===''?0:Number(rec[k])||0),0);
+      rec.updatedAt=new Date().toISOString();
+      if(!existing)wafdeenDailyRecords.push(rec);
+      imported.push(rec);
+    }
+    if(!imported.length)throw new Error('لم أجد صفوفًا صالحة. تأكد أن الملف صادر من درجات الأسبوع أو الشهر في الموقع.');
+    localStorage.setItem('wafdeenDailyRecords',JSON.stringify(wafdeenDailyRecords));
+    if(useFirebase&&db){
+      await Promise.all(imported.map(r=>db.collection('wafdeenDailyRecords').doc(String(r.id)).set({...r,updatedAt:new Date().toISOString()},{merge:true}).catch(e=>console.error(e))));
+    }
+    wafdeenShowStudentGrades(student.id);
+    showMessage('wafdeen-save-msg',`تم استيراد ${imported.length} رصد للطالب ${student.name} من ملف Excel وظهرت في الموقع بنجاح ✅`,'success');
+  }catch(err){
+    console.error(err);
+    showMessage('wafdeen-save-msg',err.message||'حدث خطأ أثناء استيراد ملف Excel','error');
+  }finally{
+    event.target.value='';
+  }
+}
+
 function wafdeenShowGradePeriod(period, btn){
   document.querySelectorAll('.wafdeen-grade-period-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
@@ -9588,14 +10150,97 @@ async function wafdeenSaveExam(subject,level){
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
 /* -------- التقرير الشهري -------- */
+
+function exportWafdeenMonthlyReportExcel(){
+  try{
+    const table=document.getElementById('wafdeenReportTable');
+    if(!table){showMessage('wafdeen-save-msg','جدول التقرير الشهري غير موجود','error');return;}
+    const month=document.getElementById('wafdeenReportMonth')?.value||wafdeenTodayMonth();
+    const wb=XLSX.utils.table_to_book(table,{sheet:"التقرير الشهري"});
+    XLSX.writeFile(wb,`تقرير_الوافدين_شهري_${month}.xlsx`);
+    showMessage('wafdeen-save-msg','تم تصدير التقرير الشهري Excel بنجاح ✅','success');
+  }catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر تصدير التقرير الشهري','error');}
+}
+async function saveWafdeenMonthlyReportToGoogleSheets(){
+  try{
+    const month=document.getElementById('wafdeenReportMonth')?.value||wafdeenTodayMonth();
+    const imported=wafdeenMonthlyImportedReports?.[month]?.rows;
+    let rows=[];
+    if(Array.isArray(imported)&&imported.length){
+      rows=imported.map(x=>({teacher:String(x.teacher||''),session:Math.max(0,Number(x.session)||0),educational:Math.max(0,Number(x.educational)||0),total:Math.max(0,Number(x.total)||0)}));
+    }else{
+      const trs=[...document.querySelectorAll('#wafdeenReportTable tbody tr')];
+      rows=trs.map(tr=>{const c=[...tr.querySelectorAll('td')].map(x=>x.textContent.trim());return {teacher:c[0]||'',sessionText:c[1]||'',educationalText:c[2]||'',totalText:c[3]||'',hours50:c[4]||'',hours60:c[5]||''};}).filter(x=>x.teacher);
+    }
+    if(!rows.length){showMessage('wafdeen-save-msg','لا يوجد تقرير لحفظه','error');return false;}
+    const ok=await sendGradeToGoogleSheet('saveWafdeenMonthlyReport',{id:'wafdeen_monthly_'+month,month,rows,sourceFile:wafdeenMonthlyImportedReports?.[month]?.fileName||'',savedAt:new Date().toISOString()});
+    if(ok) showMessage('wafdeen-save-msg',`تم حفظ تقرير ${month} في Google Sheets بنجاح ☁️✅`,'success');
+    else showMessage('wafdeen-save-msg','تم تجهيز التقرير للمزامنة مع Google Sheets، وسيُرسل تلقائيًا عند توفر الاتصال.','success');
+    return ok;
+  }catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ التقرير في Google Sheets','error');return false;}
+}
+
+async function importWafdeenMonthlyReportExcel(input){
+  try{
+    const file=input?.files?.[0]; if(!file)return;
+    if(typeof XLSX==='undefined') throw new Error('XLSX library unavailable');
+    const data=await file.arrayBuffer();
+    const wb=XLSX.read(data,{type:'array',cellDates:true});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});
+    if(!rows.length){showMessage('wafdeen-save-msg','ملف Excel فارغ','error');return;}
+    const month=document.getElementById('wafdeenReportMonth')?.value||wafdeenTodayMonth();
+    const norm=s=>String(s??'').trim().replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/\s+/g,' ');
+    const findVal=(row,names)=>{for(const n of names){if(Object.prototype.hasOwnProperty.call(row,n))return row[n];}const keys=Object.keys(row);for(const n of names){const k=keys.find(x=>norm(x)===norm(n));if(k)return row[k];}return '';};
+    const parseTime=v=>{
+      if(v===null||v===undefined||v==='')return 0;
+      if(typeof v==='number')return Math.max(0,Math.round(v*86400));
+      let s=norm(v);
+      let m=s.match(/(\d+(?:\.\d+)?)\s*س(?:اعة)?\s*(\d+(?:\.\d+)?)\s*د(?:قيقة)?\s*(\d+(?:\.\d+)?)\s*ث(?:انية)?/i);
+      if(m)return Math.max(0,Math.round(+m[1]*3600 + +m[2]*60 + +m[3]));
+      m=s.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+      if(m)return m[3]!==undefined ? (+m[1]*3600 + +m[2]*60 + +m[3]) : (+m[1]*60 + +m[2]);
+      const n=Number(s.replace(',','.')); return Number.isFinite(n)?Math.max(0,Math.round(n*60)):0;
+    };
+    const imported=[];
+    rows.forEach(row=>{
+      const teacher=String(findVal(row,['المعلم','اسم المعلم','المدرس','Teacher'])||'').trim();
+      if(!teacher)return;
+      const session=parseTime(findVal(row,['جلسات التسميع','وقت جلسات التسميع','وقت التسميع']));
+      const educational=parseTime(findVal(row,['وقت المواد التعليمية','المواد التعليمية','وقت التعليم']));
+      let total=parseTime(findVal(row,['إجمالي الوقت','اجمالي الوقت','إجمالي وقت']));
+      if(!total) total=session+educational;
+      imported.push({teacher,session,educational,total});
+    });
+    if(!imported.length)throw new Error('لا توجد صفوف صالحة');
+    wafdeenMonthlyImportedReports[month]={month,rows:imported,importedAt:new Date().toISOString(),fileName:file.name};
+    wafdeenPersistLocal();
+    renderWafdeenMonthlyReport();
+    showMessage('wafdeen-save-msg',`تم استيراد ${imported.length} صف من Excel ووضع الساعات المكتوبة كما هي في تقرير ${month} ✅`,'success');
+    await saveWafdeenMonthlyReportToGoogleSheets();
+    input.value='';
+  }catch(e){
+    console.error(e);
+    showMessage('wafdeen-save-msg','تعذر قراءة Excel. استخدم ملف التقرير الشهري الصادر من الموقع بنفس عناوين الأعمدة.','error');
+  }
+}
+
+
 function renderWafdeenMonthlyReport(){
   const tb=document.querySelector('#wafdeenReportTable tbody');if(!tb)return;
-  const month=document.getElementById('wafdeenReportMonth')?.value||wafdeenTodayMonth();const map={};
-  wafdeenUsageData.filter(r=>String(r.month||'')===month).forEach(r=>{const u=r.teacherUsername||'غير معروف';if(!map[u])map[u]={session:0,educational:0,total:0};const secs=Math.max(0,Number(r.seconds||0));if(r.category==='quran'&&r.type==='جلسة التسميع')map[u].session+=secs;else if(r.category==='educational')map[u].educational+=secs;map[u].total+=secs;});
+  const month=document.getElementById('wafdeenReportMonth')?.value||wafdeenTodayMonth();
+  const imported=wafdeenMonthlyImportedReports?.[month]?.rows;
+  const map={};
+  if(Array.isArray(imported) && imported.length){
+    imported.forEach(x=>{const u=x.teacher||'غير معروف';map[u]={session:Math.max(0,Number(x.session)||0),educational:Math.max(0,Number(x.educational)||0),total:Math.max(0,Number(x.total)||0)};});
+  }else{
+    wafdeenUsageData.filter(r=>String(r.month||'')===month).forEach(r=>{const u=r.teacherUsername||'غير معروف';if(!map[u])map[u]={session:0,educational:0,total:0};const secs=Math.max(0,Number(r.seconds||0));if(r.category==='quran'&&r.type==='جلسة التسميع')map[u].session+=secs;else if(r.category==='educational')map[u].educational+=secs;map[u].total+=secs;});
+  }
   const formatMonthlyTime=(secs)=>{secs=Math.max(0,Math.floor(Number(secs)||0));const hours50=Math.floor(secs/3000),remAfterHours=secs%3000,minutes=Math.floor(remAfterHours/60),seconds=remAfterHours%60;return `${hours50} س ${minutes} د ${seconds} ث`;};
   const formatHours=(secs,base)=>(Math.max(0,secs)/60/base).toFixed(2);
   tb.innerHTML=Object.entries(map).sort((a,b)=>b[1].total-a[1].total).map(([u,x])=>`<tr><td>${escapeHtml(u)}</td><td>${formatMonthlyTime(x.session)}</td><td>${formatMonthlyTime(x.educational)}</td><td><strong>${formatMonthlyTime(x.total)}</strong></td><td>${formatHours(x.total,50)}</td><td>${formatHours(x.total,60)}</td></tr>`).join('')||'<tr><td colspan="6">لا توجد جلسات محفوظة لهذا الشهر</td></tr>';
 }
+
 </script>
 <script>
 window.wafdeenGuardedDailySave=window.wafdeenGuardedDailySave||wafdeenGuardedDailySave;
