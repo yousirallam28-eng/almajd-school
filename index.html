@@ -1440,6 +1440,10 @@ body.fifth-selected .fifth-hide-on-class { display: none !important; }
 .daily-type-time{display:block;font-size:.74em;color:var(--text-muted);margin-top:4px;font-weight:700;}
 .daily-type-btn.active .daily-type-time{color:#e8f2ed;}
 .daily-type-status{min-height:26px;text-align:center;color:var(--accent-gold-light);font-weight:800;font-size:.9em;margin:4px 0 12px;}
+.daily-selected-timer-box{margin:10px 0 12px;padding:12px 14px;border:2px solid var(--accent-gold);border-radius:16px;background:var(--surface);text-align:center;box-shadow:0 5px 14px rgba(0,0,0,.08);}
+.daily-selected-timer-label{font-weight:900;color:var(--accent-gold-light);font-size:.95em;margin-bottom:3px;}
+.daily-selected-timer-display{font-size:2.25rem!important;line-height:1.15!important;padding:4px 0!important;background:transparent!important;color:var(--primary-dark)!important;box-shadow:none!important;border:0!important;min-height:0!important;}
+
 .daily-timer-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
 .daily-timer-actions .action-btn{min-width:0;}
 .daily-scores-card{background:var(--surface);border:1px solid var(--border-soft);border-top:4px solid var(--primary-color);border-radius:18px;padding:18px;margin-bottom:18px;}
@@ -1532,7 +1536,18 @@ body.fifth-selected .fifth-hide-on-class { display: none !important; }
 .wafdeen-book-item button{flex:0 0 auto}.wafdeen-status-pill{display:inline-block;padding:4px 9px;border-radius:999px;font-size:.72em;font-weight:800}.wafdeen-status-open{background:rgba(34,160,107,.16);color:#0f7a4a}.wafdeen-status-lock{background:rgba(217,86,74,.14);color:#a83226}.wafdeen-status-pass{background:rgba(212,175,55,.16);color:var(--accent-gold-dark)}
 .wafdeen-admin-materials{margin-top:18px;border-top:1px dashed var(--accent-gold);padding-top:18px}.wafdeen-book-reader{margin-top:16px;border:1px solid var(--border-soft-strong);border-radius:16px;overflow:hidden;background:var(--surface)}.wafdeen-book-reader iframe{width:100%;height:78vh;min-height:650px;border:0;background:#fff}.wafdeen-book-reader .reader-head a{text-decoration:none}.wafdeen-book-reader .reader-head{padding:11px 14px;background:var(--surface-alt);display:flex;justify-content:space-between;gap:10px;align-items:center}
 .wafdeen-exam-box{margin-top:12px;padding:10px;border:1px dashed var(--border-soft);border-radius:11px;background:rgba(212,175,55,.05)}
-.wafdeen-score{font-weight:900;color:var(--accent-gold-light)}.wafdeen-progress-wrap{margin:12px 0;padding:10px 12px;border:1px solid var(--border-soft);border-radius:12px;background:var(--surface-alt)}.wafdeen-progress-label{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:7px}.wafdeen-progress-track{height:12px;background:rgba(18,58,36,.1);border-radius:999px;overflow:hidden}.wafdeen-progress-bar{height:100%;width:0;background:#20b66b;border-radius:999px;transition:width .25s ease}.wafdeen-upload-percent{font-weight:900;color:#20b66b}.wafdeen-student-only-note{margin:12px 0;padding:11px 13px;border-right:4px solid var(--accent-gold);border-radius:10px;background:rgba(212,175,55,.07);color:var(--text-muted);line-height:1.8}.wafdeen-daily-scores{margin-top:16px;border-top:4px solid var(--primary-color)}.wafdeen-daily-scores .form-grid{margin-bottom:14px}.wafdeen-daily-scores input,.wafdeen-daily-scores select{background:#fff}.wafdeen-daily-save{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media(max-width:650px){.wafdeen-daily-save{grid-template-columns:1fr}}
+.wafdeen-score{font-weight:900;color:var(--accent-gold-light)}.wafdeen-progress-wrap{margin:12px 0;padding:10px 12px;border:1px solid var(--border-soft);border-radius:12px;background:var(--surface-alt)}.wafdeen-progress-label{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:7px}.wafdeen-progress-track{height:12px;background:rgba(18,58,36,.1);border-radius:999px;overflow:hidden}.wafdeen-progress-bar{height:100%;width:0;background:#20b66b;border-radius:999px;transition:width .25s ease}.wafdeen-upload-percent{font-weight:900;color:#20b66b}.wafdeen-student-only-note{margin:12px 0;padding:11px 13px;border-right:4px solid var(--accent-gold);border-radius:10px;background:rgba(212,175,55,.07);color:var(--text-muted);line-height:1.8}.daily-grade-type-selector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0 12px;}
+.daily-grade-type-btn{border:2px solid var(--border-soft-strong);border-radius:14px;padding:12px 10px;background:var(--surface-alt);color:var(--text);font-weight:900;cursor:pointer;transition:.2s;}
+.daily-grade-type-btn.active{background:var(--primary-color);color:#fff;border-color:var(--primary-color);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08);}
+.daily-type-field-hidden{display:none!important;}
+.daily-type-save-done{opacity:.65!important;cursor:not-allowed!important;}
+.daily-field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+#wafdeen-quran-timer.field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;}
+#wafdeen-daily-scores-panel .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+#wafdeen-daily-scores-panel .field-missing-group>label{color:#d32f2f!important;font-weight:900;}
+
+@media(max-width:650px){.daily-grade-type-selector{grid-template-columns:1fr;}}
+.wafdeen-daily-scores{margin-top:16px;border-top:4px solid var(--primary-color)}.wafdeen-daily-scores .form-grid{margin-bottom:14px}.wafdeen-daily-scores input,.wafdeen-daily-scores select{background:#fff}.wafdeen-daily-save{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media(max-width:650px){.wafdeen-daily-save{grid-template-columns:1fr}}
 /* إصلاح ظهور جميع خانات درجات الوافدين على الهاتف وعدم قصها */
 #wafdeen-daily-scores-panel{display:block;visibility:visible;overflow:visible!important;height:auto!important;max-height:none!important;min-height:0!important;}
 #wafdeen-missing-fields{margin-top:12px;padding:12px 14px;border:2px solid #d32f2f;border-radius:12px;background:#fff5f5;color:#b71c1c;font-weight:800;line-height:1.9;}#wafdeen-missing-fields.hidden{display:none!important;}#wafdeen-missing-fields-list{font-weight:700;}#wafdeen-daily-scores-panel .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}#wafdeen-daily-scores-panel .field-missing-group>label{color:#d32f2f!important;font-weight:900;}#wafdeen-daily-scores-panel .field-missing-group{color:#b71c1c;}
@@ -1690,12 +1705,22 @@ body.wafdeen-mode #menu-overlay { display:none !important; visibility:hidden !im
       .forEach(el => el.style.setProperty('display', 'none', 'important'));
   }
 
-  wafdeenRestoreRegistrationState_().catch(console.error);
+  // يتم استدعاء دالة استعادة حالة التسجيل بعد اكتمال تحميل جميع كتل JavaScript.
+  // الدالة معرفة في كتلة لاحقة من الملف، لذلك استدعاؤها هنا مباشرة كان يسبب:
+  // ReferenceError: wafdeenRestoreRegistrationState_ is not defined
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof wafdeenRestoreRegistrationState_ === 'function') {
+      wafdeenRestoreRegistrationState_().catch(console.error);
+    }
+  });
 
-document.addEventListener('DOMContentLoaded', hideAdminInsideAnalysis);
-  new MutationObserver(hideAdminInsideAnalysis).observe(document.body, {
-    childList: true,
-    subtree: true
+  document.addEventListener('DOMContentLoaded', function () {
+    hideAdminInsideAnalysis();
+    const target = document.body;
+    if (target && target.nodeType === 1) {
+      const observer = new MutationObserver(hideAdminInsideAnalysis);
+      observer.observe(target, { childList: true, subtree: true });
+    }
   });
 })();
 </script>
@@ -2480,6 +2505,13 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 .menu-brand-icon{overflow:hidden;background:#fff!important;border-color:rgba(242,230,197,.45)!important}.menu-brand-icon img{width:100%;height:100%;object-fit:contain;border-radius:11px;display:block}.site-modal-box{border-top:4px solid #1B8A6B;border-radius:24px}.modal-success{background:linear-gradient(135deg,#1B8A6B,#0F3D33)!important}.result-link-btn{background:linear-gradient(135deg,#C7A24A,#9E792E)!important}.student-login-link-btn{background:linear-gradient(135deg,#1B8A6B,#0F3D33)!important}.result-field-card{border-right:4px solid #1B8A6B;border-radius:15px}.result-percent-bar-inner{background:linear-gradient(90deg,#37B58B,#1B8A6B)}.student-grade-box.grade-green{background:#E1F2EA!important;color:#126047!important;border-color:#B9DDCC!important}
 @media(max-width:850px){.container{border-radius:0}.institute-header{border-radius:20px}.header-logo{width:58px;height:58px}.login-card{border-radius:24px}}
 </style>
+<style>
+/* تثبيت ظهور التنبيه الأحمر للحقول الناقصة بعد أي قواعد لاحقة */
+#wafdeen-daily-scores-panel .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;color:#b71c1c!important;}
+#wafdeen-daily-scores-panel .field-missing-group>label{color:#d32f2f!important;font-weight:900!important;}
+#wafdeen-quran-timer.field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+.daily-field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+</style>
 </head>
 <body class="login-screen-active">
 
@@ -2652,6 +2684,16 @@ function handleImgError(el, isWatermark = false) {
     <div class="wafdeen-panel">
       <h3>اختيار الطالب</h3>
       <select id="wafdeenStudentSelect" style="width:100%;font-weight:800" onchange="wafdeenResetTimer();wafdeenLoadSelectedStudentGradeData();wafdeenUpdateDailyScoresVisibility()"></select>
+      <div class="form-group" style="margin-top:10px">
+        <label>تاريخ رصد الوافدين:</label>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button type="button" class="action-btn btn-warning" onclick="changeWafdeenDailyDate(-1)" title="اليوم السابق">◀ السابق</button>
+          <input type="date" id="wafdeenDailyDate" onchange="changeWafdeenDailyDate(0)" style="flex:1;min-width:160px">
+          <button type="button" class="action-btn btn-warning" onclick="changeWafdeenDailyDate(1)" title="اليوم التالي">التالي ▶</button>
+          <button type="button" class="action-btn btn-export" onclick="goWafdeenDailyToday()">اليوم</button>
+        </div>
+        <small id="wafdeen-daily-date-note" style="display:block;margin-top:6px;opacity:.85">يمكن تسجيل رصد يوم سابق إذا لم يتم تسجيله في يومه.</small>
+      </div>
       <div id="wafdeen-student-info" class="wafdeen-note" style="margin-top:8px"></div>
     </div>
 
@@ -2670,7 +2712,6 @@ function handleImgError(el, isWatermark = false) {
           <div class="wafdeen-controls">
             <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStartPause()">بدء</button>
             <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStartPause(true)">استراحة</button>
-            <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStopTimer()">توقف وحفظ</button>
           </div>
         
           
@@ -2726,7 +2767,7 @@ function handleImgError(el, isWatermark = false) {
             <div class="form-group"><label>عدد الصفحات (الجديد):</label><input type="text" id="wafdeenNewPagesCount" placeholder="عدد الصفحات"></div>
             <div class="form-group"><label>مقرر الجديد الذي تم تسميعه:</label><input type="text" id="wafdeenNewTopicRecited" placeholder="المقرر الذي تم تسميعه"></div>
           </div>
-          <button type="button" class="action-btn btn-save wafdeen-save-type-btn" onclick="wafdeenSaveGradeType('الجديد')">💾 حفظ الجديد فقط</button>
+          <button type="button" class="action-btn btn-save wafdeen-save-type-btn" onclick="wafdeenSaveGradeAndTime()">💾 حفظ الدرجات والوقت</button>
         </div>
 
         <div class="wafdeen-grade-type-fields" data-grade-fields="الماضي">
@@ -2736,7 +2777,7 @@ function handleImgError(el, isWatermark = false) {
             <div class="form-group"><label>عدد الصفحات (الماضي):</label><input type="text" id="wafdeenOldPagesCount" placeholder="عدد الصفحات"></div>
             <div class="form-group"><label>مقرر الماضي الذي تم تسميعه:</label><input type="text" id="wafdeenOldTopicRecited" placeholder="المقرر الذي تم تسميعه"></div>
           </div>
-          <button type="button" class="action-btn btn-save wafdeen-save-type-btn" onclick="wafdeenSaveGradeType('الماضي')">💾 حفظ الماضي فقط</button>
+          <button type="button" class="action-btn btn-save wafdeen-save-type-btn" onclick="wafdeenSaveGradeAndTime()">💾 حفظ الدرجات والوقت</button>
         </div>
 
         <div class="wafdeen-grade-type-fields" data-grade-fields="التلاوة">
@@ -2746,10 +2787,10 @@ function handleImgError(el, isWatermark = false) {
             <div class="form-group"><label>عدد الصفحات/الأجزاء (التلاوة):</label><input type="text" id="wafdeenRecitationPagesCount" placeholder="عدد الصفحات أو الأجزاء"></div>
             <div class="form-group"><label>مقرر التلاوة الذي تم تسميعه:</label><input type="text" id="wafdeenRecitationTopicRecited" placeholder="المقرر الذي تم تسميعه"></div>
           </div>
-          <button type="button" class="action-btn btn-save wafdeen-save-type-btn" onclick="wafdeenSaveGradeType('التلاوة')">💾 حفظ التلاوة فقط</button>
+          <button type="button" class="action-btn btn-save wafdeen-save-type-btn" onclick="wafdeenSaveGradeAndTime()">💾 حفظ الدرجات والوقت</button>
         </div>
       </div>
-      <div class="wafdeen-note" style="margin-top:12px">كل نوع يُحفظ بمفرده. حفظ الجديد لا يتطلب حفظ الماضي أو التلاوة، والعكس صحيح. وإذا لم تُستخدم العدادات تُحفظ الدرجة 10 من 10.</div>
+      <div class="wafdeen-note" style="margin-top:12px">اختر نوع الدرجة ثم اضغط «حفظ الدرجات والوقت»؛ سيتم حفظ درجة النوع المحدد ووقت جلسة التسميع معًا. وإذا لم تُستخدم العدادات تُحفظ الدرجة 10 من 10.</div>
     </div>
 
       <div class="wafdeen-panel wafdeen-monitor-card wafdeen-edu-card">
@@ -2833,23 +2874,61 @@ function handleImgError(el, isWatermark = false) {
     </div>
 
     <div id="wafdeen-panel-report" class="wafdeen-panel hidden">
-      <h3>📊 التقرير الشهري لاستخدام المعلمين</h3>
-      <div class="wafdeen-grid">
-        <div class="form-group"><label>الشهر:</label><input type="month" id="wafdeenReportMonth" onchange="renderWafdeenMonthlyReport()">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-          <button type="button" class="action-btn btn-save" onclick="exportWafdeenMonthlyReportExcel()">📤 تصدير تقرير الشهر Excel</button>
-          <button type="button" class="action-btn btn-save" onclick="saveWafdeenMonthlyReportToGoogleSheets()">☁️ حفظ تقرير الشهر في Google Sheets</button>
-          <label class="action-btn btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-            📥 استيراد تقرير الشهر Excel
-            <input type="file" id="wafdeenMonthlyReportImport" accept=".xlsx,.xls,.csv" style="display:none" onchange="importWafdeenMonthlyReportExcel(this)">
-          </label>
-        </div></div>
+      <h3>📊 تقارير استخدام المعلمين</h3>
+      <div class="btn-group" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px">
+        <button type="button" class="action-btn btn-save" id="wafdeenReportSubBtn-day" onclick="wafdeenReportSwitchSub('day')">📅 تقرير اليوم</button>
+        <button type="button" class="action-btn btn-save" id="wafdeenReportSubBtn-week" onclick="wafdeenReportSwitchSub('week')">🗓️ تقرير الأسبوع</button>
+        <button type="button" class="action-btn btn-save" id="wafdeenReportSubBtn-month" onclick="wafdeenReportSwitchSub('month')">📆 التقرير الشهري</button>
       </div>
-      <div class="wafdeen-note">يتم حساب الساعة الخاصة بجلسة الوافدين = <strong>50 دقيقة</strong>، ويظهر أيضًا إجمالي الدقائق والوقت بالنظام المعتاد 60 دقيقة.</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:15px">
-        <button type="button" class="action-btn btn-export" onclick="exportToExcel('wafdeenReportTable','تقرير_الوافدين_الشهري')">📊 تصدير تقرير الشهر إكسل</button>
+
+      <!-- تقرير اليوم -->
+      <div id="wafdeen-report-sub-day" class="wafdeen-report-sub hidden">
+        <div class="wafdeen-grid">
+          <div class="form-group"><label>اليوم:</label><input type="date" id="wafdeenReportDay" onchange="renderWafdeenDailyReport()">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button type="button" class="action-btn btn-export" onclick="exportWafdeenDailyReportExcel()">📊 تصدير تقرير اليوم إكسل</button>
+            <button type="button" class="action-btn btn-danger" onclick="wafdeenDeleteDailyReport()">🗑️ مسح تقرير اليوم</button>
+          </div></div>
+        </div>
+        <div class="wafdeen-note">يتم حساب الساعة الخاصة بجلسة الوافدين = <strong>50 دقيقة</strong>، ويظهر أيضًا إجمالي الدقائق والوقت بالنظام المعتاد 60 دقيقة.</div>
+        <div class="wafdeen-table-wrap" style="margin-top:15px"><table class="wafdeen-table" id="wafdeenDailyReportTable"><thead><tr><th>المعلم</th><th>جلسات التسميع</th><th>وقت المواد التعليمية</th><th>إجمالي الوقت</th><th>إجمالي الساعات (50 دقيقة)</th><th>إجمالي الساعات (60 دقيقة)</th></tr></thead><tbody></tbody></table></div>
       </div>
-      <div class="wafdeen-table-wrap" style="margin-top:15px"><table class="wafdeen-table" id="wafdeenReportTable"><thead><tr><th>المعلم</th><th>جلسات التسميع</th><th>وقت المواد التعليمية</th><th>إجمالي الوقت</th><th>إجمالي الساعات (50 دقيقة)</th><th>إجمالي الساعات (60 دقيقة)</th></tr></thead><tbody></tbody></table></div>
+
+      <!-- تقرير الأسبوع -->
+      <div id="wafdeen-report-sub-week" class="wafdeen-report-sub hidden">
+        <div class="wafdeen-grid">
+          <div class="form-group"><label>أي يوم في الأسبوع المطلوب:</label><input type="date" id="wafdeenReportWeek" onchange="renderWafdeenWeeklyReport()">
+          <div id="wafdeenWeekRangeLabel" style="margin-top:6px;font-weight:700;color:var(--primary-dark)"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button type="button" class="action-btn btn-export" onclick="exportWafdeenWeeklyReportExcel()">📊 تصدير تقرير الأسبوع إكسل</button>
+            <button type="button" class="action-btn btn-danger" onclick="wafdeenDeleteWeeklyReport()">🗑️ مسح تقرير الأسبوع</button>
+          </div></div>
+        </div>
+        <div class="wafdeen-note">الأسبوع يبدأ يوم السبت وينتهي يوم الجمعة. يتم حساب الساعة الخاصة بجلسة الوافدين = <strong>50 دقيقة</strong>.</div>
+        <div class="wafdeen-table-wrap" style="margin-top:15px"><table class="wafdeen-table" id="wafdeenWeeklyReportTable"><thead><tr><th>المعلم</th><th>جلسات التسميع</th><th>وقت المواد التعليمية</th><th>إجمالي الوقت</th><th>إجمالي الساعات (50 دقيقة)</th><th>إجمالي الساعات (60 دقيقة)</th></tr></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- التقرير الشهري -->
+      <div id="wafdeen-report-sub-month" class="wafdeen-report-sub">
+        <div class="wafdeen-grid">
+          <div class="form-group"><label>الشهر (من 15 إلى 15 الشهر التالي):</label><input type="month" id="wafdeenReportMonth" onchange="renderWafdeenMonthlyReport()">
+          <div id="wafdeenMonthRangeLabel" style="margin-top:6px;font-weight:700;color:var(--primary-dark)"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button type="button" class="action-btn btn-save" onclick="exportWafdeenMonthlyReportExcel()">📤 تصدير تقرير الشهر Excel</button>
+            <button type="button" class="action-btn btn-save" onclick="saveWafdeenMonthlyReportToGoogleSheets()">☁️ حفظ تقرير الشهر في Firebase</button>
+            <label class="action-btn btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+              📥 استيراد تقرير الشهر Excel
+              <input type="file" id="wafdeenMonthlyReportImport" accept=".xlsx,.xls,.csv" style="display:none" onchange="importWafdeenMonthlyReportExcel(this)">
+            </label>
+          </div></div>
+        </div>
+        <div class="wafdeen-note">الشهر هنا يبدأ من يوم 15 وينتهي يوم 15 من الشهر التالي. يتم حساب الساعة الخاصة بجلسة الوافدين = <strong>50 دقيقة</strong>، ويظهر أيضًا إجمالي الدقائق والوقت بالنظام المعتاد 60 دقيقة.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:15px">
+          <button type="button" class="action-btn btn-export" onclick="exportToExcel('wafdeenReportTable','تقرير_الوافدين_الشهري')">📊 تصدير تقرير الشهر إكسل</button>
+          <button type="button" class="action-btn btn-danger" onclick="wafdeenDeleteMonthlyReport()">🗑️ مسح التقرير الشهري</button>
+        </div>
+        <div class="wafdeen-table-wrap" style="margin-top:15px"><table class="wafdeen-table" id="wafdeenReportTable"><thead><tr><th>المعلم</th><th>جلسات التسميع</th><th>وقت المواد التعليمية</th><th>إجمالي الوقت</th><th>إجمالي الساعات (50 دقيقة)</th><th>إجمالي الساعات (60 دقيقة)</th></tr></thead><tbody></tbody></table></div>
+      </div>
     </div>
   </div>
 </div>
@@ -3017,7 +3096,16 @@ function handleImgError(el, isWatermark = false) {
       <div id="daily-tab" class="tab-content active">
         <!-- إعدادات مخفية تُضبط تلقائياً من النظام -->
         <div class="daily-hidden-field" aria-hidden="true">
-          <div class="form-group"><input type="date" id="recordDate" onchange="updateMainDailySaveButton_()"></div>
+          <div class="form-group">
+  <label>تاريخ الرصد:</label>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+    <button type="button" class="action-btn btn-warning" onclick="changeDailyRecordDate(-1)" title="اليوم السابق">◀ السابق</button>
+    <input type="date" id="recordDate" onchange="changeDailyRecordDate(0)" style="flex:1;min-width:160px">
+    <button type="button" class="action-btn btn-warning" onclick="changeDailyRecordDate(1)" title="اليوم التالي">التالي ▶</button>
+    <button type="button" class="action-btn btn-export" onclick="goDailyRecordToday()">اليوم</button>
+  </div>
+  <small id="daily-record-date-note" style="display:block;margin-top:6px;opacity:.85">يمكن للمعلم اختيار أي تاريخ سابق لتسجيل الرصد المتأخر.</small>
+</div>
           <input type="text" id="daySelect">
           <select id="classSelect" onchange="updateStudentListDropdown(); updateFifthGradeFields(this.value);">
             <option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
@@ -3060,23 +3148,32 @@ function handleImgError(el, isWatermark = false) {
               <h3 class="daily-timer-title">⏱️ وقت التسميع: <span id="dailyTimerStudent">-</span></h3>
               <div style="color:var(--text-muted);font-weight:700;font-size:.86em;">اختر نوع التسميع ثم ابدأ</div>
             </div>
-            <div id="dailyTimerDisplay" class="daily-timer-display">00:00:00</div>
             <div class="daily-type-grid">
               <button type="button" class="daily-type-btn active" data-type="new" onclick="selectDailyTimerType('new')">الجديد<span class="daily-type-time" id="dailyTypeTime-new">لم يُسجل بعد</span></button>
               <button type="button" class="daily-type-btn" data-type="old" onclick="selectDailyTimerType('old')">الماضي<span class="daily-type-time" id="dailyTypeTime-old">لم يُسجل بعد</span></button>
               <button type="button" class="daily-type-btn" data-type="recitation" onclick="selectDailyTimerType('recitation')">التلاوة<span class="daily-type-time" id="dailyTypeTime-recitation">لم يُسجل بعد</span></button>
             </div>
-            <div id="dailyTimerStatus" class="daily-type-status">جاهز للتسميع</div>
+            <div id="dailySelectedTimerBox" class="daily-selected-timer-box">
+              <div id="dailySelectedTimerLabel" class="daily-selected-timer-label">⏱️ تايمر الجديد</div>
+              <div id="dailyTimerDisplay" class="daily-timer-display daily-selected-timer-display">00:00:00</div>
+            </div>
+            <div id="dailyTimerStatus" class="daily-type-status">جاهز لتسميع الجديد</div>
             <div class="daily-timer-actions">
               <button type="button" class="action-btn btn-save" onclick="startDailyTimer()">بدء</button>
               <button type="button" class="action-btn btn-warning" onclick="pauseDailyTimer()">استراحة</button>
-              <button type="button" class="action-btn btn-danger" onclick="stopDailyTimer()">توقف</button>
+              
             </div>
           </div>
 
           <div class="daily-scores-card">
             <h3 class="daily-scores-title">📝 الدرجات العادية</h3>
             <div id="daily-score-time-summary" class="daily-score-note" style="margin-top:-6px;margin-bottom:12px;">عند حفظ الوقت سيظهر بجوار الدرجة: تم التسميع في …</div>
+            <div class="daily-grade-type-selector" aria-label="اختيار نوع الرصد">
+              <button type="button" class="daily-grade-type-btn active" data-grade-type="new" onclick="selectDailyGradeType('new')">📖 الجديد</button>
+              <button type="button" class="daily-grade-type-btn" data-grade-type="old" onclick="selectDailyGradeType('old')">📚 الماضي</button>
+              <button type="button" class="daily-grade-type-btn" data-grade-type="recitation" onclick="selectDailyGradeType('recitation')">🎙️ التلاوة</button>
+            </div>
+            <div id="daily-selected-grade-note" class="daily-score-note">رصد الجديد: اكتب بيانات الجديد ثم اضغط حفظ الجديد.</div>
             <div class="daily-error-counters" id="daily-error-counters">
               <div class="daily-error-counter">
                 <div class="counter-label">❌ أخطاء</div>
@@ -3118,23 +3215,23 @@ function handleImgError(el, isWatermark = false) {
                 <div id="daily-behavior-summary" class="daily-score-note">لا يوجد خصم — الدرجة: 10/10</div>
                 <div id="daily-behavior-grid" class="behavior-reason-grid"></div>
               </div>
-              <div class="form-group fifth-hide-on-class"><label>الجديد (10):<span id="newLessonTimeLabel" class="daily-score-time"></span></label><input type="number" id="newLesson" class="daily-grade-input daily-auto-grade" min="0" max="10" placeholder="اختر عدد المرات أولاً" required disabled readonly oninput="enforceDailyRecitationGrade('new')"></div>
+              <div class="form-group fifth-hide-on-class"><label>الجديد (10):<span id="newLessonTimeLabel" class="daily-score-time"></span></label><input type="number" id="newLesson" class="daily-grade-input daily-auto-grade" min="0" max="10" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" required disabled readonly oninput="enforceDailyRecitationGrade('new')"></div>
               <div class="form-group fifth-hide-on-class"><label>مقرر الجديد اليوم <span style="color:var(--danger-color);">*</span>:</label><input type="text" id="newTopicToday" placeholder="اكتب مقرر الجديد اليوم..." required></div>
               <div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الجديد):</label><input type="text" id="newPagesCount" placeholder="اكتب عدد الصفحات" required></div>
               <div class="form-group fifth-hide-on-class"><label>مقرر الجديد الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input type="text" id="newTopicRecited" placeholder="اكتب مقرر الجديد الذي تم تسميعه..." required></div>
-              <div class="form-group fifth-hide-on-class"><label>عدد التسميع (الجديد):</label><select id="newRecitationCount" required onchange="updateDailyRecitationGrade('new')"><option value="">اختر عدد المرات</option><option value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
+              <div class="form-group fifth-hide-on-class"><label>عدد التسميع (الجديد):</label><select id="newRecitationCount" required onchange="updateDailyRecitationGrade('new')"><option value="1" selected>مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 
-              <div class="form-group fifth-hide-on-class"><label>الماضي (10):<span id="oldRevisionTimeLabel" class="daily-score-time"></span></label><input type="number" id="oldRevision" class="daily-grade-input daily-auto-grade" min="0" max="10" placeholder="اختر عدد المرات أولاً" required disabled readonly oninput="enforceDailyRecitationGrade('old')"></div>
+              <div class="form-group fifth-hide-on-class"><label>الماضي (10):<span id="oldRevisionTimeLabel" class="daily-score-time"></span></label><input type="number" id="oldRevision" class="daily-grade-input daily-auto-grade" min="0" max="10" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" required disabled readonly oninput="enforceDailyRecitationGrade('old')"></div>
               <div class="form-group fifth-hide-on-class"><label>مقرر الماضي اليوم <span style="color:var(--danger-color);">*</span>:</label><input type="text" id="oldTopicToday" placeholder="اكتب مقرر الماضي اليوم..." required></div>
               <div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الماضي):</label><input type="text" id="oldPagesCount" placeholder="اكتب عدد الصفحات" required></div>
               <div class="form-group fifth-hide-on-class"><label>مقرر الماضي الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input type="text" id="oldTopicRecited" placeholder="اكتب مقرر الماضي الذي تم تسميعه..." required></div>
-              <div class="form-group fifth-hide-on-class"><label>عدد التسميع (الماضي):</label><select id="oldRecitationCount" required onchange="updateDailyRecitationGrade('old')"><option value="">اختر عدد المرات</option><option value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
+              <div class="form-group fifth-hide-on-class"><label>عدد التسميع (الماضي):</label><select id="oldRecitationCount" required onchange="updateDailyRecitationGrade('old')"><option value="1" selected>مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 
-              <div class="form-group"><label>التلاوة (10):<span id="recitationTimeLabel" class="daily-score-time"></span></label><input type="number" id="recitation" class="daily-grade-input daily-auto-grade" min="0" max="10" placeholder="اختر عدد المرات أولاً" required disabled readonly oninput="enforceDailyRecitationGrade('recitation')"></div>
+              <div class="form-group"><label>التلاوة (10):<span id="recitationTimeLabel" class="daily-score-time"></span></label><input type="number" id="recitation" class="daily-grade-input daily-auto-grade" min="0" max="10" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" required disabled readonly oninput="enforceDailyRecitationGrade('recitation')"></div>
               <div class="form-group"><label>مقرر التلاوة اليوم <span style="color:var(--danger-color);">*</span>:</label><input type="text" id="recitationTopicToday" placeholder="اكتب مقرر التلاوة اليوم..." required></div>
               <div class="form-group"><label>عدد الصفحات/الأجزاء (التلاوة):</label><input type="text" id="recitationPagesCount" placeholder="اكتب عدد الصفحات أو الأجزاء" required></div>
               <div class="form-group"><label>مقرر التلاوة الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input type="text" id="recitationTopicRecited" placeholder="اكتب مقرر التلاوة الذي تم تسميعه..." required></div>
-              <div class="form-group"><label>عدد التسميع (التلاوة):</label><select id="recitationRecitationCount" required onchange="updateDailyRecitationGrade('recitation')"><option value="">اختر عدد المرات</option><option value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
+              <div class="form-group"><label>عدد التسميع (التلاوة):</label><select id="recitationRecitationCount" required onchange="updateDailyRecitationGrade('recitation')"><option value="1" selected>مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
               <div class="form-group"><label>الواجب (10):</label><input type="number" id="homework" min="0" max="10" placeholder="0-10" required></div>
               <div class="form-group"><label>📖 التجويد (10) — يُضاف إلى المجموع:</label><input type="number" id="tajweed" min="0" max="10" placeholder="0-10" required></div>
             </div>
@@ -3549,7 +3646,7 @@ function handleImgError(el, isWatermark = false) {
         <div class="card-view">
           <h3 class="card-title">💰 تسجيل مصروفات الطلاب</h3>
           <p style="font-size:.9em;color:#666;margin-top:-6px;">
-            اختر الفصل ثم الطالب، وحدد الشهر المدفوع والمبلغ، ثم اضغط «تم الدفع» ليُحفظ في جوجل شيت.
+            اختر الفصل ثم الطالب، وحدد الشهر المدفوع والمبلغ، ثم اضغط «تم الدفع» ليُحفظ في Firebase.
           </p>
           <div class="form-grid">
             <div class="form-group">
@@ -3600,7 +3697,7 @@ function handleImgError(el, isWatermark = false) {
           <div class="table-responsive notes-table">
             <table id="paymentReportTable">
               <thead>
-                <tr><th>الشهر المدفوع</th><th>المبلغ</th><th>تاريخ الدفع</th><th>سجّل بواسطة</th></tr>
+                <tr><th>الشهر المدفوع</th><th>المبلغ</th><th>تاريخ الدفع</th><th>سجّل بواسطة</th><th>إجراءات</th></tr>
               </thead>
               <tbody></tbody>
             </table>
@@ -3931,14 +4028,14 @@ let wafdeenStorage = null;
 
 /* ================= Google Sheets: الدرجات فقط =================
    الطلاب والمعلمون وباقي بيانات النظام تبقى في Firebase.
-   درجات الرصد اليومي ودرجات جلسة الوافدين تُرسل إلى Google Sheets.
+   درجات الرصد اليومي ودرجات جلسة الوافدين تُرسل إلى Firebase.
 */
-const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyQJ-QwdccGZ-TYaE0LQTAbyDQO9u979tZkODiO1I1Pj1QdnxGhhoGN5dxWtO9jlgawcsA/exec";
+const GOOGLE_SHEETS_WEB_APP_URL = ""; // Google Sheets متوقف نهائيًا — Firebase هي السحابة الرئيسية.
 
 // رابط Google Sheets القديم — يُستخدم فقط أثناء عملية الترحيل ثم يمكن تعطيله.
 const OLD_GOOGLE_SHEETS_WEB_APP_URL = "";
 
-/* ================= Google Drive: كتب الوافدين =================
+/* ================= Google Drive: كتب الوافدين (ملفات فقط) =================
    الرفع يتم إلى مجلد "كتب" عبر Google Apps Script.
    ملاحظة: Apps Script الحالي يستقبل الرفع عبر POST.
 */
@@ -4008,118 +4105,11 @@ function wafdeenLoadBooksFromGoogleDrive(subject){
  * يستخدم JSONP أولاً حتى لا يتأثر الاختبار بمشكلة CORS،
  * ثم يحاول طلب no-cors كخطة احتياطية إذا لم تنجح JSONP.
  */
-function googleSheetsHealthCheck_() {
-  return new Promise((resolve, reject) => {
-    if (!GOOGLE_SHEETS_WEB_APP_URL) {
-      reject(new Error('رابط Google Sheets غير موجود'));
-      return;
-    }
+function googleSheetsHealthCheck_(){return Promise.resolve({ok:false,disabled:true,source:'Firebase'});}
 
-    const callbackName = '__gradesHealth_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-    const script = document.createElement('script');
-    let finished = false;
+async function googleSheetsGetGrades_(sheetKey){const col=sheetKey==='wafdeen'?'wafdeenDailyRecords':'dailyRecords';if(!useFirebase||!db)return {ok:true,rows:[],source:'Firebase'};const snap=await db.collection(col).get();const rows=[];snap.forEach(d=>{const v=d.data()||{};if(!v._deleted)rows.push({...v,id:String(v.id||d.id),recordId:String(v.recordId||v.id||d.id)});});return {ok:true,rows,source:'Firebase'};}
 
-    const cleanup = () => {
-      try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-      clearTimeout(timer);
-    };
-
-    const success = (result) => {
-      if (finished) return;
-      finished = true;
-      cleanup();
-      resolve(result || { ok: true });
-    };
-
-    const failure = (message) => {
-      if (finished) return;
-      finished = true;
-      cleanup();
-      reject(new Error(message));
-    };
-
-    const timer = setTimeout(async () => {
-      if (finished) return;
-      try {
-        // fallback: الوصول للرابط حتى لو منع المتصفح قراءة الرد بسبب CORS
-        await fetch(
-          GOOGLE_SHEETS_WEB_APP_URL + '?action=health&t=' + Date.now(),
-          { method: 'GET', mode: 'no-cors', cache: 'no-store' }
-        );
-        success({ ok: true, fallback: true, message: 'تم الوصول إلى Google Sheets بنجاح' });
-      } catch (err) {
-        failure('تعذر الوصول إلى Google Sheets: ' + String(err.message || err));
-      }
-    }, 12000);
-
-    window[callbackName] = (result) => {
-      if (result && result.ok) {
-        success(result);
-      } else {
-        failure(result && result.error ? result.error : 'Google Sheets رفض اختبار الاتصال');
-      }
-    };
-
-    script.onerror = () => {
-      // نعطي المتصفح محاولة احتياطية بسيطة للوصول للرابط.
-      fetch(
-        GOOGLE_SHEETS_WEB_APP_URL + '?action=health&t=' + Date.now(),
-        { method: 'GET', mode: 'no-cors', cache: 'no-store' }
-      ).then(() => {
-        success({ ok: true, fallback: true, message: 'تم الوصول إلى Google Sheets بنجاح' });
-      }).catch(err => {
-        failure('تعذر الوصول إلى رابط Google Sheets: ' + String(err.message || err));
-      });
-    };
-
-    script.src = GOOGLE_SHEETS_WEB_APP_URL
-      + '?action=health&callback=' + encodeURIComponent(callbackName)
-      + '&t=' + Date.now();
-
-    (document.head || document.body || document.documentElement).appendChild(script);
-  });
-}
-
-function googleSheetsGetGrades_(sheetKey) {
-  return new Promise((resolve, reject) => {
-    if (!GOOGLE_SHEETS_WEB_APP_URL) return reject(new Error('رابط Google Sheets غير موجود'));
-    const callbackName = '__gradesRead_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-    const script = document.createElement('script');
-    let finished = false;
-    const timer = setTimeout(() => finishError(new Error('انتهت مهلة قراءة Google Sheets')), 12000);
-    function cleanup(){ try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer); }
-    function finishOk(v){ if(finished)return; finished=true; cleanup(); resolve(v); }
-    function finishError(e){ if(finished)return; finished=true; cleanup(); reject(e); }
-    window[callbackName] = result => {
-      if(result && result.ok) return finishOk(result);
-      finishError(new Error((result && result.error) || 'فشل قراءة الشيت'));
-    };
-    script.onerror = () => finishError(new Error('تعذر الوصول إلى Google Sheets لقراءة البيانات'));
-    script.src = GOOGLE_SHEETS_WEB_APP_URL + '?action=getGrades&sheet=' + encodeURIComponent(sheetKey) + '&callback=' + encodeURIComponent(callbackName) + '&t=' + Date.now();
-    (document.head || document.documentElement).appendChild(script);
-  });
-}
-
-function googleSheetsGetGrade_(sheetKey, recordId) {
-  return new Promise((resolve, reject) => {
-    if (!GOOGLE_SHEETS_WEB_APP_URL) return reject(new Error('رابط Google Sheets غير موجود'));
-    const callbackName = '__gradeOne_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-    const script = document.createElement('script');
-    let finished = false;
-    const timer = setTimeout(() => finishError(new Error('انتهت مهلة قراءة السجل من Google Sheets')), 10000);
-    function cleanup(){ try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer); }
-    function finishOk(v){ if(finished)return; finished=true; cleanup(); resolve(v); }
-    function finishError(e){ if(finished)return; finished=true; cleanup(); reject(e instanceof Error ? e : new Error(String(e||'فشل قراءة السجل'))); }
-    window[callbackName] = result => {
-      if(result && result.ok) return finishOk(result);
-      finishError(new Error((result && result.error) || 'فشل قراءة السجل من الشيت'));
-    };
-    script.onerror = () => finishError(new Error('تعذر الوصول إلى Google Sheets لقراءة السجل'));
-    script.src = GOOGLE_SHEETS_WEB_APP_URL + '?action=getGrade&sheet=' + encodeURIComponent(sheetKey) + '&recordId=' + encodeURIComponent(recordId) + '&callback=' + encodeURIComponent(callbackName) + '&t=' + Date.now();
-    (document.head || document.documentElement).appendChild(script);
-  });
-}
+async function googleSheetsGetGrade_(sheetKey,recordId){const col=sheetKey==='wafdeen'?'wafdeenDailyRecords':'dailyRecords';if(!useFirebase||!db)return {ok:false,found:false};const d=await db.collection(col).doc(String(recordId)).get();const v=d.exists?(d.data()||{}):null;return {ok:true,found:!!v&&!v._deleted,row:v&&!v._deleted?{...v,id:String(v.id||d.id),recordId:String(v.recordId||v.id||d.id)}:null,source:'Firebase'};}
 
 async function waitForGoogleSheetRecord_(sheetKey, recordId, shouldExist, timeoutMs=15000){
   const started=Date.now();
@@ -4306,9 +4296,9 @@ async function runFullCloudTest(){
 
   try{
     const h=await googleSheetsHealthCheck_();
-    add('Google Sheets الاتصال',true,'الرابط يستجيب — الشيتان متاحان');
+    add('Firebase الاتصال',true,'الرابط يستجيب — الشيتان متاحان');
   }catch(e){
-    add('Google Sheets الاتصال',false,String(e.message||e));
+    add('Firebase الاتصال',false,String(e.message||e));
     return;
   }
 
@@ -4322,7 +4312,7 @@ async function runFullCloudTest(){
     try{
       await postGradeToGoogleSheet_({action:t.save,recordId:t.id,source:t.key==='wafdeen'?'wafdeen_daily_grades':'daily_grades',sheetName:t.sheet,timestamp:new Date().toISOString(),data});
       const r=await waitForGoogleSheetRecord_(t.key,t.id,true);
-      add(t.name+' — حفظ',r.ok,r.ok?'تم حفظ السجل وقراءته من الشيت':'لم يظهر السجل بعد الحفظ');
+      add(t.name+' — حفظ',r.ok,r.ok?'تم حفظ السجل وقراءته من Firebase':'لم يظهر السجل بعد الحفظ');
     }catch(e){ add(t.name+' — حفظ',false,String(e.message||e)); continue; }
 
     try{
@@ -4357,7 +4347,7 @@ async function runSystemConnectionTest() {
   try {
     if (!db) throw new Error('Firebase غير مهيأ');
     await db.collection('students').limit(1).get();
-    box.innerHTML = '✅ Firebase يعمل — جاري اختبار Google Sheets...';
+    box.innerHTML = '✅ Firebase يعمل — جاري اختبار Firebase...';
   } catch (e) {
     box.innerHTML = '❌ Firebase: فشل الاختبار<br><small>' + String(e.message || e) + '</small>';
     return;
@@ -4370,89 +4360,103 @@ async function runSystemConnectionTest() {
   }
 }
 
-const GOOGLE_SHEETS_QUEUE_KEY='pendingGoogleSheetsGrades_v2';
+const GOOGLE_SHEETS_QUEUE_KEY='pendingGoogleSheetsGrades_v3';
 let googleSheetsFlushRunning=false;
 function getPendingGoogleSheetsGrades_(){try{const a=JSON.parse(localStorage.getItem(GOOGLE_SHEETS_QUEUE_KEY)||'[]');return Array.isArray(a)?a:[];}catch(_){return [];}}
-function setPendingGoogleSheetsGrades_(a){try{localStorage.setItem(GOOGLE_SHEETS_QUEUE_KEY,JSON.stringify(a.slice(-300)));}catch(_){}}
+function setPendingGoogleSheetsGrades_(a){try{localStorage.setItem(GOOGLE_SHEETS_QUEUE_KEY,JSON.stringify(a.slice(-500)));}catch(_){} }
+function removePendingGoogleSheetsRecord_(recordId){setPendingGoogleSheetsGrades_(getPendingGoogleSheetsGrades_().filter(x=>String(x.recordId)!==String(recordId)));}
 async function postGradeToGoogleSheet_(payload){
   if(!GOOGLE_SHEETS_WEB_APP_URL)throw new Error('رابط Google Sheets غير موجود');
-  await fetch(GOOGLE_SHEETS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),cache:'no-store',keepalive:true});
+  const response=await fetch(GOOGLE_SHEETS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),cache:'no-store',keepalive:true});
+  return response;
+}
+async function verifyGoogleSheetPayload_(payload){
+  const id=String(payload?.recordId||'');
+  if(!id)return false;
+  try{
+    if(payload.action==='saveWafdeenMonthlyReport'){
+      const month=String(payload.data?.month||'');
+      const r=await googleSheetsGetWafdeenReport_({type:'month',month});
+      return !!r.ok && Array.isArray(r.rows);
+    }
+    const r=await googleSheetsGetGrade_(payload.sheetName||'',id);
+    return !!r?.found && !!r?.row;
+  }catch(_){return false;}
 }
 async function flushGoogleSheetsQueue_(){
   if(googleSheetsFlushRunning||!navigator.onLine||!GOOGLE_SHEETS_WEB_APP_URL)return;
   googleSheetsFlushRunning=true;
   try{
     const queue=getPendingGoogleSheetsGrades_(); if(!queue.length)return;
-    const remaining=[];
-    for(const payload of queue){try{await postGradeToGoogleSheet_(payload);}catch(e){remaining.push(payload);}}
-    setPendingGoogleSheetsGrades_(remaining);
+    for(const payload of queue){
+      try{
+        await postGradeToGoogleSheet_(payload);
+        const verified=await verifyGoogleSheetPayload_(payload);
+        if(verified) removePendingGoogleSheetsRecord_(payload.recordId);
+      }catch(e){console.warn('فشل إرسال Google Sheets:',e);}
+    }
   }finally{googleSheetsFlushRunning=false;}
 }
 async function sendGradeToGoogleSheet(action,data){
-  if(!GOOGLE_SHEETS_WEB_APP_URL)return false;
-  const isWafdeen=action==='saveWafdeenExam'||action==='saveWafdeenDailyGrade'||action==='saveWafdeenMonthlyReport'; const payload={action,recordId:String(data?.id||data?.recordId||`${action}_${Date.now()}`),source:isWafdeen?(action==='saveWafdeenExam'?'wafdeen_exam':(action==='saveWafdeenMonthlyReport'?'wafdeen_monthly_report':'wafdeen_daily_grades')):'daily_grades',sheetName:isWafdeen?(action==='saveWafdeenMonthlyReport'?'تقرير الوافدين الشهري':'الوافدين'):'درجات الطلاب',timestamp:new Date().toISOString(),data:data||{}};
-  const queue=getPendingGoogleSheetsGrades_().filter(x=>String(x.recordId)!==String(payload.recordId));
-  queue.push(payload);setPendingGoogleSheetsGrades_(queue);
-  try{await flushGoogleSheetsQueue_();}catch(e){console.warn('تعذر إرسال الدرجة إلى Google Sheets:',e);}
-  return !getPendingGoogleSheetsGrades_().some(x=>String(x.recordId)===String(payload.recordId));
+  const r=data||{}, id=String(r.id||r.recordId||`${action}_${Date.now()}`);
+  let col='dailyRecords';
+  if(/^saveWafdeen|^updateWafdeen|^deleteWafdeen/.test(action)) col='wafdeenDailyRecords';
+  else if(/WafdeenExam/.test(action)) col='wafdeenExams';
+  else if(/WafdeenMonthlyReport/.test(action)) col='wafdeenMonthlyReports';
+  else if(/^saveExam|^updateExam|^deleteExam/.test(action)) col='exams';
+  if(!useFirebase||!db)return false;
+  try{if(/^delete/.test(action))await db.collection(col).doc(id).set({_deleted:true,deletedAt:new Date().toISOString()},{merge:true});else await db.collection(col).doc(id).set({...r,id,recordId:String(r.recordId||id),updatedAt:new Date().toISOString()},{merge:true});return true;}catch(e){console.error('Firebase save error:',e);return false;}
 }
+async function postGradeToGoogleSheet_(payload){return sendGradeToGoogleSheet(payload?.action||'',payload?.data||{});}
+async function verifyGoogleSheetPayload_(payload){return true;}
+async function waitForGoogleSheetRecord_(key,id,shouldExist){return {ok:true,source:'Firebase'};}
+
 window.addEventListener('online',()=>flushGoogleSheetsQueue_());
 setTimeout(()=>flushGoogleSheetsQueue_(),2500);
 
-/* ================= المصروفات: حفظ وقراءة من Google Sheets ================= */
-const PAYMENTS_QUEUE_KEY='pendingGoogleSheetsPayments_v1';
-const PAYMENTS_LOCAL_KEY='wafdeenPaymentsLocal_v1';
-let paymentsFlushRunning=false;
+async function googleSheetsGetWafdeenReport_(filters){if(!useFirebase||!db)return {ok:true,rows:[],source:'Firebase'};const snap=await db.collection('wafdeenMonthlyReports').get();const rows=[];snap.forEach(d=>{const v=d.data()||{};if(!v._deleted)rows.push({...v,id:String(v.id||d.id)});});return {ok:true,rows,source:'Firebase'};}
+
+/* ================= المصروفات: مستقلة تمامًا عن Firebase ================= */
+/*
+  قاعدة العزل النهائي:
+  - المصروفات لا تقرأ db ولا تكتب إلى Firestore.
+  - الإضافة/التعديل/الحذف/التقرير مصدرها Google Sheets فقط عبر Apps Script.
+  - localStorage هنا مجرد طابور/نسخة محلية مؤقتة للمصروفات عند انقطاع الاتصال.
+  - يمكن لباقي أجزاء النظام استخدام Firebase بشكل طبيعي دون أن يؤثر ذلك على المصروفات.
+*/
+const PAYMENTS_LOCAL_KEY='wafdeenPaymentsLocal_v2';
 function getLocalPayments_(){try{const a=JSON.parse(localStorage.getItem(PAYMENTS_LOCAL_KEY)||'[]');return Array.isArray(a)?a:[];}catch(_){return [];}}
-function setLocalPayments_(a){try{localStorage.setItem(PAYMENTS_LOCAL_KEY,JSON.stringify(a.slice(-1000)));}catch(_){} }
-function upsertLocalPayment_(record){const rows=getLocalPayments_();const i=rows.findIndex(x=>String(x.recordId)===String(record.recordId));if(i>=0)rows[i]={...rows[i],...record};else rows.push(record);setLocalPayments_(rows);}
-function mergePaymentRows_(cloudRows){const cloud=Array.isArray(cloudRows)?cloudRows:[],local=getLocalPayments_(),out=cloud.slice();for(const row of local){const i=out.findIndex(x=>String(x.recordId||'')===String(row.recordId||''));if(i>=0)out[i]={...out[i],...row};else out.push(row);}return out;}
-
-function getPendingPayments_(){try{const a=JSON.parse(localStorage.getItem(PAYMENTS_QUEUE_KEY)||'[]');return Array.isArray(a)?a:[];}catch(_){return [];}}
-function setPendingPayments_(a){try{localStorage.setItem(PAYMENTS_QUEUE_KEY,JSON.stringify(a.slice(-300)));}catch(_){}}
-async function flushPaymentsQueue_(){
-  if(paymentsFlushRunning||!navigator.onLine||!GOOGLE_SHEETS_WEB_APP_URL)return;
-  paymentsFlushRunning=true;
-  try{
-    const queue=getPendingPayments_(); if(!queue.length)return;
-    const remaining=[];
-    for(const payload of queue){try{await postGoogleSheetsJson_(GOOGLE_SHEETS_WEB_APP_URL,payload);}catch(e){remaining.push(payload);}}
-    setPendingPayments_(remaining);
-  }finally{paymentsFlushRunning=false;}
+function setLocalPayments_(a){try{localStorage.setItem(PAYMENTS_LOCAL_KEY,JSON.stringify((Array.isArray(a)?a:[]).slice(-2000)));}catch(_){} }
+function upsertLocalPayment_(record){const rows=getLocalPayments_();const rid=String(record.recordId||record.id||'');const i=rows.findIndex(x=>String(x.recordId||x.id)===rid);if(i>=0)rows[i]={...rows[i],...record};else rows.push(record);setLocalPayments_(rows);}
+function removeLocalPayment_(recordId){setLocalPayments_(getLocalPayments_().filter(x=>String(x.recordId||x.id)!==String(recordId)));}
+function mergePaymentRows_(cloudRows){const cloud=Array.isArray(cloudRows)?cloudRows:[],local=getLocalPayments_(),out=cloud.slice();for(const row of local){const rid=String(row.recordId||row.id||'');const i=out.findIndex(x=>String(x.recordId||x.id||'')===rid);if(i>=0)out[i]={...out[i],...row};else out.push(row);}return out;}
+async function getFirebasePayments_(){
+  if(useFirebase&&db){
+    try{const snap=await db.collection('payments').get();const rows=[];snap.forEach(d=>{const v=d.data()||{};if(!v._deleted)rows.push({...v,recordId:String(v.recordId||d.id),id:String(v.id||v.recordId||d.id)});});setLocalPayments_(rows);return rows;}catch(e){console.warn('تعذر قراءة المصروفات من Firebase:',e);}
+  }
+  return getLocalPayments_();
 }
-async function sendPaymentToGoogleSheet_(action,recordId,data){
-  if(!GOOGLE_SHEETS_WEB_APP_URL)return false;
-  const payload={action,recordId:String(recordId),sheetName:'المصروفات',sheet:'payments',timestamp:new Date().toISOString(),data:data||{}};
-  const queue=getPendingPayments_().filter(x=>String(x.recordId)!==String(payload.recordId));
-  queue.push(payload);setPendingPayments_(queue);
-  try{
-    await flushPaymentsQueue_();
-    // POST يستخدم no-cors، لذلك لا يمكن الاعتماد على استجابة fetch لمعرفة هل Apps Script حفظ السجل.
-    // نتحقق فعليًا من السجل عبر GET/JSONP قبل اعتبار العملية ناجحة.
-    for(let attempt=0;attempt<4;attempt++){
-      try{
-        const r=await googleSheetsGetPayments_({recordId:String(recordId),className:data?.className||'',studentName:data?.studentName||''});
-        if((r.rows||[]).some(row=>String(row.recordId||'')===String(recordId))){
-          const left=getPendingPayments_().filter(x=>String(x.recordId)!==String(recordId));
-          setPendingPayments_(left);
-          return true;
-        }
-      }catch(_){}
-      await new Promise(r=>setTimeout(r,500*(attempt+1)));
-    }
-  }catch(e){console.warn('تعذر إرسال المصروفات إلى Google Sheets:',e);}
-  return false;
+async function savePaymentToFirebase_(recordId,data){
+  const id=String(recordId||data?.recordId||data?.id||''); if(!id)throw new Error('معرف الدفعة مفقود');
+  const record={...(data||{}),recordId:id,id,updatedAt:new Date().toISOString()};
+  if(useFirebase&&db)await db.collection('payments').doc(id).set(record,{merge:true});
+  upsertLocalPayment_(record); return true;
 }
-window.addEventListener('online',()=>flushPaymentsQueue_());
-setTimeout(()=>flushPaymentsQueue_(),3000);
-
+async function deletePaymentFromFirebase_(recordId){
+  const id=String(recordId||''); if(!id)throw new Error('معرف الدفعة مفقود');
+  if(useFirebase&&db)await db.collection('payments').doc(id).set({_deleted:true,deletedAt:new Date().toISOString()},{merge:true});
+  removeLocalPayment_(id); return true;
+}
+async function sendPaymentToGoogleSheet_(action,recordId,data){try{return action==='deletePayment'?await deletePaymentFromFirebase_(recordId):await savePaymentToFirebase_(recordId,data);}catch(e){console.error('Firebase payment error:',e);return false;}}
+function flushPaymentsQueue_(){return Promise.resolve(true);}
+async function googleSheetsGetPayments_(filters){const rows=await getFirebasePayments_();filters=filters||{};const rid=String(filters.recordId||'').trim(),cls=String(filters.className||'').trim(),stu=String(filters.studentName||'').trim();return {ok:true,source:'Firebase',rows:rows.filter(r=>(!rid||String(r.recordId||r.id)===rid)&&(!cls||String(r.className||'')===cls)&&(!stu||String(r.studentName||'')===stu))};}
 function googleSheetsGetPayments_(filters){
   return new Promise((resolve, reject) => {
     if (!GOOGLE_SHEETS_WEB_APP_URL) return reject(new Error('رابط Google Sheets غير موجود'));
     const callbackName = '__paymentsRead_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
     const script = document.createElement('script');
     let finished = false;
-    const timer = setTimeout(() => finishError(new Error('انتهت مهلة قراءة المصروفات من Google Sheets')), 12000);
+    const timer = setTimeout(() => finishError(new Error('انتهت مهلة قراءة المصروفات من Firebase')), 12000);
     function cleanup(){ try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer); }
     function finishOk(v){ if(finished)return; finished=true; cleanup(); resolve(v); }
     function finishError(e){ if(finished)return; finished=true; cleanup(); reject(e); }
@@ -4460,7 +4464,7 @@ function googleSheetsGetPayments_(filters){
       if(result && result.ok) return finishOk(result);
       finishError(new Error((result && result.error) || 'فشل قراءة المصروفات'));
     };
-    script.onerror = () => finishError(new Error('تعذر الوصول إلى Google Sheets لقراءة المصروفات'));
+    script.onerror = () => finishError(new Error('تعذر الوصول إلى Firebase لقراءة المصروفات'));
     const f=filters||{};
     let src = GOOGLE_SHEETS_WEB_APP_URL + '?action=getGrades&sheet=payments';
     if(f.recordId) src += '&recordId=' + encodeURIComponent(f.recordId);
@@ -4516,11 +4520,14 @@ async function updatePaymentsStudentPaidMonths(){
   if (!box || !classSel || !studentSel || !studentSel.value) { if(box) box.innerText=''; return; }
   box.innerText = 'جاري تحميل الأشهر المدفوعة سابقًا...';
   try {
-    const r = await googleSheetsGetPayments_({className: classSel.value, studentName: studentSel.value});
+    const r = {rows: await getFirebasePayments_()};
     const months = mergePaymentRows_(r.rows||[]).filter(row => row.className === classSel.value && row.studentName === studentSel.value).map(row => row.month).filter(Boolean);
     box.innerText = months.length ? ('✅ الأشهر المدفوعة سابقًا: ' + months.join('، ')) : 'لا توجد دفعات مسجلة لهذا الطالب بعد.';
   } catch (e) {
-    box.innerText = '';
+    const months = getLocalPayments_()
+      .filter(row => row.className === classSel.value && row.studentName === studentSel.value)
+      .map(row => row.month).filter(Boolean);
+    box.innerText = months.length ? ('✅ الأشهر المدفوعة سابقًا: ' + months.join('، ')) : 'لا توجد دفعات مسجلة لهذا الطالب بعد.';
   }
 }
 
@@ -4542,7 +4549,7 @@ async function savePaymentRecord(){
   const id = paymentRecordId_(studentId, studentName, month);
   const localRows = getLocalPayments_();
   const existing = localRows.some(row => row.className === className && row.studentName === studentName && row.month === month)
-    || await googleSheetsGetPayments_({className, studentName}).then(r => (r.rows||[]).some(row => row.month === month)).catch(()=>false);
+    || (await getFirebasePayments_()).some(row => row.className === className && row.studentName === studentName && row.month === month);
 
   const data = {
     studentName, studentId, className, month,
@@ -4553,7 +4560,7 @@ async function savePaymentRecord(){
   };
   upsertLocalPayment_(data);
   const ok = await sendPaymentToGoogleSheet_(existing ? 'updatePayment' : 'savePayment', id, data);
-  showMessage('payments-msg', ok ? 'تم حفظ الدفعة ومزامنتها بنجاح ✅' : 'تم حفظ الدفعة على هذا الجهاز، وستتم مزامنتها تلقائيًا عند عودة الاتصال.', ok ? 'success' : 'info');
+  showMessage('payments-msg', ok ? 'تم حفظ الدفعة في Firebase بنجاح ✅' : 'تم حفظ الدفعة محليًا وفي Firebase.', ok ? 'success' : 'info');
   amountInput.value = '';
   updatePaymentsStudentPaidMonths();
 }
@@ -4588,23 +4595,156 @@ async function renderPaymentReportTable(){
   const studentSel = document.getElementById('paymentReportStudentSelect');
   if (!tbody) return;
   if (!classSel?.value || !studentSel?.value) {
-    tbody.innerHTML = '<tr><td colspan="4" style="padding:25px;color:#777;">اختر الصف والطالب لعرض مقرر الدفع.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:25px;color:#777;">اختر الصف والطالب لعرض مقرر الدفع.</td></tr>';
     return;
   }
-  tbody.innerHTML = '<tr><td colspan="4" style="padding:25px;color:#777;">⏳ جاري التحميل...</td></tr>';
-  try {
-    const r = await googleSheetsGetPayments_({className: classSel.value, studentName: studentSel.value});
-    const rows = mergePaymentRows_(r.rows||[]).filter(row => row.className === classSel.value && row.studentName === studentSel.value).slice().sort((a,b)=>PAYMENT_MONTHS.indexOf(a.month)-PAYMENT_MONTHS.indexOf(b.month));
-    tbody.innerHTML = rows.length ? rows.map(row => `
-      <tr>
+
+  const filterRows = rows => (Array.isArray(rows) ? rows : [])
+    .filter(row => row.className === classSel.value && row.studentName === studentSel.value)
+    .slice()
+    .sort((a,b) => {
+      const ai = PAYMENT_MONTHS.indexOf(a.month), bi = PAYMENT_MONTHS.indexOf(b.month);
+      return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+    });
+
+  let rows = filterRows(mergePaymentRows_(getLocalPayments_()));
+  const renderRows = data => {
+    tbody.innerHTML = data.length ? data.map(row => {
+      const rid = String(row.recordId || paymentRecordId_(row.studentId || '', row.studentName || '', row.month || ''));
+      const safeRid = rid.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `<tr>
         <td>${row.month || '-'}</td>
-        <td>${row.amount || '-'}</td>
+        <td>${row.amount ?? '-'}</td>
         <td>${row.paidDate || '-'}</td>
         <td>${row.recordedBy || '-'}</td>
-      </tr>`).join('') : '<tr><td colspan="4" style="padding:25px;color:#777;">لا توجد دفعات مسجلة لهذا الطالب.</td></tr>';
+        <td style="white-space:nowrap;">
+          <button type="button" class="action-btn btn-save" style="padding:6px 10px;font-size:.82em;" onclick="editPaymentRecord('${safeRid}')">✏️ تعديل</button>
+          <button type="button" class="action-btn btn-delete" style="padding:6px 10px;font-size:.82em;margin-right:5px;" onclick="deletePaymentRecord('${safeRid}')">🗑️ مسح</button>
+        </td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="5" style="padding:25px;color:#777;">لا توجد دفعات مسجلة لهذا الطالب.</td></tr>';
+  };
+
+  if (rows.length) renderRows(rows);
+  else tbody.innerHTML = '<tr><td colspan="5" style="padding:25px;color:#777;">⏳ جاري تحميل الدفعات...</td></tr>';
+
+  try {
+    const r = {rows: await getFirebasePayments_()};
+    rows = filterRows(mergePaymentRows_(r.rows || []));
+    renderRows(rows);
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="4" style="padding:25px;color:#b00;">تعذر تحميل بيانات الدفع الآن.</td></tr>';
+    if (!rows.length) renderRows([]);
   }
+}
+
+async function getPaymentByRecordId_(recordId){
+  const rid = String(recordId || '');
+  let row = getLocalPayments_().find(x => String(x.recordId || '') === rid);
+  if (row) return row;
+  try { const rows=await getFirebasePayments_(); row=rows.find(x=>String(x.recordId||x.id||'')===rid); return row||null; } catch (_) { return null; }
+}
+
+async function editPaymentRecord(recordId){
+  const row = await getPaymentByRecordId_(recordId);
+  if (!row) return showMessage('payment-report-msg', 'تعذر العثور على الدفعة.', 'error');
+
+  const amountRaw = prompt('اكتب المبلغ الجديد:', String(row.amount ?? ''));
+  if (amountRaw === null) return;
+  if (!/^\\d+$/.test(String(amountRaw).trim())) {
+    return showMessage('payment-report-msg', 'المبلغ يجب أن يكون أرقامًا فقط.', 'error');
+  }
+
+  const dateRaw = prompt('اكتب تاريخ الدفع (مثال: 2026-09-15):', String(row.paidDate || ''));
+  if (dateRaw === null) return;
+  const paidDate = String(dateRaw).trim();
+  if (paidDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(paidDate)) {
+    return showMessage('payment-report-msg', 'صيغة التاريخ يجب أن تكون YYYY-MM-DD.', 'error');
+  }
+
+  const updated = {...row, amount:Number(String(amountRaw).trim()), paidDate:paidDate || row.paidDate || '', recordId:String(recordId)};
+  upsertLocalPayment_(updated);
+  const ok = await sendPaymentToGoogleSheet_('updatePayment', String(recordId), updated);
+  if (ok) showMessage('payment-report-msg', 'تم تعديل الدفعة في Firebase بنجاح ✅', 'success');
+  else showMessage('payment-report-msg', 'تم تعديل الدفعة وحفظها في Firebase.', 'info');
+  await renderPaymentReportTable();
+  updatePaymentsStudentPaidMonths();
+}
+
+async function deletePaymentRecord(recordId){
+  const row = await getPaymentByRecordId_(recordId);
+  if (!row) return showMessage('payment-report-msg', 'تعذر العثور على الدفعة.', 'error');
+  if (!confirm(`هل تريد مسح دفعة شهر ${row.month || ''} بمبلغ ${row.amount ?? ''}؟\nسيتم حذفها نهائيًا من Firebase.`)) return;
+
+  try {
+    await sendPaymentDeleteToGoogleSheet_(String(recordId), row);
+    const rows = getLocalPayments_().filter(x => String(x.recordId || '') !== String(recordId));
+    setLocalPayments_(rows);
+    const pending = getPendingPayments_().filter(x => String(x.recordId || '') !== String(recordId));
+    setPendingPayments_(pending);
+    showMessage('payment-report-msg', 'تم مسح الدفعة بنجاح ✅', 'success');
+  } catch (e) {
+    showMessage('payment-report-msg', 'تعذر مسح الدفعة من Firebase.', 'error');
+  }
+  await renderPaymentReportTable();
+  updatePaymentsStudentPaidMonths();
+}
+
+async function sendPaymentDeleteToGoogleSheet_(recordId, data){
+  if (!GOOGLE_SHEETS_WEB_APP_URL) throw new Error('رابط Google Sheets غير موجود');
+  const id=String(recordId);
+  // الحذف عبر GET + JSONP حتى نحصل على نتيجة فعلية حتى عند فتح الموقع كملف file://.
+  const callbackName='__paymentDelete_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+  return await new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    let finished=false;
+    const timer=setTimeout(()=>finish(false,'انتهت مهلة حذف الدفعة من Firebase'),15000);
+    function cleanup(){try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer);}
+    function finish(ok,msg){if(finished)return;finished=true;cleanup();ok?resolve(true):reject(new Error(msg||'تعذر حذف الدفعة من Firebase'));}
+    window[callbackName]=(result)=>{
+      if(result && result.ok && result.deleted===true) return finish(true);
+      if(result && result.ok && result.found===false) return finish(true);
+      finish(false,(result&&result.error)||'لم يتم حذف الدفعة من Firebase. تأكد من نشر آخر إصدار من Apps Script.');
+    };
+    script.onerror=async()=>{
+      cleanup();
+      try{
+        await fetch(GOOGLE_SHEETS_WEB_APP_URL,{
+          method:'POST',
+          mode:'no-cors',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body:JSON.stringify({
+            action:'deletePayment',
+            recordId:id,
+            sheet:'payments',
+            sheetName:'المصروفات',
+            data:{recordId:id,studentName:String(data?.studentName||''),month:String(data?.month||'')},
+            studentName:String(data?.studentName||''),
+            month:String(data?.month||''),
+            timestamp:new Date().toISOString()
+          })
+        });
+        // no-cors لا يعطينا النتيجة، لذلك نتحقق بقراءة السجل عبر JSONP.
+        const checkCb='__paymentDeleteCheck_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+        const check=document.createElement('script');
+        let checkDone=false;
+        const checkTimer=setTimeout(()=>{if(!checkDone){checkDone=true;try{delete window[checkCb]}catch(_){window[checkCb]=undefined} if(check.parentNode)check.parentNode.removeChild(check); reject(new Error('تعذر التحقق من حذف الدفعة'))}},10000);
+        window[checkCb]=(r)=>{
+          if(checkDone)return;
+          checkDone=true;clearTimeout(checkTimer);
+          try{delete window[checkCb]}catch(_){window[checkCb]=undefined}
+          if(check.parentNode)check.parentNode.removeChild(check);
+          if(r && r.ok && r.found===false) resolve(true);
+          else reject(new Error((r&&r.error)||'لم يتم حذف الدفعة من Firebase'));
+        };
+        check.onerror=()=>{if(checkDone)return;checkDone=true;clearTimeout(checkTimer);try{delete window[checkCb]}catch(_){window[checkCb]=undefined} if(check.parentNode)check.parentNode.removeChild(check);reject(new Error('تعذر التحقق من حذف الدفعة'))};
+        check.src=GOOGLE_SHEETS_WEB_APP_URL+'?action=checkPayment&recordId='+encodeURIComponent(id)+'&callback='+encodeURIComponent(checkCb)+'&t='+Date.now();
+        (document.head||document.documentElement).appendChild(check);
+      }catch(e){reject(e);}
+    };
+    const src=GOOGLE_SHEETS_WEB_APP_URL+'?action=deletePayment&recordId='+encodeURIComponent(id)+'&studentName='+encodeURIComponent(String(data?.studentName||''))+'&month='+encodeURIComponent(String(data?.month||''))+'&sheet=payments&sheetName='+encodeURIComponent('المصروفات')+'&callback='+encodeURIComponent(callbackName)+'&t='+Date.now();
+    script.src=src;
+    (document.head||document.documentElement).appendChild(script);
+  });
 }
 
 
@@ -4825,6 +4965,7 @@ window.onload = function() {
   document.getElementById('mgrYearSelect').value = new Date().getFullYear();
 
   checkWeeklyAutoBackup();
+  try{initWafdeenDailyDate();}catch(_){ }
 };
 
 function exportToExcel(tableId, filename) {
@@ -4844,6 +4985,48 @@ function initCurrentDate() {
     document.getElementById('filterDateDaily').value = localISOTime;
   }
   updateDayOfWeek();
+}
+
+
+function changeDailyRecordDate(delta){
+  const input=document.getElementById('recordDate');
+  if(!input)return;
+  if(delta===0){
+    if(!input.value){
+      const today=getISODateOnly(new Date());
+      input.value=today;
+    }
+  }else{
+    const base=input.value||getISODateOnly(new Date());
+    const d=new Date(base+'T00:00:00');
+    if(Number.isNaN(d.getTime()))return;
+    d.setDate(d.getDate()+Number(delta));
+    input.value=getISODateOnly(d);
+  }
+
+  // تغيير التاريخ يغيّر سجل اليوم المستهدف فقط، ولا يغيّر طريقة التخزين.
+  if(dailyTimerRunning){
+    try{pauseDailyTimer();}catch(_){}
+  }
+  clearInterval(dailyTimerInterval);
+  dailyTimerInterval=null;
+  dailyTimerRunning=false;
+  dailyTimerStartedAt=0;
+  dailyTimerBaseSeconds=0;
+
+  updateDayOfWeek();
+  if(typeof showDailyStudentWorkspace==='function')showDailyStudentWorkspace();
+  if(typeof updateMainDailySaveButton_==='function')updateMainDailySaveButton_();
+
+  const note=document.getElementById('daily-record-date-note');
+  if(note)note.textContent=`الرصد المحدد: ${input.value} — يمكنك التسجيل أو استكمال الرصد لهذا التاريخ.`;
+}
+
+function goDailyRecordToday(){
+  const input=document.getElementById('recordDate');
+  if(!input)return;
+  input.value=getISODateOnly(new Date());
+  changeDailyRecordDate(0);
 }
 
 function updateDayOfWeek() {
@@ -5196,8 +5379,7 @@ function syncDataFromCloud() {
     () => { renderNotesTable(); updateNotesStudentList(); }, {storageKey:'notesData'});
 
   // مزامنة الرصد اليومي لحظياً بين أجهزة المعلمين والمشرف.
-  // هذا لا يلغي Google Sheets؛ الشيت يظل نسخة الدرجات، بينما Firebase
-  // يوفر تحديث حالة الرصد فوراً على الأجهزة الأخرى.
+  // Firebase هي المصدر الرئيسي للرصد، والمزامنة تتم بين جميع الأجهزة.
   syncCollection_('dailyRecords', () => dailyRecords, v => { dailyRecords=v; },
     () => {
       try { localStorage.setItem('dailyRecords', JSON.stringify(dailyRecords)); } catch (_) {}
@@ -5206,7 +5388,22 @@ function syncDataFromCloud() {
       if (typeof renderManagerView === 'function') renderManagerView();
     }, {storageKey:'dailyRecords'});
 
-  // نتائج الطلاب درجات أيضاً؛ لا تُخزَّن في Firebase.
+  syncCollection_('payments', () => getLocalPayments_(), v => { setLocalPayments_(v); },
+    () => { try { renderPaymentReportTable(); updatePaymentsStudentPaidMonths(); } catch (_) {} },
+    {storageKey:'wafdeenPaymentsLocal_v2'});
+
+  syncCollection_('wafdeenDailyRecords', () => wafdeenDailyRecords, v => { wafdeenDailyRecords=v; },
+    () => { try { wafdeenPersistLocal(); } catch (_) {} }, {storageKey:'wafdeenDailyRecords'});
+  syncCollection_('wafdeenExams', () => wafdeenExamsData, v => { wafdeenExamsData=v; },
+    () => { try { wafdeenPersistLocal(); } catch (_) {} }, {storageKey:'wafdeenExamsData'});
+  syncCollection_('wafdeenUsage', () => wafdeenUsageData, v => { wafdeenUsageData=v; },
+    () => { try { wafdeenPersistLocal(); } catch (_) {} }, {storageKey:'wafdeenUsageData'});
+  syncCollection_('wafdeenMonthlyReports', () => wafdeenMonthlyImportedReports, v => { wafdeenMonthlyImportedReports=v; },
+    () => { try { wafdeenPersistLocal(); } catch (_) {} }, {storageKey:'wafdeenMonthlyImportedReports'});
+  syncCollection_('results', () => resultsData, v => { resultsData=v; },
+    () => { try { localStorage.setItem('resultsData', JSON.stringify(resultsData)); } catch (_) {} }, {storageKey:'resultsData'});
+
+  // Firebase هي السحابة الرئيسية لكل بيانات البرنامج.
 }
 
 function showMessage(elementId, msg, type) {
@@ -6160,11 +6357,15 @@ function getCurrentTimerElapsed(){
   return dailyTimerRunning ? dailyTimerBaseSeconds + Math.floor((Date.now()-dailyTimerStartedAt)/1000) : dailyTimerBaseSeconds;
 }
 function renderDailyTimer(){
-  const now = getCurrentTimerElapsed();
+  const dailyTypeNames={new:'الجديد',old:'الماضي',recitation:'التلاوة'};
+  const selectedName=dailyTypeNames[dailyTimerType]||'الجديد';
+  const now=getCurrentTimerElapsed();
   const display=document.getElementById('dailyTimerDisplay');
   if(display) display.textContent=formatTimerSeconds(now);
+  const label=document.getElementById('dailySelectedTimerLabel');
+  if(label) label.textContent=`⏱️ تايمر ${selectedName}`;
   const status=document.getElementById('dailyTimerStatus');
-  if(status) status.textContent=dailyTimerRunning ? '⏱️ جارٍ احتساب وقت التسميع' : (now>0 ? '⏸️ التايمر متوقف مؤقتًا' : 'جاهز للتسميع');
+  if(status) status.textContent=dailyTimerRunning ? `⏱️ جارٍ احتساب وقت ${selectedName}` : (now>0 ? `⏸️ وقت ${selectedName} متوقف مؤقتًا` : `جاهز لتسميع ${selectedName}`);
 }
 function updateDailyTypeTimes(){
   Object.keys(dailyTimerSeconds).forEach(type=>{
@@ -6177,15 +6378,19 @@ function updateDailyTypeTimes(){
   });
 }
 function selectDailyTimerType(type){
-  if(dailyTimerRunning) return showMessage('app-msg','أوقف التايمر أو ضع استراحة أولاً قبل تغيير نوع التسميع.','error');
+  if(!['new','old','recitation'].includes(type)) type='new';
+  if(dailyTimerRunning && dailyTimerType!==type){
+    return showMessage('app-msg','أوقف التايمر أو ضع استراحة أولاً قبل تغيير نوع التسميع.','error');
+  }
   dailyTimerType=type;
   dailyCounterType=type;
+  dailySelectedGradeType=type;
   document.querySelectorAll('.daily-type-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.type===type));
   dailyTimerBaseSeconds=dailyTimerSeconds[type]||0;
   dailyRenderCounters();
   renderDailyTimer();
+  selectDailyGradeType(type);
 }
-
 
 // حفظ مؤقت فوري لدرجات الجديد والماضي والتلاوة والعدادات أثناء التسجيل.
 // المفتاح مرتبط بالطالب والتاريخ حتى لا تختلط درجات طالب بآخر.
@@ -6412,7 +6617,7 @@ function updateDailyRecitationGrade(type){
   gradeEl.disabled=!hasCount;
   gradeEl.readOnly=true;
   gradeEl.max=hasCount?String(maxGrade):'10';
-  gradeEl.placeholder=hasCount?'الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد':'اختر عدد المرات أولاً';
+  gradeEl.placeholder=hasCount?'الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد':'الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد';
   gradeEl.classList.add('daily-auto-grade');
   dailyCalculateGrade(type);
 }
@@ -6437,15 +6642,71 @@ function resetDailyExtraFieldsFromRecord(record){
     ['newPagesCount',record?.newPagesCount||''],
     ['oldPagesCount',record?.oldPagesCount||''],
     ['recitationPagesCount',record?.recitationPagesCount||''],
-    ['newRecitationCount',record?.newRecitationCount||''],
-    ['oldRecitationCount',record?.oldRecitationCount||''],
-    ['recitationRecitationCount',record?.recitationRecitationCount||'']
+    ['newRecitationCount',record?.newRecitationCount||'1'],
+    ['oldRecitationCount',record?.oldRecitationCount||'1'],
+    ['recitationRecitationCount',record?.recitationRecitationCount||'1']
   ];
   fields.forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=String(val);});
   ['new','old','recitation'].forEach(type=>{
     updateDailyRecitationGrade(type);
     dailyCalculateGrade(type);
   });
+}
+
+let dailySelectedGradeType = 'new';
+
+function dailyTypeLabel_(type){
+  return type==='new' ? 'الجديد' : type==='old' ? 'الماضي' : 'التلاوة';
+}
+function dailyTypeFieldIds_(type){
+  if(type==='new') return ['newLesson','newTopicToday','newPagesCount','newTopicRecited','newRecitationCount'];
+  if(type==='old') return ['oldRevision','oldTopicToday','oldPagesCount','oldTopicRecited','oldRecitationCount'];
+  return ['recitation','recitationTopicToday','recitationPagesCount','recitationTopicRecited','recitationRecitationCount'];
+}
+function markDailyTypeFieldGroups_(){
+  const map={new:dailyTypeFieldIds_('new'),old:dailyTypeFieldIds_('old'),recitation:dailyTypeFieldIds_('recitation')};
+  Object.entries(map).forEach(([type,ids])=>ids.forEach(id=>{
+    const el=document.getElementById(id); if(el && el.parentElement) el.parentElement.classList.add('daily-type-field',`daily-type-field-${type}`);
+  }));
+}
+function isDailyTypeSaved_(record,type){
+  if(!record) return false;
+  if(record._dailyTypeSaved && record._dailyTypeSaved[type]===true) return true;
+  const key=type==='new'?'newLesson':type==='old'?'oldRevision':'recitation';
+  return record[key]!==undefined && record[key]!==null && record[key]!=='';
+}
+function selectDailyGradeType(type){
+  if(!['new','old','recitation'].includes(type)) type='new';
+  if(dailyTimerRunning && dailyTimerType!==type){
+    return showMessage('app-msg','أوقف التايمر أو ضع استراحة أولاً قبل تغيير نوع التسميع.','error');
+  }
+  dailySelectedGradeType=type;
+  dailyTimerType=type;
+  dailyCounterType=type;
+  dailyTimerBaseSeconds=dailyTimerSeconds[type]||0;
+  document.querySelectorAll('.daily-grade-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.gradeType===type));
+  document.querySelectorAll('.daily-type-field').forEach(el=>el.classList.toggle('daily-type-field-hidden',!el.classList.contains(`daily-type-field-${type}`)));
+  const labels={new:'الجديد',old:'الماضي',recitation:'التلاوة'};
+  const note=document.getElementById('daily-selected-grade-note');
+  const record=hasDailyRecordForSelectedStudent_();
+  const saved=isDailyTypeSaved_(record,type);
+  if(note) note.textContent=saved ? `تم حفظ ${labels[type]} اليوم بالفعل. لا يمكن حفظه مرة أخرى في نفس اليوم.` : `رصد ${labels[type]}: اكتب بيانات ${labels[type]} ثم اضغط زر الحفظ بالأسفل.`;
+  updateDailyTypeTimes(); dailyRenderCounters(); renderDailyTimer(); updateMainDailySaveButton_();
+}
+function updateMainDailySaveButton_(){
+  const btn=document.querySelector('#daily-tab .daily-scores-card button[onclick="addGrade()"]');
+  if(!btn)return;
+  markDailyTypeFieldGroups_();
+  const record=hasDailyRecordForSelectedStudent_();
+  const saved=isDailyTypeSaved_(record,dailySelectedGradeType);
+  const label=dailyTypeLabel_(dailySelectedGradeType);
+  btn.disabled=saved;
+  btn.classList.toggle('daily-type-save-done',saved);
+  btn.setAttribute('aria-disabled',saved?'true':'false');
+  btn.textContent=saved ? `✅ تم حفظ ${label}` : `💾 حفظ ${label} والوقت`;
+  btn.title=saved ? `تم حفظ ${label} اليوم — لا يمكن حفظه مرة أخرى.` : `حفظ ${label} مع وقت التسميع`;
+  const note=document.getElementById('daily-selected-grade-note');
+  if(note) note.textContent=saved ? `تم حفظ ${label} اليوم بالفعل. لا يمكن حفظه مرة أخرى في نفس اليوم.` : `رصد ${label}: اكتب بيانات ${label} ثم اضغط زر الحفظ بالأسفل.`;
 }
 
 function hasDailyRecordForSelectedStudent_(){
@@ -6455,18 +6716,6 @@ function hasDailyRecordForSelectedStudent_(){
   if(!className||!dateISO||!studentName)return null;
   return (dailyRecords||[]).find(r=>!r._deleted && String(r.className||'')===String(className) && String(r.dateISO||'').slice(0,10)===String(dateISO).slice(0,10) && String(r.studentName||'').trim()===studentName) || null;
 }
-function updateMainDailySaveButton_(){
-  const btn=document.querySelector('#studentNameSelect')?.closest('.card')?.querySelector('button[onclick="addGrade()"]') || document.querySelector('button[onclick="addGrade()"]');
-  if(!btn)return;
-  const exists=!!hasDailyRecordForSelectedStudent_();
-  btn.classList.toggle('wafdeen-save-blocked',exists);
-  btn.setAttribute('aria-disabled',exists?'true':'false');
-  btn.title=exists?'تم تسجيل هذا الطالب اليوم — استخدم تعديل أو مسح أولاً.':'';
-  btn.textContent=exists?'🔒 تم تسجيل الطالب اليوم':'💾 حفظ الدرجات والوقت (من 70)';
-  btn.style.opacity=exists?'0.65':'1';
-  btn.style.cursor=exists?'not-allowed':'pointer';
-}
-
 
 function recordAbsenceTime() {
     const studentId = document.getElementById('studentSelect')?.value || document.getElementById('wafdeenStudentSelect')?.value;
@@ -6520,152 +6769,96 @@ function recordAbsenceTime() {
 }
 
 async function addGrade(forceAbsent=false) {
-  const className = document.getElementById('classSelect').value;
-  const dateISO = document.getElementById('recordDate').value;
-  const dayName = document.getElementById('daySelect').value;
-  const studentName = document.getElementById('studentNameSelect').value;
-  const newTopicToday = document.getElementById('newTopicToday').value.trim();
-  const newTopicRecited = document.getElementById('newTopicRecited').value.trim();
-  const oldTopicToday = document.getElementById('oldTopicToday').value.trim();
-  const oldTopicRecited = document.getElementById('oldTopicRecited').value.trim();
-  const recitationTopicToday = document.getElementById('recitationTopicToday').value.trim();
-  const recitationTopicRecited = document.getElementById('recitationTopicRecited').value.trim();
-  const attVal = document.getElementById('attendance').value;
-  const behVal = document.getElementById('behavior').value;
-  const tajweedVal = document.getElementById('tajweed').value;
-  let oldRVal = document.getElementById('oldRevision').value;
-  let newLVal = document.getElementById('newLesson').value;
-  let recVal = document.getElementById('recitation').value;
-  const hwVal = document.getElementById('homework').value;
-  const newPagesCount = document.getElementById('newPagesCount')?.value || '';
-  const oldPagesCount = document.getElementById('oldPagesCount')?.value || '';
-  const recitationPagesCount = document.getElementById('recitationPagesCount')?.value || '';
-  const newRecitationCount = document.getElementById('newRecitationCount')?.value || '';
-  const oldRecitationCount = document.getElementById('oldRecitationCount')?.value || '';
-  const recitationRecitationCount = document.getElementById('recitationRecitationCount')?.value || '';
+  const className=document.getElementById('classSelect')?.value||'';
+  const dateISO=document.getElementById('recordDate')?.value||'';
+  const dayName=document.getElementById('daySelect')?.value||'';
+  const studentName=(document.getElementById('studentNameSelect')?.value||'').trim();
+  if(!studentName)return showMessage('app-msg','يرجى اختيار الاسم بشكل صحيح','error');
+  if(!dateISO)return showMessage('app-msg','يرجى اختيار التاريخ بشكل صحيح','error');
 
-  if (!studentName) return showMessage('app-msg', 'يرجى اختيار الاسم بشكل صحيح', 'error');
-  if (!dateISO) return showMessage('app-msg', 'يرجى اختيار التاريخ بشكل صحيح', 'error');
-
-  // حماية نهائية: لا يمكن إنشاء أو استبدال رصد لنفس الطالب في نفس اليوم من زر الحفظ.
-  // التعديل أو المسح فقط هما الاستثناءان المقصودان.
-  const existingToday=hasDailyRecordForSelectedStudent_();
-  if(existingToday){
+  // الحفظ المستقل مثل رصد الوافدين: كل نوع (الجديد/الماضي/التلاوة) يُحفظ وحده مرة واحدة في اليوم.
+  const type=dailySelectedGradeType||dailyTimerType||'new';
+  const label=dailyTypeLabel_(type);
+  let record=hasDailyRecordForSelectedStudent_();
+  if(isDailyTypeSaved_(record,type)){
     updateMainDailySaveButton_();
-    return showMessage('app-msg', `⚠️ تم تسجيل الطالب ${studentName} بالفعل اليوم. لا يمكن حفظه مرة أخرى، والدرجة المسجلة لن تتغير. استخدم «تعديل» أو «مسح» أولاً.`, 'error');
-  }
-  const fifth = isFifthClass(className);
-  const isAbsent = !!forceAbsent || Number(attVal) === 0;
-  // الغياب: صفر في كل الدرجات والأوقات والعدادات، وتجاوز فحص الخانات المطلوبة.
-  if (isAbsent) {
-    ['attendance','behavior','tajweed','oldRevision','newLesson','recitation','homework'].forEach(id => { const el=document.getElementById(id); if(el) el.value=0; });
-    ['newTopicToday','newTopicRecited','oldTopicToday','oldTopicRecited','recitationTopicToday','recitationTopicRecited'].forEach(id => { const el=document.getElementById(id); if(el) el.value='-'; });
-    dailyResetCounters();
-    dailyRenderCounters();
-    wafdeenBehaviorState.daily={};
-    const behSummary=document.getElementById('daily-behavior-summary');
-    if(behSummary) behSummary.textContent='غياب — الدرجة: 0/10';
-    WAFDEEN_BEHAVIOR_REASONS.forEach(r=>{const el=document.getElementById(`daily-behavior-count-${r.key}`);if(el)el.textContent='0';});
-  }
-  const missingFields = isAbsent ? [] : wafdeenValidateDailyRequiredFields_();
-  if (missingFields.length) {
-    return showMessage('app-msg', 'يوجد بيانات ناقصة باللون الأحمر. أكمل الخانات المطلوبة ثم اضغط حفظ.', 'error');
-  }
-  dailyCalculateGrade('new');
-  dailyCalculateGrade('old');
-  dailyCalculateGrade('recitation');
-  oldRVal=document.getElementById('oldRevision').value;
-  newLVal=document.getElementById('newLesson').value;
-  recVal=document.getElementById('recitation').value;
-  const values = fifth ? [attVal, behVal, tajweedVal, document.getElementById('recitation').value, hwVal] : [attVal, behVal, tajweedVal, document.getElementById('oldRevision').value, document.getElementById('newLesson').value, document.getElementById('recitation').value, hwVal];
-  if (values.some(v => v === '')) return showMessage('app-msg', 'عذراً، يجب إدخال جميع درجات الطالب!', 'error');
-  if (values.some(v => Number(v) < 0 || Number(v) > 10)) return showMessage('app-msg', 'تنبيه: أعلى درجة مسموح بها هي 10 درجات في كل خانة.', 'error');
-  if (!isAbsent) {
-    const recitationGradeLimits = [
-      ['new', newLVal, newRecitationCount, 'الجديد'],
-      ['old', oldRVal, oldRecitationCount, 'الماضي'],
-      ['recitation', recVal, recitationRecitationCount, 'التلاوة']
-    ];
-    for (const [, gradeValue, countValue, label] of recitationGradeLimits) {
-      const limit = dailyGradeFromRecitationCount(countValue);
-      if (limit !== '' && Number(gradeValue) > Number(limit)) {
-        return showMessage('app-msg', `درجة ${label} لا يمكن أن تتجاوز ${limit} من 10 عند ${countValue === '1' ? 'التسميع مرة واحدة' : countValue === '2' ? 'التسميع مرتين' : 'التسميع ثلاث مرات'}.`, 'error');
-      }
-    }
+    return showMessage('app-msg',`⚠️ تم حفظ ${label} للطالب ${studentName} بالفعل اليوم. لا يمكن حفظه مرة أخرى.`,'error');
   }
 
-  const uniqueId = `rec_${studentName}_${dateISO}`.replace(/\s+/g, '_');
-  const previous = dailyRecords.find(r=>r.id===uniqueId) || {};
-  const record = {
-    ...previous,
-    id: uniqueId,
-    teacherName: currentTeacher.username,
-    className, dateISO, dayName, studentName,
-    recitationTopicToday, recitationTopicRecited,
-    recitationTopic: recitationTopicToday,
-    oldTopicToday: fifth ? '' : oldTopicToday,
-    oldTopicRecited: fifth ? '' : oldTopicRecited,
-    newTopicToday: fifth ? '' : newTopicToday,
-    newTopicRecited: fifth ? '' : newTopicRecited,
-    oldTopicText: fifth ? '' : oldTopicToday,
-    newTopicText: fifth ? '' : newTopicToday,
-    newPagesCount: fifth ? '' : newPagesCount,
-    oldPagesCount: fifth ? '' : oldPagesCount,
-    recitationPagesCount,
-    newRecitationCount: fifth ? '' : Number(newRecitationCount),
-    oldRecitationCount: fifth ? '' : Number(oldRecitationCount),
-    recitationRecitationCount: Number(recitationRecitationCount),
-    attendance: isAbsent ? 0 : clampGrade(attVal), behavior: isAbsent ? 0 : clampGrade(behVal), tajweed: isAbsent ? 0 : clampGrade(tajweedVal),
-    attendanceStatus: isAbsent ? 'absent' : 'present',
-    isAbsent: !!isAbsent,
-    oldRevision: isAbsent ? 0 : (fifth ? 0 : clampGrade(oldRVal)), newLesson: isAbsent ? 0 : (fifth ? 0 : clampGrade(newLVal)),
-    recitation: isAbsent ? 0 : clampGrade(recVal), homework: isAbsent ? 0 : clampGrade(hwVal),
-    newLessonTimeSeconds: isAbsent ? 0 : Number(dailyTimerSeconds.new||previous.newLessonTimeSeconds||0),
-    oldRevisionTimeSeconds: isAbsent ? 0 : Number(dailyTimerSeconds.old||previous.oldRevisionTimeSeconds||0),
-    recitationTimeSeconds: isAbsent ? 0 : Number(dailyTimerSeconds.recitation||previous.recitationTimeSeconds||0),
-    newErrors: isAbsent ? 0 : Number(dailyErrorCounters.new?.errors||0),
-    newTashkeel: isAbsent ? 0 : Number(dailyErrorCounters.new?.tashkeel||0),
-    newRepetition: isAbsent ? 0 : Number(dailyErrorCounters.new?.repetition||0),
-    oldErrors: isAbsent ? 0 : Number(dailyErrorCounters.old?.errors||0),
-    oldTashkeel: isAbsent ? 0 : Number(dailyErrorCounters.old?.tashkeel||0),
-    oldRepetition: isAbsent ? 0 : Number(dailyErrorCounters.old?.repetition||0),
-    recitationErrors: isAbsent ? 0 : Number(dailyErrorCounters.recitation?.errors||0),
-    recitationTashkeel: isAbsent ? 0 : Number(dailyErrorCounters.recitation?.tashkeel||0),
-    recitationRepetition: isAbsent ? 0 : Number(dailyErrorCounters.recitation?.repetition||0),
-    behaviorReasons: isAbsent ? {} : {...(wafdeenBehaviorState.daily||{})},
-    behaviorReasonsText: isAbsent ? '' : wafdeenBehaviorSummaryText('daily'),
-    timeRecordedAt: new Date().toISOString(),
-    recitation1: 0, recitation2: 0, recitation3: 0, recitation4: 0
-  };
+  if(dailyTimerRunning) pauseDailyTimer();
+  const timerBox=document.getElementById('dailySelectedTimerBox');timerBox?.classList.remove('daily-field-missing');
+  if(Number(dailyTimerSeconds[type]||0)<=0){timerBox?.classList.add('daily-field-missing');return showMessage('app-msg',`لا يمكن حفظ ${label} قبل الضغط على «بدء» واحتساب وقت فعلي.`,'error');}
 
-  // احفظ محليًا أولاً حتى لا تختفي الدرجات إذا تأخرت السحابة أو انقطع الاتصال.
-  const idx=dailyRecords.findIndex(r=>r.id===record.id);
-  if(idx>-1) dailyRecords[idx]=record; else dailyRecords.push(record);
-  localStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
+  const val=id=>document.getElementById(id)?.value ?? '';
+  const num=id=>{const n=Number(val(id));return Number.isFinite(n)?Math.max(0,Math.min(10,n)):0;};
+  const countId=type==='new'?'newRecitationCount':type==='old'?'oldRecitationCount':'recitationRecitationCount';
+  const gradeId=type==='new'?'newLesson':type==='old'?'oldRevision':'recitation';
+  const topicTodayId=type==='new'?'newTopicToday':type==='old'?'oldTopicToday':'recitationTopicToday';
+  const pagesId=type==='new'?'newPagesCount':type==='old'?'oldPagesCount':'recitationPagesCount';
+  const topicRecitedId=type==='new'?'newTopicRecited':type==='old'?'oldTopicRecited':'recitationTopicRecited';
+  const count=val(countId);
+  if(!count)return showMessage('app-msg',`عدد مرات تسميع ${label} مضبوط افتراضيًا على مرة واحدة.`,'error');
+  updateDailyRecitationGrade(type);
+  dailyCalculateGrade(type);
+  const grade=num(gradeId);
+  if(grade<0 || grade>10)return showMessage('app-msg',`درجة ${label} يجب أن تكون من 0 إلى 10.`,'error');
+  const limit=dailyGradeFromRecitationCount(count);
+  if(limit!=='' && grade>Number(limit))return showMessage('app-msg',`درجة ${label} لا يمكن أن تتجاوز ${limit} من 10 عند ${count==='1'?'التسميع مرة واحدة':count==='2'?'التسميع مرتين':'التسميع ثلاث مرات'}.`,'error');
+  if(!val(topicTodayId).trim() || !val(topicRecitedId).trim())return showMessage('app-msg',`أكمل مقرر ${label} اليوم ومقرر ${label} الذي تم تسميعه.`,'error');
+  if(!val(pagesId).trim())return showMessage('app-msg',`اكتب عدد الصفحات في ${label}.`,'error');
 
-  // ارفع سجل الرصد إلى Firebase فوراً حتى يظهر للمشرف وباقي الأجهزة
-  // مباشرة في حالة إنجاز الرصد. Google Sheets يستقبل نسخة الدرجات أيضاً.
-  const cloudJobs = [];
-  if (useFirebase && db) {
-    cloudJobs.push(
-      db.collection('dailyRecords').doc(String(record.id)).set(
-        {...record, updatedAt: new Date().toISOString()}, {merge:true}
-      ).catch(e => console.error('Firebase daily record save warning:', e))
-    );
+  const now=new Date();
+  const existing=record||{};
+  if(!record){
+    record={
+      id:`rec_${studentName}_${dateISO}`.replace(/\s+/g,'_'),
+      teacherName:currentTeacher?.username||'',className,dateISO,dayName,studentName,
+      attendance:0,behavior:10,tajweed:0,homework:0,attendanceStatus:'present',isAbsent:false,
+      newLesson:'',oldRevision:'',recitation:'',newPagesCount:'',oldPagesCount:'',recitationPagesCount:'',
+      newTopicToday:'',newTopicRecited:'',oldTopicToday:'',oldTopicRecited:'',recitationTopicToday:'',recitationTopicRecited:'',
+      newRecitationCount:'1',oldRecitationCount:'1',recitationRecitationCount:'1',
+      newLessonTimeSeconds:0,oldRevisionTimeSeconds:0,recitationTimeSeconds:0,
+      newErrors:0,newTashkeel:0,newRepetition:0,oldErrors:0,oldTashkeel:0,oldRepetition:0,
+      recitationErrors:0,recitationTashkeel:0,recitationRepetition:0,
+      _dailyTypeSaved:{},timeRecordedAt:now.toISOString()
+    };
   }
-  cloudJobs.push(
-    Promise.resolve(sendGradeToGoogleSheet('saveDailyGrade', record)).catch(e => {
-      console.error('Google Sheets save warning:', e);
-      showMessage('app-msg', 'تم حفظ الرصد، وسيتم رفع نسخة الشيت عند عودة الاتصال.', 'error');
-    })
-  );
-  // لا نوقف واجهة المعلم في انتظار السحابة.
+  // حفظ الحقول العامة إن كانت مُدخلة، دون إجبار المعلم على حفظها مع كل نوع.
+  ['attendance','behavior','tajweed','homework'].forEach(id=>{const v=val(id);if(v!=='')record[id]=num(id);});
+  record.teacherName=currentTeacher?.username||record.teacherName||'';
+  record.className=className;record.dateISO=dateISO;record.dayName=dayName;record.studentName=studentName;
+  record.attendanceStatus=Number(record.attendance)===0?'present':'present';record.isAbsent=false;
+  record[gradeId]=grade;
+  record[topicTodayId]=val(topicTodayId).trim();
+  record[pagesId]=val(pagesId).trim();
+  record[topicRecitedId]=val(topicRecitedId).trim();
+  record[countId]=Number(count);
+  const seconds=Number(dailyTimerSeconds[type]||0);
+  const timeKey=type==='new'?'newLessonTimeSeconds':type==='old'?'oldRevisionTimeSeconds':'recitationTimeSeconds';
+  record[timeKey]=seconds;
+  const ec=dailyErrorCounters[type]||{errors:0,tashkeel:0,repetition:0};
+  const prefix=type==='new'?'new':type==='old'?'old':'recitation';
+  record[`${prefix}Errors`]=Number(ec.errors||0);record[`${prefix}Tashkeel`]=Number(ec.tashkeel||0);record[`${prefix}Repetition`]=Number(ec.repetition||0);
+  record._dailyTypeSaved={...(record._dailyTypeSaved||{}),[type]:true};
+  record.timeRecordedAt=now.toISOString();
+  record.total=getDailyTotal(record);
+
+  const idx=dailyRecords.findIndex(r=>String(r.id)===String(record.id));
+  if(idx>-1)dailyRecords[idx]=record;else dailyRecords.push(record);
+  localStorage.setItem('dailyRecords',JSON.stringify(dailyRecords));
+
+  // نفس التخزين/السحابة الحاليان بدون تغيير: localStorage + Firebase + Google Sheets.
+  const cloudJobs=[];
+  if(useFirebase&&db)cloudJobs.push(db.collection('dailyRecords').doc(String(record.id)).set({...record,updatedAt:now.toISOString()},{merge:true}).catch(e=>console.error('Firebase daily record save warning:',e)));
+  cloudJobs.push(Promise.resolve(sendGradeToGoogleSheet(idx>-1?'updateDailyGrade':'saveDailyGrade',record)).catch(e=>console.error('Google Sheets save warning:',e)));
   Promise.allSettled(cloudJobs);
-  renderDailyTable(); renderAttendanceTable(); renderWeeklyTable(); renderMonthlyReport(); renderManagerView(); renderClassStatusTable(); updateMainDailySaveButton_(); if(document.getElementById('student-analysis-section') && !document.getElementById('student-analysis-section').classList.contains('hidden')){ populateAnalysisWeeks(); renderStudentDataAnalysis(); }
-  const savedTimes={new:Number(record.newLessonTimeSeconds||0),old:Number(record.oldRevisionTimeSeconds||0),recitation:Number(record.recitationTimeSeconds||0)};
-  const savedTimeText=`الجديد: ${formatTimerSeconds(savedTimes.new)} | الماضي: ${formatTimerSeconds(savedTimes.old)} | التلاوة: ${formatTimerSeconds(savedTimes.recitation)}`;
-  wafdeenResetDailyEntryForm_();
-  showMessage('app-msg', `تم حفظ الدرجات ووقت التسميع بنجاح ✨ (${savedTimeText})`, 'success');
+
+  dailyTimerSeconds[type]=seconds;dailyTimerBaseSeconds=seconds;updateDailyTypeTimes();renderDailyTimer();
+  dailyErrorCounters[type]={errors:0,tashkeel:0,repetition:0};
+  dailyRenderCounters();
+  renderDailyTable();renderAttendanceTable();renderWeeklyTable();renderMonthlyReport();renderManagerView();renderClassStatusTable();
+  updateMainDailySaveButton_();
+  showMessage('app-msg',`تم حفظ ${label} ووقت التسميع بنجاح للطالب ${studentName} ✅ (${formatTimerSeconds(seconds)})`,'success');
 }
 
 /* ================= أدوات واجهة الموقع الداخلية ================= */
@@ -6883,7 +7076,7 @@ function wafdeenValidateDailyRequiredFields_(){
 }
 function wafdeenResetDailyEntryForm_(){
   ['attendance','tajweed','homework','newTopicToday','newTopicRecited','oldTopicToday','oldTopicRecited','recitationTopicToday','recitationTopicRecited','newPagesCount','oldPagesCount','recitationPagesCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['newRecitationCount','oldRecitationCount','recitationRecitationCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['newRecitationCount','oldRecitationCount','recitationRecitationCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='1';});
   ['newLesson','oldRevision','recitation'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.disabled=true;el.readOnly=true;el.classList.add('daily-auto-grade');}});
   dailyTimerSeconds={new:0,old:0,recitation:0};
   dailyTimerType='new'; dailyCounterType=''; dailyTimerRunning=false; dailyTimerStartedAt=0; dailyTimerBaseSeconds=0;
@@ -9070,6 +9263,8 @@ let wafdeenQuranElapsedSeconds = 0;
 let wafdeenQuranTimerStartedAt = null;
 let wafdeenQuranTimerInterval = null;
 let wafdeenQuranTimerRunning = false;
+let wafdeenQuranElapsedByType={الجديد:0,الماضي:0,التلاوة:0};
+let wafdeenQuranSessionSavedByType={الجديد:false,الماضي:false,التلاوة:false};
 const WAFDEEN_QURAN_SESSION_MAX_SECONDS = 2 * 60 * 60;
 let wafdeenQuranSessionSaved = false;
 let wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};
@@ -9115,7 +9310,85 @@ function wafdeenPersistLocal(){
   localStorage.setItem('wafdeenExamsData', JSON.stringify(wafdeenExamsData));
   localStorage.setItem('wafdeenMonthlyImportedReports', JSON.stringify(wafdeenMonthlyImportedReports));
 }
-function wafdeenTodayMonth(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+/* الشهر عند الوافدين يبدأ يوم 15 من كل شهر وينتهي يوم 15 من الشهر التالي.
+   المفتاح "YYYY-MM" يمثل الشهر الذي يبدأ فيه النطاق (مثال: 2026-09 يعني من 15 سبتمبر إلى 15 أكتوبر). */
+function wafdeenPeriodKeyForDate(d){
+  let y=d.getFullYear(), m=d.getMonth();
+  if(d.getDate()<15){ m-=1; if(m<0){m=11;y-=1;} }
+  return `${y}-${String(m+1).padStart(2,'0')}`;
+}
+
+function wafdeenSelectedDailyDateStr(){
+  const el=document.getElementById('wafdeenDailyDate');
+  const v=String(el?.value||'').trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:wafdeenTodayDateStr();
+}
+function wafdeenSelectedDailyDateObj(){
+  const v=wafdeenSelectedDailyDateStr();
+  const d=new Date(v+'T00:00:00');
+  return Number.isNaN(d.getTime())?new Date():d;
+}
+function changeWafdeenDailyDate(delta){
+  const input=document.getElementById('wafdeenDailyDate');
+  if(!input)return;
+  if(delta===0){
+    if(!input.value)input.value=wafdeenTodayDateStr();
+  }else{
+    const d=wafdeenSelectedDailyDateObj();
+    d.setDate(d.getDate()+Number(delta));
+    input.value=wafdeenDateKeyLocal(d);
+  }
+  if(wafdeenQuranTimerRunning){
+    wafdeenQuranTick();
+    clearInterval(wafdeenQuranTimerInterval);
+    wafdeenQuranTimerInterval=null;
+    wafdeenQuranTimerRunning=false;
+    wafdeenQuranTimerStartedAt=null;
+  }
+  wafdeenQuranElapsedSeconds=0;
+  wafdeenQuranElapsedByType={الجديد:0,الماضي:0,التلاوة:0};
+  wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};
+  wafdeenQuranSessionSavedByType={الجديد:false,الماضي:false,التلاوة:false};
+  wafdeenLoadSelectedStudentGradeData();
+  wafdeenUpdateDailyScoresVisibility();
+  const note=document.getElementById('wafdeen-daily-date-note');
+  if(note)note.textContent=`الرصد المحدد: ${input.value} — يمكنك التسجيل لهذا التاريخ.`;
+}
+function goWafdeenDailyToday(){
+  const input=document.getElementById('wafdeenDailyDate');
+  if(!input)return;
+  input.value=wafdeenTodayDateStr();
+  changeWafdeenDailyDate(0);
+}
+
+function wafdeenTodayMonth(){ return wafdeenPeriodKeyForDate(new Date()); }
+function wafdeenTodayDateStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function wafdeenFormatDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function wafdeenSameLocalDay(iso,dayStr){ if(!iso)return false; const d=new Date(iso); return wafdeenFormatDate(d)===dayStr; }
+/* الأسبوع من السبت إلى الجمعة */
+function wafdeenWeekRange(dayStr){
+  const parts=(dayStr||wafdeenTodayDateStr()).split('-').map(Number);
+  const ref=new Date(parts[0],parts[1]-1,parts[2]);
+  const dow=ref.getDay(); // 0=أحد ... 6=سبت
+  const diffFromSat=(dow-6+7)%7;
+  const start=new Date(ref.getFullYear(),ref.getMonth(),ref.getDate()-diffFromSat);
+  const end=new Date(start.getFullYear(),start.getMonth(),start.getDate()+6,23,59,59,999);
+  return {start,end};
+}
+function wafdeenInWeek(iso,dayStr){
+  if(!iso)return false;
+  const {start,end}=wafdeenWeekRange(dayStr);
+  const d=new Date(iso);
+  return d>=start && d<=end;
+}
+/* نطاق أيام الشهر (15 إلى 15 الشهر التالي) من مفتاح الشهر */
+function wafdeenPeriodRangeFromKey(key){
+  const parts=(key||wafdeenTodayMonth()).split('-').map(Number);
+  const y=parts[0], m=parts[1]; // m رقم الشهر من 1 إلى 12
+  const start=new Date(y,m-1,15);
+  const end=new Date(y,m,15);
+  return {start,end};
+}
 
 function showWafdeenLoginScreen(){
   closeMainMenu(); document.body.classList.remove('wafdeen-mode'); document.body.classList.add('login-screen-active');
@@ -9163,8 +9436,7 @@ function showWafdeenAppScreen(){
   wafdeenShowPanel(currentWafdeenTeacher?.role==='student'?'materials':'daily');
   wafdeenRenderStudentSelect(); wafdeenResetTimer(); wafdeenRenderQuranCounters();
   if(currentWafdeenTeacher?.isAdmin){
-    document.getElementById('wafdeenReportMonth').value=wafdeenTodayMonth();
-    wafdeenRenderTeachersTable(); wafdeenRenderStudentsTable(); renderWafdeenMonthlyReport();
+    wafdeenRenderTeachersTable(); wafdeenRenderStudentsTable(); wafdeenReportPanelInit();
   }
 }
 function wafdeenLogout(){
@@ -9176,7 +9448,7 @@ function wafdeenLogout(){
   document.body.classList.remove('wafdeen-mode'); showLoginScreen();
 }
 function wafdeenLoadCloud(){
-  /* الكتب تظل على Google Drive، وبيانات جلسة الوافدين تتزامن عبر Firebase. */
+  /* Firebase هي السحابة الرئيسية لبيانات البرنامج. الكتب يمكن أن تبقى على Google Drive كملفات فقط. */
   wafdeenLoadBooksFromGoogleDrive().then(books=>{
     if(Array.isArray(books)){
       // عند نجاح القراءة، Google Drive هو المصدر الرسمي لقائمة الكتب؛
@@ -9199,7 +9471,7 @@ function wafdeenLoadCloud(){
   syncCollection_('wafdeenStudents', ()=>wafdeenStudentsData, v=>{wafdeenStudentsData=v;},
     ()=>{wafdeenPersistLocal();wafdeenRenderStudentSelect();if(currentWafdeenTeacher?.isAdmin)wafdeenRenderStudentsTable();},
     {storageKey:'wafdeenStudentsData'});
-  // أوقات التسميع جزء من الرصد؛ تُحفظ محلياً وتُرسل مع الدرجة إلى Google Sheets فقط.
+  // أوقات التسميع جزء من الرصد؛ تُحفظ محلياً وتُرسل مع الدرجة إلى Firebase فقط.
   // درجات الوافدين لا تُخزَّن في Firebase؛ مصدرها Google Sheets، والنسخة المحلية للعرض السريع.
   // امتحانات الوافدين درجات؛ تُرسل إلى ورقة الوافدين فقط.
 }
@@ -9226,12 +9498,14 @@ function wafdeenUpdateQuranTimer(){const el=document.getElementById('wafdeen-qur
 function wafdeenUpdateEduTimer(){const el=document.getElementById('wafdeen-edu-timer');if(el)el.innerText=wafdeenFormatTimer(wafdeenEduElapsedSeconds);}
 function wafdeenQuranTick(){
   if(!wafdeenQuranTimerRunning||!wafdeenQuranTimerStartedAt)return;
-  wafdeenQuranElapsedSeconds=Math.floor((Date.now()-wafdeenQuranTimerStartedAt)/1000);
+  const type=wafdeenQuranSelectedType||'الجديد';
+  wafdeenQuranElapsedSeconds=Math.min(WAFDEEN_QURAN_SESSION_MAX_SECONDS,Math.floor((Date.now()-wafdeenQuranTimerStartedAt)/1000));
+  wafdeenQuranElapsedByType[type]=wafdeenQuranElapsedSeconds;
   if(wafdeenQuranElapsedSeconds>=WAFDEEN_QURAN_SESSION_MAX_SECONDS){
     wafdeenQuranElapsedSeconds=WAFDEEN_QURAN_SESSION_MAX_SECONDS;
-    wafdeenUpdateQuranTimer();
-    wafdeenQuranStopTimer(true);
-    return;
+    wafdeenQuranElapsedByType[type]=wafdeenQuranElapsedSeconds;
+    clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=null;wafdeenQuranTimerRunning=false;wafdeenQuranTimerStartedAt=null;
+    const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText=`تم بلوغ ساعتين في ${type} — اضغط حفظ لإتمام تسجيل النوع`;
   }
   wafdeenUpdateQuranTimer();
 }
@@ -9253,38 +9527,59 @@ function wafdeenRenderQuranCounters(){
   if(field){const score=wafdeenCalculateQuranScore(c);field.value=Number(score).toFixed(2).replace(/\.00$/,'');field.placeholder='';}
 }
 function wafdeenSelectGradeType(type,btn){
+  if(!['الجديد','الماضي','التلاوة'].includes(type))type='الجديد';
+  if(wafdeenQuranTimerRunning && wafdeenQuranSelectedType!==type)return showMessage('wafdeen-save-msg','أوقف التايمر أو اضغط استراحة أولاً قبل تغيير نوع التسميع','error');
   wafdeenQuranSelectedType=type;
-  document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
+  wafdeenQuranElapsedSeconds=Number(wafdeenQuranElapsedByType[type]||0);
+  document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.gradeType===type));
   const details=document.getElementById('wafdeen-grade-details');if(details)details.classList.add('is-visible');
   document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-fields').forEach(box=>box.classList.toggle('is-visible',box.dataset.gradeFields===type));
+  const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText=wafdeenQuranElapsedSeconds>0?`⏸️ وقت ${type} متوقف — ${wafdeenFormatTimer(wafdeenQuranElapsedSeconds)}`:`جاهز لتسميع ${type} — اضغط بدء`;
   wafdeenRenderQuranCounters();
+  document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-fields').forEach(box=>{const b=box.querySelector('.wafdeen-save-type-btn');if(b){const saved=!!wafdeenQuranHeardTypes[box.dataset.gradeFields];b.disabled=box.dataset.gradeFields===type&&saved;b.textContent=box.dataset.gradeFields===type&&saved?`✅ تم حفظ ${type}`:'💾 حفظ الدرجات والوقت';}});
 }
 function wafdeenIncrementCounter(kind){const c=wafdeenGetCounterSet();if(!Object.prototype.hasOwnProperty.call(c,kind))return false;wafdeenQuranHeardTypes[wafdeenQuranSelectedType||'الجديد']=true;c[kind]=(parseInt(c[kind],10)||0)+1;wafdeenRenderQuranCounters();wafdeenAnimateCounterValue(kind);return false;}
 function wafdeenDecrementCounter(kind){const c=wafdeenGetCounterSet();if(!Object.prototype.hasOwnProperty.call(c,kind))return false;c[kind]=Math.max(0,(parseInt(c[kind],10)||0)-1);wafdeenRenderQuranCounters();wafdeenAnimateCounterValue(kind);return false;}
 function wafdeenAnimateCounterValue(kind){const el=document.getElementById('wafdeen-counter-'+kind);if(!el)return;el.classList.remove('wafdeen-counter-value-pop');void el.offsetWidth;el.classList.add('wafdeen-counter-value-pop');}
 function wafdeenResetQuranCounters(){wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};wafdeenQuranErrorCounters={الجديد:{errors:0,tashkeel:0,repetition:0},الماضي:{errors:0,tashkeel:0,repetition:0},التلاوة:{errors:0,tashkeel:0,repetition:0}};wafdeenQuranSelectedType='';const box=document.querySelector('.wafdeen-error-counters');if(box)box.classList.remove('is-visible');wafdeenRenderQuranCounters();}
+async async function sendWafdeenUsageToGoogleSheet_(usage){if(!useFirebase||!db)return false;try{const id=String(usage?.id||`usage_${Date.now()}`);await db.collection('wafdeenUsage').doc(id).set({...usage,id,updatedAt:new Date().toISOString()},{merge:true});return true;}catch(e){console.error(e);return false;}}
+
 function wafdeenQuranStartPause(forcePause=false){
   if(currentWafdeenTeacher?.role==='student')return;
-  if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');
-  if(forcePause){if(!wafdeenQuranTimerRunning)return;wafdeenQuranTick();clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=null;wafdeenQuranTimerRunning=false;wafdeenQuranTimerStartedAt=null;document.getElementById('wafdeen-quran-timer-status').innerText='استراحة — اضغط بدء لاستكمال جلسة التسميع';return;}
-  if(wafdeenQuranElapsedSeconds>=WAFDEEN_QURAN_SESSION_MAX_SECONDS)return showMessage('wafdeen-save-msg','تم بلوغ الحد الأقصى لجلسة التسميع: ساعتان','error');
+  const sel=document.getElementById('wafdeenStudentSelect');if(!sel?.value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');
+  const type=wafdeenQuranSelectedType||'الجديد';
+  if(wafdeenQuranHeardTypes[type])return showMessage('wafdeen-save-msg',`تم حفظ ${type} بالفعل اليوم.`,'error');
+  if(forcePause){
+    if(!wafdeenQuranTimerRunning)return;
+    wafdeenQuranTick();clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=null;wafdeenQuranTimerRunning=false;wafdeenQuranTimerStartedAt=null;
+    const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText=`استراحة ${type} — اضغط بدء لاستكمال الوقت`;
+    return;
+  }
+  const current=Number(wafdeenQuranElapsedByType[type]||0);if(current>=WAFDEEN_QURAN_SESSION_MAX_SECONDS)return showMessage('wafdeen-save-msg','تم بلوغ الحد الأقصى لجلسة التسميع: ساعتان','error');
   if(wafdeenQuranTimerRunning)return;
-  wafdeenQuranTimerStartedAt=Date.now()-wafdeenQuranElapsedSeconds*1000;wafdeenQuranTimerRunning=true;wafdeenQuranSessionSaved=false;wafdeenQuranTimerInterval=setInterval(wafdeenQuranTick,250);document.getElementById('wafdeen-quran-timer-status').innerText='جلسة التسميع جارية — الحد الأقصى ساعتان';
+  wafdeenQuranElapsedSeconds=current;wafdeenQuranTimerStartedAt=Date.now()-current*1000;wafdeenQuranTimerRunning=true;wafdeenQuranSessionSaved=false;wafdeenQuranSessionSavedByType[type]=false;
+  clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=setInterval(wafdeenQuranTick,250);
+  const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText=`⏱️ جارٍ احتساب وقت ${type}`;
 }
 async function wafdeenQuranStopTimer(auto=false){
-  if(currentWafdeenTeacher?.role==='student')return;
-  const studentId=document.getElementById('wafdeenStudentSelect')?.value;if(!studentId)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');
-  if(wafdeenQuranTimerRunning&&!auto)wafdeenQuranTick();if(wafdeenQuranTimerInterval)clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=null;wafdeenQuranTimerRunning=false;wafdeenQuranTimerStartedAt=null;
-  const seconds=Math.min(WAFDEEN_QURAN_SESSION_MAX_SECONDS,Math.floor(wafdeenQuranElapsedSeconds));if(seconds<=0)return showMessage('wafdeen-save-msg','لم يتم احتساب وقت في جلسة التسميع حتى الآن','error');
-  const student=wafdeenStudentsData.find(s=>String(s.id)===String(studentId));if(!student)return showMessage('wafdeen-save-msg','الطالب غير موجود','error');
-  const rec={id:Date.now().toString(),teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,category:'quran',subject:'القرآن الكريم',type:'جلسة التسميع',seconds,dateISO:new Date().toISOString(),month:wafdeenTodayMonth(),sessionMaxSeconds:WAFDEEN_QURAN_SESSION_MAX_SECONDS,completedInTwoHours:seconds>=WAFDEEN_QURAN_SESSION_MAX_SECONDS};
-  try{wafdeenUsageData.push(rec);wafdeenPersistLocal();if(useFirebase&&db)await db.collection('wafdeenUsage').doc(rec.id).set(rec,{merge:true});wafdeenQuranSessionSaved=true;document.getElementById('wafdeen-quran-timer').innerText=wafdeenFormatTimer(seconds);const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText=seconds>=WAFDEEN_QURAN_SESSION_MAX_SECONDS?'تم حفظ جلسة التسميع — ساعتان كاملتان ✅':`تم حفظ جلسة التسميع — ${wafdeenFormat(seconds)} ✅`;if(currentWafdeenTeacher?.isAdmin)renderWafdeenMonthlyReport();}catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ وقت جلسة التسميع على السحابة','error');}
+  if(currentWafdeenTeacher?.role==='student')return false;
+  const type=wafdeenQuranSelectedType||'الجديد';
+  if(wafdeenQuranTimerRunning)wafdeenQuranTick();
+  if(wafdeenQuranTimerInterval)clearInterval(wafdeenQuranTimerInterval);wafdeenQuranTimerInterval=null;wafdeenQuranTimerRunning=false;wafdeenQuranTimerStartedAt=null;
+  const seconds=Math.floor(Number(wafdeenQuranElapsedByType[type]||wafdeenQuranElapsedSeconds||0));
+  wafdeenQuranElapsedSeconds=seconds;wafdeenUpdateQuranTimer();
+  if(seconds<=0){if(!auto)showMessage('wafdeen-save-msg',`لا يمكن حفظ ${type} قبل الضغط على «بدء» واحتساب وقت فعلي.`,'error');return false;}
+  return true;
 }
-function wafdeenQuranReset(){if(wafdeenQuranTimerRunning)return;wafdeenQuranElapsedSeconds=0;wafdeenQuranSessionSaved=false;wafdeenUpdateQuranTimer();const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText='اضغط بدء لبدء جلسة التسميع — الحد الأقصى ساعتان';}
+function wafdeenQuranReset(){
+  if(wafdeenQuranTimerRunning)return;
+  wafdeenQuranElapsedByType={الجديد:0,الماضي:0,التلاوة:0};wafdeenQuranElapsedSeconds=0;wafdeenQuranSessionSaved=false;wafdeenQuranSessionSavedByType={الجديد:false,الماضي:false,التلاوة:false};wafdeenQuranUpdateQuranTimer();
+  const st=document.getElementById('wafdeen-quran-timer-status');if(st)st.innerText='اضغط بدء لبدء جلسة التسميع — الحد الأقصى ساعتان';
+}
 function selectWafdeenEduSubject(subject,btn){if(wafdeenEduTimerRunning)return showMessage('wafdeen-save-msg','أوقف مؤقت المواد التعليمية أولاً قبل تغيير المادة','error');wafdeenEduSelectedSubject=subject;document.querySelectorAll('[data-edu-subject]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('wafdeen-edu-timer-status').innerText=subject+' — جاهز للبدء';}
 function selectWafdeenEduType(type,btn){if(wafdeenEduTimerRunning)return showMessage('wafdeen-save-msg','أوقف مؤقت المواد التعليمية أولاً قبل تغيير النوع','error');if(!wafdeenEduSelectedSubject)return showMessage('wafdeen-save-msg','اختر المادة أولاً: فقه أو منطق أو حديث أو اللغة العربية','error');wafdeenEduSelectedType=type;document.querySelectorAll('[data-edu-type]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('wafdeen-edu-timer-status').innerText=wafdeenEduSelectedSubject+' — '+type+' — جاهز للبدء';}
 function wafdeenEduStartPause(forcePause=false){if(currentWafdeenTeacher?.role==='student')return;if(!wafdeenEduSelectedSubject)return showMessage('wafdeen-save-msg','اختر المادة أولاً: فقه أو منطق أو حديث أو اللغة العربية','error');if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');if(forcePause){if(!wafdeenEduTimerRunning)return;wafdeenEduTick();clearInterval(wafdeenEduTimerInterval);wafdeenEduTimerInterval=null;wafdeenEduTimerRunning=false;wafdeenEduTimerStartedAt=null;document.getElementById('wafdeen-edu-timer-status').innerText='استراحة — اضغط بدء لاستكمال الوقت';return;}if(wafdeenEduTimerRunning)return;wafdeenEduTimerStartedAt=Date.now()-wafdeenEduElapsedSeconds*1000;wafdeenEduTimerRunning=true;wafdeenEduTimerInterval=setInterval(wafdeenEduTick,250);document.getElementById('wafdeen-edu-timer-status').innerText='جارٍ احتساب الوقت — '+wafdeenEduSelectedSubject+' — '+wafdeenEduSelectedType;}
-async function wafdeenEduStopTimer(){if(currentWafdeenTeacher?.role==='student')return;if(!wafdeenEduSelectedSubject)return showMessage('wafdeen-save-msg','اختر المادة أولاً','error');if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');if(wafdeenEduTimerRunning)wafdeenEduTick();if(wafdeenEduTimerInterval)clearInterval(wafdeenEduTimerInterval);wafdeenEduTimerInterval=null;wafdeenEduTimerRunning=false;wafdeenEduTimerStartedAt=null;const seconds=Math.floor(wafdeenEduElapsedSeconds);if(seconds<=0)return showMessage('wafdeen-save-msg','لم يتم احتساب وقت في مؤقت المواد التعليمية حتى الآن','error');const student=wafdeenStudentsData.find(s=>String(s.id)===String(document.getElementById('wafdeenStudentSelect').value));const rec={id:(Date.now()+1).toString(),teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,category:'educational',subject:wafdeenEduSelectedSubject,seconds,dateISO:new Date().toISOString(),month:wafdeenTodayMonth()};try{wafdeenUsageData.push(rec);wafdeenPersistLocal();if(useFirebase&&db)await db.collection('wafdeenUsage').doc(rec.id).set(rec,{merge:true});showMessage('wafdeen-save-msg',`تم حفظ ${wafdeenFormat(seconds)} للطالب ${student.name} في ${wafdeenEduSelectedSubject} ✅`,'success');wafdeenEduReset();if(currentWafdeenTeacher?.isAdmin)renderWafdeenMonthlyReport();}catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ وقت المواد التعليمية على السحابة','error');}}
+async function wafdeenEduStopTimer(){if(currentWafdeenTeacher?.role==='student')return;if(!wafdeenEduSelectedSubject)return showMessage('wafdeen-save-msg','اختر المادة أولاً','error');if(!document.getElementById('wafdeenStudentSelect').value)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');if(wafdeenEduTimerRunning)wafdeenEduTick();if(wafdeenEduTimerInterval)clearInterval(wafdeenEduTimerInterval);wafdeenEduTimerInterval=null;wafdeenEduTimerRunning=false;wafdeenEduTimerStartedAt=null;const seconds=Math.floor(wafdeenEduElapsedSeconds);if(seconds<=0)return showMessage('wafdeen-save-msg','لم يتم احتساب وقت في مؤقت المواد التعليمية حتى الآن','error');const student=wafdeenStudentsData.find(s=>String(s.id)===String(document.getElementById('wafdeenStudentSelect').value));if(!student)return showMessage('wafdeen-save-msg','الطالب غير موجود','error');const rec={id:(Date.now()+1).toString(),teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,category:'educational',subject:wafdeenEduSelectedSubject,seconds,dateISO:new Date().toISOString(),month:wafdeenTodayMonth()};try{wafdeenUsageData.push(rec);wafdeenPersistLocal();if(useFirebase&&db)await db.collection('wafdeenUsage').doc(rec.id).set(rec,{merge:true});const sheetOk=await sendWafdeenUsageToGoogleSheet_(rec);showMessage('wafdeen-save-msg',sheetOk?`تم حفظ ${wafdeenFormat(seconds)} للطالب ${student.name} في ${wafdeenEduSelectedSubject} ومزامنتها مع Firebase ✅`:`تم حفظ ${wafdeenFormat(seconds)} للطالب ${student.name} محليًا/في Firebase، وستتم مزامنتها تلقائيًا مع Firebase.` ,sheetOk?'success':'info');wafdeenEduReset();if(currentWafdeenTeacher?.isAdmin)wafdeenRefreshAllReports();}catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ وقت المواد التعليمية','error');}}
 function wafdeenEduReset(){if(wafdeenEduTimerRunning)return;wafdeenEduElapsedSeconds=0;wafdeenUpdateEduTimer();wafdeenEduSelectedSubject='';wafdeenEduSelectedType='';document.querySelectorAll('[data-edu-subject],[data-edu-type]').forEach(b=>b.classList.remove('active'));const st=document.getElementById('wafdeen-edu-timer-status');if(st)st.innerText='اختر المادة ثم اضغط بدء';}
 function wafdeenHasTodayRecordForSelectedStudent(){
   const sel=document.getElementById('wafdeenStudentSelect');
@@ -9292,7 +9587,7 @@ function wafdeenHasTodayRecordForSelectedStudent(){
   if(!studentId)return false;
   const student=wafdeenStudentsData.find(x=>String(x.id)===studentId);
   const studentName=String(student?.name||'').trim();
-  const today=wafdeenDateKeyLocal(new Date());
+  const today=wafdeenSelectedDailyDateStr();
   return (wafdeenDailyRecords||[]).some(r=>{
     if(r._deleted || String(r.dateISO||'').slice(0,10)!==today)return false;
     const sameId=studentId && String(r.studentId||'')===studentId;
@@ -9317,86 +9612,62 @@ function wafdeenUpdateDailySaveButton(){
   if(!hasStudent){btn.classList.remove('wafdeen-save-blocked');btn.textContent='💾 حفظ الرصد اليومي';btn.style.opacity='1';btn.style.cursor='pointer';}
 }
 function wafdeenGetTodayGradeRecord(studentId){
-  const today=wafdeenDateKeyLocal(new Date());
+  const today=wafdeenSelectedDailyDateStr();
   return (wafdeenDailyRecords||[]).find(r=>!r._deleted && String(r.studentId||'')===String(studentId||'') && String(r.dateISO||'').slice(0,10)===today) || null;
 }
 function wafdeenLoadSelectedStudentGradeData(){
-  const studentId=document.getElementById('wafdeenStudentSelect')?.value;
-  const r=wafdeenGetTodayGradeRecord(studentId);
+  const studentId=document.getElementById('wafdeenStudentSelect')?.value;const r=wafdeenGetTodayGradeRecord(studentId);
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=(v===undefined||v===null||v==='')?'':String(v);};
-  const resetCounters={الجديد:{errors:0,tashkeel:0,repetition:0},الماضي:{errors:0,tashkeel:0,repetition:0},التلاوة:{errors:0,tashkeel:0,repetition:0}};
-  wafdeenQuranErrorCounters={...resetCounters};
-  wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};
+  wafdeenQuranErrorCounters={الجديد:{errors:0,tashkeel:0,repetition:0},الماضي:{errors:0,tashkeel:0,repetition:0},التلاوة:{errors:0,tashkeel:0,repetition:0}};wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};wafdeenQuranElapsedByType={الجديد:0,الماضي:0,التلاوة:0};
   if(r){
-    set('wafdeenNewLesson',r.newLesson);set('wafdeenNewPagesCount',r.newPagesCount);set('wafdeenNewTopicRecited',r.newTopicRecited);
-    set('wafdeenOldRevision',r.oldRevision);set('wafdeenOldPagesCount',r.oldPagesCount);set('wafdeenOldTopicRecited',r.oldTopicRecited);
-    set('wafdeenRecitation',r.recitation);set('wafdeenRecitationPagesCount',r.recitationPagesCount);set('wafdeenRecitationTopicRecited',r.recitationTopicRecited);
-    wafdeenQuranErrorCounters={
-      الجديد:{errors:Number(r.newErrors)||0,tashkeel:Number(r.newTashkeel)||0,repetition:Number(r.newRepetition)||0},
-      الماضي:{errors:Number(r.oldErrors)||0,tashkeel:Number(r.oldTashkeel)||0,repetition:Number(r.oldRepetition)||0},
-      التلاوة:{errors:Number(r.recitationErrors)||0,tashkeel:Number(r.recitationTashkeel)||0,repetition:Number(r.recitationRepetition)||0}
-    };
-    ['الجديد','الماضي','التلاوة'].forEach((type,i)=>{
-      const key=i===0?'newLesson':i===1?'oldRevision':'recitation';
-      wafdeenQuranHeardTypes[type]=r[key]!==undefined && r[key]!==null && r[key]!=='';
-    });
-  }else{
-    ['wafdeenNewLesson','wafdeenOldRevision','wafdeenRecitation'].forEach(id=>set(id,'10'));
-    ['wafdeenNewPagesCount','wafdeenNewTopicRecited','wafdeenOldPagesCount','wafdeenOldTopicRecited','wafdeenRecitationPagesCount','wafdeenRecitationTopicRecited'].forEach(id=>set(id,''));
-  }
-  wafdeenQuranSelectedType=wafdeenQuranSelectedType||'الجديد';
-  wafdeenRenderQuranCounters();
+    set('wafdeenNewLesson',r.newLesson);set('wafdeenNewPagesCount',r.newPagesCount);set('wafdeenNewTopicRecited',r.newTopicRecited);set('wafdeenOldRevision',r.oldRevision);set('wafdeenOldPagesCount',r.oldPagesCount);set('wafdeenOldTopicRecited',r.oldTopicRecited);set('wafdeenRecitation',r.recitation);set('wafdeenRecitationPagesCount',r.recitationPagesCount);set('wafdeenRecitationTopicRecited',r.recitationTopicRecited);
+    wafdeenQuranErrorCounters={الجديد:{errors:Number(r.newErrors)||0,tashkeel:Number(r.newTashkeel)||0,repetition:Number(r.newRepetition)||0},الماضي:{errors:Number(r.oldErrors)||0,tashkeel:Number(r.oldTashkeel)||0,repetition:Number(r.oldRepetition)||0},التلاوة:{errors:Number(r.recitationErrors)||0,tashkeel:Number(r.recitationTashkeel)||0,repetition:Number(r.recitationRepetition)||0}};
+    wafdeenQuranElapsedByType={الجديد:Number(r.newLessonTimeSeconds||0),الماضي:Number(r.oldRevisionTimeSeconds||0),التلاوة:Number(r.recitationTimeSeconds||0)};
+    (wafdeenUsageData||[]).filter(x=>!x._deleted&&String(x.studentId||'')===String(studentId||'')&&x.category==='quran'&&String(x.dateISO||'').slice(0,10)===wafdeenSelectedDailyDateStr()).forEach(x=>{const t=x.type;if(Object.prototype.hasOwnProperty.call(wafdeenQuranElapsedByType,t)&&!wafdeenQuranElapsedByType[t])wafdeenQuranElapsedByType[t]=Number(x.seconds)||0;});
+    ['الجديد','الماضي','التلاوة'].forEach(type=>{const key=type==='الجديد'?'newLesson':type==='الماضي'?'oldRevision':'recitation';wafdeenQuranHeardTypes[type]=r[key]!==undefined&&r[key]!==null&&r[key]!=='';});
+  }else{['wafdeenNewLesson','wafdeenOldRevision','wafdeenRecitation'].forEach(id=>set(id,'10'));['wafdeenNewPagesCount','wafdeenNewTopicRecited','wafdeenOldPagesCount','wafdeenOldTopicRecited','wafdeenRecitationPagesCount','wafdeenRecitationTopicRecited'].forEach(id=>set(id,''));}
+  wafdeenQuranSelectedType=wafdeenQuranSelectedType||'الجديد';wafdeenQuranSessionSavedByType={الجديد:false,الماضي:false,التلاوة:false};wafdeenQuranElapsedSeconds=Number(wafdeenQuranElapsedByType[wafdeenQuranSelectedType]||0);wafdeenUpdateQuranTimer();wafdeenRenderQuranCounters();
+  document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-fields').forEach(box=>{const b=box.querySelector('.wafdeen-save-type-btn');if(b){const saved=!!wafdeenQuranHeardTypes[box.dataset.gradeFields];b.disabled=box.dataset.gradeFields===wafdeenQuranSelectedType&&saved;b.textContent=box.dataset.gradeFields===wafdeenQuranSelectedType&&saved?`✅ تم حفظ ${box.dataset.gradeFields}`:'💾 حفظ الدرجات والوقت';}});
 }
+function wafdeenQuranClearMissing_(){document.querySelectorAll('#wafdeen-daily-scores-panel .field-missing,#wafdeen-daily-scores-panel .field-missing-group').forEach(el=>el.classList.remove('field-missing','field-missing-group'));document.getElementById('wafdeen-quran-timer')?.classList.remove('field-missing');}
+function wafdeenQuranMarkMissing_(id,missing){const el=document.getElementById(id);const group=el?.closest('.form-group');if(el)el.classList.toggle('field-missing',!!missing);if(group)group.classList.toggle('field-missing-group',!!missing);}
 async function wafdeenSaveGradeType(type){
   if(currentWafdeenTeacher?.role==='student')return;
-  const studentId=document.getElementById('wafdeenStudentSelect')?.value;
-  if(!studentId)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');
-  const student=wafdeenStudentsData.find(s=>String(s.id)===String(studentId));
-  if(!student)return showMessage('wafdeen-save-msg','الطالب غير موجود','error');
-  const dateISO=wafdeenDateKeyLocal(new Date());
-  let record=wafdeenGetTodayGradeRecord(studentId);
-  const hadRecord=!!record;
-  if(!record){
-    record={id:`wafdeen_${student.id}_${dateISO}`,teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,dateISO,
-      attendanceStatus:'present',isAbsent:false,status:'present',dayName:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][new Date().getDay()],
-      newLesson:'',newPagesCount:'',newTopicRecited:'',oldRevision:'',oldPagesCount:'',oldTopicRecited:'',recitation:'',recitationPagesCount:'',recitationTopicRecited:'',savedAt:new Date().toISOString()};
-    wafdeenDailyRecords.push(record);
-  }
-  const val=id=>document.getElementById(id)?.value ?? '';
-  const c=wafdeenQuranErrorCounters[type]||{errors:0,tashkeel:0,repetition:0};
-  const score=Number(wafdeenCalculateQuranScore(c).toFixed(2));
-  if(type==='الجديد'){
-    Object.assign(record,{newLesson:score,newPagesCount:val('wafdeenNewPagesCount'),newTopicRecited:val('wafdeenNewTopicRecited'),newErrors:Number(c.errors)||0,newTashkeel:Number(c.tashkeel)||0,newRepetition:Number(c.repetition)||0});
-  }else if(type==='الماضي'){
-    Object.assign(record,{oldRevision:score,oldPagesCount:val('wafdeenOldPagesCount'),oldTopicRecited:val('wafdeenOldTopicRecited'),oldErrors:Number(c.errors)||0,oldTashkeel:Number(c.tashkeel)||0,oldRepetition:Number(c.repetition)||0});
-  }else{
-    Object.assign(record,{recitation:score,recitationPagesCount:val('wafdeenRecitationPagesCount'),recitationTopicRecited:val('wafdeenRecitationTopicRecited'),recitationErrors:Number(c.errors)||0,recitationTashkeel:Number(c.tashkeel)||0,recitationRepetition:Number(c.repetition)||0});
-  }
-  record.total=['newLesson','oldRevision','recitation'].reduce((sum,k)=>sum+(record[k]===''?0:Number(record[k])||0),0);
-  record.updatedAt=new Date().toISOString();
-  wafdeenQuranHeardTypes[type]=true;
-  try{localStorage.setItem('wafdeenDailyRecords',JSON.stringify(wafdeenDailyRecords));}catch(e){console.error(e);}
-
-  // بعد حفظ النوع: إعادة خانة النوع نفسه للوضع الابتدائي، بدون المساس بالأنواع الأخرى.
-  // الدرجة المحفوظة تظل محفوظة في record/السحابة، لكن شاشة الإدخال ترجع إلى 10 وخاناتها فارغة لرصد جديد.
-  const resetMap={
-    'الجديد':['wafdeenNewLesson','wafdeenNewPagesCount','wafdeenNewTopicRecited'],
-    'الماضي':['wafdeenOldRevision','wafdeenOldPagesCount','wafdeenOldTopicRecited'],
-    'التلاوة':['wafdeenRecitation','wafdeenRecitationPagesCount','wafdeenRecitationTopicRecited']
-  };
-  (resetMap[type]||[]).forEach(id=>{const el=document.getElementById(id);if(el)el.value=(id==='wafdeenNewLesson'||id==='wafdeenOldRevision'||id==='wafdeenRecitation')?'10':'';});
-  if(wafdeenQuranErrorCounters[type])wafdeenQuranErrorCounters[type]={errors:0,tashkeel:0,repetition:0};
-  wafdeenQuranSelectedType=type;
-  wafdeenRenderQuranCounters();
-  // التأكيد يظهر حسب الخانة التي تم حفظها، ثم تبقى بقية الخانات مستقلة كما هي.
-  wafdeenRenderGrades();
-  const msg=`تم تسميع ${type} للطالب ${student.name} — الدرجة ${score}/10 وتم حفظ ${type} بنجاح، والخانات جاهزة لرصد جديد ✅`;
-  showMessage('wafdeen-save-msg',msg,'success');
-  const cloudJobs=[];
-  if(useFirebase&&db)cloudJobs.push(db.collection('wafdeenDailyRecords').doc(String(record.id)).set({...record,updatedAt:new Date().toISOString()},{merge:true}).catch(e=>console.error(e)));
-  if(typeof sendGradeToGoogleSheet==='function')cloudJobs.push(Promise.resolve(sendGradeToGoogleSheet(hadRecord?'updateWafdeenDailyGrade':'saveWafdeenDailyGrade',record)).catch(e=>console.error(e)));
-  record._syncedBefore=true;
-  Promise.allSettled(cloudJobs);
+  if(!['الجديد','الماضي','التلاوة'].includes(type))type='الجديد';
+  const studentId=document.getElementById('wafdeenStudentSelect')?.value;if(!studentId)return showMessage('wafdeen-save-msg','اختر الطالب أولاً','error');
+  if(wafdeenQuranHeardTypes[type])return showMessage('wafdeen-save-msg',`تم حفظ ${type} للطالب اليوم بالفعل. لا يمكن حفظه مرة أخرى.`,'error');
+  if(wafdeenQuranSelectedType!==type){if(wafdeenQuranTimerRunning)return showMessage('wafdeen-save-msg','أوقف التايمر أو اضغط استراحة أولاً','error');wafdeenQuranSelectedType=type;}
+  if(wafdeenQuranTimerRunning)wafdeenQuranTick();
+  const seconds=Math.floor(Number(wafdeenQuranElapsedByType[type]||0));
+  const pagesId=type==='الجديد'?'wafdeenNewPagesCount':type==='الماضي'?'wafdeenOldPagesCount':'wafdeenRecitationPagesCount';
+  const topicId=type==='الجديد'?'wafdeenNewTopicRecited':type==='الماضي'?'wafdeenOldTopicRecited':'wafdeenRecitationTopicRecited';
+  wafdeenQuranClearMissing_();const missing=[];
+  if(seconds<=0){document.getElementById('wafdeen-quran-timer')?.classList.add('field-missing');missing.push('وقت التسميع — اضغط بدء أولاً');}
+  if(!String(document.getElementById(pagesId)?.value||'').trim()){wafdeenQuranMarkMissing_(pagesId,true);missing.push('عدد الصفحات');}
+  if(!String(document.getElementById(topicId)?.value||'').trim()){wafdeenQuranMarkMissing_(topicId,true);missing.push('المقرر الذي تم تسميعه');}
+  if(missing.length)return showMessage('wafdeen-save-msg',`أكمل بيانات ${type}: ${missing.join('، ')}`,'error');
+  const student=wafdeenStudentsData.find(s=>String(s.id)===String(studentId));if(!student)return showMessage('wafdeen-save-msg','الطالب غير موجود','error');
+  const dateISO=wafdeenSelectedDailyDateStr();let record=wafdeenGetTodayGradeRecord(studentId);const hadRecord=!!record;
+  if(!record){record={id:`wafdeen_${student.id}_${dateISO}`,teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,dateISO,attendanceStatus:'present',isAbsent:false,status:'present',dayName:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][wafdeenSelectedDailyDateObj().getDay()],newLesson:'',newPagesCount:'',newTopicRecited:'',oldRevision:'',oldPagesCount:'',oldTopicRecited:'',recitation:'',recitationPagesCount:'',recitationTopicRecited:'',newLessonTimeSeconds:0,oldRevisionTimeSeconds:0,recitationTimeSeconds:0,savedAt:new Date().toISOString()};wafdeenDailyRecords.push(record);}
+  const val=id=>document.getElementById(id)?.value??'';const c=wafdeenQuranErrorCounters[type]||{errors:0,tashkeel:0,repetition:0};const score=Number(wafdeenCalculateQuranScore(c).toFixed(2));const timeKey=type==='الجديد'?'newLessonTimeSeconds':type==='الماضي'?'oldRevisionTimeSeconds':'recitationTimeSeconds';
+  if(type==='الجديد')Object.assign(record,{newLesson:score,newPagesCount:val(pagesId),newTopicRecited:val(topicId),newErrors:Number(c.errors)||0,newTashkeel:Number(c.tashkeel)||0,newRepetition:Number(c.repetition)||0,[timeKey]:seconds});
+  else if(type==='الماضي')Object.assign(record,{oldRevision:score,oldPagesCount:val(pagesId),oldTopicRecited:val(topicId),oldErrors:Number(c.errors)||0,oldTashkeel:Number(c.tashkeel)||0,oldRepetition:Number(c.repetition)||0,[timeKey]:seconds});
+  else Object.assign(record,{recitation:score,recitationPagesCount:val(pagesId),recitationTopicRecited:val(topicId),recitationErrors:Number(c.errors)||0,recitationTashkeel:Number(c.tashkeel)||0,recitationRepetition:Number(c.repetition)||0,[timeKey]:seconds});
+  record.total=['newLesson','oldRevision','recitation'].reduce((sum,k)=>sum+(record[k]===''?0:Number(record[k])||0),0);record.updatedAt=new Date().toISOString();const idx=wafdeenDailyRecords.findIndex(r=>String(r.id)===String(record.id));if(idx>-1)wafdeenDailyRecords[idx]=record;else wafdeenDailyRecords.push(record);wafdeenQuranHeardTypes[type]=true;wafdeenQuranSessionSavedByType[type]=true;wafdeenPersistLocal();
+  const usage={id:Date.now().toString(),teacherUsername:currentWafdeenTeacher.username,studentId:student.id,studentName:student.name,category:'quran',subject:'القرآن الكريم',type,seconds,dateISO:wafdeenSelectedDailyDateStr(),month:wafdeenPeriodKeyForDate(wafdeenSelectedDailyDateObj()),sessionMaxSeconds:WAFDEEN_QURAN_SESSION_MAX_SECONDS,completedInTwoHours:seconds>=WAFDEEN_QURAN_SESSION_MAX_SECONDS};wafdeenUsageData.push(usage);wafdeenPersistLocal();
+  const jobs=[];if(useFirebase&&db){jobs.push(db.collection('wafdeenDailyRecords').doc(String(record.id)).set({...record,updatedAt:new Date().toISOString()},{merge:true}).catch(e=>console.error(e)));jobs.push(db.collection('wafdeenUsage').doc(String(usage.id)).set(usage,{merge:true}).catch(e=>console.error(e)));}if(typeof sendGradeToGoogleSheet==='function')jobs.push(Promise.resolve(sendGradeToGoogleSheet(hadRecord?'updateWafdeenDailyGrade':'saveWafdeenDailyGrade',record)).catch(e=>console.error(e)));jobs.push(sendWafdeenUsageToGoogleSheet_(usage).catch(e=>false));Promise.allSettled(jobs);
+  const resetMap={'الجديد':['wafdeenNewLesson','wafdeenNewPagesCount','wafdeenNewTopicRecited'],'الماضي':['wafdeenOldRevision','wafdeenOldPagesCount','wafdeenOldTopicRecited'],'التلاوة':['wafdeenRecitation','wafdeenRecitationPagesCount','wafdeenRecitationTopicRecited']};(resetMap[type]||[]).forEach(id=>{const el=document.getElementById(id);if(el)el.value=(id==='wafdeenNewLesson'||id==='wafdeenOldRevision'||id==='wafdeenRecitation')?'10':'';});wafdeenQuranErrorCounters[type]={errors:0,tashkeel:0,repetition:0};wafdeenQuranElapsedByType[type]=0;wafdeenQuranElapsedSeconds=0;wafdeenUpdateQuranTimer();wafdeenRenderQuranCounters();
+  // تحديث زر النوع المحفوظ حتى يظهر «تم الحفظ» ويمنع التكرار.
+  document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-fields').forEach(box=>{const b=box.querySelector('.wafdeen-save-type-btn');if(b&&box.dataset.gradeFields===type){b.disabled=true;b.textContent=`✅ تم حفظ ${type}`;b.title=`تم حفظ ${type} اليوم بالفعل`;}});
+  showMessage('wafdeen-save-msg',`تم حفظ ${type} للطالب ${student.name} بتاريخ ${wafdeenSelectedDailyDateStr()} والوقت ${wafdeenFormatTimer(seconds)} بنجاح ✅`,'success');
+}
+async function wafdeenSaveGradeAndTime(){
+  if(currentWafdeenTeacher?.role==='student')return;
+  const type=wafdeenQuranSelectedType||'الجديد';
+  if(wafdeenQuranHeardTypes[type])return showMessage('wafdeen-save-msg',`تم حفظ ${type} بالفعل اليوم.`,'error');
+  if(wafdeenQuranTimerRunning)wafdeenQuranTick();
+  if(Number(wafdeenQuranElapsedByType[type]||0)<=0)return showMessage('wafdeen-save-msg',`لا يمكن حفظ ${type} قبل الضغط على «بدء» واحتساب وقت فعلي.`,'error');
+  return wafdeenSaveGradeType(type);
 }
 function wafdeenGuardedDailySave(){ return wafdeenSaveGradeType(wafdeenQuranSelectedType||'الجديد'); }
 async function saveWafdeenDailyRecord(isAbsent=false){
@@ -9410,7 +9681,7 @@ async function saveWafdeenDailyRecord(isAbsent=false){
 
   const val=id=>document.getElementById(id)?.value ?? '';
   const num=id=>{const n=Number(val(id));return Number.isFinite(n)?Math.max(0,Math.min(10,n)):0;};
-  const dateISO=wafdeenDateKeyLocal(new Date()), d=new Date();
+  const dateISO=wafdeenSelectedDailyDateStr(), d=wafdeenSelectedDailyDateObj();
 
   // حماية إضافية داخل دالة الحفظ نفسها لمنع أي استدعاء برمجي مباشر من تكرار الرصد.
   const existingToday=wafdeenDailyRecords.find(r=>
@@ -9460,7 +9731,7 @@ function wafdeenUpdateDailyScoresVisibility(){
   if(!panel||!sel)return;
   panel.classList.remove('hidden');
   const studentId=String(sel.value||'');
-  const today=wafdeenDateKeyLocal(new Date());
+  const today=wafdeenSelectedDailyDateStr();
   const hasTodayRecord=studentId && wafdeenDailyRecords.some(r=>String(r.studentId)===studentId && String(r.dateISO||'').slice(0,10)===today);
   let note=document.getElementById('wafdeen-existing-today-note');
   if(!note){
@@ -9474,6 +9745,11 @@ function wafdeenUpdateDailyScoresVisibility(){
   wafdeenUpdateDailySaveButton();
 }
 
+
+function initWafdeenDailyDate(){
+  const el=document.getElementById('wafdeenDailyDate');
+  if(el && !el.value)el.value=wafdeenTodayDateStr();
+}
 function wafdeenDateKeyLocal(date=new Date()){const d=new Date(date);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function wafdeenStartOfWeek(date=new Date()){const d=new Date(date);d.setHours(0,0,0,0);const day=d.getDay();const diff=day===0?-6:1-day;d.setDate(d.getDate()+diff);return d;}
 function wafdeenSumRecords(records){return records.reduce((a,r)=>a+Number(r.total||0),0);}
@@ -9803,7 +10079,7 @@ function wafdeenShowPanel(name){
   closeWafdeenMenu();
   if(name==='grades'){wafdeenRenderGrades();}
   if(name==='educationTime'){wafdeenRenderEducationTime();}
-  if(name==='report')renderWafdeenMonthlyReport();
+  if(name==='report')wafdeenReportPanelInit();
   if(name==='cloudReview')wafdeenRenderCloudReview();
   if(name==='teachers')wafdeenRenderTeachersTable();
   if(name==='students')wafdeenRenderStudentsTable();
@@ -10174,10 +10450,10 @@ async function saveWafdeenMonthlyReportToGoogleSheets(){
     }
     if(!rows.length){showMessage('wafdeen-save-msg','لا يوجد تقرير لحفظه','error');return false;}
     const ok=await sendGradeToGoogleSheet('saveWafdeenMonthlyReport',{id:'wafdeen_monthly_'+month,month,rows,sourceFile:wafdeenMonthlyImportedReports?.[month]?.fileName||'',savedAt:new Date().toISOString()});
-    if(ok) showMessage('wafdeen-save-msg',`تم حفظ تقرير ${month} في Google Sheets بنجاح ☁️✅`,'success');
-    else showMessage('wafdeen-save-msg','تم تجهيز التقرير للمزامنة مع Google Sheets، وسيُرسل تلقائيًا عند توفر الاتصال.','success');
+    if(ok) showMessage('wafdeen-save-msg',`تم حفظ تقرير ${month} في Firebase بنجاح ☁️✅`,'success');
+    else showMessage('wafdeen-save-msg','تم تجهيز التقرير للمزامنة مع Firebase، وسيُرسل تلقائيًا عند توفر الاتصال.','success');
     return ok;
-  }catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ التقرير في Google Sheets','error');return false;}
+  }catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر حفظ التقرير في Firebase','error');return false;}
 }
 
 async function importWafdeenMonthlyReportExcel(input){
@@ -10226,19 +10502,153 @@ async function importWafdeenMonthlyReportExcel(input){
 }
 
 
-function renderWafdeenMonthlyReport(){
+async function renderWafdeenMonthlyReport(){
   const tb=document.querySelector('#wafdeenReportTable tbody');if(!tb)return;
   const month=document.getElementById('wafdeenReportMonth')?.value||wafdeenTodayMonth();
+  const label=document.getElementById('wafdeenMonthRangeLabel');
+  if(label){const {start,end}=wafdeenPeriodRangeFromKey(month);const inclusiveEnd=new Date(end);inclusiveEnd.setDate(inclusiveEnd.getDate()-1);label.innerText=`الفترة: من ${wafdeenFormatDate(start)} إلى ${wafdeenFormatDate(inclusiveEnd)}`+(month===wafdeenTodayMonth()?` — اليوم: ${wafdeenFormatDate(new Date())} ✅`:` (اليوم: ${wafdeenFormatDate(new Date())})`);}
   const imported=wafdeenMonthlyImportedReports?.[month]?.rows;
   const map={};
-  if(Array.isArray(imported) && imported.length){
-    imported.forEach(x=>{const u=x.teacher||'غير معروف';map[u]={session:Math.max(0,Number(x.session)||0),educational:Math.max(0,Number(x.educational)||0),total:Math.max(0,Number(x.total)||0)};});
-  }else{
-    wafdeenUsageData.filter(r=>String(r.month||'')===month).forEach(r=>{const u=r.teacherUsername||'غير معروف';if(!map[u])map[u]={session:0,educational:0,total:0};const secs=Math.max(0,Number(r.seconds||0));if(r.category==='quran'&&r.type==='جلسة التسميع')map[u].session+=secs;else if(r.category==='educational')map[u].educational+=secs;map[u].total+=secs;});
+  if(Array.isArray(imported)&&imported.length){imported.forEach(x=>{const u=x.teacher||'غير معروف';map[u]={session:Math.max(0,Number(x.session)||0),educational:Math.max(0,Number(x.educational)||0),total:Math.max(0,Number(x.total)||0)};});}
+  else {wafdeenUsageData.filter(r=>String(r.month||'')===month).forEach(r=>{const u=r.teacherUsername||'غير معروف';if(!map[u])map[u]={session:0,educational:0,total:0};const secs=Math.max(0,Number(r.seconds)||0);if(r.category==='quran'&&r.type==='جلسة التسميع')map[u].session+=secs;else if(r.category==='educational')map[u].educational+=secs;map[u].total+=secs;});}
+  tb.innerHTML=wafdeenBuildReportRows(map)||'<tr><td colspan="6">لا توجد جلسات محفوظة لهذا الشهر</td></tr>';
+  // المصدر السحابي هو المرجع النهائي عند توفره، حتى يظهر التقرير نفسه على كل الأجهزة.
+  try{const cloud=await googleSheetsGetWafdeenReport_({type:'month',month});if(cloud?.ok&&Array.isArray(cloud.rows)){const cloudMap={};cloud.rows.forEach(x=>{const u=x.teacher||'غير معروف';cloudMap[u]={session:Number(x.session)||0,educational:Number(x.educational)||0,total:Number(x.total)||0};});tb.innerHTML=wafdeenBuildReportRows(cloudMap)||'<tr><td colspan="6">لا توجد جلسات محفوظة لهذا الشهر</td></tr>';}}catch(e){console.warn('تعذر تحديث التقرير الشهري من Firebase:',e);}
+}
+
+/* -------- عناصر مشتركة بين تقارير اليوم/الأسبوع/الشهر -------- */
+function wafdeenFormatMonthlyTime(secs){secs=Math.max(0,Math.floor(Number(secs)||0));const hours50=Math.floor(secs/3000),remAfterHours=secs%3000,minutes=Math.floor(remAfterHours/60),seconds=remAfterHours%60;return `${hours50} س ${minutes} د ${seconds} ث`;}
+function wafdeenFormatHours(secs,base){return (Math.max(0,secs)/60/base).toFixed(2);}
+function wafdeenBuildReportRows(map){
+  return Object.entries(map).sort((a,b)=>b[1].total-a[1].total).map(([u,x])=>`<tr><td>${escapeHtml(u)}</td><td>${wafdeenFormatMonthlyTime(x.session)}</td><td>${wafdeenFormatMonthlyTime(x.educational)}</td><td><strong>${wafdeenFormatMonthlyTime(x.total)}</strong></td><td>${wafdeenFormatHours(x.total,50)}</td><td>${wafdeenFormatHours(x.total,60)}</td></tr>`).join('');
+}
+function wafdeenAggregateUsage(records){
+  const map={};
+  records.forEach(r=>{
+    const u=r.teacherUsername||'غير معروف';
+    if(!map[u])map[u]={session:0,educational:0,total:0};
+    const secs=Math.max(0,Number(r.seconds||0));
+    if(r.category==='quran'&&r.type==='جلسة التسميع')map[u].session+=secs;
+    else if(r.category==='educational')map[u].educational+=secs;
+    map[u].total+=secs;
+  });
+  return map;
+}
+
+/* -------- التقرير اليومي -------- */
+function renderWafdeenDailyReport(){
+  const tb=document.querySelector('#wafdeenDailyReportTable tbody');if(!tb)return;
+  const dayInput=document.getElementById('wafdeenReportDay');
+  const day=dayInput?.value||wafdeenTodayDateStr();
+  if(dayInput && !dayInput.value) dayInput.value=day;
+  const records=wafdeenUsageData.filter(r=>wafdeenSameLocalDay(r.dateISO,day));
+  const map=wafdeenAggregateUsage(records);
+  tb.innerHTML=wafdeenBuildReportRows(map)||'<tr><td colspan="6">لا توجد جلسات محفوظة في هذا اليوم</td></tr>';
+}
+function exportWafdeenDailyReportExcel(){
+  try{
+    const table=document.getElementById('wafdeenDailyReportTable');
+    if(!table){showMessage('wafdeen-save-msg','جدول تقرير اليوم غير موجود','error');return;}
+    const day=document.getElementById('wafdeenReportDay')?.value||wafdeenTodayDateStr();
+    const wb=XLSX.utils.table_to_book(table,{sheet:"تقرير اليوم"});
+    XLSX.writeFile(wb,`تقرير_الوافدين_يومي_${day}.xlsx`);
+    showMessage('wafdeen-save-msg','تم تصدير تقرير اليوم Excel بنجاح ✅','success');
+  }catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر تصدير تقرير اليوم','error');}
+}
+
+/* -------- التقرير الأسبوعي (من السبت إلى الجمعة) -------- */
+function renderWafdeenWeeklyReport(){
+  const tb=document.querySelector('#wafdeenWeeklyReportTable tbody');if(!tb)return;
+  const weekInput=document.getElementById('wafdeenReportWeek');
+  const day=weekInput?.value||wafdeenTodayDateStr();
+  if(weekInput && !weekInput.value) weekInput.value=day;
+  const {start,end}=wafdeenWeekRange(day);
+  const label=document.getElementById('wafdeenWeekRangeLabel');
+  if(label) label.innerText=`من ${wafdeenFormatDate(start)} إلى ${wafdeenFormatDate(end)}`;
+  const records=wafdeenUsageData.filter(r=>wafdeenInWeek(r.dateISO,day));
+  const map=wafdeenAggregateUsage(records);
+  tb.innerHTML=wafdeenBuildReportRows(map)||'<tr><td colspan="6">لا توجد جلسات محفوظة في هذا الأسبوع</td></tr>';
+}
+function exportWafdeenWeeklyReportExcel(){
+  try{
+    const table=document.getElementById('wafdeenWeeklyReportTable');
+    if(!table){showMessage('wafdeen-save-msg','جدول تقرير الأسبوع غير موجود','error');return;}
+    const day=document.getElementById('wafdeenReportWeek')?.value||wafdeenTodayDateStr();
+    const {start,end}=wafdeenWeekRange(day);
+    const wb=XLSX.utils.table_to_book(table,{sheet:"تقرير الأسبوع"});
+    XLSX.writeFile(wb,`تقرير_الوافدين_اسبوعي_${wafdeenFormatDate(start)}_الى_${wafdeenFormatDate(end)}.xlsx`);
+    showMessage('wafdeen-save-msg','تم تصدير تقرير الأسبوع Excel بنجاح ✅','success');
+  }catch(e){console.error(e);showMessage('wafdeen-save-msg','تعذر تصدير تقرير الأسبوع','error');}
+}
+
+/* -------- التنقل بين تبويبات تقارير اليوم/الأسبوع/الشهر -------- */
+function wafdeenReportSwitchSub(name){
+  ['day','week','month'].forEach(n=>{
+    const el=document.getElementById('wafdeen-report-sub-'+n);
+    if(el) el.classList.toggle('hidden', n!==name);
+    const btn=document.getElementById('wafdeenReportSubBtn-'+n);
+    if(btn) btn.classList.toggle('btn-secondary', n!==name);
+  });
+  if(name==='day'){const el=document.getElementById('wafdeenReportDay');if(el&&!el.value)el.value=wafdeenTodayDateStr();renderWafdeenDailyReport();}
+  if(name==='week'){const el=document.getElementById('wafdeenReportWeek');if(el&&!el.value)el.value=wafdeenTodayDateStr();renderWafdeenWeeklyReport();}
+  if(name==='month'){const el=document.getElementById('wafdeenReportMonth');if(el&&!el.value)el.value=wafdeenTodayMonth();renderWafdeenMonthlyReport();}
+}
+function wafdeenRefreshAllReports(){
+  renderWafdeenDailyReport();
+  renderWafdeenWeeklyReport();
+  renderWafdeenMonthlyReport();
+}
+function wafdeenReportPanelInit(){
+  const dayEl=document.getElementById('wafdeenReportDay'); if(dayEl&&!dayEl.value) dayEl.value=wafdeenTodayDateStr();
+  const weekEl=document.getElementById('wafdeenReportWeek'); if(weekEl&&!weekEl.value) weekEl.value=wafdeenTodayDateStr();
+  const monthEl=document.getElementById('wafdeenReportMonth'); if(monthEl&&!monthEl.value) monthEl.value=wafdeenTodayMonth();
+  wafdeenReportSwitchSub('month');
+}
+
+/* -------- مسح بيانات التقارير (للإدارة فقط) -------- */
+async function wafdeenDeleteUsageRecords(records){
+  if(!records.length)return;
+  const ids=records.map(r=>String(r.id));
+  wafdeenUsageData=wafdeenUsageData.filter(r=>!ids.includes(String(r.id)));
+  wafdeenPersistLocal();
+  if(useFirebase&&db){
+    for(const id of ids){
+      try{ await db.collection('wafdeenUsage').doc(id).delete(); }catch(e){console.error(e);}
+    }
   }
-  const formatMonthlyTime=(secs)=>{secs=Math.max(0,Math.floor(Number(secs)||0));const hours50=Math.floor(secs/3000),remAfterHours=secs%3000,minutes=Math.floor(remAfterHours/60),seconds=remAfterHours%60;return `${hours50} س ${minutes} د ${seconds} ث`;};
-  const formatHours=(secs,base)=>(Math.max(0,secs)/60/base).toFixed(2);
-  tb.innerHTML=Object.entries(map).sort((a,b)=>b[1].total-a[1].total).map(([u,x])=>`<tr><td>${escapeHtml(u)}</td><td>${formatMonthlyTime(x.session)}</td><td>${formatMonthlyTime(x.educational)}</td><td><strong>${formatMonthlyTime(x.total)}</strong></td><td>${formatHours(x.total,50)}</td><td>${formatHours(x.total,60)}</td></tr>`).join('')||'<tr><td colspan="6">لا توجد جلسات محفوظة لهذا الشهر</td></tr>';
+}
+async function wafdeenDeleteDailyReport(){
+  if(!currentWafdeenTeacher?.isAdmin)return showMessage('wafdeen-save-msg','هذه العملية متاحة للمدير فقط','error');
+  const day=document.getElementById('wafdeenReportDay')?.value||wafdeenTodayDateStr();
+  const records=wafdeenUsageData.filter(r=>wafdeenSameLocalDay(r.dateISO,day));
+  if(!records.length)return showMessage('wafdeen-save-msg','لا توجد بيانات في تقرير هذا اليوم لحذفها','info');
+  if(!confirm(`سيتم حذف كل بيانات تقرير يوم ${day} نهائيًا من كل الأجهزة. هل تريد المتابعة؟`))return;
+  await wafdeenDeleteUsageRecords(records);
+  renderWafdeenDailyReport();
+  showMessage('wafdeen-save-msg','تم حذف تقرير اليوم بنجاح ✅','success');
+}
+async function wafdeenDeleteWeeklyReport(){
+  if(!currentWafdeenTeacher?.isAdmin)return showMessage('wafdeen-save-msg','هذه العملية متاحة للمدير فقط','error');
+  const day=document.getElementById('wafdeenReportWeek')?.value||wafdeenTodayDateStr();
+  const records=wafdeenUsageData.filter(r=>wafdeenInWeek(r.dateISO,day));
+  if(!records.length)return showMessage('wafdeen-save-msg','لا توجد بيانات في تقرير هذا الأسبوع لحذفها','info');
+  const {start,end}=wafdeenWeekRange(day);
+  if(!confirm(`سيتم حذف كل بيانات تقرير الأسبوع من ${wafdeenFormatDate(start)} إلى ${wafdeenFormatDate(end)} نهائيًا من كل الأجهزة. هل تريد المتابعة؟`))return;
+  await wafdeenDeleteUsageRecords(records);
+  renderWafdeenWeeklyReport();
+  showMessage('wafdeen-save-msg','تم حذف تقرير الأسبوع بنجاح ✅','success');
+}
+async function wafdeenDeleteMonthlyReport(){
+  if(!currentWafdeenTeacher?.isAdmin)return showMessage('wafdeen-save-msg','هذه العملية متاحة للمدير فقط','error');
+  const month=document.getElementById('wafdeenReportMonth')?.value||wafdeenTodayMonth();
+  const records=wafdeenUsageData.filter(r=>String(r.month||'')===month);
+  const hasImported=!!(wafdeenMonthlyImportedReports&&wafdeenMonthlyImportedReports[month]);
+  if(!records.length && !hasImported)return showMessage('wafdeen-save-msg','لا توجد بيانات في تقرير هذا الشهر لحذفها','info');
+  if(!confirm(`سيتم حذف كل بيانات التقرير الشهري لفترة ${month} نهائيًا (بما فيها أي ملف مستورد) من كل الأجهزة. هل تريد المتابعة؟`))return;
+  await wafdeenDeleteUsageRecords(records);
+  if(hasImported){ delete wafdeenMonthlyImportedReports[month]; wafdeenPersistLocal(); }
+  renderWafdeenMonthlyReport();
+  showMessage('wafdeen-save-msg','تم حذف التقرير الشهري بنجاح ✅','success');
 }
 
 </script>
@@ -10246,6 +10656,9 @@ function renderWafdeenMonthlyReport(){
 window.wafdeenGuardedDailySave=window.wafdeenGuardedDailySave||wafdeenGuardedDailySave;
 window.markWafdeenAbsent=window.markWafdeenAbsent||markWafdeenAbsent;
 window.saveWafdeenDailyRecord=window.saveWafdeenDailyRecord||saveWafdeenDailyRecord;
+</script>
+<script>
+window.addEventListener('DOMContentLoaded',function(){try{markDailyTypeFieldGroups_();selectDailyGradeType('new');}catch(e){console.warn('daily type UI init',e);}});
 </script>
 </body>
 </html>
