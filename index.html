@@ -1752,6 +1752,14 @@ body.wafdeen-mode #menu-overlay { display:none !important; visibility:hidden !im
 }
 </style>
 
+<style id="wafdeen-login-button-fix">
+/* إصلاح زر جلسة الوافدين من شاشة الدخول الرئيسية */
+#login-screen{position:relative!important;z-index:10000!important;pointer-events:auto!important;}
+#login-screen .modern-quick-btn{position:relative!important;z-index:10001!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation;}
+#open-wafdeen-login-btn{position:relative!important;z-index:10002!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation;}
+body.login-screen-active #login-screen{pointer-events:auto!important;}
+</style>
+
 <style id="wafdeen-buttons-click-fix">
 /* إصلاح نهائي لمشكلة عدم استجابة أزرار جلسة الوافدين */
 #wafdeen-app-screen{position:relative;z-index:1;pointer-events:auto!important;}
@@ -2587,7 +2595,7 @@ function handleImgError(el, isWatermark = false) {
     👩‍🎓 تسجيل دخول الطالب
   </button>
 
-  <button type="button" class="action-btn btn-save modern-quick-btn" style="height:44px;" onclick="showWafdeenLoginScreen()">
+  <button type="button" id="open-wafdeen-login-btn" class="action-btn btn-save modern-quick-btn" style="height:44px;position:relative;z-index:10001;pointer-events:auto!important;cursor:pointer;" onclick="showWafdeenLoginScreen();return false;">
     🕒 جلسة الوافدين
   </button>
 
@@ -4416,13 +4424,9 @@ setTimeout(()=>flushGoogleSheetsQueue_(),2500);
 
 async function googleSheetsGetWafdeenReport_(filters){if(!useFirebase||!db)return {ok:true,rows:[],source:'Firebase'};const snap=await db.collection('wafdeenMonthlyReports').get();const rows=[];snap.forEach(d=>{const v=d.data()||{};if(!v._deleted)rows.push({...v,id:String(v.id||d.id)});});return {ok:true,rows,source:'Firebase'};}
 
-/* ================= المصروفات: مستقلة تمامًا عن Firebase ================= */
+/* ================= المصروفات: Firebase ================= */
 /*
-  قاعدة العزل النهائي:
-  - المصروفات لا تقرأ db ولا تكتب إلى Firestore.
-  - الإضافة/التعديل/الحذف/التقرير مصدرها Google Sheets فقط عبر Apps Script.
-  - localStorage هنا مجرد طابور/نسخة محلية مؤقتة للمصروفات عند انقطاع الاتصال.
-  - يمكن لباقي أجزاء النظام استخدام Firebase بشكل طبيعي دون أن يؤثر ذلك على المصروفات.
+  المصروفات تُحفظ وتُقرأ وتُحذف من Firebase، مع نسخة محلية مساعدة عند انقطاع الاتصال.
 */
 const PAYMENTS_LOCAL_KEY='wafdeenPaymentsLocal_v2';
 function getLocalPayments_(){try{const a=JSON.parse(localStorage.getItem(PAYMENTS_LOCAL_KEY)||'[]');return Array.isArray(a)?a:[];}catch(_){return [];}}
@@ -4432,7 +4436,7 @@ function removeLocalPayment_(recordId){setLocalPayments_(getLocalPayments_().fil
 function mergePaymentRows_(cloudRows){const cloud=Array.isArray(cloudRows)?cloudRows:[],local=getLocalPayments_(),out=cloud.slice();for(const row of local){const rid=String(row.recordId||row.id||'');const i=out.findIndex(x=>String(x.recordId||x.id||'')===rid);if(i>=0)out[i]={...out[i],...row};else out.push(row);}return out;}
 async function getFirebasePayments_(){
   if(useFirebase&&db){
-    try{const snap=await db.collection('payments').get();const rows=[];snap.forEach(d=>{const v=d.data()||{};if(!v._deleted)rows.push({...v,recordId:String(v.recordId||d.id),id:String(v.id||v.recordId||d.id)});});setLocalPayments_(rows);return rows;}catch(e){console.warn('تعذر قراءة المصروفات من Firebase:',e);}
+    try{const snap=await db.collection('payments').get();const rows=[];snap.forEach(d=>{const v=d.data()||{};if(!v._deleted)rows.push({...v,recordId:String(v.recordId||d.id),id:String(v.id||v.recordId||d.id),_firebaseDocId:String(d.id)});});setLocalPayments_(rows);return rows;}catch(e){console.warn('تعذر قراءة المصروفات من Firebase:',e);}
   }
   return getLocalPayments_();
 }
@@ -4443,39 +4447,38 @@ async function savePaymentToFirebase_(recordId,data){
   upsertLocalPayment_(record); return true;
 }
 async function deletePaymentFromFirebase_(recordId){
-  const id=String(recordId||''); if(!id)throw new Error('معرف الدفعة مفقود');
-  if(useFirebase&&db)await db.collection('payments').doc(id).set({_deleted:true,deletedAt:new Date().toISOString()},{merge:true});
-  removeLocalPayment_(id); return true;
+  const id=String(recordId||'').trim();
+  if(!id) throw new Error('معرف الدفعة مفقود');
+  if(!useFirebase||!db) throw new Error('Firebase غير متصل');
+
+  // مهم: recordId قد لا يساوي Document ID القديم في Firestore.
+  // لذلك نحذف المستند/المستندات التي تحمل recordId نفسه، ثم نتحقق أن السجل اختفى فعلاً.
+  let deletedCount=0;
+  const snap=await db.collection('payments').where('recordId','==',id).get();
+  for(const d of snap.docs){
+    await d.ref.delete();
+    deletedCount++;
+  }
+
+  // لو كان Document ID نفسه هو المعرف، احذفه أيضاً.
+  const direct=await db.collection('payments').doc(id).get();
+  if(direct.exists){
+    await direct.ref.delete();
+    deletedCount++;
+  }
+
+  // تحقق نهائي: لا نعتبر العملية ناجحة إلا إذا لم يعد هناك سجل بهذا recordId أو بهذا الـID.
+  const check=await db.collection('payments').where('recordId','==',id).get();
+  const directCheck=await db.collection('payments').doc(id).get();
+  if(!check.empty || directCheck.exists) throw new Error('لم يتم حذف الدفعة فعليًا من Firebase');
+
+  removeLocalPayment_(id);
+  return {ok:true,deleted:true,count:deletedCount};
 }
 async function sendPaymentToGoogleSheet_(action,recordId,data){try{return action==='deletePayment'?await deletePaymentFromFirebase_(recordId):await savePaymentToFirebase_(recordId,data);}catch(e){console.error('Firebase payment error:',e);return false;}}
 function flushPaymentsQueue_(){return Promise.resolve(true);}
 async function googleSheetsGetPayments_(filters){const rows=await getFirebasePayments_();filters=filters||{};const rid=String(filters.recordId||'').trim(),cls=String(filters.className||'').trim(),stu=String(filters.studentName||'').trim();return {ok:true,source:'Firebase',rows:rows.filter(r=>(!rid||String(r.recordId||r.id)===rid)&&(!cls||String(r.className||'')===cls)&&(!stu||String(r.studentName||'')===stu))};}
-function googleSheetsGetPayments_(filters){
-  return new Promise((resolve, reject) => {
-    if (!GOOGLE_SHEETS_WEB_APP_URL) return reject(new Error('رابط Google Sheets غير موجود'));
-    const callbackName = '__paymentsRead_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-    const script = document.createElement('script');
-    let finished = false;
-    const timer = setTimeout(() => finishError(new Error('انتهت مهلة قراءة المصروفات من Firebase')), 12000);
-    function cleanup(){ try{delete window[callbackName];}catch(_){window[callbackName]=undefined;} if(script.parentNode)script.parentNode.removeChild(script); clearTimeout(timer); }
-    function finishOk(v){ if(finished)return; finished=true; cleanup(); resolve(v); }
-    function finishError(e){ if(finished)return; finished=true; cleanup(); reject(e); }
-    window[callbackName] = result => {
-      if(result && result.ok) return finishOk(result);
-      finishError(new Error((result && result.error) || 'فشل قراءة المصروفات'));
-    };
-    script.onerror = () => finishError(new Error('تعذر الوصول إلى Firebase لقراءة المصروفات'));
-    const f=filters||{};
-    let src = GOOGLE_SHEETS_WEB_APP_URL + '?action=getGrades&sheet=payments';
-    if(f.recordId) src += '&recordId=' + encodeURIComponent(f.recordId);
-    if(f.className) src += '&className=' + encodeURIComponent(f.className);
-    if(f.studentName) src += '&studentName=' + encodeURIComponent(f.studentName);
-    src += '&callback=' + encodeURIComponent(callbackName) + '&t=' + Date.now();
-    script.src = src;
-    (document.head || document.documentElement).appendChild(script);
-  });
-}
-
+/* Firebase-only: legacy Google Sheets payment reader disabled. */
 const PAYMENT_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
 function normalizePaymentIdPart_(v){
@@ -4483,6 +4486,33 @@ function normalizePaymentIdPart_(v){
 }
 function paymentRecordId_(studentId,studentName,month){
   return 'payment_' + normalizePaymentIdPart_(studentId||studentName) + '_' + normalizePaymentIdPart_(month);
+}
+
+
+
+function ensureAllClassSelects_(){
+  try{
+    const manager = !!(currentTeacher && (currentTeacher.username === 'admin' || currentTeacher.assignedClass === 'الكل' || currentTeacher.center === 'الكل'));
+    const allowed = manager ? ALL_CLASSES : (currentTeacher?.assignedClass && ALL_CLASSES.includes(currentTeacher.assignedClass) ? [currentTeacher.assignedClass] : ALL_CLASSES);
+    const ids = ['classSelect','dailyClassSelect','weeklyClassSelect','monthlyClassSelect','attendanceClassSelect','paymentsClassSelect','paymentReportClassSelect','notesClassSelect'];
+    ids.forEach(id=>{
+      const el=document.getElementById(id); if(!el) return;
+      const current=el.value;
+      // لا نعيد بناء القائمة إذا كانت سليمة بالفعل، حتى لا نفقد الاختيار الحالي.
+      const values=Array.from(el.options||[]).map(o=>o.value).filter(Boolean);
+      const needsFill = !values.length || values.length !== allowed.length || allowed.some(c=>!values.includes(c));
+      if(needsFill){
+        el.innerHTML=allowed.map(c=>`<option value="${String(c).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}">${c}</option>`).join('');
+      }
+      if(allowed.includes(current)) el.value=current;
+      else if(allowed.length) el.value=allowed[0];
+      if(!manager && currentTeacher?.assignedClass && allowed.includes(currentTeacher.assignedClass)) el.value=currentTeacher.assignedClass;
+    });
+    const monthSel=document.getElementById('paymentsMonthSelect');
+    if(monthSel && typeof PAYMENT_MONTHS !== 'undefined' && !monthSel.options.length){
+      monthSel.innerHTML=PAYMENT_MONTHS.map(m=>`<option value="${m}">${m}</option>`).join('');
+    }
+  }catch(e){ console.warn('تعذر تهيئة قوائم الفصول:',e); }
 }
 
 function populatePaymentsClasses(){
@@ -4671,19 +4701,18 @@ async function editPaymentRecord(recordId){
 }
 
 async function deletePaymentRecord(recordId){
-  const row = await getPaymentByRecordId_(recordId);
-  if (!row) return showMessage('payment-report-msg', 'تعذر العثور على الدفعة.', 'error');
-  if (!confirm(`هل تريد مسح دفعة شهر ${row.month || ''} بمبلغ ${row.amount ?? ''}؟\nسيتم حذفها نهائيًا من Firebase.`)) return;
-
-  try {
-    await sendPaymentDeleteToGoogleSheet_(String(recordId), row);
-    const rows = getLocalPayments_().filter(x => String(x.recordId || '') !== String(recordId));
-    setLocalPayments_(rows);
-    const pending = getPendingPayments_().filter(x => String(x.recordId || '') !== String(recordId));
-    setPendingPayments_(pending);
-    showMessage('payment-report-msg', 'تم مسح الدفعة بنجاح ✅', 'success');
-  } catch (e) {
-    showMessage('payment-report-msg', 'تعذر مسح الدفعة من Firebase.', 'error');
+  const id=String(recordId||'').trim();
+  if(!id)return showMessage('payment-report-msg','معرف الدفعة غير موجود.','error');
+  const row=await getPaymentByRecordId_(id);
+  if(!row)return showMessage('payment-report-msg','تعذر العثور على الدفعة.','error');
+  if(!confirm(`هل تريد مسح دفعة شهر ${row.month||''} بمبلغ ${row.amount??''}؟\nسيتم حذفها نهائيًا من Firebase.`))return;
+  try{
+    const result=await deletePaymentFromFirebase_(id);
+    if(!result?.deleted) throw new Error('لم يتم تأكيد حذف الدفعة');
+    showMessage('payment-report-msg','تم مسح الدفعة نهائيًا من Firebase ✅','success');
+  }catch(e){
+    console.error('Firebase payment delete error:',e);
+    showMessage('payment-report-msg','تعذر المسح من Firebase: '+String(e?.message||e),'error');
   }
   await renderPaymentReportTable();
   updatePaymentsStudentPaidMonths();
@@ -5548,6 +5577,7 @@ function showAppScreen() {
   document.getElementById('results-screen').classList.add('hidden');
   document.getElementById('student-login-screen').classList.add('hidden');
   document.getElementById('app-screen').classList.remove('hidden');
+  ensureAllClassSelects_();
 
   document.getElementById('teacher-name-display').innerText = currentTeacher.username;
   document.getElementById('teacher-class-display').innerText = currentTeacher.assignedClass === 'الكل' ? 'جميع الصفوف (إدارة)' : currentTeacher.assignedClass;
@@ -5672,6 +5702,13 @@ function showAppScreen() {
     notesExportBtn.classList.add('hidden');
   }
 
+  ensureAllClassSelects_();
+  populatePaymentsClasses();
+  updatePaymentsStudentList();
+  populatePaymentReportClasses();
+  updatePaymentReportStudentList();
+  populateNotesClasses();
+  updateNotesStudentList();
   updateStudentListDropdown();
   const dailyWs=document.getElementById('daily-workspace'); if(dailyWs) dailyWs.classList.remove('visible');
   populateWeeks();
@@ -7006,7 +7043,7 @@ async function deleteRecord(id) {
   if (!ok) return;
 
   if (useFirebase) {
-    await db.collection("dailyRecords").doc(id.toString()).set({_deleted:true, updatedAt:new Date().toISOString()}, {merge:true});
+    await db.collection("dailyRecords").doc(id.toString()).delete();
   } else {
     dailyRecords = dailyRecords.filter(r => r.id.toString() !== id.toString());
     localStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
@@ -8207,7 +8244,7 @@ async function deleteStudent(id) {
 
   try {
     if (useFirebase) {
-      await db.collection("students").doc(id.toString()).set({_deleted:true, updatedAt:new Date().toISOString()}, {merge:true});
+      await db.collection("students").doc(id.toString()).delete();
     } else {
       studentsData = studentsData.filter(s => s.id.toString() !== id.toString());
       localStorage.setItem('studentsData', JSON.stringify(studentsData));
@@ -8371,7 +8408,7 @@ async function deleteTeacher(id) {
 
   try {
     if (useFirebase) {
-      await db.collection("teachers").doc(id.toString()).set({_deleted:true, updatedAt:new Date().toISOString()}, {merge:true});
+      await db.collection("teachers").doc(id.toString()).delete();
     } else {
       teachersData = teachersData.filter(t => t.id.toString() !== id.toString());
       localStorage.setItem('teachersData', JSON.stringify(teachersData));
@@ -8448,7 +8485,7 @@ async function deleteNote(id) {
   if (!note || !canAccessNote(note)) return showMessage('app-msg','ليس لديك صلاحية حذف هذه الملاحظة.','error');
   const ok = await siteConfirm('🗑️ حذف الملاحظة',`سيتم حذف ملاحظة الطالب <strong>${note.studentName}</strong>.`,'حذف الملاحظة',true);
   if (!ok) return;
-  if (useFirebase) await db.collection('notes').doc(String(note.id)).set({_deleted:true, updatedAt:new Date().toISOString()}, {merge:true});
+  if (useFirebase) await db.collection('notes').doc(String(note.id)).delete();
   else {
     notesData = notesData.filter(n => String(n.id) !== String(id));
     localStorage.setItem('notesData', JSON.stringify(notesData));
@@ -8625,7 +8662,7 @@ async function deleteAllResults() {
   if (useFirebase) {
     const snap = await db.collection("results").get();
     const nowIso = new Date().toISOString();
-    await Promise.all(snap.docs.map(d => d.ref.set({_deleted:true, updatedAt:nowIso}, {merge:true})));
+    await Promise.all(snap.docs.map(d => d.ref.delete()));
   }
 
   renderResultsAdminSummary();
@@ -9390,6 +9427,19 @@ function wafdeenPeriodRangeFromKey(key){
   return {start,end};
 }
 
+/* زر جلسة الوافدين: معالج لمس/نقر احتياطي حتى يعمل على Chrome والموبايل */
+document.addEventListener('DOMContentLoaded', function(){
+  const btn=document.getElementById('open-wafdeen-login-btn');
+  if(btn){
+    const openWafdeen=function(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();}
+      if(typeof showWafdeenLoginScreen==='function') showWafdeenLoginScreen();
+    };
+    btn.addEventListener('click',openWafdeen,false);
+    btn.addEventListener('touchend',openWafdeen,{passive:false});
+  }
+});
+
 function showWafdeenLoginScreen(){
   closeMainMenu(); document.body.classList.remove('wafdeen-mode'); document.body.classList.add('login-screen-active');
   // تحميل النسخة المحلية أولاً حتى تفتح شاشة الدخول فوراً، ثم مزامنة السحابة في الخلفية.
@@ -9542,7 +9592,7 @@ function wafdeenIncrementCounter(kind){const c=wafdeenGetCounterSet();if(!Object
 function wafdeenDecrementCounter(kind){const c=wafdeenGetCounterSet();if(!Object.prototype.hasOwnProperty.call(c,kind))return false;c[kind]=Math.max(0,(parseInt(c[kind],10)||0)-1);wafdeenRenderQuranCounters();wafdeenAnimateCounterValue(kind);return false;}
 function wafdeenAnimateCounterValue(kind){const el=document.getElementById('wafdeen-counter-'+kind);if(!el)return;el.classList.remove('wafdeen-counter-value-pop');void el.offsetWidth;el.classList.add('wafdeen-counter-value-pop');}
 function wafdeenResetQuranCounters(){wafdeenQuranHeardTypes={الجديد:false,الماضي:false,التلاوة:false};wafdeenQuranErrorCounters={الجديد:{errors:0,tashkeel:0,repetition:0},الماضي:{errors:0,tashkeel:0,repetition:0},التلاوة:{errors:0,tashkeel:0,repetition:0}};wafdeenQuranSelectedType='';const box=document.querySelector('.wafdeen-error-counters');if(box)box.classList.remove('is-visible');wafdeenRenderQuranCounters();}
-async async function sendWafdeenUsageToGoogleSheet_(usage){if(!useFirebase||!db)return false;try{const id=String(usage?.id||`usage_${Date.now()}`);await db.collection('wafdeenUsage').doc(id).set({...usage,id,updatedAt:new Date().toISOString()},{merge:true});return true;}catch(e){console.error(e);return false;}}
+async function sendWafdeenUsageToGoogleSheet_(usage){if(!useFirebase||!db)return false;try{const id=String(usage?.id||`usage_${Date.now()}`);await db.collection('wafdeenUsage').doc(id).set({...usage,id,updatedAt:new Date().toISOString()},{merge:true});return true;}catch(e){console.error(e);return false;}}
 
 function wafdeenQuranStartPause(forcePause=false){
   if(currentWafdeenTeacher?.role==='student')return;
@@ -9669,7 +9719,31 @@ async function wafdeenSaveGradeAndTime(){
   if(Number(wafdeenQuranElapsedByType[type]||0)<=0)return showMessage('wafdeen-save-msg',`لا يمكن حفظ ${type} قبل الضغط على «بدء» واحتساب وقت فعلي.`,'error');
   return wafdeenSaveGradeType(type);
 }
-function wafdeenGuardedDailySave(){ return wafdeenSaveGradeType(wafdeenQuranSelectedType||'الجديد'); }
+
+async function wafdeenGuardedDailySave(forceAbsent = false){
+  try{
+    // استدعاء دالة الحفظ الأصلية إن كانت موجودة.
+    if(typeof addWafdeenDailyGrade === 'function'){
+      return await addWafdeenDailyGrade(forceAbsent);
+    }
+    if(typeof saveWafdeenDailyGrade === 'function'){
+      return await saveWafdeenDailyGrade(forceAbsent);
+    }
+    if(typeof addWafdeenGrade === 'function'){
+      return await addWafdeenGrade(forceAbsent);
+    }
+    throw new Error('دالة حفظ الوافدين اليومية غير موجودة');
+  }catch(err){
+    console.error('wafdeenGuardedDailySave error:', err);
+    if(typeof showToast === 'function'){
+      showToast(err.message || 'تعذر حفظ بيانات الوافد', 'error');
+    }else if(typeof alert === 'function'){
+      alert(err.message || 'تعذر حفظ بيانات الوافد');
+    }
+    return false;
+  }
+}
+
 async function saveWafdeenDailyRecord(isAbsent=false){
   if(currentWafdeenTeacher?.role==='student')return;
   const sel=document.getElementById('wafdeenStudentSelect');
@@ -10098,7 +10172,7 @@ async function addWafdeenTeacher(){
     document.getElementById('wafdeenNewTeacherUser').value='';document.getElementById('wafdeenNewTeacherPass').value='';wafdeenRenderTeachersTable();showMessage('wafdeen-save-msg','تم إضافة المعلم بنجاح','success');
   }catch(e){showMessage('wafdeen-save-msg','تعذر حفظ المعلم على السحابة','error');}
 }
-async function deleteWafdeenTeacher(id){if(!currentWafdeenTeacher?.isAdmin)return;try{if(useFirebase)await db.collection('wafdeenTeachers').doc(String(id)).set({_deleted:true, updatedAt:new Date().toISOString()}, {merge:true});else{wafdeenTeachersData=wafdeenTeachersData.filter(t=>String(t.id)!==String(id));wafdeenPersistLocal();}wafdeenRenderTeachersTable();}catch(e){showMessage('wafdeen-save-msg','تعذر حذف المعلم','error');}}
+async function deleteWafdeenTeacher(id){if(!currentWafdeenTeacher?.isAdmin)return;try{if(useFirebase)await db.collection('wafdeenTeachers').doc(String(id)).delete();else{wafdeenTeachersData=wafdeenTeachersData.filter(t=>String(t.id)!==String(id));wafdeenPersistLocal();}wafdeenRenderTeachersTable();}catch(e){showMessage('wafdeen-save-msg','تعذر حذف المعلم','error');}}
 function wafdeenRenderTeachersTable(){const tb=document.querySelector('#wafdeenTeachersTable tbody');if(!tb)return;tb.innerHTML=wafdeenTeachersData.map(t=>`<tr><td>${t.username}</td><td><button type="button" class="action-btn" onclick="deleteWafdeenTeacher('${t.id}')">حذف</button></td></tr>`).join('')||'<tr><td colspan="2">لا يوجد معلمون إضافيون</td></tr>';}
 
 async function addWafdeenStudent(){
@@ -10130,7 +10204,7 @@ async function deleteWafdeenStudent(id){
   const ok=confirm(`هل تريد حذف الطالب/الطالبة "${student.name}"؟`);
   if(!ok)return;
   try{
-    if(useFirebase && db) await db.collection('wafdeenStudents').doc(String(id)).set({_deleted:true, updatedAt:new Date().toISOString()}, {merge:true});
+    if(useFirebase && db) await db.collection('wafdeenStudents').doc(String(id)).delete();
     wafdeenStudentsData=wafdeenStudentsData.filter(s=>String(s.id)!==String(id));
     wafdeenPersistLocal();
     wafdeenRenderStudentSelect();
@@ -10613,7 +10687,7 @@ async function wafdeenDeleteUsageRecords(records){
   wafdeenPersistLocal();
   if(useFirebase&&db){
     for(const id of ids){
-      try{ await db.collection('wafdeenUsage').doc(id).delete(); }catch(e){console.error(e);}
+      await db.collection('wafdeenUsage').doc(id).delete();
     }
   }
 }
@@ -10656,6 +10730,7 @@ async function wafdeenDeleteMonthlyReport(){
 window.wafdeenGuardedDailySave=window.wafdeenGuardedDailySave||wafdeenGuardedDailySave;
 window.markWafdeenAbsent=window.markWafdeenAbsent||markWafdeenAbsent;
 window.saveWafdeenDailyRecord=window.saveWafdeenDailyRecord||saveWafdeenDailyRecord;
+window.deleteFirebaseRecord=deleteFirebaseRecord;
 </script>
 <script>
 window.addEventListener('DOMContentLoaded',function(){try{markDailyTypeFieldGroups_();selectDailyGradeType('new');}catch(e){console.warn('daily type UI init',e);}});
@@ -10671,4 +10746,35 @@ window.wafdeenStopRegistration = async function(extra={}) {
   window.wafdeenRegistrationActive = false;
   await wafdeenPersistRegistrationState_(false, extra);
 };
+
+/* ===== حذف Firebase موحد وآمن ===== */
+async function deleteFirebaseRecord(collectionName, recordId){
+  const id = String(recordId || '').trim();
+  const col = String(collectionName || '').trim();
+  if(!col || !id) throw new Error('بيانات الحذف غير مكتملة');
+
+  // دعم الدوال الموجودة في التطبيق أولاً.
+  if(typeof db === 'undefined' || !db) throw new Error('Firebase غير متصل');
+
+  if(typeof deleteDoc === 'function' && typeof doc === 'function'){
+    await deleteDoc(doc(db, col, id));
+    return {ok:true, collection:col, id:id};
+  }
+
+  // في حالة استخدام Firebase compat.
+  if(db.collection){
+    await db.collection(col).doc(id).delete();
+    return {ok:true, collection:col, id:id};
+  }
+
+  throw new Error('واجهة حذف Firebase غير متاحة');
+}
+
+
+/* ===== توافق وحماية متغيرات Firebase القديمة ===== */
+if(typeof window.wafdeenUsageData === 'undefined') window.wafdeenUsageData = [];
+if(typeof window.wafdeenDailyRecords === 'undefined') window.wafdeenDailyRecords = [];
+if(typeof window.wafdeenExamsData === 'undefined') window.wafdeenExamsData = [];
+if(typeof window.wafdeenMonthlyImportedReports === 'undefined') window.wafdeenMonthlyImportedReports = [];
+
 </script>
