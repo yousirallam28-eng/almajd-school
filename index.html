@@ -599,7 +599,7 @@ tr:hover { background-color: rgba(212, 175, 55, 0.10) !important; }
 .sidebar-nav .tabs{display:flex;flex-direction:column;gap:8px}.sidebar-nav .tab-btn{position:relative;overflow:hidden;min-height:48px;padding:12px 14px;border-radius:14px;background:rgba(18,30,26,.78);border-color:rgba(212,175,55,.16);box-shadow:0 4px 12px rgba(0,0,0,.16);transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}.sidebar-nav .tab-btn::after{content:"";position:absolute;top:0;bottom:0;right:0;width:3px;background:var(--accent-gold);transform:scaleY(0);transition:transform .2s ease}.sidebar-nav .tab-btn:hover{transform:translateX(-3px);background:rgba(27,50,42,.94);border-color:rgba(212,175,55,.42)}.sidebar-nav .tab-btn.active{background:linear-gradient(120deg,rgba(18,144,120,.96),rgba(6,61,51,.98));border-color:var(--accent-gold);box-shadow:0 8px 18px rgba(0,0,0,.24)}.sidebar-nav .tab-btn.active::after{transform:scaleY(1)}
 /* المشرف يرى زر حالة الإنجاز فقط */
 body.supervisor-mode .sidebar-nav .tab-btn{display:none!important}
-body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn{display:flex!important}
+body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn{display:flex!important}
 @media(max-width:850px){.main-menu-handle{top:10px!important;right:10px!important;height:48px;min-width:48px;padding:0 13px;border-radius:16px}.menu-handle-text{font-size:.78em}.sidebar-nav{top:8px;right:8px;height:calc(100dvh - 16px);width:min(340px,calc(100vw - 16px));border-radius:24px}.main-menu-handle.open{right:10px!important}}
 @media(max-width:430px){.menu-handle-text{display:none}.main-menu-handle{width:48px;padding:0}.sidebar-nav{width:calc(100vw - 12px);right:6px;top:6px;height:calc(100dvh - 12px);border-radius:22px}}
 
@@ -2761,7 +2761,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ لوحة الإدارة</button>
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
 <button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصروفات</button>
-<button class="tab-btn hidden" id="payment-report-tab-btn" onclick="switchTab('payment-report-tab', event)" style="background-color:#0d9488;color:white;" type="button">🧾 مقرر الدفع</button>
+<button class="tab-btn hidden" id="payment-report-tab-btn" onclick="switchTab('payment-report-tab', event)" style="background-color:#0d9488;color:white;" type="button">🧾 تقرير المصروفات</button>
 <button class="tab-btn hidden" id="analysis-tab-btn" onclick="openStudentDataAnalysis(); closeMainMenu()" type="button">📈 تحليل البيانات</button>
 <button class="tab-btn hidden" id="backup-tab-btn" onclick="switchTab('backup-tab', event)" style="background-color: var(--primary-dark); color: white;" type="button">💾 النسخة الاحتياطية</button>
 </div>
@@ -2789,6 +2789,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
 <option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option>
 <option value="أولى شرعي">أولى شرعي</option>
+<option value="التمهيدي">التمهيدي</option>
 </select>
 </div>
 <div class="daily-student-start">
@@ -2804,6 +2805,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
 <option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option>
 <option value="أولى شرعي">أولى شرعي</option>
+<option value="التمهيدي">التمهيدي</option>
 </select>
 </div>
 <div class="form-group">
@@ -2993,6 +2995,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <option value="خامسة - أولاد">خامسة - أولاد</option>
 <option value="خامسة - بنات">خامسة - بنات</option>
 <option value="أولى شرعي">أولى شرعي</option>
+<option value="التمهيدي">التمهيدي</option>
 </select>
 </div>
 </div>
@@ -3033,6 +3036,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <option value="خامسة - أولاد">خامسة - أولاد</option>
 <option value="خامسة - بنات">خامسة - بنات</option>
 <option value="أولى شرعي">أولى شرعي</option>
+<option value="التمهيدي">التمهيدي</option>
 </select>
 </div>
 </div>
@@ -3098,6 +3102,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <option value="خامسة - أولاد">خامسة - أولاد</option>
 <option value="خامسة - بنات">خامسة - بنات</option>
 <option value="أولى شرعي">أولى شرعي</option>
+<option value="التمهيدي">التمهيدي</option>
 </select>
 </div>
 </div>
@@ -3321,7 +3326,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <!-- تبويب مقرر الدفع -->
 <div class="tab-content" id="payment-report-tab">
 <div class="card-view">
-<h3 class="card-title">🧾 مقرر الدفع</h3>
+<h3 class="card-title">🧾 تقرير المصروفات</h3>
 <p style="font-size:.9em;color:#666;margin-top:-6px;">
             اختر الفصل ثم الطالب لعرض كل ما تم دفعه من شهور وتواريخ.
           </p>
@@ -3510,6 +3515,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <option value="خامسة - أولاد">خامسة - أولاد</option>
 <option value="خامسة - بنات">خامسة - بنات</option>
 <option value="أولى شرعي">أولى شرعي</option>
+<option value="التمهيدي">التمهيدي</option>
 </select>
 </div>
 </div>
@@ -3654,6 +3660,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
 <option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option>
 <option value="أولى شرعي">أولى شرعي</option>
+<option value="التمهيدي">التمهيدي</option>
 </select>
 </div>
 <div class="form-group">
@@ -3820,7 +3827,8 @@ var ALL_CLASSES = [
     "ثالثة - أولاد", "ثالثة - بنات",
     "رابعة - أولاد", "رابعة - بنات",
     "خامسة - أولاد", "خامسة - بنات",
-    "أولى شرعي"
+    "أولى شرعي",
+    "التمهيدي"
 ];
 /* ================= 1. تهيئة السحابة (Firebase Configuration) ================= */
 var firebaseConfig = {
@@ -4812,7 +4820,7 @@ function paymentRecordId_(studentId, studentName, month) {
 }
 function ensureAllClassSelects_() {
     try {
-        var manager_1 = !!(currentTeacher && (currentTeacher.username === 'admin' || currentTeacher.assignedClass === 'الكل' || currentTeacher.center === 'الكل'));
+        var manager_1 = !!(currentTeacher && (currentTeacher.username === 'admin' || currentTeacher.assignedClass === 'الكل' || currentTeacher.center === 'الكل' || currentTeacher.center === 'مشرف'));
         var allowed_1 = manager_1 ? ALL_CLASSES : ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.assignedClass) && ALL_CLASSES.includes(currentTeacher.assignedClass) ? [currentTeacher.assignedClass] : ALL_CLASSES);
         var ids = ['classSelect', 'dailyClassSelect', 'weeklyClassSelect', 'monthlyClassSelect', 'attendanceClassSelect', 'paymentsClassSelect', 'paymentReportClassSelect', 'notesClassSelect'];
         ids.forEach(function (id) {
@@ -5003,7 +5011,7 @@ function renderPaymentReportTable() {
                     if (!tbody)
                         return [2 /*return*/];
                     if (!(classSel === null || classSel === void 0 ? void 0 : classSel.value) || !(studentSel === null || studentSel === void 0 ? void 0 : studentSel.value)) {
-                        tbody.innerHTML = '<tr><td colspan="5" style="padding:25px;color:#777;">اختر الصف والطالب لعرض مقرر الدفع.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="5" style="padding:25px;color:#777;">اختر الصف والطالب لعرض تقرير المصروفات.</td></tr>';
                         return [2 /*return*/];
                     }
                     filterRows = function (rows) { return (Array.isArray(rows) ? rows : [])
@@ -5020,7 +5028,7 @@ function renderPaymentReportTable() {
                             var rid = String(row.recordId || paymentRecordId_(row.studentId || '', row.studentName || '', row.month || ''));
                             var safeRid = rid.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                             return "<tr>\n        <td>".concat(row.month || '-', "</td>\n        <td>").concat((_a = row.amount) !== null && _a !== void 0 ? _a : '-', "</td>\n        <td>").concat(row.paidDate || '-', "</td>\n        <td>").concat(row.recordedBy || '-', "</td>\n        <td style=\"white-space:nowrap;\">\n          <button type=\"button\" class=\"action-btn btn-save\" style=\"padding:6px 10px;font-size:.82em;\" onclick=\"editPaymentRecord('").concat(safeRid, "')\">\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644</button>\n          <button type=\"button\" class=\"action-btn btn-delete\" style=\"padding:6px 10px;font-size:.82em;margin-right:5px;\" onclick=\"deletePaymentRecord('").concat(safeRid, "')\">\uD83D\uDDD1\uFE0F \u0645\u0633\u062D</button>\n        </td>\n      </tr>");
-                        }).join('') : '<tr><td colspan="5" style="padding:25px;color:#777;">لا توجد دفعات مسجلة لهذا الطالب.</td></tr>';
+                        }).join('') : '<tr><td colspan="5" style="padding:25px;color:#777;">لا توجد مصروفات مسجلة لهذا الطالب.</td></tr>';
                     };
                     if (rows.length)
                         renderRows(rows);
@@ -6839,7 +6847,7 @@ function renderStudentDataAnalysis() {
     renderAnalysisCharts(studentName, className, weekKey);
 }
 function switchTab(tabId, event) {
-    // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، الأوائل، المصروفات، ومقرر الدفع.
+    // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، الأوائل، المصروفات، وتقرير المصروفات.
     if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab'].includes(tabId)) {
         tabId = 'status-tab';
     }
