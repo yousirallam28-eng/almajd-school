@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&amp;family=Cairo:wght@400;600;700;800&amp;family=Reem+Kufi:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <!-- مكتبة تصدير الإكسل SheetJS -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <!-- مكتبات Firebase للمزامنة السحابية عبر جميع الموبايلات -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -2758,6 +2759,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <button class="tab-btn" id="top-students-tab-btn" onclick="switchTab('top-students-tab', event)" type="button">🏆 الأوائل</button>
 <button class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)" type="button">🗒️ الملاحظات</button>
 <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ لوحة الإدارة</button>
+<button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
 <button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصروفات</button>
 <button class="tab-btn hidden" id="payment-report-tab-btn" onclick="switchTab('payment-report-tab', event)" style="background-color:#0d9488;color:white;" type="button">🧾 مقرر الدفع</button>
 <button class="tab-btn hidden" id="analysis-tab-btn" onclick="openStudentDataAnalysis(); closeMainMenu()" type="button">📈 تحليل البيانات</button>
@@ -3633,6 +3635,53 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 </thead>
 <tbody></tbody>
 </table>
+</div>
+</div>
+<!-- تبويب تسجيل الشيوخ (أدمن فقط) -->
+<div class="tab-content" id="sheikh-registration-tab">
+<div class="card-view" style="border-top:4px solid var(--accent-gold);">
+<h3 class="card-title">📋 تسجيل الشيوخ</h3>
+<p style="font-size: 0.9em; color: #555; margin-bottom: 15px;">
+            اختر الفصل والتاريخ لعرض طلاب الفصل، ومن تم تسجيله مع توضيح الحضور أو الغياب، ومن لم يتم تسجيله.
+          </p>
+<div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); align-items: end;">
+<div class="form-group">
+<label>الفصل:</label>
+<select id="sheikhRegClassSelect" onchange="renderSheikhRegistrationView()">
+<option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
+<option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option>
+<option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
+<option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
+<option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option>
+<option value="أولى شرعي">أولى شرعي</option>
+</select>
+</div>
+<div class="form-group">
+<label>التاريخ:</label>
+<input id="sheikhRegDate" onchange="renderSheikhRegistrationView()" type="date"/>
+</div>
+<div class="form-group">
+<button class="action-btn btn-save" onclick="renderSheikhRegistrationView()" type="button">🔄 تحديث</button>
+</div>
+<div class="form-group">
+<button class="action-btn btn-export" onclick="exportSheikhRegistrationExcel()" type="button">📊 استخراج Excel لهذا التاريخ</button>
+</div>
+</div>
+<div id="sheikhRegSummary" style="margin:14px 0;"></div>
+<h4 style="color:var(--primary-dark); font-family:'Amiri', serif; margin-top:10px;">✅ الطلاب الذين تم تسجيلهم</h4>
+<div class="table-responsive">
+<table id="sheikhRegRecordedTable">
+<thead><tr><th>اسم الطالب</th><th>الشيخ الذي سجّله</th><th>الحالة</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+<h4 style="color:var(--danger-color); font-family:'Amiri', serif; margin-top:18px;">❌ الطلاب الذين لم يتم تسجيلهم</h4>
+<div class="table-responsive">
+<table id="sheikhRegUnrecordedTable">
+<thead><tr><th>اسم الطالب</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
 </div>
 </div>
 <!-- 8. تبويب النسخة الاحتياطية -->
@@ -6237,6 +6286,8 @@ function showAppScreen() {
     var reportsMenuWrap = document.getElementById('reports-menu-wrap');
     var isSupervisor = currentTeacher.center === 'مشرف';
     var isManager = !isSupervisor && (currentTeacher.username === 'admin' || (currentTeacher.assignedClass === 'الكل' && currentTeacher.center === 'الكل'));
+    var isAdminUser = !isSupervisor && currentTeacher.username === 'admin';
+    var sheikhRegBtn = document.getElementById('sheikh-registration-tab-btn');
     // المشرف: تظهر له للمشاهدة فقط حالة الإنجاز + الملاحظات + الأوائل.
     if (isSupervisor) {
         document.body.classList.add('supervisor-mode');
@@ -6272,6 +6323,8 @@ function showAppScreen() {
     document.querySelectorAll('.sidebar-nav .tab-btn').forEach(function (btn) { return btn.classList.remove('hidden'); });
     (_l = document.getElementById('daily-tab-btn')) === null || _l === void 0 ? void 0 : _l.classList.remove('hidden');
     statusBtn.classList.add('hidden');
+    if (sheikhRegBtn)
+        sheikhRegBtn.classList.toggle('hidden', !isAdminUser);
     if (!isManager) {
         classSelect.value = currentTeacher.assignedClass;
         classSelect.disabled = true;
@@ -6843,7 +6896,192 @@ function switchTab(tabId, event) {
         populatePaymentReportClasses();
         updatePaymentReportStudentList();
     }
+    else if (tabId === 'sheikh-registration-tab') {
+        renderSheikhRegistrationView();
+    }
 }
+function sheikhRegistrationGetDate_() {
+    var dateInput = document.getElementById('sheikhRegDate');
+    if (!dateInput) return '';
+    if (!dateInput.value) {
+        var fallback = document.getElementById('recordDate');
+        dateInput.value = (fallback && fallback.value) || new Date().toISOString().slice(0, 10);
+    }
+    return dateInput.value;
+}
+
+function sheikhRegistrationGetClass_() {
+    var sel = document.getElementById('sheikhRegClassSelect');
+    return sel ? String(sel.value || '').trim() : '';
+}
+
+function sheikhRegistrationBuildRows_(dateVal) {
+    var date = String(dateVal || '').trim();
+    var students = Array.isArray(studentsData) ? studentsData : [];
+    var records = Array.isArray(dailyRecords) ? dailyRecords : [];
+    var recordByKey = {};
+    records.forEach(function (r) {
+        if (!r || r._deleted || String(r.dateISO || '').trim() !== date) return;
+        var studentName = String(r.studentName || '').trim();
+        var className = String(r.className || '').trim();
+        if (!studentName || !className) return;
+        var key = className + '||' + studentName;
+        var old = recordByKey[key];
+        var oldTime = old ? String(old.updatedAt || old.savedAt || old.createdAt || '') : '';
+        var newTime = String(r.updatedAt || r.savedAt || r.createdAt || '');
+        if (!old || newTime >= oldTime) recordByKey[key] = r;
+    });
+    var rows = [];
+    ALL_CLASSES.forEach(function (className) {
+        students.filter(function (st) {
+            return String(st.className || '').trim() === className && !st._deleted;
+        }).slice().sort(function (a, b) {
+            return String(a.name || '').localeCompare(String(b.name || ''), 'ar');
+        }).forEach(function (st) {
+            var name = String(st.name || '').trim();
+            if (!name) return;
+            var rec = recordByKey[className + '||' + name];
+            rows.push({
+                date: date,
+                studentName: name,
+                className: className,
+                status: rec ? 'تم التسجيل' : 'لم يتم التسجيل',
+                teacherName: rec ? String(rec.teacherName || rec.teacher || '').trim() : '',
+                attendance: rec ? ((!!rec.isAbsent || String(rec.attendanceStatus || '') === 'absent') ? 'غائب' : 'حاضر') : ''
+            });
+        });
+    });
+    return rows;
+}
+
+function renderSheikhRegistrationView() {
+    var dateVal = sheikhRegistrationGetDate_();
+    var className = sheikhRegistrationGetClass_();
+    if (!dateVal || !className) return;
+
+    var allRows = sheikhRegistrationBuildRows_(dateVal);
+    var rows = allRows.filter(function (r) { return r.className === className; });
+    var recordedRows = rows.filter(function (r) { return r.status === 'تم التسجيل'; });
+    var unrecordedRows = rows.filter(function (r) { return r.status !== 'تم التسجيل'; });
+
+    var recordedTbody = document.querySelector('#sheikhRegRecordedTable tbody');
+    var unrecordedTbody = document.querySelector('#sheikhRegUnrecordedTable tbody');
+    if (recordedTbody) {
+        recordedTbody.innerHTML = recordedRows.length ? recordedRows.map(function (row) {
+            var absent = row.attendance === 'غائب';
+            var badge = absent
+                ? '<span class="badge" style="background:var(--danger-color);color:#fff;padding:3px 10px;">🚫 غائب</span>'
+                : '<span class="badge badge-green">✅ حاضر</span>';
+            return '<tr><td style="font-weight:bold;">' + row.studentName + '</td><td>' + (row.teacherName || '-') + '</td><td>' + badge + '</td></tr>';
+        }).join('') : '<tr><td colspan="3">لا يوجد طلاب تم تسجيلهم في هذا اليوم</td></tr>';
+    }
+    if (unrecordedTbody) {
+        unrecordedTbody.innerHTML = unrecordedRows.length ? unrecordedRows.map(function (row) {
+            return '<tr><td>' + row.studentName + '</td></tr>';
+        }).join('') : '<tr><td>لا يوجد — تم تسجيل جميع الطلاب 🎉</td></tr>';
+    }
+
+    var summary = document.getElementById('sheikhRegSummary');
+    if (summary) {
+        var present = recordedRows.filter(function (r) { return r.attendance === 'حاضر'; }).length;
+        var absent = recordedRows.filter(function (r) { return r.attendance === 'غائب'; }).length;
+        summary.innerHTML =
+            '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
+            '<div style="flex:1;min-width:130px;background:#eaf8f1;border:1px solid #8fd3ae;border-radius:12px;padding:12px;text-align:center;"><div style="font-size:.85em;color:#48685a;font-weight:700;">تم تسجيلهم</div><div style="font-size:1.5em;color:#0f7a4a;font-weight:900;">' + recordedRows.length + '</div></div>' +
+            '<div style="flex:1;min-width:130px;background:#eaf8f1;border:1px solid #8fd3ae;border-radius:12px;padding:12px;text-align:center;"><div style="font-size:.85em;color:#48685a;font-weight:700;">حاضر</div><div style="font-size:1.5em;color:#0f7a4a;font-weight:900;">' + present + '</div></div>' +
+            '<div style="flex:1;min-width:130px;background:#fbe9e7;border:1px solid #e7aaa4;border-radius:12px;padding:12px;text-align:center;"><div style="font-size:.85em;color:#7a271f;font-weight:700;">غائب</div><div style="font-size:1.5em;color:#a83226;font-weight:900;">' + absent + '</div></div>' +
+            '<div style="flex:1;min-width:130px;background:#fff7e5;border:1px solid #e4c56a;border-radius:12px;padding:12px;text-align:center;"><div style="font-size:.85em;color:#806a2b;font-weight:700;">لم يسجلوا</div><div style="font-size:1.5em;color:#a56b00;font-weight:900;">' + unrecordedRows.length + '</div></div>' +
+            '<div style="flex:1;min-width:130px;background:#f5f7f7;border:1px solid #d5dddd;border-radius:12px;padding:12px;text-align:center;"><div style="font-size:.85em;color:#5b6666;font-weight:700;">إجمالي الفصل</div><div style="font-size:1.5em;color:var(--primary-dark);font-weight:900;">' + rows.length + '</div></div>' +
+            '</div>';
+    }
+}
+
+function exportSheikhRegistrationExcel() {
+    var dateVal = sheikhRegistrationGetDate_();
+    if (!dateVal) {
+        showMessage('app-msg', 'اختر التاريخ أولاً.', 'error');
+        return;
+    }
+
+    var rows = sheikhRegistrationBuildRows_(dateVal);
+    if (!rows.length) {
+        showMessage('app-msg', 'لا يوجد طلاب يمكن تصديرهم لهذا التاريخ.', 'error');
+        return;
+    }
+
+    if (typeof XLSX === 'undefined' || !XLSX.utils || !XLSX.writeFile) {
+        showMessage('app-msg', 'مكتبة Excel غير متاحة حالياً. أعد تحميل الصفحة.', 'error');
+        return;
+    }
+
+    var wb = XLSX.utils.book_new();
+
+    var headerStyle = {
+        fill: { fgColor: { rgb: '0F3D33' } },
+        font: { bold: true, color: { rgb: 'F2E6C5' } },
+        alignment: { horizontal: 'center', vertical: 'center' },
+        border: {
+            top: { style: 'thin', color: { rgb: 'C7A24A' } },
+            bottom: { style: 'thin', color: { rgb: 'C7A24A' } },
+            left: { style: 'thin', color: { rgb: 'C7A24A' } },
+            right: { style: 'thin', color: { rgb: 'C7A24A' } }
+        }
+    };
+    var baseStyle = {
+        alignment: { horizontal: 'center', vertical: 'center' },
+        border: {
+            top: { style: 'thin', color: { rgb: 'D8E5DF' } },
+            bottom: { style: 'thin', color: { rgb: 'D8E5DF' } },
+            left: { style: 'thin', color: { rgb: 'D8E5DF' } },
+            right: { style: 'thin', color: { rgb: 'D8E5DF' } }
+        }
+    };
+    var greenStyle = __assign(__assign({}, baseStyle), {
+        fill: { fgColor: { rgb: 'D7ECDF' } },
+        font: { color: { rgb: '0F5132' }, bold: true }
+    });
+    var redStyle = __assign(__assign({}, baseStyle), {
+        fill: { fgColor: { rgb: 'FBDedB'.toUpperCase() } },
+        font: { color: { rgb: '7A271F' }, bold: true }
+    });
+
+    function makeSheet(sheetRows) {
+        var aoa = [['التاريخ', 'اسم الطالب', 'فصل الطالب', 'حالة التسجيل', 'الشيخ']];
+        sheetRows.forEach(function (r) {
+            aoa.push([r.date, r.studentName, r.className, r.status, r.teacherName || '']);
+        });
+        var ws = XLSX.utils.aoa_to_sheet(aoa);
+        ws['!cols'] = [
+            { wch: 14 }, { wch: 30 }, { wch: 22 }, { wch: 18 }, { wch: 28 }
+        ];
+        ws['!rows'] = [{ hpt: 25 }];
+        for (var c = 0; c < 5; c++) {
+            var h = ws[XLSX.utils.encode_cell({ r: 0, c: c })];
+            if (h) h.s = headerStyle;
+        }
+        for (var r = 1; r < aoa.length; r++) {
+            var isOk = aoa[r][3] === 'تم التسجيل';
+            for (var c2 = 0; c2 < 5; c2++) {
+                var cell = ws[XLSX.utils.encode_cell({ r: r, c: c2 })];
+                if (cell) cell.s = isOk ? greenStyle : redStyle;
+            }
+        }
+        ws['!autofilter'] = { ref: 'A1:E' + aoa.length };
+        return ws;
+    }
+
+    // الشيت المجمعة أولاً، ثم شيت مستقلة لكل فصل بنفس الترتيب.
+    XLSX.utils.book_append_sheet(wb, makeSheet(rows), 'كل الفصول');
+    ALL_CLASSES.forEach(function (className) {
+        var classRows = rows.filter(function (r) { return r.className === className; });
+        XLSX.utils.book_append_sheet(wb, makeSheet(classRows), className.slice(0, 31));
+    });
+
+    var fileName = 'تسجيل_الشيوخ_' + dateVal + '.xlsx';
+    XLSX.writeFile(wb, fileName, { bookType: 'xlsx', compression: true });
+    showMessage('app-msg', 'تم استخراج ملف تسجيل الشيوخ لتاريخ ' + dateVal + ' بنجاح 📊', 'success');
+}
+
 function isFifthClass(className) {
     return typeof className === 'string' && className.indexOf('خامسة') === 0;
 }
@@ -7282,49 +7520,92 @@ function stopDailyTimer() {
     document.getElementById('dailyTimerStatus').textContent = "\u2705 \u062A\u0645 \u062D\u0641\u0638 \u0648\u0642\u062A ".concat(names[dailyTimerType], ": ").concat(formatTimerSeconds(seconds));
     document.getElementById('daily-score-time-summary').textContent = "\u062A\u0645 \u0627\u0644\u062A\u0633\u0645\u064A\u0639 \u0641\u064A \u2014 \u0627\u0644\u062C\u062F\u064A\u062F: ".concat(formatTimerSeconds(dailyTimerSeconds.new), " | \u0627\u0644\u0645\u0627\u0636\u064A: ").concat(formatTimerSeconds(dailyTimerSeconds.old), " | \u0627\u0644\u062A\u0644\u0627\u0648\u0629: ").concat(formatTimerSeconds(dailyTimerSeconds.recitation));
 }
-function markAbsent() {
-    return __awaiter(this, void 0, void 0, function () {
-        var studentName, existing, confirmed;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    studentName = document.getElementById('studentNameSelect').value;
-                    if (!studentName)
-                        return [2 /*return*/, showMessage('app-msg', 'يرجى اختيار الاسم بشكل صحيح', 'error')];
-                    existing = hasDailyRecordForSelectedStudent_();
-                    if (existing) {
-                        updateMainDailySaveButton_();
-                        return [2 /*return*/, showMessage('app-msg', "\u26A0\uFE0F \u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 ".concat(studentName, " \u0628\u0627\u0644\u0641\u0639\u0644 \u0627\u0644\u064A\u0648\u0645. \u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u0633\u062C\u064A\u0644\u0647 \u0645\u0631\u0629 \u0623\u062E\u0631\u0649. \u0627\u0633\u062A\u062E\u062F\u0645 \u00AB\u062A\u0639\u062F\u064A\u0644\u00BB \u0623\u0648 \u00AB\u0645\u0633\u062D\u00BB \u0623\u0648\u0644\u0627\u064B."), 'error')];
-                    }
-                    return [4 /*yield*/, siteConfirm('🚫 تسجيل غياب', "\u0633\u064A\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 <strong>".concat(studentName, "</strong> \u063A\u0627\u0626\u0628\u064B\u0627 \u0627\u0644\u064A\u0648\u0645:<br>\u2022 \u0635\u0641\u0631 \u0641\u064A \u062C\u0645\u064A\u0639 \u0627\u0644\u062F\u0631\u062C\u0627\u062A<br>\u2022 \u0635\u0641\u0631 \u0641\u064A \u0643\u0644 \u0623\u0648\u0642\u0627\u062A \u0627\u0644\u062A\u0633\u0645\u064A\u0639<br>\u2022 \u0625\u0644\u063A\u0627\u0621 \u0639\u062F\u062F \u0627\u0644\u0645\u0631\u0627\u062A \u0648\u0639\u062F\u062F \u0627\u0644\u0635\u0641\u062D\u0627\u062A<br>\u2022 \u0633\u064A\u0638\u0647\u0631 \u0641\u064A \u0627\u0644\u0643\u0634\u0641 \u0643\u0640 \u00AB\u063A\u0627\u0626\u0628\u00BB"), 'نعم، سجّل غياب', true)];
-                case 1:
-                    confirmed = _a.sent();
-                    if (!confirmed)
-                        return [2 /*return*/];
-                    ['attendance', 'behavior', 'tajweed', 'oldRevision', 'newLesson', 'recitation', 'homework'].forEach(function (id) { var el = document.getElementById(id); if (el)
-                        el.value = 0; });
-                    ['newRecitationCount', 'oldRecitationCount', 'recitationRecitationCount', 'newPagesCount', 'oldPagesCount', 'recitationPagesCount'].forEach(function (id) { var el = document.getElementById(id); if (el)
-                        el.value = ''; });
-                    ['newTopicToday', 'newTopicRecited', 'oldTopicToday', 'oldTopicRecited', 'recitationTopicToday', 'recitationTopicRecited'].forEach(function (id) { var el = document.getElementById(id); if (el)
-                        el.value = '-'; });
-                    dailyTimerSeconds = { new: 0, old: 0, recitation: 0 };
-                    dailyTimerRunning = false;
-                    dailyTimerStartedAt = 0;
-                    dailyTimerBaseSeconds = 0;
-                    clearInterval(dailyTimerInterval);
-                    dailyTimerInterval = null;
-                    updateDailyTypeTimes();
-                    renderDailyTimer();
-                    dailyResetCounters();
-                    dailyRenderCounters();
-                    return [4 /*yield*/, addGrade(true)];
-                case 2:
-                    _a.sent();
-                    showMessage('app-msg', "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 ".concat(studentName, " \u063A\u0627\u0626\u0628\u064B\u0627 \u0648\u0635\u0641\u0631 \u0641\u064A \u0627\u0644\u064A\u0648\u0645 \u0643\u0627\u0645\u0644 \uD83D\uDEAB"), 'success');
-                    return [2 /*return*/];
-            }
-        });
-    });
+async function markAbsent() {
+    var studentNameEl = document.getElementById('studentNameSelect');
+    var studentName = studentNameEl ? studentNameEl.value : '';
+    if (!studentName)
+        return showMessage('app-msg', 'يرجى اختيار الاسم بشكل صحيح', 'error');
+    var existing = hasDailyRecordForSelectedStudent_();
+    if (existing) {
+        updateMainDailySaveButton_();
+        return showMessage('app-msg', "\u26A0\uFE0F \u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 ".concat(studentName, " \u0628\u0627\u0644\u0641\u0639\u0644 \u0627\u0644\u064A\u0648\u0645. \u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u0633\u062C\u064A\u0644\u0647 \u0645\u0631\u0629 \u0623\u062E\u0631\u0649. \u0627\u0633\u062A\u062E\u062F\u0645 \u00AB\u062A\u0639\u062F\u064A\u0644\u00BB \u0623\u0648 \u00AB\u0645\u0633\u062D\u00BB \u0623\u0648\u0644\u0627\u064B."), 'error');
+    }
+    var confirmed = await siteConfirm('🚫 تسجيل غياب', "\u0633\u064A\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 <strong>".concat(studentName, "</strong> \u063A\u0627\u0626\u0628\u064B\u0627 \u0627\u0644\u064A\u0648\u0645:<br>\u2022 \u0635\u0641\u0631 \u0641\u064A \u062C\u0645\u064A\u0639 \u0627\u0644\u062F\u0631\u062C\u0627\u062A<br>\u2022 \u0635\u0641\u0631 \u0641\u064A \u0643\u0644 \u0623\u0648\u0642\u0627\u062A \u0627\u0644\u062A\u0633\u0645\u064A\u0639<br>\u2022 \u0625\u0644\u063A\u0627\u0621 \u0639\u062F\u062F \u0627\u0644\u0645\u0631\u0627\u062A \u0648\u0639\u062F\u062F \u0627\u0644\u0635\u0641\u062D\u0627\u062A<br>\u2022 \u0633\u064A\u0638\u0647\u0631 \u0641\u064A \u0627\u0644\u0643\u0634\u0641 \u0643\u0640 \u00AB\u063A\u0627\u0626\u0628\u00BB"), 'نعم، سجّل غياب', true);
+    if (!confirmed)
+        return;
+    var className = document.getElementById('classSelect') ? document.getElementById('classSelect').value : '';
+    var dateISO = document.getElementById('recordDate') ? document.getElementById('recordDate').value : '';
+    var dayName = document.getElementById('daySelect') ? document.getElementById('daySelect').value : '';
+    if (!className)
+        return showMessage('app-msg', 'يرجى اختيار الصف بشكل صحيح', 'error');
+    if (!dateISO)
+        return showMessage('app-msg', 'يرجى اختيار التاريخ بشكل صحيح', 'error');
+    var now = new Date();
+    var record = {
+        id: "rec_".concat(studentName, "_").concat(dateISO).replace(/\s+/g, '_'),
+        teacherName: (currentTeacher && currentTeacher.username) || '',
+        className: className,
+        dateISO: dateISO,
+        dayName: dayName,
+        studentName: studentName,
+        attendance: 0, behavior: 0, tajweed: 0, homework: 0, attendanceStatus: 'absent', isAbsent: true,
+        newLesson: 0, oldRevision: 0, recitation: 0,
+        newPagesCount: '', oldPagesCount: '', recitationPagesCount: '',
+        newTopicToday: '-', newTopicRecited: '-', oldTopicToday: '-', oldTopicRecited: '-', recitationTopicToday: '-', recitationTopicRecited: '-',
+        newRecitationCount: '', oldRecitationCount: '', recitationRecitationCount: '',
+        newLessonTimeSeconds: 0, oldRevisionTimeSeconds: 0, recitationTimeSeconds: 0,
+        newErrors: 0, newTashkeel: 0, newRepetition: 0, oldErrors: 0, oldTashkeel: 0, oldRepetition: 0,
+        recitationErrors: 0, recitationTashkeel: 0, recitationRepetition: 0,
+        _dailyTypeSaved: { new: true, old: true, recitation: true },
+        timeRecordedAt: now.toISOString()
+    };
+    record.total = getDailyTotal(record);
+    if (!useFirebase || !db) {
+        return showMessage('app-msg', 'Firebase غير متصل — لم يتم اعتماد تسجيل الغياب.', 'error');
+    }
+    try {
+        await firebaseWriteRecord_('dailyRecords', record.id, record, { merge: true });
+    }
+    catch (e) {
+        console.error('Firebase absence record save error:', e);
+        return showMessage('app-msg', 'تعذر حفظ تسجيل الغياب على Firebase — تحقق من الاتصال.', 'error');
+    }
+    var idx = dailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
+    if (idx > -1)
+        dailyRecords[idx] = record;
+    else
+        dailyRecords.push(record);
+    try {
+        memoryStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
+    }
+    catch (_) { }
+    ['attendance', 'behavior', 'tajweed', 'oldRevision', 'newLesson', 'recitation', 'homework'].forEach(function (id) { var el = document.getElementById(id); if (el)
+        el.value = 0; });
+    ['newRecitationCount', 'oldRecitationCount', 'recitationRecitationCount', 'newPagesCount', 'oldPagesCount', 'recitationPagesCount'].forEach(function (id) { var el = document.getElementById(id); if (el)
+        el.value = ''; });
+    ['newTopicToday', 'newTopicRecited', 'oldTopicToday', 'oldTopicRecited', 'recitationTopicToday', 'recitationTopicRecited'].forEach(function (id) { var el = document.getElementById(id); if (el)
+        el.value = '-'; });
+    dailyTimerSeconds = { new: 0, old: 0, recitation: 0 };
+    dailyTimerRunning = false;
+    dailyTimerStartedAt = 0;
+    dailyTimerBaseSeconds = 0;
+    clearInterval(dailyTimerInterval);
+    dailyTimerInterval = null;
+    updateDailyTypeTimes();
+    renderDailyTimer();
+    dailyResetCounters();
+    dailyRenderCounters();
+    renderDailyTable();
+    renderAttendanceTable();
+    renderWeeklyTable();
+    renderMonthlyReport();
+    renderManagerView();
+    renderClassStatusTable();
+    if (typeof renderSheikhRegistrationView === 'function' && document.getElementById('sheikh-registration-tab') && document.getElementById('sheikh-registration-tab').classList.contains('active')) {
+        renderSheikhRegistrationView();
+    }
+    updateMainDailySaveButton_();
+    showMessage('app-msg', "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 ".concat(studentName, " \u063A\u0627\u0626\u0628\u064B\u0627 \u0648\u0635\u0641\u0631 \u0641\u064A \u0627\u0644\u064A\u0648\u0645 \u0643\u0627\u0645\u0644 \uD83D\uDEAB"), 'success');
 }
 function dailyGradeFromRecitationCount(count) {
     var n = Number(count);
