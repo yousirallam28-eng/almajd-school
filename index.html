@@ -3720,7 +3720,7 @@ body.sharia-teacher #payment-report-tab-btn { display:none!important; }
 <div class="form-group">
 <label>الصف الدراسي:</label>
 <select id="sheikhRegClassSelect" onchange="renderSheikhRegistrationView()">
-<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
+<option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option>
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
@@ -6258,9 +6258,10 @@ function renderSheikhRegistrationView() {
     }
     var className = classSelect.value;
     var dateVal = dateInput.value;
-    // الشرعي نظام مستقل ولا يظهر في تسجيل الشيوخ.
-    if (className === 'أولى شرعي') {
-        classSelect.value = GENERAL_CLASSES[0] || '';
+    // تسجيل الشيوخ لا يشمل الوافدين أو التمهيدي أو الشرعي.
+    if (className === 'تمهيدي' || className === 'الوافدين' || className === 'أولى شرعي') {
+        var sheikhClasses = getSheikhRegistrationClassOrder_();
+        classSelect.value = sheikhClasses[0] || '';
         className = classSelect.value;
     }
     var classStudents = (studentsData || [])
@@ -6330,7 +6331,10 @@ function renderSheikhRegistrationView() {
    - تم التسجيل باللون الأخضر، ولم يتم التسجيل باللون الأحمر.
    ============================================================ */
 function getSheikhRegistrationClassOrder_() {
-    return GENERAL_CLASSES.slice();
+    // تسجيل الشيوخ لا يشمل التمهيدي ولا الوافدين.
+    return GENERAL_CLASSES.filter(function (className) {
+        return className !== 'تمهيدي' && className !== 'الوافدين';
+    });
 }
 
 function sheikhRegistrationRowsForClass_(className, dateVal) {
@@ -6457,13 +6461,18 @@ function exportSheikhRegistrationExcel() {
 
 function getSheikhRegistrationAllDates_() {
     var dates = {};
+    var minDate = '2026-09-13';
     (dailyRecords || []).forEach(function (r) {
-        if (r && r.dateISO && !r._deleted) dates[String(r.dateISO)] = true;
+        var d = r && r.dateISO ? String(r.dateISO).slice(0, 10) : '';
+        if (d && d >= minDate && !r._deleted) dates[d] = true;
     });
 
-    // لو كان هناك تاريخ محدد حاليًا، نضمن ظهوره أيضًا حتى لو لم يوجد به تسجيل بعد.
+    // لو كان هناك تاريخ محدد حاليًا، نضمن ظهوره أيضًا إذا كان من 13 سبتمبر أو بعده.
     var currentDateEl = document.getElementById('sheikhRegDate');
-    if (currentDateEl && currentDateEl.value) dates[String(currentDateEl.value)] = true;
+    if (currentDateEl && currentDateEl.value) {
+        var currentDate = String(currentDateEl.value).slice(0, 10);
+        if (currentDate >= minDate) dates[currentDate] = true;
+    }
 
     return Object.keys(dates).sort(function (a, b) {
         return a.localeCompare(b);
@@ -6483,6 +6492,7 @@ function exportAllSheikhRegistrationDatesExcel() {
 
         var classOrder = getSheikhRegistrationClassOrder_();
         var wb = XLSX.utils.book_new();
+        var allDatesRows = [];
 
         dates.forEach(function (dateVal) {
             var allRowsForDate = [];
@@ -6494,13 +6504,21 @@ function exportAllSheikhRegistrationDatesExcel() {
                 );
             });
 
+            // شيت المجمع: كل التواريخ تحت بعض بالترتيب.
+            allDatesRows = allDatesRows.concat(allRowsForDate);
+
             var ws = makeSheikhExcelSheet_(allRowsForDate);
             var sheetName = sheikhExcelSafeSheetName_(dateVal, 'تاريخ');
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
         });
 
+        // شيت المجمع أولاً، ثم شيت مستقل لكل تاريخ كما كان.
+        var allDatesWs = makeSheikhExcelSheet_(allDatesRows);
+        wb.SheetNames.unshift('المجمع');
+        wb.Sheets['المجمع'] = allDatesWs;
+
         XLSX.writeFile(wb, 'تسجيل_الشيوخ_كل_الأيام.xlsx');
-        showMessage('app-msg', 'تم تصدير ملف Excel شامل: كل تاريخ في شيت مستقل، وداخل كل شيت جميع الفصول بالترتيب، مع المسجل وغير المسجل ✅', 'success');
+        showMessage('app-msg', 'تم تصدير ملف Excel شامل من 13 سبتمبر: شيت مجمع لكل التواريخ، ثم شيت مستقل لكل تاريخ ✅', 'success');
     }
     catch (e) {
         console.error('All sheikh registration dates Excel export error:', e);
@@ -7757,9 +7775,12 @@ function renderDailyTable() {
         var gradeCell = function (v) { return isAbsentRow ? '<span style="color:var(--danger-color);font-weight:900;">—</span>' : dailyMissingCell(v); };
         var timeCellFn = function (s) { return isAbsentRow ? '<span style="color:var(--danger-color);font-weight:900;">—</span>' : dailyMissingTimeCell(s); };
         var canManageRecord = safeTeacher.username === 'admin' || currentTeacher.username === r.teacherName;
-        var actionBtns = canManageRecord
-            ? "<div style=\"display:flex;gap:5px;justify-content:center;flex-wrap:wrap;\">\n           <button type=\"button\" class=\"action-btn btn-edit\" style=\"padding:3px 8px;font-size:0.8em;min-width:auto;\" onclick=\"editRecord('".concat(r.id, "')\">\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644</button>\n           <button type=\"button\" class=\"action-btn btn-danger\" style=\"padding:3px 8px;font-size:0.8em;min-width:auto;\" onclick=\"deleteRecord('").concat(r.id, "')\">\uD83D\uDDD1\uFE0F \u062D\u0630\u0641</button>\n         </div>")
-            : '-';
+        var actionBtns = "<div style=\"display:flex;gap:5px;justify-content:center;flex-wrap:wrap;\">"
+            + "<button type=\"button\" class=\"action-btn btn-edit\" style=\"padding:3px 8px;font-size:0.8em;min-width:auto;\" onclick=\"editRecord('" + String(r.id).replace(/'/g, "\'") + "')\">✏️ تعديل</button>"
+            + (canManageRecord
+                ? " <button type=\"button\" class=\"action-btn btn-danger\" style=\"padding:3px 8px;font-size:0.8em;min-width:auto;\" onclick=\"deleteRecord('" + String(r.id).replace(/'/g, "\'") + "')\">🗑️ حذف</button>"
+                : "")
+            + "</div>";
         var behaviorReasonIcon = (!isAbsentRow && r.behaviorReasonsText)
             ? " <span class=\"behavior-reason-icon\" title=\"\u0639\u0631\u0636 \u0633\u0628\u0628 \u0627\u0644\u062E\u0635\u0645\" onclick=\"wafdeenShowBehaviorReasons('".concat(String(r.behaviorReasonsText).replace(/'/g, "\\'"), "')\">\u2139\uFE0F</span>")
             : '';
@@ -7775,9 +7796,11 @@ function editRecord(id) {
             record = dailyRecords.find(function (r) { return r.id.toString() === id.toString(); });
             if (!record)
                 return [2 /*return*/];
-            allowed = currentTeacher.username === 'admin' || currentTeacher.username === record.teacherName;
+            // الشيخ يستطيع تعديل أي طالب مسجل في الفصل المسند إليه، وليس فقط الطلاب الذين سجّلهم هو.
+            // المدير يظل قادرًا على تعديل أي سجل.
+            allowed = currentTeacher && (currentTeacher.username === 'admin' || currentTeacher.assignedClass === 'الكل' || currentTeacher.assignedClass === record.className);
             if (!allowed)
-                return [2 /*return*/, showMessage('app-msg', 'ليس لديك صلاحية تعديل هذا السجل', 'error')];
+                return [2 /*return*/, showMessage('app-msg', 'يمكنك تعديل الطلاب المسجلين في فصلك فقط', 'error')];
             showSiteModal('✏️ تعديل درجات الطالب', "<div class=\"modal-grid\">\n      <div class=\"form-group\">\n        <label>\u0627\u0644\u062A\u0627\u0631\u064A\u062E:</label>\n        <input type=\"date\" id=\"modalRecordDate\" value=\"".concat(record.dateISO, "\">\n      </div>\n      <div class=\"form-group\">\n        <label>\u0627\u0644\u0637\u0627\u0644\u0628:</label>\n        <input value=\"").concat(String(record.studentName || '').replace(/"/g, '&quot;'), "\" readonly>\n      </div>\n      <div class=\"form-group\"><label>\u0627\u0644\u062D\u0636\u0648\u0631 (10):</label><input type=\"number\" id=\"modalAttendance\" min=\"0\" max=\"10\" value=\"").concat((_a = record.attendance) !== null && _a !== void 0 ? _a : 0, "\"></div>\n      <div class=\"form-group full\">\n        <label>\u0627\u0644\u0633\u0644\u0648\u0643 (10):</label>\n        <div style=\"display:flex;align-items:center;gap:10px;flex-wrap:wrap;\">\n          <input type=\"number\" id=\"modalBehavior\" min=\"0\" max=\"10\" value=\"").concat((_b = record.behavior) !== null && _b !== void 0 ? _b : 0, "\" readonly style=\"max-width:90px;\">\n          <button type=\"button\" class=\"action-btn btn-warning\" style=\"padding:6px 12px;font-size:.82em;min-width:auto;\" onclick=\"wafdeenToggleBehaviorPanel('modal')\">\uD83D\uDCCB \u0627\u062E\u062A\u064A\u0627\u0631 \u0633\u0628\u0628 \u0627\u0644\u062E\u0635\u0645 \u0625\u0646 \u0648\u064F\u062C\u062F</button>\n        </div>\n        <div id=\"modal-behavior-summary\" class=\"daily-score-note\">\u0644\u0627 \u064A\u0648\u062C\u062F \u062E\u0635\u0645 \u2014 \u0627\u0644\u062F\u0631\u062C\u0629: 10/10</div>\n        <div id=\"modal-behavior-grid\" class=\"behavior-reason-grid\">").concat(wafdeenBehaviorReasonsRowsHtml('modal'), "</div>\n      </div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0627\u0644\u062C\u062F\u064A\u062F (10):</label><input type=\"number\" id=\"modalNewLesson\" min=\"0\" max=\"10\" value=\"").concat((_c = record.newLesson) !== null && _c !== void 0 ? _c : 0, "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062C\u062F\u064A\u062F \u0627\u0644\u064A\u0648\u0645 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalNewTopicToday\" value=\"").concat(String(record.newTopicToday || record.newTopicText || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062C\u062F\u064A\u062F \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalNewTopicRecited\" value=\"").concat(String(record.newTopicRecited || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0627\u0644\u0645\u0627\u0636\u064A (10):</label><input type=\"number\" id=\"modalOldRevision\" min=\"0\" max=\"10\" value=\"").concat((_d = record.oldRevision) !== null && _d !== void 0 ? _d : 0, "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u0645\u0627\u0636\u064A \u0627\u0644\u064A\u0648\u0645 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalOldTopicToday\" value=\"").concat(String(record.oldTopicToday || record.oldTopicText || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u0645\u0627\u0636\u064A \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalOldTopicRecited\" value=\"").concat(String(record.oldTopicRecited || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group\"><label>\u0627\u0644\u062A\u0644\u0627\u0648\u0629 (10):</label><input type=\"number\" id=\"modalRecitation\" min=\"0\" max=\"10\" value=\"").concat((_e = record.recitation) !== null && _e !== void 0 ? _e : 0, "\"></div>\n      <div class=\"form-group\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062A\u0644\u0627\u0648\u0629 \u0627\u0644\u064A\u0648\u0645 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalRecitationTopicToday\" value=\"").concat(String(record.recitationTopicToday || record.recitationTopic || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062A\u0644\u0627\u0648\u0629 \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalRecitationTopicRecited\" value=\"").concat(String(record.recitationTopicRecited || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group\"><label>\u0627\u0644\u0648\u0627\u062C\u0628 (10):</label><input type=\"number\" id=\"modalHomework\" min=\"0\" max=\"10\" value=\"").concat((_f = record.homework) !== null && _f !== void 0 ? _f : 0, "\"></div>\n      <div class=\"form-group\"><label>\uD83D\uDCD6 \u0627\u0644\u062A\u062C\u0648\u064A\u062F (10) \u2014 \u064A\u064F\u0636\u0627\u0641 \u0625\u0644\u0649 \u0627\u0644\u0645\u062C\u0645\u0648\u0639:</label><input type=\"number\" id=\"modalTajweed\" min=\"0\" max=\"10\" value=\"").concat((_g = record.tajweed) !== null && _g !== void 0 ? _g : 0, "\"></div>\n      <div class=\"form-group\"><label>\u0648\u0642\u062A \u0627\u0644\u062C\u062F\u064A\u062F:</label><input type=\"text\" id=\"modalNewTime\" value=\"").concat(formatTimerSeconds(record.newLessonTimeSeconds || 0), "\" readonly></div>\n      <div class=\"form-group\"><label>\u0648\u0642\u062A \u0627\u0644\u0645\u0627\u0636\u064A:</label><input type=\"text\" id=\"modalOldTime\" value=\"").concat(formatTimerSeconds(record.oldRevisionTimeSeconds || 0), "\" readonly></div>\n      <div class=\"form-group\"><label>\u0648\u0642\u062A \u0627\u0644\u062A\u0644\u0627\u0648\u0629:</label><input type=\"text\" id=\"modalRecitationTime\" value=\"").concat(formatTimerSeconds(record.recitationTimeSeconds || 0), "\" readonly></div>\n    </div>"), "<button type=\"button\" class=\"action-btn modal-success\" id=\"saveRecordEditBtn\">\uD83D\uDCBE \u062D\u0641\u0638 \u0627\u0644\u062A\u0639\u062F\u064A\u0644</button>\n     <button type=\"button\" class=\"action-btn modal-cancel\" id=\"cancelRecordEditBtn\">\u0625\u0644\u063A\u0627\u0621</button>");
             wafdeenResetBehaviorState('modal', record.behaviorReasons || {});
             document.getElementById('saveRecordEditBtn').onclick = function () { return __awaiter(_this, void 0, void 0, function () {
