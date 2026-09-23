@@ -1243,6 +1243,7 @@ img, svg, video, canvas, iframe {
 
 
 body.fifth-selected .fifth-hide-on-class { display: none !important; }
+body.wafdeen-selected .wafdeen-hide-count { display: none !important; }
 
 /* لون النص المختار داخل خانات الصف والطالب */
 #dailyClassSelect,
@@ -2601,6 +2602,14 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 @media(min-width:650px){.result-display-v17-grid{grid-template-columns:1fr 1fr}.result-display-v17-row:last-child{grid-column:1/-1}}
 </style>
 <meta content="V26" name="result-excel-reader-version"/>
+
+<style id="wafdeen-time-report-style">
+#wafdeenTimeReportTable{width:100%;border-collapse:collapse;min-width:760px}
+#wafdeenTimeReportTable th,#wafdeenTimeReportTable td{padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);text-align:center;white-space:nowrap}
+#wafdeenTimeReportTable th{font-weight:800;background:rgba(15,61,51,.08)}
+#wafdeenTimeReportTable td:last-child{font-weight:900;color:var(--primary-dark)}
+.wafdeen-time-period-tabs .active{box-shadow:0 5px 14px rgba(0,0,0,.16)}
+</style>
 </head>
 <body class="login-screen-active" data-standalone="normal">
 <!-- نوافذ الموقع الداخلية: لا تستخدم نوافذ المتصفح confirm/prompt/alert -->
@@ -2754,6 +2763,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 </div>
 <button class="tab-btn" id="top-students-tab-btn" onclick="switchTab('top-students-tab', event)" type="button">🏆 الأوائل</button>
 <button class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)" type="button">🗒️ الملاحظات</button>
+<button class="tab-btn" id="wafdeen-time-tab-btn" onclick="switchTab('wafdeen-time-tab', event)" type="button">⏱️ وقت الوافدين</button>
 <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ لوحة الإدارة</button>
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
 <button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصروفات</button>
@@ -2779,7 +2789,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 </div>
 <input id="daySelect" type="text"/>
 <select id="classSelect" onchange="updateStudentListDropdown(); updateFifthGradeFields(this.value);">
-<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
+<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option>
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
@@ -2794,7 +2804,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <div class="form-group">
 <label>الصف الدراسي:</label>
 <select id="dailyClassSelect" onchange="syncDailyClassAndStudents()">
-<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
+<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option>
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
@@ -2886,17 +2896,17 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <div class="form-group fifth-hide-on-class"><label>مقرر الجديد اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="newTopicToday" placeholder="اكتب مقرر الجديد اليوم..." required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الجديد):</label><input id="newPagesCount" placeholder="اكتب عدد الصفحات" required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الجديد الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="newTopicRecited" placeholder="اكتب مقرر الجديد الذي تم تسميعه..." required="" type="text"/></div>
-<div class="form-group fifth-hide-on-class"><label>عدد التسميع (الجديد):</label><select id="newRecitationCount" onchange="updateDailyRecitationGrade('new')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
+<div class="form-group fifth-hide-on-class wafdeen-hide-count"><label>عدد التسميع (الجديد):</label><select id="newRecitationCount" onchange="updateDailyRecitationGrade('new')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 <div class="form-group fifth-hide-on-class"><label>الماضي (10):<span class="daily-score-time" id="oldRevisionTimeLabel"></span></label><input class="daily-grade-input daily-auto-grade" disabled="" id="oldRevision" max="10" min="0" oninput="enforceDailyRecitationGrade('old')" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" readonly="" required="" type="number"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الماضي اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="oldTopicToday" placeholder="اكتب مقرر الماضي اليوم..." required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الماضي):</label><input id="oldPagesCount" placeholder="اكتب عدد الصفحات" required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الماضي الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="oldTopicRecited" placeholder="اكتب مقرر الماضي الذي تم تسميعه..." required="" type="text"/></div>
-<div class="form-group fifth-hide-on-class"><label>عدد التسميع (الماضي):</label><select id="oldRecitationCount" onchange="updateDailyRecitationGrade('old')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
+<div class="form-group fifth-hide-on-class wafdeen-hide-count"><label>عدد التسميع (الماضي):</label><select id="oldRecitationCount" onchange="updateDailyRecitationGrade('old')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 <div class="form-group"><label>التلاوة (10):<span class="daily-score-time" id="recitationTimeLabel"></span></label><input class="daily-grade-input daily-auto-grade" disabled="" id="recitation" max="10" min="0" oninput="enforceDailyRecitationGrade('recitation')" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" readonly="" required="" type="number"/></div>
 <div class="form-group"><label>مقرر التلاوة اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="recitationTopicToday" placeholder="اكتب مقرر التلاوة اليوم..." required="" type="text"/></div>
 <div class="form-group"><label>عدد الصفحات/الأجزاء (التلاوة):</label><input id="recitationPagesCount" placeholder="اكتب عدد الصفحات أو الأجزاء" required="" type="text"/></div>
 <div class="form-group"><label>مقرر التلاوة الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="recitationTopicRecited" placeholder="اكتب مقرر التلاوة الذي تم تسميعه..." required="" type="text"/></div>
-<div class="form-group"><label>عدد التسميع (التلاوة):</label><select id="recitationRecitationCount" onchange="updateDailyRecitationGrade('recitation')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
+<div class="form-group wafdeen-hide-count"><label>عدد التسميع (التلاوة):</label><select id="recitationRecitationCount" onchange="updateDailyRecitationGrade('recitation')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 <div class="form-group"><label>الواجب (10):</label><input id="homework" max="10" min="0" placeholder="0-10" required="" type="number"/></div>
 <div class="form-group"><label>📖 التجويد (10) — يُضاف إلى المجموع:</label><input id="tajweed" max="10" min="0" placeholder="0-10" required="" type="number"/></div>
 </div>
@@ -2978,7 +2988,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <div class="form-group">
 <label>الصف الدراسي:</label>
 <select id="attendanceClassSelect" onchange="renderAttendanceTable()">
-<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option>
+<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option><option value="أولى - أولاد">أولى - أولاد</option>
 <option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option>
 <option value="ثانية - بنات">ثانية - بنات</option>
@@ -3018,7 +3028,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <div class="form-group">
 <label>الصف:</label>
 <select id="weeklyClassSelect" onchange="renderWeeklyTable()">
-<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option>
+<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option><option value="أولى - أولاد">أولى - أولاد</option>
 <option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option>
 <option value="ثانية - بنات">ثانية - بنات</option>
@@ -3083,7 +3093,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <div class="form-group">
 <label>الصف:</label>
 <select id="monthlyClassSelect" onchange="renderMonthlyReport()">
-<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option>
+<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option><option value="أولى - أولاد">أولى - أولاد</option>
 <option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option>
 <option value="ثانية - بنات">ثانية - بنات</option>
@@ -3117,6 +3127,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <!-- 6. تبويب متابعة الصفوف -->
 <div class="tab-content" id="manager-tab">
 <div class="tabs" id="manager-classes-tabs" style="border-bottom: 2px solid var(--manager-color); padding-bottom: 10px; flex-direction: row; overflow-x: auto;">
+<button class="tab-btn" onclick="switchManagerClass('الوافدين', event)" type="button">الوافدين</button>
 <button class="tab-btn manager-active" onclick="switchManagerClass('أولى - أولاد', event)" type="button">أولى - أولاد</button>
 <button class="tab-btn" onclick="switchManagerClass('أولى - بنات', event)" type="button">أولى - بنات</button>
 <button class="tab-btn" onclick="switchManagerClass('ثانية - أولاد', event)" type="button">ثانية - أولاد</button>
@@ -3236,6 +3247,46 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <div class="top-period-title" id="topStudentsPeriodTitle"></div>
 <div class="classes-cards-grid" id="topStudentsClasses"></div>
 </div>
+</div>
+<!-- 7.5 تبويب وقت الوافدين -->
+<div class="tab-content" id="wafdeen-time-tab">
+  <div class="card-view">
+    <h3 class="card-title">⏱️ وقت الوافدين</h3>
+    <p style="font-size:.92em;color:#666;margin-top:-6px;">تقرير أوقات تسميع الوافدين: الجديد والماضي والتلاوة، مع اسم الشيخ والمجموع، وإمكانية تصدير التقرير إلى Excel.</p>
+    <div class="wafdeen-time-period-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
+      <button type="button" class="action-btn btn-save active" id="wafdeen-time-day-btn" onclick="setWafdeenTimePeriod('day')">📅 تقرير اليوم</button>
+      <button type="button" class="action-btn" id="wafdeen-time-week-btn" onclick="setWafdeenTimePeriod('week')">📆 تقرير الأسبوع</button>
+      <button type="button" class="action-btn" id="wafdeen-time-month-btn" onclick="setWafdeenTimePeriod('month')">🗓️ تقرير الشهر</button>
+    </div>
+    <div class="form-grid" style="align-items:end;">
+      <div class="form-group" id="wafdeen-time-day-field">
+        <label>اليوم:</label>
+        <input id="wafdeenTimeDay" type="date" onchange="renderWafdeenTimeReport()">
+      </div>
+      <div class="form-group hidden" id="wafdeen-time-week-field">
+        <label>أي يوم داخل الأسبوع:</label>
+        <input id="wafdeenTimeWeekDate" type="date" onchange="renderWafdeenTimeReport()">
+      </div>
+      <div class="form-group hidden" id="wafdeen-time-month-field">
+        <label>الشهر:</label>
+        <input id="wafdeenTimeMonth" type="month" onchange="renderWafdeenTimeReport()">
+      </div>
+    </div>
+    <div id="wafdeenTimePeriodLabel" style="font-weight:800;color:var(--primary-dark);margin:8px 0 12px;"></div>
+    <div class="btn-group">
+      <button class="action-btn btn-save" type="button" onclick="renderWafdeenTimeReport()">🔄 تحديث التقرير</button>
+      <button class="action-btn btn-export" type="button" onclick="exportWafdeenTimeReportExcel()">📊 تصدير إكسل</button>
+    </div>
+  </div>
+  <div class="card-view">
+    <div class="table-responsive">
+      <table id="wafdeenTimeReportTable">
+        <thead><tr><th>التاريخ</th><th>الطالب</th><th>الشيخ الذي سمع</th><th>وقت الجديد</th><th>وقت الماضي</th><th>وقت التلاوة</th><th>المجموع</th></tr></thead>
+        <tbody id="wafdeenTimeReportBody"></tbody>
+      </table>
+    </div>
+    <div id="wafdeenTimeReportEmpty" style="display:none;text-align:center;color:#777;padding:20px;">لا توجد بيانات وقت للمدة المحددة.</div>
+  </div>
 </div>
 <!-- 7. تبويب الملاحظات -->
 <div class="tab-content" id="notes-tab">
@@ -3474,7 +3525,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <div class="form-group">
 <label>الصف الدراسي:</label>
 <select id="newStudentClass">
-<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option>
+<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option><option value="أولى - أولاد">أولى - أولاد</option>
 <option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option>
 <option value="ثانية - بنات">ثانية - بنات</option>
@@ -3538,7 +3589,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <div class="form-group">
 <label>الصف المسند:</label>
 <select id="newTeacherClass">
-<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option>
+<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option><option value="أولى - أولاد">أولى - أولاد</option>
 <option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option>
 <option value="ثانية - بنات">ثانية - بنات</option>
@@ -3623,7 +3674,7 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <div class="form-group">
 <label>الصف الدراسي:</label>
 <select id="sheikhRegClassSelect" onchange="renderSheikhRegistrationView()">
-<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
+<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option>
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
@@ -3793,6 +3844,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 /* ================= قائمة الصفوف المعتمدة ================= */
 var ALL_CLASSES = [
     "تمهيدي",
+    "الوافدين",
     "أولى - أولاد", "أولى - بنات",
     "ثانية - أولاد", "ثانية - بنات",
     "ثالثة - أولاد", "ثالثة - بنات",
@@ -4534,7 +4586,7 @@ var currentTeacher = null; // جلسة الواجهة الحالية فقط، و
 var isShowingAllDays = false;
 var currentManagerClass = 'أولى - أولاد';
 var nameMapping = {
-    "اولي شارعي": "أولى شرعي", "الصف الأول الشرعي - أولاد": "أولى شرعي", "الصف الأول الشرعي - بنات": "أولى شرعي",
+    "اولي شارعي": "أولى شرعي", "الوافدين": "الوافدين", "الصف الأول الشرعي - أولاد": "أولى شرعي", "الصف الأول الشرعي - بنات": "أولى شرعي",
     "الصف الأول - أولاد": "أولى - أولاد", "الصف الأول - بنات": "أولى - بنات",
     "الصف الثاني - أولاد": "ثانية - أولاد", "الصف الثاني - بنات": "ثانية - بنات",
     "الصف الثالث - أولاد": "ثالثة - أولاد", "الصف الثالث - بنات": "ثالثة - بنات",
@@ -6009,9 +6061,59 @@ function renderStudentDataAnalysis() {
     renderAnalysisComparison(className, currentRecords, previousRecords);
     renderAnalysisCharts(studentName, className, weekKey);
 }
+
+/* ================= تقرير وقت الوافدين ================= */
+var wafdeenTimeReportPeriod = 'day';
+var wafdeenTimeReportRows = [];
+function wafdeenTimePad2_(n){ return String(n).padStart(2,'0'); }
+function wafdeenTimeToday_(){ var d=new Date(); return d.getFullYear()+'-'+wafdeenTimePad2_(d.getMonth()+1)+'-'+wafdeenTimePad2_(d.getDate()); }
+function wafdeenTimeMonth_(){ var d=new Date(); return d.getFullYear()+'-'+wafdeenTimePad2_(d.getMonth()+1); }
+function wafdeenTimeFormatSeconds_(sec){ sec=Math.max(0,Math.floor(Number(sec)||0)); var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60; return [h,m,s].map(function(v){return String(v).padStart(2,'0');}).join(':'); }
+function wafdeenTimeDateObj_(iso){ var p=String(iso||'').slice(0,10).split('-'); if(p.length!==3) return null; var d=new Date(Number(p[0]),Number(p[1])-1,Number(p[2])); return isNaN(d.getTime())?null:d; }
+function wafdeenTimeWeekRange_(iso){ var d=wafdeenTimeDateObj_(iso)||new Date(), day=d.getDay(); var diff=(day+6)%7; var start=new Date(d); start.setDate(d.getDate()-diff); var end=new Date(start); end.setDate(start.getDate()+6); var fmt=function(x){return x.getFullYear()+'-'+wafdeenTimePad2_(x.getMonth()+1)+'-'+wafdeenTimePad2_(x.getDate());}; return [fmt(start),fmt(end)]; }
+function setWafdeenTimePeriod(period){
+  wafdeenTimeReportPeriod=period;
+  ['day','week','month'].forEach(function(k){var b=document.getElementById('wafdeen-time-'+k+'-btn'); if(b) b.classList.toggle('active',k===period); var f=document.getElementById('wafdeen-time-'+k+'-field'); if(f) f.classList.toggle('hidden',k!==period);});
+  var day=document.getElementById('wafdeenTimeDay'), week=document.getElementById('wafdeenTimeWeekDate'), month=document.getElementById('wafdeenTimeMonth');
+  if(day && !day.value) day.value=wafdeenTimeToday_();
+  if(week && !week.value) week.value=wafdeenTimeToday_();
+  if(month && !month.value) month.value=wafdeenTimeMonth_();
+  renderWafdeenTimeReport();
+}
+function getWafdeenTimeReportRange_(){
+  if(wafdeenTimeReportPeriod==='week') return wafdeenTimeWeekRange_(document.getElementById('wafdeenTimeWeekDate')?.value||wafdeenTimeToday_());
+  if(wafdeenTimeReportPeriod==='month'){ var v=document.getElementById('wafdeenTimeMonth')?.value||wafdeenTimeMonth_(); return [v+'-01',v+'-31']; }
+  var d=document.getElementById('wafdeenTimeDay')?.value||wafdeenTimeToday_(); return [d,d];
+}
+function renderWafdeenTimeReport(){
+  var range=getWafdeenTimeReportRange_(), start=range[0], end=range[1];
+  var label=document.getElementById('wafdeenTimePeriodLabel');
+  if(label){ label.textContent=wafdeenTimeReportPeriod==='day'?'تقرير يوم '+start:wafdeenTimeReportPeriod==='week'?'تقرير الأسبوع من '+start+' إلى '+end:'تقرير شهر '+start.slice(0,7); }
+  var map={};
+  (Array.isArray(wafdeenDailyRecords)?wafdeenDailyRecords:[]).filter(function(r){
+    if(r && r._deleted) return false; var d=String(r.dateISO||'').slice(0,10); return d>=start && d<=end && (Number(r.newLessonTimeSeconds)||0)+(Number(r.oldRevisionTimeSeconds)||0)+(Number(r.recitationTimeSeconds)||0)>0;
+  }).forEach(function(r){
+    var student=String(r.studentName||'بدون اسم'), teacher=String(r.teacherName||r.teacherUsername||'غير محدد');
+    var key=student+'||'+teacher;
+    if(!map[key]) map[key]={studentName:student,teacherName:teacher,newTime:0,oldTime:0,recitationTime:0,dates:[]};
+    map[key].newTime+=Number(r.newLessonTimeSeconds)||0; map[key].oldTime+=Number(r.oldRevisionTimeSeconds)||0; map[key].recitationTime+=Number(r.recitationTimeSeconds)||0;
+    if(r.dateISO) map[key].dates.push(String(r.dateISO).slice(0,10));
+  });
+  wafdeenTimeReportRows=Object.keys(map).map(function(k){var x=map[k]; x.total=x.newTime+x.oldTime+x.recitationTime; x.dateLabel=wafdeenTimeReportPeriod==='day'?(x.dates[0]||start):(x.dates.length?x.dates.slice().sort()[0]+' → '+x.dates.slice().sort()[x.dates.length-1]:start); return x;}).sort(function(a,b){return a.studentName.localeCompare(b.studentName,'ar');});
+  var body=document.getElementById('wafdeenTimeReportBody'), empty=document.getElementById('wafdeenTimeReportEmpty'); if(!body)return;
+  body.innerHTML=wafdeenTimeReportRows.map(function(x){return '<tr><td>'+escapeHtml(x.dateLabel)+'</td><td><strong>'+escapeHtml(x.studentName)+'</strong></td><td>'+escapeHtml(x.teacherName)+'</td><td>'+wafdeenTimeFormatSeconds_(x.newTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.oldTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.recitationTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.total)+'</td></tr>';}).join('');
+  if(empty) empty.style.display=wafdeenTimeReportRows.length?'none':'block';
+}
+function exportWafdeenTimeReportExcel(){
+  if(!wafdeenTimeReportRows.length){renderWafdeenTimeReport();}
+  if(!wafdeenTimeReportRows.length) return showMessage('wafdeen-save-msg','لا توجد بيانات وقت لتصديرها','error');
+  var data=wafdeenTimeReportRows.map(function(x){return {'التاريخ':x.dateLabel,'الطالب':x.studentName,'الشيخ الذي سمع':x.teacherName,'وقت الجديد':wafdeenTimeFormatSeconds_(x.newTime),'وقت الماضي':wafdeenTimeFormatSeconds_(x.oldTime),'وقت التلاوة':wafdeenTimeFormatSeconds_(x.recitationTime),'المجموع':wafdeenTimeFormatSeconds_(x.total)};});
+  try{var ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'وقت الوافدين'); var range=getWafdeenTimeReportRange_(); var suffix=wafdeenTimeReportPeriod==='day'?range[0]:wafdeenTimeReportPeriod==='week'?range[0]+'_الى_'+range[1]:range[0].slice(0,7); XLSX.writeFile(wb,'تقرير_وقت_الوافدين_'+suffix+'.xlsx');}catch(e){showMessage('wafdeen-save-msg','تعذر تصدير تقرير وقت الوافدين: '+(e.message||e),'error');}
+}
+
 function switchTab(tabId, event) {
     // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، الأوائل، المصروفات، ومقرر الدفع.
-    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab'].includes(tabId)) {
+    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab', 'wafdeen-time-tab'].includes(tabId)) {
         tabId = 'status-tab';
     }
     if (tabId !== 'admin-tab') {
@@ -6048,6 +6150,7 @@ function switchTab(tabId, event) {
         renderManagerView();
     else if (tabId === 'top-students-tab')
         renderTopStudents();
+    else if (tabId === 'wafdeen-time-tab') { setWafdeenTimePeriod(wafdeenTimeReportPeriod || 'day'); }
     else if (tabId === 'notes-tab') {
         populateNotesClasses();
         updateNotesStudentList();
@@ -6150,6 +6253,7 @@ function renderSheikhRegistrationView() {
    ============================================================ */
 function getSheikhRegistrationClassOrder_() {
     return [
+        'الوافدين',
         'أولى - أولاد',
         'أولى - بنات',
         'ثانية - أولاد',
@@ -6369,7 +6473,16 @@ function getDailyMax(className) {
 }
 function updateFifthGradeFields(className) {
     var fifth = isFifthClass(className);
+    var wafdeen = String(className || '').trim() === 'الوافدين';
     document.body.classList.toggle('fifth-selected', fifth);
+    document.body.classList.toggle('wafdeen-selected', wafdeen);
+    // في فصل الوافدين لا نعرض عدد مرات التسميع، وتُستخدم القيمة الافتراضية مرة واحدة داخليًا.
+    if (wafdeen) {
+        ['newRecitationCount','oldRecitationCount','recitationRecitationCount'].forEach(function(id){
+            var el=document.getElementById(id);
+            if(el) el.value='1';
+        });
+    }
     var saveBtn = document.querySelector('#daily-tab .daily-scores-card .btn-save');
     if (saveBtn)
         saveBtn.innerText = "\uD83D\uDCBE \u062D\u0641\u0638 \u0627\u0644\u062F\u0631\u062C\u0627\u062A \u0648\u0627\u0644\u0648\u0642\u062A (\u0645\u0646 ".concat(getDailyMax(className), ")");
@@ -6489,6 +6602,8 @@ var dailyTimerStartedAt = 0;
 var dailyTimerBaseSeconds = 0;
 var dailyTimerInterval = null;
 var dailyTimerSeconds = { new: 0, old: 0, recitation: 0 };
+var dailyActiveStudentKey_ = '';
+var dailyTimerDrafts_ = {};
 var dailyErrorCounters = {
     new: { errors: 0, tashkeel: 0, repetition: 0 },
     old: { errors: 0, tashkeel: 0, repetition: 0 },
@@ -6558,6 +6673,7 @@ function selectDailyTimerType(type) {
     }
     dailyTimerType = type;
     dailyCounterType = type;
+    dailySaveTimerDraft_();
     dailySelectedGradeType = type;
     document.querySelectorAll('.daily-type-btn').forEach(function (btn) { return btn.classList.toggle('active', btn.dataset.type === type); });
     dailyTimerBaseSeconds = dailyTimerSeconds[type] || 0;
@@ -6722,6 +6838,45 @@ function dailyLoadCountersFromRecord(record) {
         }
     };
 }
+function dailyTimerStudentKey_() {
+    var student = (document.getElementById('studentNameSelect') || {}).value || '';
+    var date = (document.getElementById('recordDate') || {}).value || '';
+    return String(student) + '|' + String(date);
+}
+function dailySaveTimerDraft_() {
+    try {
+        var key = dailyActiveStudentKey_ || dailyTimerStudentKey_();
+        if (!key) return;
+        dailyTimerDrafts_[key] = {
+            new: Number(dailyTimerSeconds.new || 0),
+            old: Number(dailyTimerSeconds.old || 0),
+            recitation: Number(dailyTimerSeconds.recitation || 0),
+            type: dailyTimerType || 'new',
+            counterType: dailyCounterType || dailyTimerType || ''
+        };
+        memoryStorage.setItem('dailyTimerDrafts', JSON.stringify(dailyTimerDrafts_));
+    } catch (_) {}
+}
+function dailyLoadTimerDraft_(key) {
+    try {
+        if (!dailyTimerDrafts_ || !Object.keys(dailyTimerDrafts_).length)
+            dailyTimerDrafts_ = JSON.parse(memoryStorage.getItem('dailyTimerDrafts') || '{}') || {};
+        return dailyTimerDrafts_[key] || null;
+    } catch (_) { return null; }
+}
+function dailyPauseForStudentSwitch_() {
+    if (!dailyActiveStudentKey_) return;
+    if (dailyTimerRunning) {
+        var elapsed = getCurrentTimerElapsed();
+        dailyTimerSeconds[dailyTimerType] = elapsed;
+        dailyTimerBaseSeconds = elapsed;
+        dailyTimerRunning = false;
+        dailyTimerStartedAt = 0;
+        clearInterval(dailyTimerInterval);
+        dailyTimerInterval = null;
+    }
+    dailySaveTimerDraft_();
+}
 function showDailyStudentWorkspace() {
     var _a;
     try {
@@ -6729,6 +6884,11 @@ function showDailyStudentWorkspace() {
     }
     catch (_) { }
     var student = (_a = document.getElementById('studentNameSelect')) === null || _a === void 0 ? void 0 : _a.value;
+    var nextKey = dailyTimerStudentKey_();
+    // عند الانتقال لطالب آخر: أوقف المؤقت تلقائيًا كـ«استراحة» واحفظ زمن الطالب السابق.
+    if (dailyActiveStudentKey_ && nextKey !== dailyActiveStudentKey_) {
+        dailyPauseForStudentSwitch_();
+    }
     var ws = document.getElementById('daily-workspace');
     if (!student) {
         if (ws)
@@ -6742,21 +6902,28 @@ function showDailyStudentWorkspace() {
     var classInfo = document.getElementById('dailyStudentClass');
     if (classInfo)
         classInfo.textContent = (selectedStudent === null || selectedStudent === void 0 ? void 0 : selectedStudent.className) ? "\u2014 \u0627\u0644\u0635\u0641: ".concat(selectedStudent.className) : '';
-    dailyTimerType = 'new';
-    dailyCounterType = '';
-    dailyTimerRunning = false;
-    dailyTimerStartedAt = 0;
-    dailyTimerBaseSeconds = 0;
-    dailyResetCounters();
-    clearInterval(dailyTimerInterval);
-    dailyTimerInterval = null;
     var existing = getSelectedDailyRecord();
-    dailyTimerSeconds = {
+    var draft = dailyLoadTimerDraft_(nextKey);
+    var savedTimes = {
         new: Number((existing === null || existing === void 0 ? void 0 : existing.newLessonTimeSeconds) || 0),
         old: Number((existing === null || existing === void 0 ? void 0 : existing.oldRevisionTimeSeconds) || 0),
         recitation: Number((existing === null || existing === void 0 ? void 0 : existing.recitationTimeSeconds) || 0)
     };
-    dailyTimerBaseSeconds = dailyTimerSeconds.new;
+    // استرجاع أي وقت غير محفوظ سابقًا لهذا الطالب، مع الاحتفاظ بالأعلى بين المحفوظ والمسودة.
+    dailyTimerSeconds = {
+        new: Math.max(savedTimes.new, Number((draft === null || draft === void 0 ? void 0 : draft.new) || 0)),
+        old: Math.max(savedTimes.old, Number((draft === null || draft === void 0 ? void 0 : draft.old) || 0)),
+        recitation: Math.max(savedTimes.recitation, Number((draft === null || draft === void 0 ? void 0 : draft.recitation) || 0))
+    };
+    dailyTimerType = (draft && ['new','old','recitation'].includes(draft.type)) ? draft.type : 'new';
+    dailyCounterType = draft && draft.counterType ? draft.counterType : '';
+    dailyTimerRunning = false;
+    dailyTimerStartedAt = 0;
+    dailyTimerBaseSeconds = dailyTimerSeconds[dailyTimerType] || 0;
+    dailyResetCounters();
+    clearInterval(dailyTimerInterval);
+    dailyTimerInterval = null;
+    dailyActiveStudentKey_ = nextKey;
     resetDailyExtraFieldsFromRecord(existing || {});
     dailyLoadCountersFromRecord(existing || {});
     dailyRenderCounters();
@@ -6777,7 +6944,22 @@ function startDailyTimer() {
     dailyTimerInterval = setInterval(renderDailyTimer, 1000);
     renderDailyTimer();
 }
+function wafdeenKeepDailyScroll_() {
+    // الحفاظ على موضع الرصد اليومي عند الحفظ أو الاستراحة، حتى لا تقفز الصفحة إلى بدايتها.
+    var y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    var activeId = document.activeElement && document.activeElement.id ? document.activeElement.id : '';
+    var restore = function () {
+        try { window.scrollTo(0, y); } catch (_) {}
+        if (activeId) {
+            var el = document.getElementById(activeId);
+            if (el && document.activeElement !== el) { try { el.focus({ preventScroll: true }); } catch (_) { try { el.focus(); } catch (__){ } } }
+        }
+    };
+    restore();
+    [0, 50, 150, 350, 700, 1200].forEach(function (ms) { setTimeout(restore, ms); });
+}
 function pauseDailyTimer() {
+    wafdeenKeepDailyScroll_();
     if (!dailyTimerRunning)
         return;
     dailyTimerBaseSeconds += Math.floor((Date.now() - dailyTimerStartedAt) / 1000);
@@ -6785,6 +6967,7 @@ function pauseDailyTimer() {
     dailyTimerRunning = false;
     clearInterval(dailyTimerInterval);
     dailyTimerInterval = null;
+    dailySaveTimerDraft_();
     try { flushCloudRenderQueue_(); } catch (_) {}
             try { wafdeenFlushLocalPersist_(); } catch (_) {}
     updateDailyTypeTimes();
@@ -7097,6 +7280,7 @@ function recordAbsenceTime() {
     showMessage('app-msg', "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u063A\u064A\u0627\u0628 \u0627\u0644\u0637\u0627\u0644\u0628 \u2014 \u0627\u0644\u0648\u0642\u062A: ".concat(zeroTime), 'success');
 }
 function addGrade() {
+    wafdeenKeepDailyScroll_();
     return __awaiter(this, arguments, void 0, function (forceAbsent) {
         var className, dateISO, dayName, studentName, type, label, record, timerBox, val, num, countId, gradeId, topicTodayId, pagesId, topicRecitedId, count, grade, limit, now, existing, seconds, timeKey, ec, prefix, commonPatch, typeFields, e_27, idx;
         var _a;
@@ -7409,15 +7593,21 @@ function wafdeenShowMissingFields_(items) {
 function wafdeenValidateDailyRequiredFields_() {
     var _a, _b;
     wafdeenClearMissingMarks_();
-    var fifth = isFifthClass(((_a = document.getElementById('classSelect')) === null || _a === void 0 ? void 0 : _a.value) || '');
+    var selectedClass = (((_a = document.getElementById('classSelect')) === null || _a === void 0 ? void 0 : _a.value) || '');
+    var fifth = isFifthClass(selectedClass);
+    var wafdeen = String(selectedClass).trim() === 'الوافدين';
     var attendance = Number((_b = document.getElementById('attendance')) === null || _b === void 0 ? void 0 : _b.value);
     var isAbsent = attendance === 0;
     var required = ['attendance', 'behavior', 'tajweed', 'homework', 'recitationTopicToday', 'recitationTopicRecited'];
     // في حالة الغياب: الصفر ومقررات الغياب يكفيان، ولا نطلب صفحات/مرات/وقت تسميع.
     if (!isAbsent) {
-        required.push('recitationPagesCount', 'recitationRecitationCount');
+        required.push('recitationPagesCount');
+        if (!wafdeen)
+            required.push('recitationRecitationCount');
         if (!fifth)
-            required.push('newLesson', 'newTopicToday', 'newPagesCount', 'newRecitationCount', 'newTopicRecited', 'oldRevision', 'oldTopicToday', 'oldPagesCount', 'oldRecitationCount', 'oldTopicRecited');
+            required.push('newLesson', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'oldRevision', 'oldTopicToday', 'oldPagesCount', 'oldTopicRecited');
+        if (!wafdeen && !fifth)
+            required.push('newRecitationCount', 'oldRecitationCount');
     }
     var missing = required.filter(function (id) { var el = document.getElementById(id); return !el || wafdeenIsMissingValue_(el.value); });
     // الوقت جزء من الرصد، ويظهر باللون الأحمر إذا لم يسجل. لا يلزم للغائب.
@@ -11230,6 +11420,7 @@ function wafdeenQuranMarkMissing_(id, missing) { var el = document.getElementByI
     el.classList.toggle('field-missing', !!missing); if (group)
     group.classList.toggle('field-missing-group', !!missing); }
 function wafdeenSaveGradeType(type) {
+    wafdeenKeepDailyScroll_();
     return __awaiter(this, void 0, void 0, function () {
         var studentId, seconds, pagesId, topicId, missing, student, dateISO, record, hadRecord, val, c, score, timeKey, idx, cloudCommon, cloudType, usage, e_3, resetMap;
         var _a, _b, _c, _d;
@@ -13508,6 +13699,146 @@ window.__WAFDEEN_STANDALONE__ = false;
   contain:layout style;
 }
 </style>
+
+<!-- تعديل فصل الوافدين: نظام درجات مستقل من 30 + استبعاد المصروفات والملاحظات -->
+<style id="wafdeen-30-rules">
+  .wafdeen-grade-hidden{display:none!important}
+  body.wafdeen-selected #gradesTable th:nth-child(5),
+  body.wafdeen-selected #gradesTable td:nth-child(5),
+  body.wafdeen-selected #gradesTable th:nth-child(6),
+  body.wafdeen-selected #gradesTable td:nth-child(6),
+  body.wafdeen-selected #gradesTable th:nth-child(16),
+  body.wafdeen-selected #gradesTable td:nth-child(16),
+  body.wafdeen-selected #gradesTable th:nth-child(17),
+  body.wafdeen-selected #gradesTable td:nth-child(17){display:none!important}
+  body.wafdeen-report-selected #weeklyTable th:nth-child(9),
+  body.wafdeen-report-selected #weeklyTable td:nth-child(9),
+  body.wafdeen-report-selected #weeklyTable th:nth-child(10),
+  body.wafdeen-report-selected #weeklyTable td:nth-child(10),
+  body.wafdeen-report-selected #mgrDailyTable th:nth-child(4),
+  body.wafdeen-report-selected #mgrDailyTable td:nth-child(4),
+  body.wafdeen-report-selected #mgrDailyTable th:nth-child(5),
+  body.wafdeen-report-selected #mgrDailyTable td:nth-child(5),
+  body.wafdeen-report-selected #mgrDailyTable th:nth-child(12),
+  body.wafdeen-report-selected #mgrDailyTable td:nth-child(12),
+  body.wafdeen-report-selected #mgrDailyTable th:nth-child(13),
+  body.wafdeen-report-selected #mgrDailyTable td:nth-child(13){display:none!important}
+  body.wafdeen-report-selected #monthlyReportTable th:nth-last-child(6),
+  body.wafdeen-report-selected #monthlyReportTable td:nth-last-child(6),
+  body.wafdeen-report-selected #monthlyReportTable th:nth-last-child(3),
+  body.wafdeen-report-selected #monthlyReportTable td:nth-last-child(3),
+  body.wafdeen-report-selected #monthlyReportTable th:nth-last-child(2),
+  body.wafdeen-report-selected #monthlyReportTable td:nth-last-child(2),
+  body.wafdeen-report-selected #mgrMonthlyTable th:nth-last-child(4),
+  body.wafdeen-report-selected #mgrMonthlyTable td:nth-last-child(4){display:none!important}
+</style>
+<script>
+(function(){
+  'use strict';
+  var W='الوافدين';
+  function isWafdeen(c){ return String(c||'')===W; }
+  function getClassValue(id){ var e=document.getElementById(id); return e?e.value:''; }
+  function markGroupByInput(id, hidden){
+    var el=document.getElementById(id); if(!el) return;
+    var g=el.closest('.form-group'); if(!g) return;
+    g.classList.toggle('wafdeen-grade-hidden', !!hidden);
+  }
+  function applyDailyWafdeenUI(className){
+    var on=isWafdeen(className);
+    document.body.classList.toggle('wafdeen-selected',on);
+    ['attendance','behavior','homework','tajweed'].forEach(function(id){
+      markGroupByInput(id,on);
+      if(on){ var e=document.getElementById(id); if(e) e.value=0; }
+    });
+    var grid=document.getElementById('daily-behavior-grid');
+    if(on && grid) grid.innerHTML='';
+    var saveBtn=document.querySelector('#daily-tab .daily-scores-card .btn-save');
+    if(saveBtn) saveBtn.innerText='💾 حفظ الدرجات والوقت (من '+(on?30:getDailyMax(className))+')';
+    var th=document.querySelector('#gradesTable th:nth-child(18)');
+    if(th) th.textContent='المجموع (من '+(on?30:getDailyMax(className))+')';
+  }
+  function applyWafdeenReportUI(){
+    var weekly=isWafdeen(getClassValue('weeklyClassSelect'));
+    var monthly=isWafdeen(getClassValue('monthlyClassSelect'));
+    var manager=isWafdeen(window.currentManagerClass);
+    var on=weekly||monthly||manager;
+    document.body.classList.toggle('wafdeen-report-selected',on);
+    if(weekly){
+      var wh=document.querySelectorAll('#weeklyTable thead th');
+      if(wh.length>=10){ wh[1].textContent='الأحد (30)'; wh[2].textContent='الاثنين (30)'; wh[3].textContent='الثلاثاء (30)'; wh[4].textContent='الأربعاء (30)'; wh[5].textContent='الخميس (30)'; wh[6].textContent='مجموع الأسبوع (من 150)'; wh[7].textContent='متوسط الأسبوع (من 30)'; }
+    }
+    if(monthly){
+      var mh=document.querySelectorAll('#monthlyReportTable thead th');
+      if(mh.length>=6){
+        mh[mh.length-6] && (mh[mh.length-6].textContent='أيام التسجيل');
+        mh[mh.length-5] && (mh[mh.length-5].textContent='مجموع الشهر');
+        mh[mh.length-4] && (mh[mh.length-4].textContent='متوسط الشهر (من 30)');
+      }
+    }
+    if(manager){
+      var mwh=document.querySelectorAll('#mgrWeeklyTable thead th');
+      if(mwh.length>=9){
+        mwh[mwh.length-1].textContent='متوسط/نسبة الحضور';
+      }
+      var mmh=document.querySelectorAll('#mgrMonthlyTable thead th');
+      if(mmh.length>=4) mmh[mmh.length-3].textContent='مجموع الشهر';
+    }
+  }
+  function stripWafdeenFromSelect(id){
+    var sel=document.getElementById(id); if(!sel) return;
+    Array.from(sel.options||[]).forEach(function(o){ if(isWafdeen(o.value)) o.remove(); });
+    if(sel.value===W && sel.options.length) sel.selectedIndex=0;
+  }
+  function applyExcludedBusinessClasses(){
+    ['paymentsClassSelect','paymentReportClassSelect','notesClassSelect'].forEach(stripWafdeenFromSelect);
+  }
+
+  var oldGetDailyMax=window.getDailyMax;
+  window.getDailyMax=function(className){ return isWafdeen(className)?30:oldGetDailyMax(className); };
+  var oldGetDailyTotal=window.getDailyTotal;
+  window.getDailyTotal=function(record){
+    if(record && isWafdeen(record.className)) return (Number(record.newLesson)||0)+(Number(record.oldRevision)||0)+(Number(record.recitation)||0);
+    return oldGetDailyTotal(record);
+  };
+
+  var oldUpdateFifth=window.updateFifthGradeFields;
+  window.updateFifthGradeFields=function(className){
+    oldUpdateFifth(className);
+    applyDailyWafdeenUI(className);
+  };
+
+  ['renderDailyTable','renderWeeklyTable','renderMonthlyReport','renderManagerView'].forEach(function(name){
+    if(typeof window[name]!=='function') return;
+    var old=window[name];
+    window[name]=function(){
+      var result=old.apply(this,arguments);
+      if(name==='renderDailyTable') applyDailyWafdeenUI(getClassValue('classSelect'));
+      applyWafdeenReportUI();
+      return result;
+    };
+  });
+
+  ['populatePaymentsClasses','populatePaymentReportClasses','populateNotesClasses'].forEach(function(name){
+    if(typeof window[name]!=='function') return;
+    var old=window[name];
+    window[name]=function(){ var r=old.apply(this,arguments); applyExcludedBusinessClasses(); return r; };
+  });
+  if(typeof window.ensureAllClassSelects_==='function'){
+    var oldEnsure=window.ensureAllClassSelects_;
+    window.ensureAllClassSelects_=function(){ var r=oldEnsure.apply(this,arguments); applyExcludedBusinessClasses(); return r; };
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    applyDailyWafdeenUI(getClassValue('classSelect'));
+    applyWafdeenReportUI();
+    applyExcludedBusinessClasses();
+    ['weeklyClassSelect','monthlyClassSelect'].forEach(function(id){
+      var e=document.getElementById(id); if(e) e.addEventListener('change',applyWafdeenReportUI);
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
 <script>var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
