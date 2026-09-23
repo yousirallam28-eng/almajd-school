@@ -13779,10 +13779,45 @@ if (typeof window.wafdeenMonthlyImportedReports === 'undefined')
       if(!ok) return;
       var name=norm(document.getElementById('v9StudentName').value), cls=document.getElementById('v9StudentClass').value;
       if(!name || !cls) throw new Error('يرجى إدخال الاسم واختيار الصف');
+      var oldName=String(st.name||'');
       var saved=await updateVerified_('students',id,{name:name,className:cls});
+
+      /* الحفاظ على الدرجات عند تغيير اسم الطالب:
+         السجلات القديمة في بعض الإصدارات كانت مرتبطة بالاسم، لذلك نحدّث
+         studentName داخل نفس سجل الدرجة بدل إنشاء سجلات جديدة أو حذف القديمة.
+         ونضيف studentId للسجلات التي لا تحتوي عليه حتى يصبح الربط بالمعرّف ثابتًا. */
+      var affectedGradeRecords=dailyRecords.filter(function(r){
+        return String(r.studentId||'')===String(id) ||
+          (String(r.studentName||'')===oldName && (!r.className || String(r.className)===String(st.className||'')));
+      });
+      if(affectedGradeRecords.length){
+        var updatedGradeRecords=affectedGradeRecords.map(function(r){
+          var changes={studentName:name,studentId:String(id)};
+          if(cls) changes.className=cls;
+          return {record:r,changes:changes};
+        });
+        updatedGradeRecords.forEach(function(item){
+          var ri=dailyRecords.findIndex(function(x){return String(x.id)===String(item.record.id);});
+          if(ri>-1) dailyRecords[ri]=Object.assign({},dailyRecords[ri],item.changes);
+        });
+        memoryStorage.setItem('dailyRecords',JSON.stringify(dailyRecords));
+        if(useFirebase && db){
+          for(var start=0;start<updatedGradeRecords.length;start+=400){
+            var batch=db.batch();
+            var part=updatedGradeRecords.slice(start,start+400);
+            part.forEach(function(item){
+              batch.set(db.collection('dailyRecords').doc(String(item.record.id)),item.changes,{merge:true});
+            });
+            await batch.commit();
+          }
+        }
+      }
+
+      /* نحدّث بيانات الطالب محليًا بعد نجاح ترحيل الدرجات */
       var idx=studentsData.findIndex(function(x){return String(x.id)===String(st.id);}); if(idx>-1) studentsData[idx]=Object.assign({},studentsData[idx],saved);
       refreshStudents_();
-      showMessage('app-msg','تم تعديل الطالب وحفظ التعديل في Firebase والتحقق منه ✅','success');
+      try{populateWeeks();renderDailyTable();renderAttendanceTable();renderWeeklyTable();renderMonthlyReport();renderManagerView();renderClassStatusTable();}catch(e){}
+      showMessage('app-msg',affectedGradeRecords.length ? 'تم تعديل اسم الطالب مع الحفاظ على جميع درجاته السابقة ✅' : 'تم تعديل الطالب وحفظ التعديل في Firebase والتحقق منه ✅','success');
     }catch(e){ console.error('V9 editStudent',e); showSiteError('تعذر حفظ تعديل الطالب في Firebase: '+(e.message||e)); }
   };
 
