@@ -1477,6 +1477,12 @@ body.wafdeen-selected .wafdeen-hide-count { display: none !important; }
 @media(max-width:650px){.behavior-reason-grid{grid-template-columns:1fr;}}
 
 .daily-hidden-field{display:none!important;}
+/* صلاحية إظهار اختيار تاريخ الرصد للشيخ تُدار من لوحة الإدارة. */
+/* الواجهة القديمة تبقى مخفية دائمًا؛ V10 هي الواجهة الوحيدة التي قد تظهر عند السماح. */
+body.record-date-nav-allowed #filterDateDaily,
+body.record-date-nav-allowed #togglePreviousBtn{display:block!important;}
+body:not(.record-date-nav-allowed) #filterDateDaily,
+body:not(.record-date-nav-allowed) #togglePreviousBtn{display:none!important;}
 @media(max-width:600px){
   .daily-type-grid,.daily-timer-actions{grid-template-columns:1fr;}
   .daily-timer-display{font-size:2.5em;}
@@ -3661,6 +3667,12 @@ body.sharia-teacher #payment-report-tab-btn { display:none!important; }
 </div>
 <button class="action-btn btn-save" onclick="addTeacher()" type="button">+ حفظ المعلم / المعلمة</button>
 </div>
+<div class="card-view" style="border-top:4px solid var(--primary-color); margin-bottom:22px;">
+<h3 class="card-title">✏️ إمكانية التعديل</h3>
+<p style="font-size:.88em;color:#666;line-height:1.8;margin-top:-6px;">من هنا تحدد الفصول التي يُسمح لها بإظهار خانة تاريخ الرصد واختيار تاريخ سابق. إذا لم تسمح للفصل، سيظهر للمعلم اليوم الحالي فقط.</p>
+<div id="dailyDateEditPermissions" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px;"></div>
+<div class="toast-msg" id="daily-date-permission-msg"></div>
+</div>
 <div style="background: #fffdf8; padding: 18px; border-radius: 12px; margin-bottom: 22px; border: 1px solid var(--accent-gold-light); border-top: 4px solid var(--accent-gold);">
 <h3 style="margin-top: 0; color: var(--accent-gold-dark); font-size: 1.15em; font-family:'Amiri', serif;">📦 النسخ الاحتياطي الشامل (إيميل وحفظ ملف)</h3>
 <p style="font-size:0.88em; color:#666; margin-bottom:12px;">نسخة شاملة لكل بيانات الدرجات والمعلمين والطلاب مرتبة ومزامنة.</p>
@@ -4794,11 +4806,18 @@ function initCurrentDate() {
     updateDayOfWeek();
 }
 function changeDailyRecordDate(delta) {
+    if (!isDailyDateEditAllowedForClass_((document.getElementById('dailyClassSelect') || {}).value || (currentTeacher && currentTeacher.assignedClass)) && Number(delta) !== 0) {
+        var inputToday = document.getElementById('recordDate');
+        if (inputToday) inputToday.value = getISODateOnly(new Date());
+        return;
+    }
     var input = document.getElementById('recordDate');
     if (!input)
         return;
     if (delta === 0) {
-        if (!input.value) {
+        if (!isDailyDateEditAllowedForClass_((document.getElementById('dailyClassSelect') || {}).value || (currentTeacher && currentTeacher.assignedClass))) {
+            input.value = getISODateOnly(new Date());
+        } else if (!input.value) {
             var today = getISODateOnly(new Date());
             input.value = today;
         }
@@ -4853,6 +4872,14 @@ function updateDayOfWeek() {
     }
 }
 function togglePreviousRecords() {
+    if (!isDailyDateEditAllowedForClass_((document.getElementById('dailyClassSelect') || {}).value || (currentTeacher && currentTeacher.assignedClass))) {
+        isShowingAllDays = false;
+        var onlyToday = getISODateOnly(new Date());
+        var onlyTodayInput = document.getElementById('filterDateDaily');
+        if (onlyTodayInput) onlyTodayInput.value = onlyToday;
+        renderDailyTable();
+        return;
+    }
     isShowingAllDays = !isShowingAllDays;
     var filterDateInput = document.getElementById('filterDateDaily');
     var todayDate = document.getElementById('recordDate').value;
@@ -4920,6 +4947,7 @@ function syncDailyClassAndStudents() {
     if (!visible || !hidden)
         return;
     hidden.value = visible.value;
+    applyDailyDateEditPermission_();
     updateStudentListDropdown();
     updateFifthGradeFields(visible.value);
 }
@@ -5313,10 +5341,14 @@ function getFirebaseSyncStatus_() {
 function syncDataFromCloud() {
     if (!useFirebase || !db)
         return;
-    syncCollection_('teachers', function () { return teachersData; }, function (v) { teachersData = v; }, function () { if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.username) === 'admin') {
-        renderTeachersTable();
-        renderClassCards();
-    } }, { storageKey: 'teachersData' });
+    syncCollection_('teachers', function () { return teachersData; }, function (v) { teachersData = v; }, function () {
+        if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.username) === 'admin') {
+            renderTeachersTable();
+            renderClassCards();
+            renderDailyDateEditPermissions_();
+        }
+        applyDailyDateEditPermission_();
+    }, { storageKey: 'teachersData' });
     syncCollection_('students', function () { return studentsData; }, function (v) { studentsData = ensureStudentLoginCodes(v); }, function () {
         if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.username) === 'admin') {
             renderStudentsTable();
@@ -5547,6 +5579,76 @@ function applyShariaTeacherVisibility_(){
   document.body.classList.toggle('sharia-teacher',isShariaTeacher);
   var btn=document.getElementById('sharia-grades-tab-btn'); if(btn) btn.classList.remove('hidden');
 }
+function getDailyDateEditPermissions_() {
+    var adminTeacher = (teachersData || []).find(function (t) { return t && String(t.username || '').trim() === 'admin' && !t._deleted; });
+    var raw = adminTeacher && adminTeacher.dailyDateEditPermissions;
+    var result = {};
+    if (raw && typeof raw === 'object') {
+        Object.keys(raw).forEach(function (k) { result[k] = raw[k] === true; });
+    }
+    return result;
+}
+function isDailyDateEditAllowedForClass_(className) {
+    if (!className) return false;
+    if (currentTeacher && (currentTeacher.username === 'admin' || currentTeacher.assignedClass === 'الكل')) return true;
+    return getDailyDateEditPermissions_()[className] === true;
+}
+function applyDailyDateEditPermission_() {
+    var classSelect = document.getElementById('dailyClassSelect');
+    var className = classSelect ? classSelect.value : (currentTeacher && currentTeacher.assignedClass) || '';
+    var allowed = isDailyDateEditAllowedForClass_(className);
+    document.body.classList.toggle('record-date-nav-allowed', allowed);
+    var recordDate = document.getElementById('recordDate');
+    var today = getISODateOnly(new Date());
+    if (!allowed) {
+        if (recordDate) recordDate.value = today;
+        var filterDate = document.getElementById('filterDateDaily');
+        if (filterDate) filterDate.value = today;
+        isShowingAllDays = false;
+        var previousBtn = document.getElementById('togglePreviousBtn');
+        if (previousBtn) previousBtn.innerText = 'عرض الأيام السابقة';
+    }
+    updateDayOfWeek();
+    /* تحديث ظهور واجهة تاريخ الرصد الجديدة فور تغيير الفصل أو الصلاحية. */
+    var v10Bar = document.getElementById('v10DailyDateBar');
+    if (v10Bar) v10Bar.style.setProperty('display', allowed ? 'flex' : 'none', 'important');
+}
+function renderDailyDateEditPermissions_() {
+    var container = document.getElementById('dailyDateEditPermissions');
+    if (!container) return;
+    var classes = (typeof GENERAL_CLASSES !== 'undefined' && Array.isArray(GENERAL_CLASSES)) ? GENERAL_CLASSES : [];
+    var permissions = getDailyDateEditPermissions_();
+    container.innerHTML = classes.map(function (className) {
+        var allowed = permissions[className] === true;
+        return '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--border-soft);border-radius:12px;background:#fff;">' +
+            '<strong style="color:var(--primary-dark);">' + String(className) + '</strong>' +
+            '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.9em;">' +
+            '<input type="checkbox" style="width:20px;height:20px;" ' + (allowed ? 'checked' : '') + ' onchange="setDailyDateEditPermission_(\'' + String(className).replace(/'/g, "\\'") + '\', this.checked)">' +
+            '<span>' + (allowed ? 'مسموح' : 'مخفي') + '</span>' +
+            '</label></div>';
+    }).join('');
+}
+function setDailyDateEditPermission_(className, allowed) {
+    if (!currentTeacher || currentTeacher.username !== 'admin') return;
+    var adminTeacher = (teachersData || []).find(function (t) { return t && String(t.username || '').trim() === 'admin' && !t._deleted; });
+    if (!adminTeacher) return showMessage('daily-date-permission-msg', 'تعذر العثور على حساب المدير.', 'error');
+    var permissions = getDailyDateEditPermissions_();
+    permissions[className] = !!allowed;
+    adminTeacher.dailyDateEditPermissions = permissions;
+    adminTeacher.updatedAt = new Date().toISOString();
+    currentTeacher.dailyDateEditPermissions = permissions;
+    try { memoryStorage.setItem('teachersData', JSON.stringify(teachersData)); } catch (_) {}
+    try { memoryStorage.setItem('currentTeacher', JSON.stringify(currentTeacher)); } catch (_) {}
+    renderDailyDateEditPermissions_();
+    if (useFirebase && db) {
+        db.collection('teachers').doc(String(adminTeacher.id)).set({ dailyDateEditPermissions: permissions, updatedAt: adminTeacher.updatedAt }, { merge: true })
+            .then(function () { showMessage('daily-date-permission-msg', 'تم حفظ صلاحية الفصل: ' + className, 'success'); })
+            .catch(function (e) { console.error(e); showMessage('daily-date-permission-msg', 'تعذر حفظ الصلاحية.', 'error'); });
+    } else {
+        showMessage('daily-date-permission-msg', 'تم حفظ الصلاحية على الجهاز.', 'success');
+    }
+}
+
 function showAppScreen() {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
     document.body.classList.remove('login-screen-active', 'wafdeen-mode');
@@ -5634,6 +5736,7 @@ function showAppScreen() {
     if (visibleDailyClass) {
         visibleDailyClass.value = classSelect.value;
     }
+    applyDailyDateEditPermission_();
     if (isManager) {
         adminBtn.classList.remove('hidden');
         (_m = document.getElementById('payments-tab-btn')) === null || _m === void 0 ? void 0 : _m.classList.remove('hidden');
@@ -6234,6 +6337,7 @@ function switchTab(tabId, event) {
         renderStudentsTable();
         renderTeachersTable();
         renderResultsAdminSummary();
+        renderDailyDateEditPermissions_();
     }
     else if (tabId === 'payments-tab') {
         populatePaymentsClasses();
@@ -13651,7 +13755,12 @@ catch (e) {
 </script>
 <style id="v10-date-fix-style">
 /* ===== إصلاح التاريخ والرصد اليومي: كل يوم مستقل ===== */
-.v10-daily-date-bar{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 16px;padding:12px;border:2px solid var(--accent-gold);border-radius:16px;background:var(--surface);box-shadow:0 5px 16px rgba(0,0,0,.07)}
+.v10-daily-date-bar{display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 16px;padding:12px;border:2px solid var(--accent-gold);border-radius:16px;background:var(--surface);box-shadow:0 5px 16px rgba(0,0,0,.07)}
+/* إظهار واجهة تاريخ الرصد للشيخ فقط إذا سمح المدير للفصل من لوحة الإدارة. */
+body.record-date-nav-allowed .v10-daily-date-bar{display:flex!important;}
+/* الواجهة القديمة تظل مخفية؛ واجهة V10 هي التي تظهر عند السماح. */
+.daily-hidden-field{display:none!important;}
+#v10DailyDateStatus{display:none!important;}
 .v10-daily-date-bar .v10-date-label{font-weight:900;color:var(--primary-dark);font-size:1.05em}
 .v10-daily-date-bar button{min-width:110px}
 .v10-daily-date-bar input{height:44px;border:2px solid var(--border-soft-strong);border-radius:10px;padding:6px 10px;font-weight:900;font-family:inherit;text-align:center}
@@ -13782,7 +13891,10 @@ catch (e) {
     try{
       var rd=document.getElementById('recordDate');if(rd && !/^\d{4}-\d{2}-\d{2}$/.test(rd.value))rd.value=isoLocalV10(new Date());
       installDailyBar();installWafdeenBar();
-      var picker=document.getElementById('v10DailyDatePicker');if(picker)picker.value=currentDailyDateV10();
+      try{ if(typeof applyDailyDateEditPermission_==='function') applyDailyDateEditPermission_(); }catch(e){}
+      var todayOnly=isoLocalV10(new Date());
+      var realDate=document.getElementById('recordDate');if(realDate)realDate.value=todayOnly;
+      var picker=document.getElementById('v10DailyDatePicker');if(picker)picker.value=todayOnly;
       updateDailyDateUIV10();
       if(typeof window.updateStudentListDropdown==='function')window.updateStudentListDropdown();
     }catch(e){console.error('V10 date boot',e);}
@@ -13790,6 +13902,7 @@ catch (e) {
   document.addEventListener('DOMContentLoaded',bootV10);
   setTimeout(bootV10,500);
   setTimeout(bootV10,1500);
+  setTimeout(function(){ try{ if(typeof applyDailyDateEditPermission_==='function') applyDailyDateEditPermission_(); }catch(e){} },2000);
 })();
 </script>
 <script>
