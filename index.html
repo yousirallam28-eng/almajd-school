@@ -6425,6 +6425,30 @@ function makeSheikhExcelSheet_(rows) {
     });
     var ws = XLSX.utils.aoa_to_sheet(aoa);
     styleSheikhExcelSheet_(ws, rows.length);
+
+    // تلوين الصف من خانة الفصل حتى خانة الشيخ حسب الفصل.
+    var classColors = {
+        'أولى - أولاد': 'FFF2CC', 'أولى - بنات': 'FCE4D6',
+        'ثانية - أولاد': 'E2F0D9', 'ثانية - بنات': 'DDEBF7',
+        'ثالثة - أولاد': 'E4DFEC', 'ثالثة - بنات': 'FFF2CC',
+        'رابعة - أولاد': 'D9EAD3', 'رابعة - بنات': 'D9EAF7',
+        'خامسة - أولاد': 'F4CCCC', 'خامسة - بنات': 'D9D2E9'
+    };
+    if (ws && ws['!ref']) {
+        var range = XLSX.utils.decode_range(ws['!ref']);
+        for (var rr = 1; rr <= range.e.r; rr++) {
+            var classCell = ws[XLSX.utils.encode_cell({r: rr, c: 0})];
+            var className = classCell && classCell.v != null ? String(classCell.v) : '';
+            var bg = classColors[className];
+            if (!bg) continue;
+            for (var cc = 0; cc <= range.e.c; cc++) {
+                var cell = ws[XLSX.utils.encode_cell({r: rr, c: cc})];
+                if (!cell) continue;
+                cell.s = cell.s || {};
+                cell.s.fill = { patternType: 'solid', fgColor: { rgb: bg } };
+            }
+        }
+    }
     return ws;
 }
 
@@ -6479,6 +6503,121 @@ function getSheikhRegistrationAllDates_() {
     });
 }
 
+function getSheikhDetailedExcelRow_(className, dateVal, studentName) {
+    var name = String(studentName || '').trim();
+    var rec = (dailyRecords || []).find(function (r) {
+        return r && !r._deleted && r.className === className && r.dateISO === dateVal && String(r.studentName || '').trim() === name;
+    });
+
+    var status = !rec ? 'لم يسجل' : (rec.isAbsent || String(rec.attendanceStatus || '').toLowerCase() === 'absent' ? 'غائب' : 'حاضر');
+    return {
+        className: className,
+        studentName: name,
+        date: dateVal,
+        attendance: rec ? (rec.attendance == null ? 0 : rec.attendance) : '',
+        behavior: rec ? (rec.behavior == null ? 0 : rec.behavior) : '',
+        newLesson: rec ? (rec.newLesson == null ? 0 : rec.newLesson) : '',
+        newCount: rec ? (rec.newRecitationCount == null ? '' : rec.newRecitationCount) : '',
+        newTopicToday: rec ? (rec.newTopicToday || rec.newTopicText || '') : '',
+        newTopicRecited: rec ? (rec.newTopicRecited || '') : '',
+        newPagesCount: rec ? (rec.newPagesCount == null ? '' : rec.newPagesCount) : '',
+        oldRevision: rec ? (rec.oldRevision == null ? 0 : rec.oldRevision) : '',
+        oldCount: rec ? (rec.oldRecitationCount == null ? '' : rec.oldRecitationCount) : '',
+        oldTopicToday: rec ? (rec.oldTopicToday || rec.oldTopicText || '') : '',
+        oldTopicRecited: rec ? (rec.oldTopicRecited || '') : '',
+        oldPagesCount: rec ? (rec.oldPagesCount == null ? '' : rec.oldPagesCount) : '',
+        recitation: rec ? (rec.recitation == null ? 0 : rec.recitation) : '',
+        recitationCount: rec ? (rec.recitationRecitationCount == null ? '' : rec.recitationRecitationCount) : '',
+        recitationTopicToday: rec ? (rec.recitationTopicToday || rec.recitationTopic || '') : '',
+        recitationTopicRecited: rec ? (rec.recitationTopicRecited || '') : '',
+        recitationPagesCount: rec ? (rec.recitationPagesCount == null ? '' : rec.recitationPagesCount) : '',
+        homework: rec ? (rec.homework == null ? 0 : rec.homework) : '',
+        tajweed: rec ? (rec.tajweed == null ? 0 : rec.tajweed) : '',
+        total: rec ? (rec.total == null ? getDailyTotal(rec) : rec.total) : '',
+        status: status,
+        teacherName: rec ? String(rec.teacherName || '').trim() : ''
+    };
+}
+
+function sheikhDetailedExcelRowsForDate_(dateVal) {
+    var rows = [];
+    getSheikhRegistrationClassOrder_().forEach(function (className) {
+        var students = (studentsData || [])
+            .filter(function (s) { return s.className === className; })
+            .slice()
+            .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
+        students.forEach(function (s) {
+            rows.push(getSheikhDetailedExcelRow_(className, dateVal, s.name));
+        });
+    });
+    return rows;
+}
+
+function makeSheikhDetailedExcelSheet_(rows) {
+    var aoa = [[
+        'التاريخ', 'الفصل', 'اسم الطالب', 'الحضور', 'السلوك',
+        'الجديد', 'عدد مرات الجديد', 'مقرر الجديد', 'مقرر الجديد الذي تم تسميعه', 'عدد صفحات الجديد',
+        'الماضي', 'عدد مرات الماضي', 'مقرر الماضي', 'مقرر الماضي الذي تم تسميعه', 'عدد صفحات الماضي',
+        'التلاوة', 'عدد مرات التلاوة', 'مقرر التلاوة', 'مقرر التلاوة الذي تم تسميعه', 'عدد صفحات التلاوة',
+        'الواجب', 'التجويد', 'المجموع', 'حالة التسجيل', 'الشيخ'
+    ]];
+    rows.forEach(function (r) {
+        aoa.push([
+            r.date, r.className, r.studentName, r.attendance, r.behavior,
+            r.newLesson, r.newCount, r.newTopicToday, r.newTopicRecited, r.newPagesCount,
+            r.oldRevision, r.oldCount, r.oldTopicToday, r.oldTopicRecited, r.oldPagesCount,
+            r.recitation, r.recitationCount, r.recitationTopicToday, r.recitationTopicRecited, r.recitationPagesCount,
+            r.homework, r.tajweed, r.total, r.status, r.teacherName
+        ]);
+    });
+
+    var ws = XLSX.utils.aoa_to_sheet(aoa);
+    var headerStyle = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '176B55' } },
+        alignment: { horizontal: 'center', vertical: 'center', wrapText: true }
+    };
+    var centerStyle = { alignment: { horizontal: 'center', vertical: 'center', wrapText: true } };
+    for (var c = 0; c < aoa[0].length; c++) {
+        var cell = ws[XLSX.utils.encode_cell({ r: 0, c: c })];
+        if (cell) cell.s = headerStyle;
+    }
+    for (var i = 0; i < rows.length; i++) {
+        var excelRow = i + 2;
+        for (var c2 = 0; c2 < aoa[0].length; c2++) {
+            var dataCell = ws[XLSX.utils.encode_cell({ r: i + 1, c: c2 })];
+            if (dataCell) dataCell.s = centerStyle;
+        }
+        var statusCell = ws['X' + excelRow];
+        var rowStatusStyle;
+        if (statusCell && statusCell.v === 'حاضر') {
+            rowStatusStyle = { fill: { fgColor: { rgb: 'C6EFCE' } }, font: { color: { rgb: '006100' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true } };
+        } else if (statusCell && statusCell.v === 'غائب') {
+            rowStatusStyle = { fill: { fgColor: { rgb: 'FFF2CC' } }, font: { color: { rgb: '7F6000' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true } };
+        } else {
+            rowStatusStyle = { fill: { fgColor: { rgb: 'F4CCCC' } }, font: { color: { rgb: '9C0006' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true } };
+        }
+        // تلوين الصف من الفصل حتى الشيخ: B:Y، بدون تلوين التاريخ.
+        for (var colorCol = 1; colorCol <= 24; colorCol++) { // B:Y
+            var rowCell = ws[XLSX.utils.encode_cell({ r: i + 1, c: colorCol })];
+            if (rowCell) {
+                rowCell.s = rowStatusStyle;
+                rowCell.s.alignment = { horizontal: 'center', vertical: 'center', wrapText: true };
+            }
+        }
+    }
+    ws['!cols'] = [
+        { wch: 14 }, { wch: 20 }, { wch: 30 }, { wch: 12 }, { wch: 12 },
+        { wch: 12 }, { wch: 16 }, { wch: 30 }, { wch: 35 }, { wch: 10 },
+        { wch: 12 }, { wch: 16 }, { wch: 30 }, { wch: 35 }, { wch: 10 },
+        { wch: 12 }, { wch: 16 }, { wch: 30 }, { wch: 35 }, { wch: 10 },
+        { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 25 }
+    ];
+    ws['!autofilter'] = { ref: 'A1:Y' + Math.max(1, rows.length + 1) };
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+    return ws;
+}
+
 function exportAllSheikhRegistrationDatesExcel() {
     try {
         if (typeof XLSX === 'undefined' || !XLSX.utils || !XLSX.writeFile) {
@@ -6490,35 +6629,21 @@ function exportAllSheikhRegistrationDatesExcel() {
             return showMessage('app-msg', 'لا توجد تواريخ متاحة لتصدير تسجيل الشيوخ.', 'error');
         }
 
-        var classOrder = getSheikhRegistrationClassOrder_();
         var wb = XLSX.utils.book_new();
         var allDatesRows = [];
 
         dates.forEach(function (dateVal) {
-            var allRowsForDate = [];
-
-            // كل تاريخ له شيت مستقل، والفصول داخله مرتبة بنفس ترتيب البرنامج.
-            classOrder.forEach(function (className) {
-                allRowsForDate = allRowsForDate.concat(
-                    sheikhRegistrationRowsForClass_(className, dateVal)
-                );
-            });
-
-            // شيت المجمع: كل التواريخ تحت بعض بالترتيب.
-            allDatesRows = allDatesRows.concat(allRowsForDate);
-
-            var ws = makeSheikhExcelSheet_(allRowsForDate);
-            var sheetName = sheikhExcelSafeSheetName_(dateVal, 'تاريخ');
-            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            var rowsForDate = sheikhDetailedExcelRowsForDate_(dateVal);
+            allDatesRows = allDatesRows.concat(rowsForDate);
+            XLSX.utils.book_append_sheet(wb, makeSheikhDetailedExcelSheet_(rowsForDate), sheikhExcelSafeSheetName_(dateVal, 'تاريخ'));
         });
 
-        // شيت المجمع أولاً، ثم شيت مستقل لكل تاريخ كما كان.
-        var allDatesWs = makeSheikhExcelSheet_(allDatesRows);
+        var allDatesWs = makeSheikhDetailedExcelSheet_(allDatesRows);
         wb.SheetNames.unshift('المجمع');
         wb.Sheets['المجمع'] = allDatesWs;
 
-        XLSX.writeFile(wb, 'تسجيل_الشيوخ_كل_الأيام.xlsx');
-        showMessage('app-msg', 'تم تصدير ملف Excel شامل من 13 سبتمبر: شيت مجمع لكل التواريخ، ثم شيت مستقل لكل تاريخ ✅', 'success');
+        XLSX.writeFile(wb, 'تسجيل_الشيوخ_كل_الأيام_بالدرجات.xlsx');
+        showMessage('app-msg', 'تم تصدير ملف Excel شامل لكل التواريخ بالدرجات والتفاصيل المطلوبة، مع تلوين الحاضر أخضر والغائب أصفر ومن لم يسجل أحمر ✅', 'success');
     }
     catch (e) {
         console.error('All sheikh registration dates Excel export error:', e);
