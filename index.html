@@ -2624,7 +2624,8 @@ body.sharia-selected #daily-workspace > .daily-timer-card,
 body.sharia-selected #daily-workspace > .daily-scores-card { display:none!important; }
 body.sharia-selected #sharia-daily-card { display:block!important; }
 body.sharia-selected #sharia-daily-card.hidden { display:block!important; }
-body.sharia-selected #dailyStudentHint { color:var(--primary-dark); }
+body.sharia-selected #dailyStudentHint { color:var(--primary-dark); } body.sharia-only-field{display:none!important;}
+body.sharia-ui-selected .daily-timer-card, body.sharia-ui-selected .daily-type-grid, body.sharia-ui-selected .daily-grade-type-selector, body.sharia-ui-selected .daily-selected-timer-box, body.sharia-ui-selected #daily-score-auto-note, body.sharia-ui-selected #daily-score-time-summary { display:none!important; }
 body.sharia-teacher #status-tab-btn,
 body.sharia-teacher #attendance-tab-btn,
 body.sharia-teacher #reports-menu-wrap,
@@ -2633,7 +2634,66 @@ body.sharia-teacher #notes-tab-btn,
 body.sharia-teacher #wafdeen-time-tab-btn,
 body.sharia-teacher #payments-tab-btn,
 body.sharia-teacher #payment-report-tab-btn { display:none!important; }
-</style></head>
+</style>
+<style id="sharia-simple-daily-style">
+/* أولى شرعي: نفس واجهة الفصول العادية، مع حقول الرصد المطلوبة فقط */
+/* الإصدار الموحد: بطاقة الشرعي الفعالة هي حقول shariaNormalSubject/shariaNormalExam داخل بطاقة الرصد؛ هذه البطاقة القديمة مخفية عمدًا. */
+#sharia-daily-card{display:none!important;}
+body.sharia-ui-selected .daily-timer-card,
+body.sharia-ui-selected .daily-type-grid,
+body.sharia-ui-selected .daily-selected-timer-box,
+body.sharia-ui-selected .daily-type-status,
+body.sharia-ui-selected .daily-timer-actions,
+body.sharia-ui-selected .daily-grade-type-selector,
+body.sharia-ui-selected #daily-selected-grade-note,
+body.sharia-ui-selected #daily-score-auto-note,
+body.sharia-ui-selected #daily-score-time-summary,
+body.sharia-ui-selected #daily-error-counters,
+body.sharia-ui-selected .sharia-hide-field {display:none!important;}
+body.sharia-ui-selected .sharia-only-field{display:block!important;}
+body.sharia-ui-selected #daily-workspace .daily-scores-card{display:block!important;}
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newLesson),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newTopicToday),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newPagesCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newTopicRecited),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newRecitationCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldRevision),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldTopicToday),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldPagesCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldTopicRecited),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldRecitationCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitation),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitationTopicToday),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitationPagesCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitationTopicRecited),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitationRecitationCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#homework),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#tajweed),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newLesson),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newTopicToday),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newPagesCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newTopicRecited),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#newRecitationCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldRevision),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldTopicToday),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldPagesCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldTopicRecited),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#oldRecitationCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitation),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitationTopicToday),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitationPagesCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitationTopicRecited),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#recitationRecitationCount),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#wafdeenExamStudent),
+body.sharia-ui-selected #daily-workspace .daily-scores-card .form-group:has(#wafdeenExamScore){display:none!important;}
+body.sharia-ui-selected #daily-workspace .daily-scores-card #daily-behavior-summary,
+body.sharia-ui-selected #daily-workspace .daily-scores-card #daily-behavior-grid,
+body.sharia-ui-selected #daily-workspace .daily-scores-card button[onclick*="wafdeenToggleBehaviorPanel"]{display:none!important;}
+body.sharia-ui-selected #daily-workspace .daily-scores-card .btn-save{display:inline-flex!important;}
+body.sharia-ui-selected #daily-workspace .daily-scores-title{font-size:0;}
+body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝 رصد الدرجات';font-size:inherit;}
+</style>
+</head>
 <body class="login-screen-active" data-standalone="normal">
 <!-- نوافذ الموقع الداخلية: لا تستخدم نوافذ المتصفح confirm/prompt/alert -->
 <div aria-hidden="true" class="site-modal" id="siteModal">
@@ -2787,7 +2847,6 @@ body.sharia-teacher #payment-report-tab-btn { display:none!important; }
 <button class="tab-btn" id="top-students-tab-btn" onclick="switchTab('top-students-tab', event)" type="button">🏆 الأوائل</button>
 <button class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)" type="button">🗒️ الملاحظات</button>
 <button class="tab-btn" id="wafdeen-time-tab-btn" onclick="switchTab('wafdeen-time-tab', event)" type="button">⏱️ وقت الوافدين</button>
-<button class="tab-btn" id="sharia-grades-tab-btn" onclick="switchTab('sharia-grades-tab', event)" type="button">📚 درجات الشرعي</button>
 <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ لوحة الإدارة</button>
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
 <button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصروفات</button>
@@ -2817,7 +2876,7 @@ body.sharia-teacher #payment-report-tab-btn { display:none!important; }
 <option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option>
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
-<option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option>
+<option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option><option value="أولى شرعي">أولى شرعي</option>
 </select>
 </div>
 <div class="daily-student-start">
@@ -2831,7 +2890,7 @@ body.sharia-teacher #payment-report-tab-btn { display:none!important; }
 <option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option>
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
-<option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option>
+<option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option><option value="أولى شرعي">أولى شرعي</option>
 </select>
 </div>
 <div class="form-group">
@@ -2841,7 +2900,7 @@ body.sharia-teacher #payment-report-tab-btn { display:none!important; }
 </div>
 </div>
 <div class="daily-score-note" id="dailyStudentHint">اختر الصف أولاً لتظهر أسماء الطلاب المسجلين فيه، ثم اختر الاسم لفتح التايمر ودرجات الرصد.</div>
-<div id="sharia-daily-card" class="card-view hidden" style="margin-top:14px;border-top:4px solid var(--accent-gold);">
+<div id="sharia-daily-card" class="card-view hidden" aria-hidden="true" style="margin-top:14px;border-top:4px solid var(--accent-gold);">
 <h3 class="card-title">📚 رصد درجات الشرعي</h3>
 <div class="form-grid">
   <div class="form-group"><label>الحضور:</label><input id="shariaAttendance" type="number" min="0" max="10" value="10" placeholder="10 حاضر / 0 غياب"></div>
@@ -2928,6 +2987,8 @@ body.sharia-teacher #payment-report-tab-btn { display:none!important; }
 <div class="daily-score-note" id="daily-behavior-summary">لا يوجد خصم — الدرجة: 10/10</div>
 <div class="behavior-reason-grid" id="daily-behavior-grid"></div>
 </div>
+<div class="form-group sharia-only-field" id="shariaSubjectField"><label>مقرر:</label><input id="shariaNormalSubject" placeholder="اكتب المقرر" type="text"/></div>
+<div class="form-group sharia-only-field" id="shariaExamField"><label>درجة الامتحان (من 100):</label><input id="shariaNormalExam" max="100" min="0" placeholder="0-100" type="number"/></div>
 <div class="form-group fifth-hide-on-class"><label>الجديد (10):<span class="daily-score-time" id="newLessonTimeLabel"></span></label><input class="daily-grade-input daily-auto-grade" disabled="" id="newLesson" max="10" min="0" oninput="enforceDailyRecitationGrade('new')" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" readonly="" required="" type="number"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الجديد اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="newTopicToday" placeholder="اكتب مقرر الجديد اليوم..." required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الجديد):</label><input id="newPagesCount" placeholder="اكتب عدد الصفحات" required="" type="text"/></div>
@@ -2947,7 +3008,7 @@ body.sharia-teacher #payment-report-tab-btn { display:none!important; }
 <div class="form-group"><label>📖 التجويد (10) — يُضاف إلى المجموع:</label><input id="tajweed" max="10" min="0" placeholder="0-10" required="" type="number"/></div>
 </div>
 <div class="btn-group">
-<button class="action-btn btn-save" onclick="addGrade()" type="button">💾 حفظ الدرجات (من 70)</button>
+<button class="action-btn btn-save" onclick="addGrade()" type="button">💾 حفظ</button>
 <button class="action-btn btn-danger" id="markAbsentBtn" onclick="markAbsent()" type="button">🚫 غياب (صفر لليوم كامل)</button>
 <button class="action-btn btn-export" id="dailyExportBtn" onclick="exportToExcel('gradesTable', 'الرصد_اليومي')" type="button">📊 تصدير إكسل</button>
 </div>
@@ -3737,6 +3798,7 @@ body.sharia-teacher #payment-report-tab-btn { display:none!important; }
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
 <option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option>
+<option value="أولى شرعي">أولى شرعي</option>
 </select>
 </div>
 <div class="form-group">
@@ -3909,7 +3971,7 @@ var ALL_CLASSES = [
     "خامسة - أولاد", "خامسة - بنات",
     "أولى شرعي"
 ];
-var GENERAL_CLASSES = ALL_CLASSES.filter(function(c){ return c !== "أولى شرعي"; });
+var GENERAL_CLASSES = ALL_CLASSES;
 /* ================= 1. تهيئة السحابة (Firebase Configuration) ================= */
 var firebaseConfig = {
     apiKey: "AIzaSyDMusCd7XWnzwgDYlaAJJxi6-LCfHniu64",
@@ -4268,7 +4330,7 @@ function ensureAllClassSelects_() {
             var el = document.getElementById(id);
             if (!el) return;
             var current = el.value;
-            var listForId = (id === 'classSelect' || id === 'dailyClassSelect') ? allowed_1 : allowed_1.filter(function(c){ return c !== 'أولى شرعي'; });
+            var listForId = allowed_1;
             var values = Array.from(el.options || []).map(function (o) { return o.value; }).filter(Boolean);
             var needsFill = !values.length || values.length !== listForId.length || listForId.some(function (c) { return !values.includes(c); });
             if (needsFill) {
@@ -6362,8 +6424,8 @@ function renderSheikhRegistrationView() {
     }
     var className = classSelect.value;
     var dateVal = dateInput.value;
-    // تسجيل الشيوخ لا يشمل الوافدين أو التمهيدي أو الشرعي.
-    if (className === 'تمهيدي' || className === 'الوافدين' || className === 'أولى شرعي') {
+    // تسجيل الشيوخ لا يشمل الوافدين أو التمهيدي.
+    if (className === 'تمهيدي' || className === 'الوافدين') {
         var sheikhClasses = getSheikhRegistrationClassOrder_();
         classSelect.value = sheikhClasses[0] || '';
         className = classSelect.value;
@@ -6372,7 +6434,7 @@ function renderSheikhRegistrationView() {
         .filter(function (s) { return s.className === className; })
         .slice()
         .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-    var classRecords = (dailyRecords || []).filter(function (r) { return r.className === className && r.dateISO === dateVal && !r._deleted; });
+    var classRecords = (shariaIsClass_(className) ? (shariaGradesData || []).map(function(r){ return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'}); }) : (dailyRecords || [])).filter(function (r) { return r.className === className && r.dateISO === dateVal && !r._deleted; });
     var recordByName = {};
     classRecords.forEach(function (r) {
         var name = String(r.studentName || '').trim();
@@ -6447,7 +6509,7 @@ function sheikhRegistrationRowsForClass_(className, dateVal) {
         .slice()
         .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
 
-    var records = (dailyRecords || []).filter(function (r) {
+    var records = (shariaIsClass_(className) ? (shariaGradesData || []) : (dailyRecords || [])).filter(function (r) {
         return r.className === className && r.dateISO === dateVal && !r._deleted;
     });
     var byName = {};
@@ -6594,6 +6656,10 @@ function getSheikhRegistrationAllDates_() {
         var d = r && r.dateISO ? String(r.dateISO).slice(0, 10) : '';
         if (d && d >= minDate && !r._deleted) dates[d] = true;
     });
+    (shariaGradesData || []).forEach(function (r) {
+        var d = r && r.dateISO ? String(r.dateISO).slice(0, 10) : '';
+        if (d && d >= minDate && !r._deleted) dates[d] = true;
+    });
 
     // لو كان هناك تاريخ محدد حاليًا، نضمن ظهوره أيضًا إذا كان من 13 سبتمبر أو بعده.
     var currentDateEl = document.getElementById('sheikhRegDate');
@@ -6609,11 +6675,11 @@ function getSheikhRegistrationAllDates_() {
 
 function getSheikhDetailedExcelRow_(className, dateVal, studentName) {
     var name = String(studentName || '').trim();
-    var rec = (dailyRecords || []).find(function (r) {
+    var rec = (shariaIsClass_(className) ? (shariaGradesData || []) : (dailyRecords || [])).find(function (r) {
         return r && !r._deleted && r.className === className && r.dateISO === dateVal && String(r.studentName || '').trim() === name;
     });
 
-    var status = !rec ? 'لم يسجل' : (rec.isAbsent || String(rec.attendanceStatus || '').toLowerCase() === 'absent' ? 'غائب' : 'حاضر');
+    var status = !rec ? 'لم يسجل' : (rec.isAbsent || rec.absent || String(rec.attendanceStatus || '').toLowerCase() === 'absent' ? 'غائب' : 'حاضر');
     return {
         className: className,
         studentName: name,
@@ -8125,7 +8191,7 @@ function renderClassStatusTable() {
     var grandTotal = 0;
     var grandRecorded = 0;
     // الشرعي نظام مستقل ولا يدخل ضمن رصد الحالة.
-    GENERAL_CLASSES.filter(function(c){ return c !== 'أولى شرعي'; }).forEach(function (cName) {
+    GENERAL_CLASSES.forEach(function (cName) {
         var classStudents = studentsData.filter(function (s) { return s.className === cName; });
         var totalCount = classStudents.length;
         var classRecords = dailyRecords.filter(function (r) { return r.className === cName && r.dateISO === dateVal && !r._deleted; });
@@ -14075,6 +14141,11 @@ window.__WAFDEEN_STANDALONE__ = false;
   }
   function applyDailyWafdeenUI(className){
     var on=isWafdeen(className);
+    if(String(className||'').trim()==='أولى شرعي'){
+      var shariaSave=document.querySelector('#daily-tab .daily-scores-card .btn-save');
+      if(shariaSave) shariaSave.innerText='💾 حفظ';
+      return;
+    }
     document.body.classList.toggle('wafdeen-selected',on);
     ['attendance','behavior','homework','tajweed'].forEach(function(id){
       markGroupByInput(id,on);
@@ -14131,6 +14202,18 @@ window.__WAFDEEN_STANDALONE__ = false;
     return oldGetDailyTotal(record);
   };
 
+  var oldWeeklyTable=window.renderWeeklyTable;
+  window.renderWeeklyTable=function(){
+    var c=(document.getElementById('weeklyClassSelect')||{}).value||'';
+    if(shariaIsClass_(c)) return renderShariaWeeklyReport_();
+    return oldWeeklyTable.apply(this,arguments);
+  };
+  var oldMonthlyReport=window.renderMonthlyReport;
+  window.renderMonthlyReport=function(){
+    var c=(document.getElementById('monthlyClassSelect')||{}).value||'';
+    if(shariaIsClass_(c)) return renderShariaMonthlyReport_();
+    return oldMonthlyReport.apply(this,arguments);
+  };
   var oldUpdateFifth=window.updateFifthGradeFields;
   window.updateFifthGradeFields=function(className){
     oldUpdateFifth(className);
@@ -14169,7 +14252,7 @@ window.__WAFDEEN_STANDALONE__ = false;
 })();
 </script>
 
-<script>document.addEventListener('DOMContentLoaded',function(){if(typeof applyShariaTeacherVisibility_==='function')applyShariaTeacherVisibility_();var d=document.getElementById('shariaReportDate');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10);var c=document.getElementById('classSelect');if(c&&typeof shariaSetMode_==='function')shariaSetMode_(c.value);});</script></body>
+<script>document.addEventListener('DOMContentLoaded',function(){var d=document.getElementById('shariaReportDate');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10);});</script></body>
 </html>
 <script>var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -14577,13 +14660,181 @@ if (typeof window.wafdeenMonthlyImportedReports === 'undefined')
 })();
 
 /* ================= نظام درجات الشرعي المستقل ================= */
-function shariaIsClass_(c){ return String(c||'').trim()==='أولى شرعي'; }
+function shariaIsClass_(c){ return String(c || '').trim() === 'أولى شرعي'; }
+function shariaCanEdit_(){
+  return !!(currentTeacher && (
+    String(currentTeacher.username || '').trim() === 'admin' ||
+    String(currentTeacher.assignedClass || '').trim() === 'أولى شرعي'
+  ));
+}
+function shariaEsc_(value){
+  return String(value == null ? '' : value)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+async function shariaCloudSaveAndVerify_(id, rec){
+  if (!useFirebase || !db) throw new Error('Firebase غير متصل؛ لم يتم اعتماد الدرجة');
+  var ref = db.collection('shariaGrades').doc(String(id));
+  await ref.set(rec, {merge:true});
+  var snap = await ref.get();
+  if (!snap.exists) throw new Error('لم يتم العثور على السجل بعد الحفظ');
+  var saved = snap.data() || {};
+  ['studentId','dateISO','attendance','behavior','examScore','absent'].forEach(function(k){
+    if (String(saved[k] == null ? '' : saved[k]) !== String(rec[k] == null ? '' : rec[k]))
+      throw new Error('فشل التحقق من الحقل: ' + k);
+  });
+  return saved;
+}
+var shariaRemovedNodes_ = [];
+function shariaRemoveNode_(node){
+  if(!node || !node.parentNode) return;
+  shariaRemovedNodes_.push({node:node,parent:node.parentNode,next:node.nextSibling});
+  node.parentNode.removeChild(node);
+}
+function shariaRestoreNodes_(){
+  shariaRemovedNodes_.slice().reverse().forEach(function(item){
+    if(item.parent && !item.node.parentNode){
+      item.parent.insertBefore(item.node,item.next && item.next.parentNode===item.parent ? item.next : null);
+    }
+  });
+  shariaRemovedNodes_=[];
+}
+function shariaRemoveFieldById_(id){
+  var el=document.getElementById(id);
+  if(el){
+    var group=el.closest ? el.closest('.form-group') : el.parentNode;
+    shariaRemoveNode_(group || el);
+  }
+}
+function shariaPrepareDailyFields_(isShariaUi){
+  if(!isShariaUi){
+    shariaRestoreNodes_();
+    var normalBehavior=document.getElementById('behavior');
+    if(normalBehavior) normalBehavior.readOnly=true;
+    return;
+  }
+  if(shariaRemovedNodes_.length) return;
+  ['daily-score-auto-note','daily-score-time-summary','daily-selected-grade-note','daily-error-counters','daily-behavior-summary','daily-behavior-grid'].forEach(shariaRemoveNodeById_);
+  var scoreCard=document.querySelector('#daily-workspace .daily-scores-card');
+  document.querySelectorAll('#daily-workspace > .daily-timer-card').forEach(shariaRemoveNode_);
+  if(scoreCard){
+    scoreCard.querySelectorAll('.daily-grade-type-selector,.daily-timer-card,.daily-type-grid,.daily-selected-timer-box,.daily-type-status,.daily-timer-actions').forEach(shariaRemoveNode_);
+    scoreCard.querySelectorAll('button[onclick*="wafdeenToggleBehaviorPanel"]').forEach(shariaRemoveNode_);
+  }
+  ['newLesson','newTopicToday','newPagesCount','newTopicRecited','newRecitationCount',
+   'oldRevision','oldTopicToday','oldPagesCount','oldTopicRecited','oldRecitationCount',
+   'recitation','recitationTopicToday','recitationPagesCount','recitationTopicRecited','recitationRecitationCount',
+   'homework','tajweed'].forEach(shariaRemoveFieldById_);
+  var behavior=document.getElementById('behavior');
+  if(behavior) behavior.readOnly=false;
+}
+function shariaRemoveNodeById_(id){
+  var el=document.getElementById(id);
+  if(el) shariaRemoveNode_(el);
+}
+async function editShariaGrade_(id){
+  try{id=decodeURIComponent(String(id));}catch(e){}
+  if(!shariaCanEdit_()) return showMessage('app-msg','لا توجد صلاحية لتعديل سجل الشرعي','error');
+  var rec=(shariaGradesData||[]).find(function(r){return String(r.id)===String(id);});
+  if(!rec && useFirebase && db){
+    try{ var snap=await db.collection('shariaGrades').doc(String(id)).get(); if(snap.exists) rec=Object.assign({id:String(id)},snap.data()); }catch(e){}
+  }
+  if(!rec) return showMessage('app-msg','السجل غير موجود','error');
+  var html='<div class="modal-grid">'+
+    '<div class="form-group"><label>الطالب:</label><input value="'+shariaEsc_(rec.studentName)+'" readonly></div>'+
+    '<div class="form-group"><label>التاريخ:</label><input value="'+shariaEsc_(String(rec.dateISO||'').slice(0,10))+'" readonly></div>'+
+    '<div class="form-group"><label>الحضور من 10:</label><input id="shariaEditAttendance" type="number" min="0" max="10" value="'+Number(rec.attendance||0)+'"></div>'+
+    '<div class="form-group"><label>المقرر:</label><input id="shariaEditSubject" value="'+shariaEsc_(rec.subject||'')+'"></div>'+
+    '<div class="form-group"><label>السلوك من 10:</label><input id="shariaEditBehavior" type="number" min="0" max="10" value="'+Number(rec.behavior||0)+'"></div>'+
+    '<div class="form-group"><label>الامتحان من 100:</label><input id="shariaEditExam" type="number" min="0" max="100" value="'+Number(rec.examScore||0)+'"></div></div>';
+  var ok=await siteConfirm('✏️ تعديل سجل الشرعي',html,'حفظ التعديل');
+  if(!ok) return;
+  var a=String((document.getElementById('shariaEditAttendance')||{}).value||'').trim();
+  var b=String((document.getElementById('shariaEditBehavior')||{}).value||'').trim();
+  var e=String((document.getElementById('shariaEditExam')||{}).value||'').trim();
+  var subject=String((document.getElementById('shariaEditSubject')||{}).value||'').trim();
+  if(a===''||b===''||e==='') return showMessage('app-msg','أكمل جميع الدرجات قبل الحفظ','error');
+  var attendance=Number(a), behavior=Number(b), exam=Number(e);
+  if(!Number.isFinite(attendance)||attendance<0||attendance>10) return showMessage('app-msg','الحضور يجب أن يكون من 0 إلى 10','error');
+  if(!Number.isFinite(behavior)||behavior<0||behavior>10) return showMessage('app-msg','السلوك يجب أن يكون من 0 إلى 10','error');
+  if(!Number.isFinite(exam)||exam<0||exam>100) return showMessage('app-msg','الامتحان يجب أن يكون من 0 إلى 100','error');
+  if(attendance>0 && !subject) return showMessage('app-msg','اكتب اسم المقرر','error');
+  try{
+    var saved=await firebaseUpdateVerified_('shariaGrades',id,{attendance:attendance,absent:attendance===0,subject:subject,behavior:behavior,examScore:exam,editedBy:currentTeacher.username,editedAt:new Date().toISOString()});
+    var i=shariaGradesData.findIndex(function(r){return String(r.id)===String(id);});
+    if(i>=0) shariaGradesData[i]=Object.assign({},shariaGradesData[i],saved); else shariaGradesData.push(Object.assign({},rec,saved));
+    memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
+    renderShariaGradesReport(); renderShariaDailyLog_();
+    showMessage('app-msg','تم تعديل سجل الشرعي بنجاح','success');
+  }catch(err){ console.error('Sharia edit error:',err); showMessage('app-msg','تعذر تعديل سجل الشرعي: '+String(err.message||err),'error'); }
+}
+async function deleteShariaGrade_(id){
+  try{id=decodeURIComponent(String(id));}catch(e){}
+  if(!shariaCanEdit_()) return showMessage('app-msg','لا توجد صلاحية لحذف سجل الشرعي','error');
+  var rec=(shariaGradesData||[]).find(function(r){return String(r.id)===String(id);});
+  if(!rec) return showMessage('app-msg','السجل غير موجود','error');
+  var ok=await siteConfirm('🗑️ حذف سجل الشرعي','سيتم حذف سجل الطالب <strong>'+shariaEsc_(rec.studentName||'')+'</strong> بتاريخ <strong>'+shariaEsc_(String(rec.dateISO||'').slice(0,10))+'</strong> نهائيًا من السحابة.','حذف السجل',true);
+  if(!ok) return;
+  try{
+    await deleteFirebaseRecord('shariaGrades',id);
+    shariaGradesData=shariaGradesData.filter(function(r){return String(r.id)!==String(id);});
+    memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
+    renderShariaGradesReport(); renderShariaDailyLog_();
+    showMessage('app-msg','تم حذف سجل الشرعي بنجاح','success');
+  }catch(err){ console.error('Sharia delete error:',err); showMessage('app-msg','تعذر حذف سجل الشرعي: '+String(err.message||err),'error'); }
+}
+var shariaDailyTableOriginalHead_=null;
+function renderShariaDailyLog_(){
+  var table=document.getElementById('gradesTable');
+  if(!table) return;
+  var thead=table.querySelector('thead');
+  var tbody=table.querySelector('tbody');
+  if(!thead || !tbody) return;
+  if(!shariaDailyTableOriginalHead_) shariaDailyTableOriginalHead_=thead.innerHTML;
+  thead.innerHTML='<tr><th>التاريخ</th><th>الطالب</th><th>الحضور</th><th>المقرر</th><th>السلوك</th><th>درجة الامتحان</th><th>إجراء</th></tr>';
+  var date=(document.getElementById('filterDateDaily')||{}).value || shariaDate_();
+  var search=String((document.getElementById('searchDaily')||{}).value||'').trim();
+  var rows=(shariaGradesData||[]).filter(function(r){
+    return String(r.className||'').trim()==='أولى شرعي' &&
+      (!date || String(r.dateISO||'').slice(0,10)===String(date).slice(0,10)) &&
+      (!search || String(r.studentName||'').includes(search)) && !r._deleted;
+  }).sort(function(a,b){return String(a.studentName||'').localeCompare(String(b.studentName||''),'ar');});
+  tbody.innerHTML=rows.length ? rows.map(function(r){
+    var absent=!!r.absent || Number(r.attendance||0)===0;
+    return '<tr><td>'+shariaEsc_(String(r.dateISO||'').slice(0,10))+'</td>'+
+      '<td>'+shariaEsc_(r.studentName||'')+'</td>'+
+      '<td>'+(absent?'<span class="badge" style="background:var(--danger-color);color:#fff;padding:4px 10px;">🚫 غائب</span>':Number(r.attendance||0)+'/10')+'</td>'+
+      '<td>'+shariaEsc_(r.subject||'')+'</td>'+
+      '<td>'+Number(r.behavior||0)+'/10</td>'+
+      '<td><strong>'+Number(r.examScore||0)+'</strong> / 100</td>'+
+      '<td><button type="button" class="action-btn btn-edit" style="padding:3px 8px;min-width:auto;" onclick="editShariaGrade_(\''+encodeURIComponent(String(r.id))+ '\')">تعديل</button> <button type="button" class="action-btn btn-danger" style="padding:3px 8px;min-width:auto;" onclick="deleteShariaGrade_(\''+encodeURIComponent(String(r.id))+ '\')">حذف</button></td></tr>';
+  }).join('') : '<tr><td colspan="7">لا توجد سجلات شرعي محفوظة لهذا التاريخ</td></tr>';
+}
+function restoreNormalDailyTable_(){
+  var table=document.getElementById('gradesTable');
+  if(!table || !shariaDailyTableOriginalHead_) return;
+  var thead=table.querySelector('thead');
+  if(thead) thead.innerHTML=shariaDailyTableOriginalHead_;
+}
 function shariaSetMode_(className){
-  var isS=shariaIsClass_(className);
-  document.body.classList.toggle('sharia-selected',isS);
-  var card=document.getElementById('sharia-daily-card'); if(card) card.classList.toggle('hidden',!isS);
-  var hint=document.getElementById('dailyStudentHint'); if(hint && isS) hint.textContent='اختر الطالب ثم أدخل المقرر والسلوك ودرجة الامتحان من 100.';
-  var save=document.querySelector('#daily-tab .daily-scores-card .btn-save'); if(save) save.style.display=isS?'none':'';
+  var isShariaUi=(String(className||'').trim()==='أولى شرعي');
+  document.body.classList.toggle('sharia-ui-selected',isShariaUi);
+  document.body.classList.remove('sharia-selected');
+  shariaPrepareDailyFields_(isShariaUi);
+  var card=document.getElementById('sharia-daily-card'); if(card) card.classList.add('hidden');
+  var hint=document.getElementById('dailyStudentHint');
+  if(hint) hint.textContent=isShariaUi ? 'أدخل الحضور والمقرر والسلوك ودرجة الامتحان فقط.' : 'اختر الصف أولاً لتظهر أسماء الطلاب المسجلين فيه، ثم اختر الاسم لفتح التايمر ودرجات الرصد.';
+  var save=document.querySelector('#daily-tab .daily-scores-card .btn-save');
+  if(save){ save.style.display=''; save.innerHTML=isShariaUi?'💾 حفظ':'💾 حفظ الدرجات (من 70)'; }
+  if(isShariaUi) renderShariaDailyLog_(); else restoreNormalDailyTable_();
+  var subject=document.getElementById('shariaNormalSubject'), exam=document.getElementById('shariaNormalExam');
+  [subject,exam].forEach(function(el){
+    if(!el) return;
+    var group=el.closest('.form-group');
+    if(group) group.style.display=isShariaUi?'':'none';
+    el.setAttribute('aria-hidden',isShariaUi?'false':'true');
+  });
+  // الحقول موجودة للشرعي فقط، وتُخفى خارج الشرعي دون حذف قيمها المحفوظة.
 }
 function shariaGetCurrentStudent_(){
   var sel=document.getElementById('studentNameSelect');
@@ -14591,42 +14842,64 @@ function shariaGetCurrentStudent_(){
   return studentsData.find(function(s){return String(s.name||'')===name && s.className==='أولى شرعي';}) || null;
 }
 function shariaDate_(){ return (document.getElementById('recordDate')||{}).value || new Date().toISOString().slice(0,10); }
-async function saveShariaGrade(){
-  if(!currentTeacher) return;
+async function saveShariaGrade(forceAbsent){
+  if(!shariaCanEdit_()) return showMessage('app-msg','لا توجد صلاحية لتسجيل درجات فصل أولى شرعي','error');
   var st=shariaGetCurrentStudent_();
   if(!st) return showMessage('app-msg','اختر طالبًا من فصل أولى شرعي أولاً','error');
-  var attendance=Number((document.getElementById('shariaAttendance')||{}).value);
-  var subject=((document.getElementById('shariaSubject')||{}).value||'').trim();
-  var behavior=Number((document.getElementById('shariaBehavior')||{}).value);
-  var exam=Number((document.getElementById('shariaExamScore')||{}).value);
+
+  var attendanceRaw=String((document.getElementById('attendance')||{}).value||'').trim();
+  var behaviorRaw=String((document.getElementById('behavior')||{}).value||'').trim();
+  var subject=((document.getElementById('shariaNormalSubject')||{}).value||'').trim();
+  var examRaw=String((document.getElementById('shariaNormalExam')||{}).value||'').trim();
+  if(forceAbsent) attendanceRaw='0';
+  if(attendanceRaw==='') return showMessage('app-msg','أدخل درجة الحضور','error');
+  if(examRaw==='') return showMessage('app-msg','أدخل درجة الامتحان من 100','error');
+
+  var attendance=Number(attendanceRaw), behavior=Number(behaviorRaw), exam=Number(examRaw);
   if(!Number.isFinite(attendance)||attendance<0||attendance>10) return showMessage('app-msg','الحضور يجب أن يكون من 0 إلى 10','error');
-  if(!subject) return showMessage('app-msg','اكتب اسم المقرر','error');
-  if(!Number.isFinite(behavior)||behavior<0||behavior>10) return showMessage('app-msg','السلوك يجب أن يكون من 0 إلى 10','error');
+  if(!subject && attendance!==0) return showMessage('app-msg','اكتب اسم المقرر','error');
+  if(behaviorRaw==='' || !Number.isFinite(behavior)||behavior<0||behavior>10) return showMessage('app-msg','السلوك يجب أن يكون من 0 إلى 10','error');
   if(!Number.isFinite(exam)||exam<0||exam>100) return showMessage('app-msg','درجة الامتحان يجب أن تكون من 0 إلى 100','error');
+
   var date=shariaDate_(), id='sharia_'+String(st.id||st.name)+'_'+date;
   var rec={id:id,studentId:st.id,studentName:st.name,className:'أولى شرعي',teacherName:currentTeacher.username,dateISO:date,dayName:(document.getElementById('daySelect')||{}).value||'',attendance:attendance,absent:attendance===0,subject:subject,behavior:behavior,examScore:exam,updatedAt:new Date().toISOString()};
-  var idx=shariaGradesData.findIndex(function(r){return String(r.id)===id;});
-  if(idx>=0) shariaGradesData[idx]=Object.assign({},shariaGradesData[idx],rec); else shariaGradesData.push(rec);
-  memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
-  if(useFirebase&&db){ try{ await db.collection('shariaGrades').doc(id).set(rec,{merge:true}); }catch(e){ console.error(e); } }
-  showMessage('sharia-save-msg','تم حفظ درجة الشرعي بنجاح ✅','success');
-  showMessage('app-msg','تم حفظ درجة الشرعي بنجاح ✅','success');
-  renderShariaGradesReport();
+  var saveBtn=document.querySelector('#daily-workspace .daily-scores-card .btn-save');
+  if(saveBtn){ saveBtn.disabled=true; saveBtn.dataset.oldText=saveBtn.innerText; saveBtn.innerText='⏳ جارٍ الحفظ والتحقق...'; }
+  try{
+    await shariaCloudSaveAndVerify_(id,rec);
+    var idx=shariaGradesData.findIndex(function(r){return String(r.id)===id;});
+    if(idx>=0) shariaGradesData[idx]=Object.assign({},shariaGradesData[idx],rec); else shariaGradesData.push(rec);
+    memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
+    showMessage('app-msg',forceAbsent?'تم تسجيل الغياب':'تم الحفظ','success');
+    renderShariaGradesReport();
+    renderShariaDailyLog_();
+  }catch(e){
+    console.error('Sharia save error:',e);
+    showMessage('app-msg','فشل حفظ درجة الشرعي: '+String(e.message||e),'error');
+  }finally{
+    if(saveBtn){ saveBtn.disabled=false; saveBtn.innerText=shariaIsClass_((document.getElementById('classSelect')||{}).value)?'💾 حفظ':(saveBtn.dataset.oldText||'💾 حفظ الدرجات'); }
+  }
 }
 async function markShariaAbsent(){
-  if(!currentTeacher) return;
+  if(!shariaCanEdit_()) return showMessage('app-msg','لا توجد صلاحية لتسجيل غياب فصل أولى شرعي','error');
   var st=shariaGetCurrentStudent_();
   if(!st) return showMessage('app-msg','اختر طالبًا من فصل أولى شرعي أولاً','error');
   var date=shariaDate_(), id='sharia_'+String(st.id||st.name)+'_'+date;
   var existing=shariaGradesData.find(function(r){return String(r.id)===id;});
   var rec={id:id,studentId:st.id,studentName:st.name,className:'أولى شرعي',teacherName:currentTeacher.username,dateISO:date,dayName:(document.getElementById('daySelect')||{}).value||'',attendance:0,absent:true,subject:existing&&existing.subject||'',behavior:0,examScore:0,updatedAt:new Date().toISOString()};
-  var idx=shariaGradesData.findIndex(function(r){return String(r.id)===id;});
-  if(idx>=0) shariaGradesData[idx]=Object.assign({},shariaGradesData[idx],rec); else shariaGradesData.push(rec);
-  memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
-  if(useFirebase&&db){ try{ await db.collection('shariaGrades').doc(id).set(rec,{merge:true}); }catch(e){ console.error(e); } }
-  showMessage('sharia-save-msg','تم تسجيل الغياب للطالب اليوم 🚫','success');
-  showMessage('app-msg','تم تسجيل الغياب للطالب اليوم 🚫','success');
-  renderShariaGradesReport();
+  if(!window.confirm('سيتم تسجيل الطالب غائبًا وتصفير السلوك ودرجة الامتحان لهذا التاريخ. هل تريد المتابعة؟')) return;
+  try{
+    await shariaCloudSaveAndVerify_(id,rec);
+    var idx=shariaGradesData.findIndex(function(r){return String(r.id)===id;});
+    if(idx>=0) shariaGradesData[idx]=Object.assign({},shariaGradesData[idx],rec); else shariaGradesData.push(rec);
+    memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
+    showMessage('app-msg','تم تسجيل الغياب والتحقق من حفظه ✅','success');
+    renderShariaGradesReport();
+    renderShariaDailyLog_();
+  }catch(e){
+    console.error('Sharia absent error:',e);
+    showMessage('app-msg','فشل تسجيل الغياب: '+String(e.message||e),'error');
+  }
 }
 function shariaPeriodRange_(period,date){
   var d=new Date(date+'T00:00:00'); if(isNaN(d.getTime())) d=new Date();
@@ -14636,10 +14909,119 @@ function shariaPeriodRange_(period,date){
 }
 function renderShariaGradesReport(){
   var tbody=document.querySelector('#shariaGradesReportTable tbody'); if(!tbody) return;
+  if(!currentTeacher){ tbody.innerHTML='<tr><td colspan="7">سجّل الدخول لعرض التقرير</td></tr>'; return; }
   var dateEl=document.getElementById('shariaReportDate'); if(dateEl&&!dateEl.value) dateEl.value=new Date().toISOString().slice(0,10);
   var period=(document.getElementById('shariaReportPeriod')||{}).value||'day'; var range=shariaPeriodRange_(period,(dateEl&&dateEl.value)||new Date().toISOString().slice(0,10));
-  var rows=shariaGradesData.filter(function(r){var d=String(r.dateISO||'').slice(0,10);return d>=range[0]&&d<=range[1]&&!r._deleted;}).sort(function(a,b){return String(a.dateISO).localeCompare(String(b.dateISO))||String(a.studentName).localeCompare(String(b.studentName),'ar');});
-  tbody.innerHTML=rows.length?rows.map(function(r){var att=Number(r.attendance||0);return '<tr><td>'+String(r.dateISO||'')+'</td><td>'+String(r.studentName||'')+'</td><td>'+String(r.teacherName||'')+'</td><td>'+(r.absent||att===0?'<span class="badge badge-red">غياب</span>':'<span class="badge badge-green">حاضر</span>')+'</td><td>'+String(r.subject||'')+'</td><td>'+Number(r.behavior||0)+'/10</td><td><strong>'+Number(r.examScore||0)+'</strong> / 100</td></tr>';}).join(''):'<tr><td colspan="7">لا توجد درجات شرعي في الفترة المحددة</td></tr>';
+  var rows=shariaGradesData.filter(function(r){var d=String(r.dateISO||'').slice(0,10);return String(r.className||'').trim()==='أولى شرعي'&&d>=range[0]&&d<=range[1]&&!r._deleted;}).sort(function(a,b){return String(a.dateISO).localeCompare(String(b.dateISO))||String(a.studentName).localeCompare(String(b.studentName),'ar');});
+  tbody.innerHTML=rows.length?rows.map(function(r){var att=Number(r.attendance||0);return '<tr><td>'+shariaEsc_(r.dateISO||'')+'</td><td>'+shariaEsc_(r.studentName||'')+'</td><td>'+shariaEsc_(r.teacherName||'')+'</td><td>'+(r.absent||att===0?'<span class="badge badge-red">غياب</span>':'<span class="badge badge-green">حاضر</span>')+'</td><td>'+shariaEsc_(r.subject||'')+'</td><td>'+Number(r.behavior||0)+'/10</td><td><strong>'+Number(r.examScore||0)+'</strong> / 100</td></tr>';}).join(''):'<tr><td colspan="7">لا توجد درجات شرعي في الفترة المحددة</td></tr>';
+}
+function shariaWeekRecords_(weekKey, student){
+  return (shariaGradesData||[]).filter(function(r){return String(r.className||'').trim()==='أولى شرعي' && (!student || String(r.studentName||'')===String(student)) && r.dateISO && getWeekKey(r.dateISO)===weekKey && !r._deleted;});
+}
+function shariaStudents_(){
+  return (studentsData||[]).filter(function(s){return String(s.className||'').trim()==='أولى شرعي';}).map(function(s){return s.name;}).sort(function(a,b){return String(a).localeCompare(String(b),'ar');});
+}
+function shariaReportCell_(r){
+  if(!r) return '-';
+  return r.absent || Number(r.attendance||0)===0 ? '<span class="badge" style="background:var(--danger-color);color:#fff;padding:3px 7px;">🚫 غائب</span>' : '<strong>'+Number(r.examScore||0)+'</strong>';
+}
+function shariaDayNameFromDate_(dateISO){
+  var d=new Date(String(dateISO||'')+'T00:00:00');
+  return isNaN(d.getTime()) ? '' : ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][d.getDay()];
+}
+function renderShariaWeeklyReport_(){
+  var tbody=document.querySelector('#weeklyTable tbody'), thead=document.querySelector('#weeklyTable thead');
+  if(!tbody||!thead) return;
+  var weekKey=(document.getElementById('weekSelect')||{}).value||'';
+  var days=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'];
+  thead.innerHTML='<tr><th>اسم الطالب/الطالبة</th><th>الأحد<br>الامتحان</th><th>الاثنين<br>الامتحان</th><th>الثلاثاء<br>الامتحان</th><th>الأربعاء<br>الامتحان</th><th>الخميس<br>الامتحان</th><th>مجموع الامتحان</th><th>متوسط الامتحان</th><th>أيام الحضور</th><th>نسبة الحضور</th></tr>';
+  var students=shariaStudents_();
+  if(!weekKey||!students.length){tbody.innerHTML='<tr><td colspan="10">لا توجد بيانات شرعي للأسبوع المحدد</td></tr>';renderBarChart('weeklyReportChart',function(c){weeklyReportChartInstance=c;},function(){return weeklyReportChartInstance;},[],[],'متوسط امتحان الشرعي');return;}
+  var labels=[], data=[];
+  tbody.innerHTML=students.map(function(student){
+    var records=shariaWeekRecords_(weekKey,student), total=0, attended=0, cells=days.map(function(day){var r=records.find(function(x){return String(x.dayName||'')===day || (!x.dayName && shariaDayNameFromDate_(x.dateISO)===day);});if(r&&!r.absent&&Number(r.attendance||0)>0){attended++;total+=Number(r.examScore||0);}return '<td>'+shariaReportCell_(r)+'</td>';}).join('');
+    var avg=(total/5).toFixed(1), perc=((attended/5)*100).toFixed(0); labels.push(student);data.push(Number(avg));
+    return '<tr><td style="font-weight:bold;">'+shariaEsc_(student)+'</td>'+cells+'<td><strong>'+total+'</strong> / 500</td><td>'+avg+' / 100</td><td>'+attended+' / 5</td><td><span class="badge '+(Number(perc)>=75?'badge-blue':'badge-yellow')+'">'+perc+'%</span></td></tr>';
+  }).join('');
+  renderBarChart('weeklyReportChart',function(c){weeklyReportChartInstance=c;},function(){return weeklyReportChartInstance;},labels,data,'متوسط امتحان الشرعي','rgba(19,104,77,1)');
+}
+function renderShariaMonthlyReport_(){
+  var tbody=document.querySelector('#monthlyReportTable tbody'), thead=document.querySelector('#monthlyReportTable thead');
+  if(!tbody||!thead) return;
+  var month=Number((document.getElementById('reportMonth')||{}).value||new Date().getMonth()), year=Number((document.getElementById('reportYear')||{}).value||new Date().getFullYear());
+  var days=getMonthWorkingDays(year,month);
+  var head='<tr><th style="min-width:150px;position:sticky;right:0;background:#f8f9fa;z-index:2;">اسم الطالب/الطالبة</th>';
+  days.forEach(function(d){var p=d.dateISO.split('-');head+='<th style="font-size:.78em;padding:5px 3px;min-width:42px;">'+d.dayName+'<br><span style="color:#666;">'+p[2]+'/'+p[1]+'</span></th>';});
+  head+='<th>أيام الحضور</th><th>مجموع الامتحان</th><th>متوسط الامتحان</th><th>متوسط السلوك</th><th>نسبة الحضور</th></tr>';thead.innerHTML=head;
+  var students=shariaStudents_();
+  if(!students.length){tbody.innerHTML='<tr><td colspan="'+(days.length+6)+'">لا يوجد طلاب مسجلون في فصل أولى شرعي</td></tr>';renderBarChart('monthlyReportChart',function(c){monthlyReportChartInstance=c;},function(){return monthlyReportChartInstance;},[],[],'متوسط امتحان الشرعي');return;}
+  var labels=[],data=[];
+  tbody.innerHTML=students.map(function(student){var total=0,attended=0,behaviorTotal=0,behaviorDays=0;
+    var cells=days.map(function(d){var r=(shariaGradesData||[]).find(function(x){return String(x.className||'').trim()==='أولى شرعي'&&String(x.studentName||'')===String(student)&&String(x.dateISO||'').slice(0,10)===d.dateISO&&!x._deleted;});if(r){if(!r.absent&&Number(r.attendance||0)>0){attended++;total+=Number(r.examScore||0);}behaviorTotal+=Number(r.behavior||0);behaviorDays++;}return '<td>'+shariaReportCell_(r)+'</td>';}).join('');
+    var avg=(total/(days.length||1)).toFixed(1), behaviorAvg=(behaviorTotal/(behaviorDays||1)).toFixed(1), perc=((attended/(days.length||1))*100).toFixed(0);labels.push(student);data.push(Number(avg));
+    return '<tr><td style="font-weight:bold;position:sticky;right:0;background:white;z-index:1;">'+shariaEsc_(student)+'</td>'+cells+'<td>'+attended+' / '+days.length+'</td><td><strong>'+total+'</strong></td><td>'+avg+' / 100</td><td>'+behaviorAvg+' / 10</td><td><span class="badge '+(Number(perc)>=75?'badge-blue':'badge-yellow')+'">'+perc+'%</span></td></tr>';}).join('');
+  renderBarChart('monthlyReportChart',function(c){monthlyReportChartInstance=c;},function(){return monthlyReportChartInstance;},labels,data,'متوسط امتحان الشرعي','rgba(19,104,77,1)');
+}
+var dailyFormPersistenceInstalled_=false;
+var dailyFormFieldIds_=['attendance','behavior','newLesson','newTopicToday','newPagesCount','newTopicRecited','newRecitationCount','oldRevision','oldTopicToday','oldPagesCount','oldTopicRecited','oldRecitationCount','recitation','recitationTopicToday','recitationPagesCount','recitationTopicRecited','recitationRecitationCount','homework','tajweed','shariaNormalSubject','shariaNormalExam'];
+function dailyFormSessionKey_(){
+  var user=currentTeacher&&currentTeacher.username?currentTeacher.username:'guest';
+  return 'dailyFormSession:'+String(user);
+}
+function saveDailyFormSession_(){
+  try{
+    var fields={};
+    dailyFormFieldIds_.forEach(function(id){var el=document.getElementById(id);if(el) fields[id]={value:el.value,checked:!!el.checked};});
+    var cls=(document.getElementById('classSelect')||{}).value || (document.getElementById('dailyClassSelect')||{}).value || '';
+    var draft={className:cls,studentName:(document.getElementById('studentNameSelect')||{}).value||'',date:(document.getElementById('recordDate')||{}).value||'',fields:fields,savedAt:new Date().toISOString(),timer:{new:Number(dailyTimerSeconds&&dailyTimerSeconds.new||0),old:Number(dailyTimerSeconds&&dailyTimerSeconds.old||0),recitation:Number(dailyTimerSeconds&&dailyTimerSeconds.recitation||0),type:dailyTimerType||'new'}};
+    memoryStorage.setItem(dailyFormSessionKey_(),JSON.stringify(draft));
+    try{wafdeenSaveDailyDraft_();dailySaveTimerDraft_();}catch(e){}
+  }catch(e){console.error('daily form draft save',e);}
+}
+function pauseAndSaveDailySession_(){
+  try{
+    if(typeof dailyTimerRunning!=='undefined' && dailyTimerRunning){
+      var elapsed=getCurrentTimerElapsed();
+      dailyTimerSeconds[dailyTimerType]=elapsed;
+      dailyTimerBaseSeconds=elapsed;
+      dailyTimerRunning=false;
+      dailyTimerStartedAt=0;
+      clearInterval(dailyTimerInterval);
+      dailyTimerInterval=null;
+    }
+    saveDailyFormSession_();
+  }catch(e){console.error('daily session pause',e);}
+}
+function restoreDailyFormSession_(){
+  try{
+    var draft=JSON.parse(memoryStorage.getItem(dailyFormSessionKey_())||'null');
+    if(!draft) return;
+    var cls=draft.className||'';
+    var classEl=document.getElementById('classSelect'), visibleClass=document.getElementById('dailyClassSelect'), dateEl=document.getElementById('recordDate');
+    if(dateEl&&draft.date) dateEl.value=draft.date;
+    if(classEl&&cls){classEl.value=cls;if(visibleClass) visibleClass.value=cls;}
+    if(typeof updateStudentListDropdown==='function'&&cls) updateStudentListDropdown();
+    setTimeout(function(){
+      var studentEl=document.getElementById('studentNameSelect');
+      if(studentEl&&draft.studentName){studentEl.value=draft.studentName;studentEl.dispatchEvent(new Event('change',{bubbles:true}));}
+      Object.keys(draft.fields||{}).forEach(function(id){var el=document.getElementById(id),v=draft.fields[id];if(el&&v&&v.value!==undefined) el.value=v.value;});
+      if(draft.timer){dailyTimerSeconds={new:Number(draft.timer.new||0),old:Number(draft.timer.old||0),recitation:Number(draft.timer.recitation||0)};dailyTimerType=['new','old','recitation'].includes(draft.timer.type)?draft.timer.type:'new';dailyTimerBaseSeconds=dailyTimerSeconds[dailyTimerType]||0;dailyTimerRunning=false;dailyTimerStartedAt=0;clearInterval(dailyTimerInterval);dailyTimerInterval=null;renderDailyTimer();updateDailyTypeTimes();}
+      if(typeof shariaIsClass_==='function'&&shariaIsClass_(cls)) shariaSetMode_(cls);
+    },250);
+  }catch(e){console.error('daily form draft restore',e);}
+}
+function installDailyFormPersistence_(){
+  if(dailyFormPersistenceInstalled_) return;
+  dailyFormPersistenceInstalled_=true;
+  var save=function(){saveDailyFormSession_();};
+  document.addEventListener('input',save,true);
+  document.addEventListener('change',save,true);
+  window.addEventListener('pagehide',pauseAndSaveDailySession_);
+  window.addEventListener('beforeunload',pauseAndSaveDailySession_);
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden') pauseAndSaveDailySession_();});
+  var oldShow=window.showAppScreen;
+  if(typeof oldShow==='function') window.showAppScreen=function(){oldShow.apply(this,arguments);setTimeout(restoreDailyFormSession_,350);};
+  setTimeout(restoreDailyFormSession_,700);
 }
 (function installShariaMode(){
   var oldUpdateFifth=window.updateFifthGradeFields;
@@ -14649,14 +15031,33 @@ function renderShariaGradesReport(){
   var oldUpdateList=window.updateStudentListDropdown;
   window.updateStudentListDropdown=function(){ if(typeof oldUpdateList==='function') oldUpdateList(); var v=(document.getElementById('classSelect')||{}).value||''; shariaSetMode_(v); };
   var oldAddGrade=window.addGrade;
-  window.addGrade=async function(forceAbsent){ var c=(document.getElementById('classSelect')||{}).value||''; if(shariaIsClass_(c)){ if(forceAbsent) return showMessage('app-msg','الغياب في درجات الشرعي يُسجل من خلال الرصد الخاص بالشرعي.','info'); return saveShariaGrade(); } return oldAddGrade.apply(this,arguments); };
+  window.addGrade=async function(forceAbsent){ var c=(document.getElementById('dailyClassSelect')||{}).value || (document.getElementById('classSelect')||{}).value || ''; if(String(c).trim()==='أولى شرعي'){ if(forceAbsent) return saveShariaGrade(true); return saveShariaGrade(false); } return oldAddGrade.apply(this,arguments); };
+  var oldMarkAbsent=window.markAbsent;
+  window.markAbsent=async function(){ var c=(document.getElementById('dailyClassSelect')||{}).value || (document.getElementById('classSelect')||{}).value || ''; if(String(c).trim()==='أولى شرعي') return markShariaAbsent(); return oldMarkAbsent.apply(this,arguments); };
+  var oldMainSaveButton=window.updateMainDailySaveButton_;
+  window.updateMainDailySaveButton_=function(){
+    var c=(document.getElementById('dailyClassSelect')||{}).value || (document.getElementById('classSelect')||{}).value || '';
+    if(String(c).trim()==='أولى شرعي'){
+      var b=document.querySelector('#daily-tab .daily-scores-card button[onclick="addGrade()"]');
+      if(b){ b.disabled=false; b.classList.remove('daily-type-save-done'); b.textContent='💾 حفظ'; b.title='حفظ'; }
+      return;
+    }
+    return oldMainSaveButton.apply(this,arguments);
+  };
   // Remove الشرعي from general report/status/ranking selectors; keep it only in student/teacher assignment and daily selection.
-  function cleanGeneralSelect(id){ var el=document.getElementById(id); if(!el) return; Array.from(el.options).forEach(function(o){if(o.value==='أولى شرعي') o.remove();}); if(!el.value&&el.options.length) el.value=el.options[0].value; }
+  function cleanGeneralSelect(id){ return; }
   ['attendanceClassSelect','weeklyClassSelect','monthlyClassSelect','notesClassSelect','paymentsClassSelect','paymentReportClassSelect'].forEach(cleanGeneralSelect);
   // Hide sharia from generic tables even if old records exist.
-  function filterNonSharia(arr){return (arr||[]).filter(function(r){return String(r.className||'')!=='أولى شرعي';});}
+  function filterNonSharia(arr){return (arr||[]).filter(function(r){return String((r&&r.className)||'').trim()!=='أولى شرعي';});}
   var fns=['renderDailyTable','renderAttendanceTable','renderWeeklyTable','renderMonthlyReport','renderManagerView','renderClassStatusTable','renderTopStudents'];
-  fns.forEach(function(n){ if(typeof window[n]==='function'){ var orig=window[n]; window[n]=function(){ var oldD=window.dailyRecords, oldS=window.studentsData; window.dailyRecords=filterNonSharia(oldD); window.studentsData=filterNonSharia(oldS); try{return orig.apply(this,arguments);} finally{window.dailyRecords=oldD;window.studentsData=oldS;} }; }});
+  fns.forEach(function(n){ if(typeof window[n]==='function'){ var orig=window[n]; window[n]=function(){ var selectedReportClass=n==='renderWeeklyTable'?((document.getElementById('weeklyClassSelect')||{}).value||''):n==='renderMonthlyReport'?((document.getElementById('monthlyClassSelect')||{}).value||''):''; if((n==='renderWeeklyTable'||n==='renderMonthlyReport')&&shariaIsClass_(selectedReportClass)) return orig.apply(this,arguments); var oldD=window.dailyRecords, oldS=window.studentsData; if(n==='renderClassStatusTable'){ window.dailyRecords=(oldD||[]).concat((shariaGradesData||[]).map(function(r){return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'});})); try{return orig.apply(this,arguments);} finally{window.dailyRecords=oldD;} } window.dailyRecords=filterNonSharia(oldD); window.studentsData=filterNonSharia(oldS); try{return orig.apply(this,arguments);} finally{window.dailyRecords=oldD;window.studentsData=oldS;} }; }});
+  var normalDailyRender=window.renderDailyTable;
+  window.renderDailyTable=function(){
+    var selected=(document.getElementById('classSelect')||{}).value||'';
+    if(shariaIsClass_(selected)) return renderShariaDailyLog_();
+    return normalDailyRender.apply(this,arguments);
+  };
   if(typeof window.renderShariaGradesReport==='function') window.renderShariaGradesReport();
+  installDailyFormPersistence_();
 })();
 </script>
