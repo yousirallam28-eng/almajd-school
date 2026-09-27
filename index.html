@@ -8069,7 +8069,7 @@ function renderDailyTable() {
         var isAbsentRow = !!r.isAbsent || String(r.attendanceStatus || '') === 'absent';
         var gradeCell = function (v) { return isAbsentRow ? '<span style="color:var(--danger-color);font-weight:900;">—</span>' : dailyMissingCell(v); };
         var timeCellFn = function (s) { return isAbsentRow ? '<span style="color:var(--danger-color);font-weight:900;">—</span>' : dailyMissingTimeCell(s); };
-        var canManageRecord = safeTeacher.username === 'admin' || currentTeacher.username === r.teacherName;
+        var canManageRecord = safeTeacher.username === 'admin' || safeTeacher.username === r.teacherName;
         var actionBtns = "<div style=\"display:flex;gap:5px;justify-content:center;flex-wrap:wrap;\">"
             + "<button type=\"button\" class=\"action-btn btn-edit\" style=\"padding:3px 8px;font-size:0.8em;min-width:auto;\" onclick=\"editRecord('" + String(r.id).replace(/'/g, "\'") + "')\">✏️ تعديل</button>"
             + (canManageRecord
@@ -8375,6 +8375,39 @@ function showStudentReportChart(studentName, reportType) {
     var selectedClass = reportType === 'weekly'
         ? document.getElementById('weeklyClassSelect').value
         : document.getElementById('monthlyClassSelect').value;
+    /* إصلاح رسم الوافدين: استخدم سجلات الوافدين الفعلية بدل dailyRecords العامة. */
+    if (wafdeenIsClass_(selectedClass)) {
+        var wafRecords = typeof wafdeenMainLogRecords_ === 'function' ? wafdeenMainLogRecords_() : (wafdeenDailyRecords || []);
+        var labelsW = [], dataW = [], titleW = '';
+        var totalW = function(r){ return Math.max(0, Math.min(30, Number(r && r.total) || Number(r && r.newLesson || 0) + Number(r && r.oldRevision || 0) + Number(r && r.recitation || 0))); };
+        if (reportType === 'weekly') {
+            var wk = (document.getElementById('weekSelect') || {}).value || '';
+            var ord = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'];
+            labelsW = ord;
+            dataW = ord.map(function(day){
+                var r = wafRecords.find(function(x){ return !x._deleted && String(x.studentName||'') === String(studentName) && x.dateISO && getWeekKey(String(x.dateISO).slice(0,10)) === wk && (String(x.dayName||'') === day || (!x.dayName && wafdeenReportDayName_(x.dateISO) === day)); });
+                return r && !(r.isAbsent || String(r.attendanceStatus||'').toLowerCase()==='absent') ? totalW(r) : 0;
+            });
+            titleW = '📈 الرسم البياني الأسبوعي — ' + studentName;
+        } else {
+            var m = Number((document.getElementById('reportMonth') || {}).value || new Date().getMonth());
+            var y = Number((document.getElementById('reportYear') || {}).value || new Date().getFullYear());
+            var wd = getMonthWorkingDays(y, m);
+            wd.forEach(function(d){
+                labelsW.push(String(d.dayNum).padStart(2,'0') + '/' + String(m+1).padStart(2,'0'));
+                var r = wafRecords.find(function(x){ return !x._deleted && String(x.studentName||'') === String(studentName) && wafdeenMainLogDate_(x.dateISO||x.date||'') === d.dateISO; });
+                dataW.push(r && !(r.isAbsent || String(r.attendanceStatus||'').toLowerCase()==='absent') ? totalW(r) : 0);
+            });
+            titleW = '📈 الرسم البياني الشهري — ' + studentName;
+        }
+        showSiteModal(titleW, '<div style=\"background:#fff;border-radius:12px;padding:8px 4px;\"><canvas id=\"studentReportChartModal\" height=\"250\"></canvas></div>', '<button type=\"button\" class=\"action-btn modal-cancel\" onclick=\"closeSiteModal()\">إغلاق</button>');
+        setTimeout(function(){
+            renderBarChart('studentReportChartModal', function(c){window.studentReportModalChartInstance=c;}, function(){return window.studentReportModalChartInstance;}, labelsW, dataW, 'الدرجة اليومية للوافدين');
+            var ch=window.studentReportModalChartInstance;
+            if(ch){ch.options.scales=ch.options.scales||{};ch.options.scales.y=ch.options.scales.y||{};ch.options.scales.y.min=0;ch.options.scales.y.max=30;ch.update();}
+        },0);
+        return;
+    }
     var labels = [], data = [], title = '';
     if (reportType === 'weekly') {
         var weekKey_1 = document.getElementById('weekSelect').value;
@@ -11877,6 +11910,7 @@ function wafdeenSaveGradeType(type) {
                     wafdeenQuranHeardTypes[type] = true;
                     wafdeenQuranSessionSavedByType[type] = true;
                     wafdeenPersistLocal();
+                    refreshWafdeenMainLog_();
                     if (!useFirebase || !db)
                         return [2 /*return*/, showMessage('wafdeen-save-msg', 'Firebase غير متصل — لم يتم اعتماد الحفظ.', 'error')];
                     cloudCommon = { id: String(record.id), recordId: String(record.id), teacherUsername: record.teacherUsername, studentId: record.studentId, studentName: record.studentName, dateISO: record.dateISO, attendanceStatus: record.attendanceStatus, isAbsent: record.isAbsent, status: record.status, dayName: record.dayName, quranSessionTimeSeconds: Number(record.quranSessionTimeSeconds || seconds || 0), quranSessionTimeByType: Object.assign({ الجديد: 0, الماضي: 0, التلاوة: 0 }, record.quranSessionTimeByType || {}), updatedAt: new Date().toISOString() };
@@ -12039,6 +12073,7 @@ function saveWafdeenDailyRecord() {
                     else
                         wafdeenDailyRecords.push(record);
                     wafdeenPersistLocal();
+                    refreshWafdeenMainLog_();
                     wafdeenRenderGrades();
                     wafdeenUpdateDailySaveButton();
                     showMessage('wafdeen-save-msg', isAbsent ? "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u063A\u064A\u0627\u0628 ".concat(student.name, " \u0628\u0635\u0641\u0631 \u0641\u064A \u0643\u0644 \u0627\u0644\u062E\u0627\u0646\u0627\u062A \uD83D\uDEAB") : "\u062A\u0645 \u062D\u0641\u0638 \u0627\u0644\u0631\u0635\u062F \u0627\u0644\u064A\u0648\u0645\u064A \u0644\u0644\u0637\u0627\u0644\u0628 ".concat(student.name, " \u0639\u0644\u0649 Firebase \u2705"), 'success');
@@ -12113,7 +12148,7 @@ function wafdeenRenderGrades() {
         list.innerHTML = '<div class="wafdeen-note">لا يوجد طلاب مسجلون.</div>';
 }
 function wafdeenCanManageGrades() {
-    return !!currentWafdeenTeacher && currentWafdeenTeacher.role !== 'student';
+    return (!!currentWafdeenTeacher && currentWafdeenTeacher.role !== 'student') || !!(currentTeacher && (String(currentTeacher.username || '').trim() === 'admin' || String(currentTeacher.assignedClass || '').trim() === 'الوافدين'));
 }
 function wafdeenGradeTable(records, title, layout) {
     if (layout === void 0) { layout = 'vertical'; }
@@ -12134,7 +12169,10 @@ function wafdeenGradeTable(records, title, layout) {
             : "<th>\u0627\u0644\u062A\u0627\u0631\u064A\u062E</th><th>\u0627\u0644\u062C\u062F\u064A\u062F</th><th>\u0645\u0642\u0631\u0631 \u0627\u0644\u062C\u062F\u064A\u062F \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647</th><th>\u0635\u0641\u062D\u0627\u062A \u0627\u0644\u062C\u062F\u064A\u062F</th><th>\u0627\u0644\u0645\u0627\u0636\u064A</th><th>\u0645\u0642\u0631\u0631 \u0627\u0644\u0645\u0627\u0636\u064A \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647</th><th>\u0635\u0641\u062D\u0627\u062A \u0627\u0644\u0645\u0627\u0636\u064A</th><th>\u0627\u0644\u062A\u0644\u0627\u0648\u0629</th><th>\u0645\u0642\u0631\u0631 \u0627\u0644\u062A\u0644\u0627\u0648\u0629 \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647</th><th>\u0635\u0641\u062D\u0627\u062A/\u0623\u062C\u0632\u0627\u0621 \u0627\u0644\u062A\u0644\u0627\u0648\u0629</th><th>\u0627\u0644\u0645\u062C\u0645\u0648\u0639 / 30</th>".concat(canManage ? '<th>الإجراءات</th>' : '');
         var body = sorted.map(function (r, i) {
             var fifth = isFifthClass(r.className);
-            var actions = canManage ? "<td><div class=\"grade-card-actions\" style=\"justify-content:center;flex-direction:column\"><button type=\"button\" class=\"action-btn btn-save\" onclick='window.wafdeenEditGrade(".concat(JSON.stringify(String(r.id)), ")'>\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644</button><button type=\"button\" class=\"action-btn btn-danger\" onclick='window.wafdeenDeleteGrade(").concat(JSON.stringify(String(r.id)), ")'>\uD83D\uDDD1\uFE0F \u0645\u0633\u062D</button></div></td>") : '';
+            var recIsGeneric_ = r._wafdeenSrc === 'generic';
+            var recEditFn_ = recIsGeneric_ ? 'editRecord' : 'window.wafdeenEditGrade';
+            var recDelFn_ = recIsGeneric_ ? 'deleteRecord' : 'window.wafdeenDeleteGrade';
+            var actions = canManage ? "<td><div class=\"grade-card-actions\" style=\"justify-content:center;flex-direction:column\"><button type=\"button\" class=\"action-btn btn-save\" onclick='".concat(recEditFn_, "(").concat(JSON.stringify(String(r.id)), ")'>\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644</button><button type=\"button\" class=\"action-btn btn-danger\" onclick='").concat(recDelFn_, "(").concat(JSON.stringify(String(r.id)), ")'>\uD83D\uDDD1\uFE0F \u0645\u0633\u062D</button></div></td>") : '';
             if (fifth)
                 return "<tr><td>".concat(esc(String(r.dateISO || '').slice(0, 10)), "</td><td>").concat(valueCell(r.recitation), "</td><td>").concat(valueCell(r.recitationTopicRecited), "</td><td>").concat(valueCell(r.recitationPagesCount), "</td><td>").concat(totalCell(r), "</td>").concat(actions, "</tr>");
             return "<tr><td>".concat(esc(String(r.dateISO || '').slice(0, 10)), "</td><td>").concat(valueCell(r.newLesson), "</td><td>").concat(valueCell(r.newTopicRecited), "</td><td>").concat(valueCell(r.newPagesCount), "</td><td>").concat(valueCell(r.oldRevision), "</td><td>").concat(valueCell(r.oldTopicRecited), "</td><td>").concat(valueCell(r.oldPagesCount), "</td><td>").concat(valueCell(r.recitation), "</td><td>").concat(valueCell(r.recitationTopicRecited), "</td><td>").concat(valueCell(r.recitationPagesCount), "</td><td>").concat(totalCell(r), "</td>").concat(actions, "</tr>");
@@ -12158,7 +12196,10 @@ function wafdeenGradeTable(records, title, layout) {
         rows.push(['مقرر التلاوة الذي تم تسميعه', valueCell(r.recitationTopicRecited)]);
         rows.push(['صفحات/أجزاء التلاوة', valueCell(r.recitationPagesCount)]);
         rows.push(['المجموع من 30', totalCell(r)]);
-        var actions = canManage ? "<div class=\"grade-card-actions\"><button type=\"button\" class=\"action-btn btn-save\" onclick='window.wafdeenEditGrade(".concat(JSON.stringify(String(r.id)), ")'>\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644</button><button type=\"button\" class=\"action-btn btn-danger\" onclick='window.wafdeenDeleteGrade(").concat(JSON.stringify(String(r.id)), ")'>\uD83D\uDDD1\uFE0F \u0645\u0633\u062D</button></div>") : '';
+        var recIsGeneric_ = r._wafdeenSrc === 'generic';
+        var recEditFn_ = recIsGeneric_ ? 'editRecord' : 'window.wafdeenEditGrade';
+        var recDelFn_ = recIsGeneric_ ? 'deleteRecord' : 'window.wafdeenDeleteGrade';
+        var actions = canManage ? "<div class=\"grade-card-actions\"><button type=\"button\" class=\"action-btn btn-save\" onclick='".concat(recEditFn_, "(").concat(JSON.stringify(String(r.id)), ")'>\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644</button><button type=\"button\" class=\"action-btn btn-danger\" onclick='").concat(recDelFn_, "(").concat(JSON.stringify(String(r.id)), ")'>\uD83D\uDDD1\uFE0F \u0645\u0633\u062D</button></div>") : '';
         return "<article class=\"wafdeen-grade-record-card\"><div class=\"grade-record-head\"><strong>\u0631\u0635\u062F ".concat(i + 1, "</strong><span>").concat(esc(r.dayName || ''), " \u2014 ").concat(esc(String(r.dateISO || '').slice(0, 10)), "</span></div><div class=\"grade-record-fields\">").concat(rows.map(function (_a) {
             var _b = __read(_a, 2), label = _b[0], val = _b[1];
             return "<div class=\"grade-record-row\"><span class=\"grade-record-label\">".concat(label, "</span><span class=\"grade-record-value\">").concat(val, "</span></div>");
@@ -12319,7 +12360,7 @@ function wafdeenShowStudentGrades(studentId) {
     document.getElementById('wafdeen-grades-details').classList.remove('hidden');
     document.getElementById('wafdeen-grades-student-name').textContent = st.name;
     var now = new Date(), today = wafdeenDateKeyLocal(now), weekStart = wafdeenStartOfWeek(now), weekStartKey = wafdeenDateKeyLocal(weekStart), monthPrefix = "".concat(now.getFullYear(), "-").concat(String(now.getMonth() + 1).padStart(2, '0'));
-    var recs = wafdeenDailyRecords.filter(function (r) { return String(r.studentId || '') === String(studentId) || String(r.studentName || '') === String(st.name); });
+    var recs = (typeof wafdeenMainLogRecords_ === 'function' ? wafdeenMainLogRecords_() : wafdeenDailyRecords).filter(function (r) { return String(r.studentId || '') === String(studentId) || String(r.studentName || '') === String(st.name); });
     var todayRecs = recs.filter(function (r) { return String(r.dateISO || '').slice(0, 10) === today; });
     var weekRecs = recs.filter(function (r) { var k = String(r.dateISO || '').slice(0, 10); return k >= weekStartKey && k <= today; });
     var monthRecs = recs.filter(function (r) { return String(r.dateISO || '').slice(0, 7) === monthPrefix; });
@@ -12329,85 +12370,48 @@ function wafdeenShowStudentGrades(studentId) {
     wafdeenShowGradePeriod('today', document.querySelector('.wafdeen-grade-period-btn'));
     document.getElementById('wafdeen-grades-details').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-function wafdeenEditGrade(recordId) {
-    return __awaiter(this, void 0, void 0, function () {
-        var id_1, r, n, o, q, grade, updated;
-        var _a, _b, _c;
-        return __generator(this, function (_d) {
-            try {
-                if (!wafdeenCanManageGrades()) {
-                    showMessage('wafdeen-save-msg', 'التعديل غير متاح لهذا الحساب', 'error');
-                    return [2 /*return*/];
-                }
-                id_1 = String(recordId || '');
-                r = wafdeenDailyRecords.find(function (x) { return String(x.id) === id_1; });
-                if (!r) {
-                    showMessage('wafdeen-save-msg', 'الرصد غير موجود', 'error');
-                    return [2 /*return*/];
-                }
-                n = prompt('درجة الجديد من 10:', String((_a = r.newLesson) !== null && _a !== void 0 ? _a : 0));
-                if (n === null)
-                    return [2 /*return*/];
-                o = prompt('درجة الماضي من 10:', String((_b = r.oldRevision) !== null && _b !== void 0 ? _b : 0));
-                if (o === null)
-                    return [2 /*return*/];
-                q = prompt('درجة التلاوة من 10:', String((_c = r.recitation) !== null && _c !== void 0 ? _c : 0));
-                if (q === null)
-                    return [2 /*return*/];
-                grade = function (v) { return Math.max(0, Math.min(10, Number(v) || 0)); };
-                updated = { newLesson: grade(n), oldRevision: grade(o), recitation: grade(q) };
-                updated.total = Math.max(0, Math.min(30, updated.newLesson + updated.oldRevision + updated.recitation));
-                updated.editedAt = new Date().toISOString();
-                updated.editedBy = currentWafdeenTeacher.username || '';
-                Object.assign(r, updated);
-                wafdeenPersistLocal();
-                Promise.resolve(firebaseSaveByAction_('updateWafdeenDailyGrade', r)).catch(function (e) { return console.warn('Firebase update failed:', e); });
-                if (wafdeenCurrentGradeStudentId)
-                    wafdeenShowStudentGrades(wafdeenCurrentGradeStudentId);
-                showMessage('wafdeen-save-msg', 'تم تعديل الدرجات بنجاح وتسجيل التعديل في شيت الوافدين ✅', 'success');
-            }
-            catch (e) {
-                console.error('wafdeenEditGrade error:', e);
-                showMessage('wafdeen-save-msg', 'تعذر تعديل الدرجة', 'error');
-            }
-            return [2 /*return*/];
-        });
-    });
+async function wafdeenFindFirebaseRef_(id){
+  if(typeof db==='undefined'||!db||!db.collection) throw new Error('Firebase غير متصل');
+  var key=String(id||'').trim(), col=db.collection('wafdeenDailyRecords');
+  var direct=await col.doc(key).get(); if(direct.exists) return direct.ref;
+  try{var q=await col.where('id','==',key).get();if(!q.empty)return q.docs[0].ref;}catch(e){}
+  try{var q2=await col.where('recordId','==',key).get();if(!q2.empty)return q2.docs[0].ref;}catch(e){}
+  throw new Error('السجل غير موجود في Firebase');
 }
-window.wafdeenEditGrade = wafdeenEditGrade;
-function wafdeenDeleteGrade(recordId) {
-    var id = String(recordId || '');
-    if (!wafdeenCanManageGrades()) {
-        showMessage('wafdeen-save-msg', 'المسح غير متاح لهذا الحساب', 'error');
-        return Promise.resolve(false);
-    }
-    if (!id) {
-        showMessage('wafdeen-save-msg', 'رقم الرصد غير صحيح', 'error');
-        return Promise.resolve(false);
-    }
-    var deletedRecord = (wafdeenDailyRecords || []).find(function (x) { return String(x.id) === id; });
-    if (!deletedRecord) {
-        showMessage('wafdeen-save-msg', 'الرصد غير موجود', 'error');
-        return Promise.resolve(false);
-    }
-    if (!confirm('هل تريد مسح هذا الرصد نهائياً؟')) return Promise.resolve(false);
-    if (!useFirebase || !db) {
-        showMessage('wafdeen-save-msg', 'Firebase غير متصل، لم يتم الحذف.', 'error');
-        return Promise.resolve(false);
-    }
-    return firebaseSaveByAction_('deleteWafdeenDailyGrade', deletedRecord).then(function () {
-        wafdeenDailyRecords = (wafdeenDailyRecords || []).filter(function (x) { return String(x.id) !== id; });
-        if (wafdeenCurrentGradeStudentId) wafdeenShowStudentGrades(wafdeenCurrentGradeStudentId);
-        wafdeenUpdateDailyScoresVisibility();
-        showMessage('wafdeen-save-msg', 'تم مسح الرصد نهائياً من Firebase ✅', 'success');
-        return true;
-    }).catch(function (e) {
-        console.error('wafdeenDeleteGrade error:', e);
-        showMessage('wafdeen-save-msg', 'تعذر مسح الرصد من Firebase: ' + String((e && e.message) || e), 'error');
-        return false;
-    });
+async function wafdeenEditGrade(recordId){
+  if(!wafdeenCanManageGrades()){showMessage('wafdeen-save-msg','التعديل غير متاح لهذا الحساب','error');return false;}
+  var id=String(recordId||''), r=(wafdeenDailyRecords||[]).find(function(x){return String(x.id||x.recordId||String(x.studentId||'')+'_'+String(x.dateISO||''))===id;});
+  if(!r){showMessage('wafdeen-save-msg','الرصد غير موجود','error');return false;}
+  try{
+    var n=prompt('درجة الجديد من 10:',String(r.newLesson==null?0:r.newLesson));if(n===null)return false;
+    var o=prompt('درجة الماضي من 10:',String(r.oldRevision==null?0:r.oldRevision));if(o===null)return false;
+    var q=prompt('درجة التلاوة من 10:',String(r.recitation==null?0:r.recitation));if(q===null)return false;
+    var grade=function(v){return Math.max(0,Math.min(10,Number(v)||0));};
+    var changes={newLesson:grade(n),oldRevision:grade(o),recitation:grade(q)};changes.total=changes.newLesson+changes.oldRevision+changes.recitation;changes.editedAt=new Date().toISOString();changes.editedBy=(currentWafdeenTeacher&&currentWafdeenTeacher.username)||((currentTeacher&&currentTeacher.username)||'');
+    var ref=await wafdeenFindFirebaseRef_(id);await ref.update(Object.assign({},changes,{updatedAt:new Date().toISOString()}));
+    var snap=await ref.get();if(!snap.exists)throw new Error('لم يتم العثور على السجل بعد التعديل');
+    var saved=Object.assign({},snap.data()||{}, {id:String((snap.data()||{}).id||snap.id)});
+    var ix=wafdeenDailyRecords.findIndex(function(x){return String(x.id)===id;});if(ix>-1)wafdeenDailyRecords[ix]=Object.assign({},wafdeenDailyRecords[ix],saved);else wafdeenDailyRecords.push(saved);
+    try{wafdeenPersistLocal();}catch(e){};try{if(typeof refreshWafdeenLogAfterSave_==='function')refreshWafdeenLogAfterSave_();else if(typeof renderDailyTable==='function')renderDailyTable();}catch(e){}
+    showMessage('wafdeen-save-msg','تم تعديل الرصد بنجاح ✅','success');return true;
+  }catch(e){console.error('wafdeenEditGrade error:',e);showMessage('wafdeen-save-msg','تعذر تعديل الرصد: '+(e.message||e),'error');return false;}
 }
-window.wafdeenDeleteGrade = wafdeenDeleteGrade;
+window.wafdeenEditGrade=wafdeenEditGrade;
+async function wafdeenDeleteGrade(recordId){
+  if(!wafdeenCanManageGrades()){showMessage('wafdeen-save-msg','المسح غير متاح لهذا الحساب','error');return false;}
+  var id=String(recordId||''), records=wafdeenDailyRecords||[], r=records.find(function(x){return String(x.id||x.recordId||String(x.studentId||'')+'_'+String(x.dateISO||''))===id;});
+  if(!r){showMessage('wafdeen-save-msg','الرصد غير موجود','error');return false;}
+  if(!confirm('هل تريد مسح هذا الرصد نهائياً؟'))return false;
+  try{
+    var ref=await wafdeenFindFirebaseRef_(id);await ref.delete();
+    wafdeenDailyRecords=records.filter(function(x){return String(x.id)!==id;});
+    try{wafdeenPersistLocal();}catch(e){};try{if(typeof refreshWafdeenLogAfterSave_==='function')refreshWafdeenLogAfterSave_();else if(typeof renderDailyTable==='function')renderDailyTable();}catch(e){}
+    if(wafdeenCurrentGradeStudentId)try{wafdeenShowStudentGrades(wafdeenCurrentGradeStudentId);}catch(e){}
+    showMessage('wafdeen-save-msg','تم حذف الرصد بنجاح ✅','success');return true;
+  }catch(e){console.error('wafdeenDeleteGrade error:',e);showMessage('wafdeen-save-msg','تعذر حذف الرصد: '+(e.message||e),'error');return false;}
+}
+window.wafdeenDeleteGrade=wafdeenDeleteGrade;
+
 function wafdeenToggleEducationTimeStudents() {
     var list = document.getElementById('wafdeen-education-time-students-list'), icon = document.getElementById('wafdeen-education-time-students-icon');
     if (!list)
@@ -13714,7 +13718,7 @@ window.wafdeenSelectGradeType = wafdeenSelectGradeType;
 window.wafdeenGuardedDailySave = window.wafdeenGuardedDailySave || wafdeenGuardedDailySave;
 window.markWafdeenAbsent = window.markWafdeenAbsent || markWafdeenAbsent;
 window.saveWafdeenDailyRecord = window.saveWafdeenDailyRecord || saveWafdeenDailyRecord;
-window.deleteFirebaseRecord = deleteFirebaseRecord;
+if(typeof deleteFirebaseRecord === 'function') window.deleteFirebaseRecord = deleteFirebaseRecord;
 </script>
 <script>window.addEventListener('DOMContentLoaded', function () { try {
     markDailyTypeFieldGroups_();
@@ -14206,12 +14210,14 @@ window.__WAFDEEN_STANDALONE__ = false;
   window.renderWeeklyTable=function(){
     var c=(document.getElementById('weeklyClassSelect')||{}).value||'';
     if(shariaIsClass_(c)) return renderShariaWeeklyReport_();
+    if(wafdeenIsClass_(c)) return renderWafdeenWeeklyReport_();
     return oldWeeklyTable.apply(this,arguments);
   };
   var oldMonthlyReport=window.renderMonthlyReport;
   window.renderMonthlyReport=function(){
     var c=(document.getElementById('monthlyClassSelect')||{}).value||'';
     if(shariaIsClass_(c)) return renderShariaMonthlyReport_();
+    if(wafdeenIsClass_(c)) return renderWafdeenMonthlyReport_();
     return oldMonthlyReport.apply(this,arguments);
   };
   var oldUpdateFifth=window.updateFifthGradeFields;
@@ -14252,7 +14258,103 @@ window.__WAFDEEN_STANDALONE__ = false;
 })();
 </script>
 
-<script>document.addEventListener('DOMContentLoaded',function(){var d=document.getElementById('shariaReportDate');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10);});</script></body>
+<script>document.addEventListener('DOMContentLoaded',function(){var d=document.getElementById('shariaReportDate');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10);});</script>
+<script>
+/* ===== إصلاح ثبات جلسة التسجيل بعد أول حفظ =====
+   يمنع انتقال واجهة النظام إلى شاشة الدخول/الرئيسية بسبب إعادة الرسم أو أي خطأ جانبي أثناء أول تسجيل.
+   يعمل مع جميع الفصول، بما فيها الوافدين وأولى شرعي. */
+(function installStableRecordNavigation_(){
+  if(window.__stableRecordNavigationInstalled) return;
+  window.__stableRecordNavigationInstalled=true;
+
+  function snapshot_(){
+    var active=document.querySelector('.tab-content.active');
+    return {
+      tabId: active ? active.id : 'daily-tab',
+      className: String((document.getElementById('classSelect')||{}).value||''),
+      dailyClass: String((document.getElementById('dailyClassSelect')||{}).value||''),
+      student: String((document.getElementById('studentNameSelect')||{}).value||''),
+      scroll: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0,
+      teacher: currentTeacher ? Object.assign({}, currentTeacher) : null,
+      wafdeenTeacher: currentWafdeenTeacher ? Object.assign({}, currentWafdeenTeacher) : null
+    };
+  }
+
+  function restore_(st){
+    try{
+      /* لا نسمح بفقد جلسة المعلم بسبب إعادة رسم الواجهة. */
+      if(!currentTeacher && st.teacher){
+        currentTeacher=st.teacher;
+        try{memoryStorage.setItem('currentTeacher',JSON.stringify(currentTeacher));}catch(_){ }
+      }
+      if(!currentWafdeenTeacher && st.wafdeenTeacher){
+        currentWafdeenTeacher=st.wafdeenTeacher;
+        try{memoryStorage.setItem('currentWafdeenTeacher',JSON.stringify(currentWafdeenTeacher));}catch(_){ }
+      }
+
+      /* إذا ظهرت شاشة الدخول بشكل غير مقصود، أعد شاشة العمل فقط إذا كانت الجلسة موجودة. */
+      if(currentTeacher && document.getElementById('app-screen') && document.getElementById('app-screen').classList.contains('hidden')){
+        if(typeof showAppScreen==='function') showAppScreen();
+      } else if(currentWafdeenTeacher && document.getElementById('wafdeen-app-screen') && document.getElementById('wafdeen-app-screen').classList.contains('hidden')){
+        if(typeof showWafdeenAppScreen==='function') showWafdeenAppScreen();
+      }
+
+      var cls=document.getElementById('classSelect');
+      var dcls=document.getElementById('dailyClassSelect');
+      if(cls && st.className){cls.value=st.className;}
+      if(dcls && st.dailyClass){dcls.value=st.dailyClass;}
+      if(typeof updateStudentListDropdown==='function' && st.className){
+        try{updateStudentListDropdown();}catch(_){ }
+      }
+      setTimeout(function(){
+        var sel=document.getElementById('studentNameSelect');
+        if(sel && st.student){sel.value=st.student; try{sel.dispatchEvent(new Event('change',{bubbles:true}));}catch(_){}}
+        if(st.tabId && document.getElementById(st.tabId) && typeof switchTab==='function'){
+          try{switchTab(st.tabId,{currentTarget:document.querySelector('.sidebar-nav .tab-btn[onclick*="'+st.tabId+'"]'),target:null});}catch(_){
+            document.querySelectorAll('.tab-content').forEach(function(x){x.classList.remove('active');});
+            document.getElementById(st.tabId).classList.add('active');
+          }
+        }
+        try{window.scrollTo(0,st.scroll);}catch(_){ }
+        [50,200,600].forEach(function(ms){setTimeout(function(){try{window.scrollTo(0,st.scroll);}catch(_){ }},ms);});
+      },120);
+    }catch(e){console.warn('stable record restore',e);}
+  }
+
+  function wrap_(name){
+    var original=window[name];
+    if(typeof original!=='function' || original.__stableWrapped) return;
+    var wrapped=function(){
+      var st=snapshot_();
+      var args=arguments;
+      var result;
+      try{result=original.apply(this,args);}catch(e){restore_(st);throw e;}
+      if(result && typeof result.then==='function'){
+        return result.then(function(v){restore_(st);return v;},function(e){restore_(st);throw e;});
+      }
+      restore_(st); return result;
+    };
+    wrapped.__stableWrapped=true;
+    window[name]=wrapped;
+  }
+
+  /* دوال التسجيل الرئيسية لكل الفصول. */
+  wrap_('addGrade');
+  wrap_('markAbsent');
+  wrap_('saveShariaGrade');
+  wrap_('markShariaAbsent');
+  wrap_('saveWafdeenDailyRecord');
+  wrap_('wafdeenSaveGradeType');
+  wrap_('wafdeenSaveGradeAndTime');
+  wrap_('wafdeenGuardedDailySave');
+
+  /* بعض الدوال قد تُعرّف بعد هذا الجزء؛ أعد الربط بعد اكتمال تحميل السكربتات. */
+  setTimeout(function(){
+    ['addGrade','markAbsent','saveShariaGrade','markShariaAbsent','saveWafdeenDailyRecord','wafdeenSaveGradeType','wafdeenSaveGradeAndTime','wafdeenGuardedDailySave'].forEach(wrap_);
+  },0);
+})();
+</script>
+</body>
 </html>
 <script>var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -14641,20 +14743,8 @@ if (typeof window.wafdeenMonthlyImportedReports === 'undefined')
     }catch(e){console.error('V9 editRecord',e);showSiteError('تعذر حفظ تعديل الرصد في Firebase: '+(e.message||e));}
   };
 
-  window.wafdeenEditGrade = async function(recordId){
-    if(!wafdeenCanManageGrades()) return showMessage('wafdeen-save-msg','التعديل غير متاح لهذا الحساب','error');
-    try{
-      var fresh=await cloudFresh_('wafdeenDailyRecords',recordId), r=fresh.data;
-      var ok=await siteConfirm('✏️ تعديل درجات الوافدين','<div class="modal-grid"><div class="form-group full"><label>الطالب:</label><input value="'+esc(r.studentName)+'" readonly></div><div class="form-group"><label>الجديد (10):</label><input type="number" min="0" max="10" id="v9WNew" value="'+esc(r.newLesson||0)+'"></div><div class="form-group"><label>الماضي (10):</label><input type="number" min="0" max="10" id="v9WOld" value="'+esc(r.oldRevision||0)+'"></div><div class="form-group"><label>التلاوة (10):</label><input type="number" min="0" max="10" id="v9WRec" value="'+esc(r.recitation||0)+'"></div></div>','حفظ التعديل');
-      if(!ok)return;
-      var g=function(id){return Math.max(0,Math.min(10,Number(document.getElementById(id).value)||0));};
-      var changes={newLesson:g('v9WNew'),oldRevision:g('v9WOld'),recitation:g('v9WRec')}; changes.total=changes.newLesson+changes.oldRevision+changes.recitation; changes.editedAt=new Date().toISOString(); changes.editedBy=(currentWafdeenTeacher&&currentWafdeenTeacher.username)||'';
-      var saved=await updateVerified_('wafdeenDailyRecords',recordId,changes);
-      var idx=wafdeenDailyRecords.findIndex(function(x){return String(x.id)===String(recordId);}); if(idx>-1) wafdeenDailyRecords[idx]=Object.assign({},wafdeenDailyRecords[idx],saved);
-      if(wafdeenCurrentGradeStudentId) wafdeenShowStudentGrades(wafdeenCurrentGradeStudentId); try{wafdeenUpdateDailyScoresVisibility();}catch(e){}
-      showMessage('wafdeen-save-msg','تم تعديل الدرجات في Firebase والتحقق من التعديل ✅','success');
-    }catch(e){console.error('V9 wafdeenEditGrade',e);showMessage('wafdeen-save-msg','تعذر تعديل الدرجة في Firebase: '+(e.message||e),'error');}
-  };
+  window.wafdeenEditGrade = wafdeenEditGrade;
+
 
   console.log('V9 edit system loaded: Firebase-only verified updates');
 })();
@@ -15023,6 +15113,130 @@ function installDailyFormPersistence_(){
   if(typeof oldShow==='function') window.showAppScreen=function(){oldShow.apply(this,arguments);setTimeout(restoreDailyFormSession_,350);};
   setTimeout(restoreDailyFormSession_,700);
 }
+function wafdeenIsClass_(c){ return String(c||'').trim()==='الوافدين'; }
+function wafdeenEscReport_(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];});}
+function wafdeenReportStudents_(){
+  /* إصلاح: التقارير لا تعتمد على قائمة wafdeenStudentsData وحدها؛
+     لأن القائمة قد تتأخر في المزامنة بينما درجات الوافدين موجودة بالفعل. */
+  var byName={};
+  (wafdeenStudentsData||[]).forEach(function(s){
+    if(s && String(s.name||'').trim()) byName[String(s.name).trim()]=Object.assign({},s,{className:'الوافدين'});
+  });
+  try{
+    (typeof wafdeenMainLogRecords_==='function'?wafdeenMainLogRecords_():(wafdeenDailyRecords||[])).forEach(function(r){
+      if(!r||r._deleted) return;
+      var n=String(r.studentName||'').trim();
+      if(!n) return;
+      if(!byName[n]) byName[n]={id:r.studentId||('wf_report_'+n),name:n,className:'الوافدين'};
+    });
+  }catch(e){console.warn('wafdeenReportStudents_ records fallback',e);}
+  return Object.keys(byName).map(function(k){return byName[k];}).sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'ar');});
+}
+function wafdeenReportRecords_(student,dateISO){return (typeof wafdeenMainLogRecords_==='function'?wafdeenMainLogRecords_():(wafdeenDailyRecords||[])).filter(function(r){return !r._deleted&&String(r.studentName||'')===String(student)&&(!dateISO||String(r.dateISO||'').slice(0,10)===String(dateISO).slice(0,10));});}
+function wafdeenReportDayName_(dateISO){var d=new Date(String(dateISO||'')+'T00:00:00');return isNaN(d.getTime())?'':['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][d.getDay()];}
+function wafdeenReportValue_(r,type){if(!r)return '-';if(r.isAbsent||String(r.attendanceStatus||'').toLowerCase()==='absent')return '<span class="badge" style="background:var(--danger-color);color:#fff;padding:3px 7px;">🚫 غائب</span>';var v=type==='new'?r.newLesson:type==='old'?r.oldRevision:r.recitation;return v==null||v===''?'-':'<strong>'+wafdeenEscReport_(v)+'</strong>';}
+function wafdeenEnsureReportWeeks_(){
+  var sel=document.getElementById('weekSelect'); if(!sel) return;
+  var keys={}; (typeof wafdeenMainLogRecords_==='function'?wafdeenMainLogRecords_():(wafdeenDailyRecords||[])).forEach(function(r){if(r&&!r._deleted&&r.dateISO) keys[getWeekKey(String(r.dateISO).slice(0,10))]=true;});
+  Object.keys(keys).sort().forEach(function(k){if(!Array.from(sel.options).some(function(o){return o.value===k;})){var o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);}});
+  if(!sel.value){var vals=Object.keys(keys).sort();if(vals.length)sel.value=vals[vals.length-1];}
+}
+function renderWafdeenWeeklyReport_(){
+  var tbody=document.querySelector('#weeklyTable tbody'),thead=document.querySelector('#weeklyTable thead');if(!tbody||!thead)return;
+  wafdeenEnsureReportWeeks_();
+  var weekKey=(document.getElementById('weekSelect')||{}).value||'',days=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'],students=wafdeenReportStudents_();
+  /* إذا لم تكن قائمة الأسابيع مملوءة بعد، استخرج أحدث أسبوع مباشرة من سجلات الوافدين. */
+  if(!weekKey){
+    var allWeekRecords=(typeof wafdeenMainLogRecords_==='function'?wafdeenMainLogRecords_():(wafdeenDailyRecords||[]));
+    var weekKeys=allWeekRecords.filter(function(r){return r&&!r._deleted&&r.dateISO;}).map(function(r){return getWeekKey(String(r.dateISO).slice(0,10));}).filter(Boolean).sort();
+    if(weekKeys.length){weekKey=weekKeys[weekKeys.length-1];var ws=document.getElementById('weekSelect');if(ws)ws.value=weekKey;}
+  }
+  thead.innerHTML='<tr><th>اسم الطالب/الطالبة</th><th>الأحد<br>الجديد</th><th>الأحد<br>الماضي</th><th>الأحد<br>التلاوة</th><th>الاثنين<br>الجديد</th><th>الاثنين<br>الماضي</th><th>الاثنين<br>التلاوة</th><th>الثلاثاء<br>الجديد</th><th>الثلاثاء<br>الماضي</th><th>الثلاثاء<br>التلاوة</th><th>الأربعاء<br>الجديد</th><th>الأربعاء<br>الماضي</th><th>الأربعاء<br>التلاوة</th><th>الخميس<br>الجديد</th><th>الخميس<br>الماضي</th><th>الخميس<br>التلاوة</th><th>مجموع الأيام</th><th>نسبة الحضور</th></tr>';
+  if(!weekKey||!students.length){tbody.innerHTML='<tr><td colspan="18">لا توجد بيانات وافدين للأسبوع المحدد</td></tr>';renderBarChart('weeklyReportChart',function(c){weeklyReportChartInstance=c;},function(){return weeklyReportChartInstance;},[],[],'متوسط الوافدين الأسبوعي');return;}
+  var chartLabels=[],chartData=[];
+  tbody.innerHTML=students.map(function(st){var rs=(typeof wafdeenMainLogRecords_==='function'?wafdeenMainLogRecords_():(wafdeenDailyRecords||[])).filter(function(r){return !r._deleted&&String(r.studentName||'')===String(st.name||'')&&r.dateISO&&getWeekKey(String(r.dateISO).slice(0,10))===weekKey;}),att=0,scoreSum=0,cells=days.map(function(day){var r=rs.find(function(x){return String(x.dayName||'')===day||(!x.dayName&&wafdeenReportDayName_(x.dateISO)===day);});if(r&&!r.isAbsent&&String(r.attendanceStatus||'').toLowerCase()!=='absent'){att++;scoreSum+=Math.max(0,Math.min(30,Number(r.total)||Number(r.newLesson||0)+Number(r.oldRevision||0)+Number(r.recitation||0)));}return '<td>'+wafdeenReportValue_(r,'new')+'</td><td>'+wafdeenReportValue_(r,'old')+'</td><td>'+wafdeenReportValue_(r,'recitation')+'</td>';}).join('');var avg=scoreSum/5;chartLabels.push(st.name);chartData.push(Number(avg.toFixed(1)));return '<tr><td style="font-weight:bold;"><button type="button" onclick=\"showStudentReportChart('+JSON.stringify(st.name)+', \"weekly\")\" style="border:0;background:none;color:var(--primary-dark);font:inherit;font-weight:800;cursor:pointer;text-decoration:underline;text-decoration-color:var(--accent-gold);">'+wafdeenEscReport_(st.name)+'</button></td>'+cells+'<td>'+att+' / 5</td><td>'+Math.round(att/5*100)+'%</td></tr>';}).join('');
+  renderBarChart('weeklyReportChart',function(c){weeklyReportChartInstance=c;},function(){return weeklyReportChartInstance;},chartLabels,chartData,'متوسط الوافدين الأسبوعي');
+  var wc=weeklyReportChartInstance;if(wc){wc.options.scales=wc.options.scales||{};wc.options.scales.y=wc.options.scales.y||{};wc.options.scales.y.min=0;wc.options.scales.y.max=30;wc.update();}
+}
+function renderWafdeenMonthlyReport_(){
+  var tbody=document.querySelector('#monthlyReportTable tbody'),thead=document.querySelector('#monthlyReportTable thead');if(!tbody||!thead)return;
+  var monthEl=document.getElementById('reportMonth'),yearEl=document.getElementById('reportYear');
+  var month=Number((monthEl||{}).value||new Date().getMonth()),year=Number((yearEl||{}).value||new Date().getFullYear());
+  var days=getMonthWorkingDays(year,month),students=wafdeenReportStudents_();
+  /* إصلاح التاريخ: بعض سجلات الوافدين قد تكون بصيغة تاريخ/وقت أو بصيغة YYYY-MM-DD. */
+  var monthPrefix=String(year)+'-'+String(month+1).padStart(2,'0');
+  try{
+    var monthRecords=(typeof wafdeenMainLogRecords_==='function'?wafdeenMainLogRecords_():(wafdeenDailyRecords||[]));
+    var existingNames={};
+    monthRecords.forEach(function(r){
+      if(!r||r._deleted) return;
+      var ds=wafdeenMainLogDate_(r.dateISO||r.date||'');
+      if(ds.slice(0,7)===monthPrefix){var n=String(r.studentName||'').trim();if(n)existingNames[n]=true;}
+    });
+    Object.keys(existingNames).forEach(function(n){if(!students.some(function(s){return String(s.name||'').trim()===n;}))students.push({id:'wf_report_'+n,name:n,className:'الوافدين'});});
+  }catch(e){console.warn('wafdeen monthly student fallback',e);}
+  var head='<tr><th style="min-width:150px;position:sticky;right:0;background:#f8f9fa;z-index:2;">اسم الطالب/الطالبة</th>';days.forEach(function(d){var p=d.dateISO.split('-');head+='<th style="font-size:.78em;padding:5px 3px;min-width:55px;">'+d.dayName+'<br><span style="color:#666;">'+p[2]+'/'+p[1]+'</span><br>ج/م/ت</th>';});head+='<th>أيام الحضور</th><th>متوسط الحضور</th><th>إجمالي الجديد</th><th>إجمالي الماضي</th><th>إجمالي التلاوة</th></tr>';thead.innerHTML=head;
+  if(!students.length){tbody.innerHTML='<tr><td colspan="'+(days.length+6)+'">لا يوجد طلاب مسجلون في فصل الوافدين</td></tr>';renderBarChart('monthlyReportChart',function(c){monthlyReportChartInstance=c;},function(){return monthlyReportChartInstance;},[],[],'متوسط الوافدين الشهري');return;}
+  var chartLabels=[],chartData=[];
+  tbody.innerHTML=students.map(function(st){var att=0,nt=0,ot=0,rt=0,scoreSum=0,cells=days.map(function(d){var r=(typeof wafdeenMainLogRecords_==='function'?wafdeenMainLogRecords_():(wafdeenDailyRecords||[])).find(function(x){return !x._deleted&&String(x.studentName||'')===String(st.name||'')&&wafdeenMainLogDate_(x.dateISO||x.date||'')===d.dateISO;});if(r&&!r.isAbsent&&String(r.attendanceStatus||'').toLowerCase()!=='absent'){att++;nt+=Number(r.newLesson||0);ot+=Number(r.oldRevision||0);rt+=Number(r.recitation||0);scoreSum+=Math.max(0,Math.min(30,Number(r.total)||Number(r.newLesson||0)+Number(r.oldRevision||0)+Number(r.recitation||0)));}return '<td>'+(!r?'-':(r.isAbsent||String(r.attendanceStatus||'').toLowerCase()==='absent'?'<span class="badge" style="background:var(--danger-color);color:#fff;padding:3px 6px;">🚫 غائب</span>':wafdeenEscReport_(r.newLesson||0)+' / '+wafdeenEscReport_(r.oldRevision||0)+' / '+wafdeenEscReport_(r.recitation||0)))+'</td>';}).join('');var avg=scoreSum/(days.length||1);chartLabels.push(st.name);chartData.push(Number(avg.toFixed(1)));return '<tr><td style="font-weight:bold;position:sticky;right:0;background:white;z-index:1;"><button type="button" onclick=\"showStudentReportChart('+JSON.stringify(st.name)+', \"monthly\")\" style="border:0;background:none;color:var(--primary-dark);font:inherit;font-weight:800;cursor:pointer;text-decoration:underline;text-decoration-color:var(--accent-gold);">'+wafdeenEscReport_(st.name)+'</button></td>'+cells+'<td>'+att+' / '+days.length+'</td><td>'+Math.round(att/(days.length||1)*100)+'%</td><td>'+nt+'</td><td>'+ot+'</td><td>'+rt+'</td></tr>';}).join('');
+  renderBarChart('monthlyReportChart',function(c){monthlyReportChartInstance=c;},function(){return monthlyReportChartInstance;},chartLabels,chartData,'متوسط الوافدين الشهري');
+  var mc=monthlyReportChartInstance;if(mc){mc.options.scales=mc.options.scales||{};mc.options.scales.y=mc.options.scales.y||{};mc.options.scales.y.min=0;mc.options.scales.y.max=30;mc.update();}
+}
+function wafdeenMainLogDate_(value){
+  var v=String(value==null?'':value).trim(); if(!v) return '';
+  if(/^\d{4}[\/-]\d{1,2}[\/-]\d{1,2}$/.test(v)){var y=v.split(/[\/-]/);return y[0]+'-'+String(y[1]).padStart(2,'0')+'-'+String(y[2]).padStart(2,'0');}
+  var m=v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/); if(m){var first=Number(m[1]),second=Number(m[2]);return m[3]+'-'+String(first>12?second:first).padStart(2,'0')+'-'+String(first>12?first:second).padStart(2,'0');}
+  return v.slice(0,10);
+}
+function wafdeenMainLogRecords_(){
+  var all=(typeof wafdeenDailyRecords!=='undefined'&&Array.isArray(wafdeenDailyRecords))?wafdeenDailyRecords.slice():[];
+  all.forEach(function(r){if(r&&!r.id)r.id=String(r.recordId||String(r.studentId||'')+'_'+String(r.dateISO||''));});
+  try{var saved=JSON.parse(memoryStorage.getItem('wafdeenDailyRecords')||'[]');if(Array.isArray(saved)) all=all.concat(saved);}catch(e){}
+  // إصلاح: نميّز مصدر كل سجل (native = محفوظ من جلسة الوافدين نفسها في مجموعة wafdeenDailyRecords،
+  // generic = محفوظ من شاشة "الرصد اليومي" العامة في مجموعة dailyRecords) حتى نستخدم دالة التعديل/الحذف الصحيحة لكل سجل بحسب مكانه الفعلي.
+  all.forEach(function(r){if(r&&!r._wafdeenSrc) r._wafdeenSrc='native';});
+  // إصلاح: بعض سجلات فصل "الوافدين" تُحفظ عبر شاشة "الرصد اليومي" العامة (addGrade)
+  // وتُخزَّن في مصفوفة/مجموعة dailyRecords العامة بدل wafdeenDailyRecords، فكانت لا تظهر هنا إطلاقًا.
+  // لذلك نضيفها هنا يدويًا حتى يظهر أي سجل محفوظ لطالب في فصل "الوافدين" بغض النظر عن الشاشة المستخدمة.
+  try{
+    var generic=(typeof dailyRecords!=='undefined'&&Array.isArray(dailyRecords))?dailyRecords:[];
+    try{var savedGeneric=JSON.parse(memoryStorage.getItem('dailyRecords')||'[]');if(Array.isArray(savedGeneric)) generic=generic.concat(savedGeneric);}catch(e2){}
+    generic.filter(function(r){return r&&!r._deleted&&String(r.className||'').trim()==='الوافدين';}).forEach(function(r){
+      all.push(Object.assign({},r,{teacherUsername:r.teacherUsername||r.teacherName||'',_wafdeenSrc:'generic'}));
+    });
+  }catch(e){}
+  var seen={},out=[]; all.forEach(function(r){if(!r||r._deleted)return;var id=String(r.id||r.recordId||r.studentId+'_'+r.dateISO);if(!seen[id]){seen[id]=true;out.push(r);}});return out;
+}
+function renderWafdeenMainDailyLog_(){
+  var table=document.getElementById('gradesTable'); if(!table) return;
+  var thead=table.querySelector('thead'),tbody=table.querySelector('tbody'); if(!thead||!tbody)return;
+  thead.innerHTML='<tr><th>التاريخ واليوم</th><th>الصف</th><th>المعلم/المعلمة</th><th>اسم الطالب</th><th>الجديد</th><th>وقت الجديد</th><th>مقرر الجديد اليوم</th><th>مقرر الجديد الذي تم تسميعه</th><th>الماضي</th><th>وقت الماضي</th><th>مقرر الماضي اليوم</th><th>مقرر الماضي الذي تم تسميعه</th><th>التلاوة</th><th>وقت التلاوة</th><th>مقرر التلاوة اليوم</th><th>مقرر التلاوة الذي تم تسميعه</th><th>المجموع (من 30)</th><th>الإجراء</th></tr></tr>';
+  var date=(document.getElementById('filterDateDaily')||{}).value||''; var search=String((document.getElementById('searchDaily')||{}).value||'').trim();
+  var wantedDate=wafdeenMainLogDate_(date);
+  var rows=wafdeenMainLogRecords_().filter(function(r){return (!wantedDate||wafdeenMainLogDate_(r.dateISO)===wantedDate)&&(!search||String(r.studentName||'').includes(search));}).sort(function(a,b){return String(b.dateISO||'').localeCompare(String(a.dateISO||''));});
+  var can=(typeof wafdeenCanManageGrades==='function'&&wafdeenCanManageGrades()) || !!(currentTeacher&&String(currentTeacher.username||'').trim()==='admin');
+  var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];});};
+  var time=function(v){return v==null||v===''?'-':(typeof formatTimerSeconds==='function'?formatTimerSeconds(Number(v)||0):String(v));};
+  tbody.innerHTML=rows.length?rows.map(function(r){var absent=r.isAbsent||String(r.attendanceStatus||'').toLowerCase()==='absent';var cell=function(v){return absent?'<span class="badge" style="background:var(--danger-color);color:#fff;padding:3px 7px;">🚫 غائب</span>':esc(v==null||v===''?'-':v);};var total=Math.max(0,Math.min(30,Number(r.total)||Number(r.newLesson||0)+Number(r.oldRevision||0)+Number(r.recitation||0)));var rid=String(r.id||r.recordId||String(r.studentId||'')+'_'+String(r.dateISO||''));var isGeneric=r._wafdeenSrc==='generic';var editCall=isGeneric?('editRecord(\"'+esc(rid)+'\")'):('window.wafdeenEditGrade(\"'+esc(rid)+'\")');var delCall=isGeneric?('deleteRecord(\"'+esc(rid)+'\")'):('window.wafdeenDeleteGrade(\"'+esc(rid)+'\")');var actions=can?'<div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;"><button type="button" class="action-btn btn-edit" style="padding:3px 8px;font-size:0.8em;min-width:auto;" onclick=\''+editCall+'\'>✏️ تعديل</button> <button type="button" class="action-btn btn-danger" style="padding:3px 8px;font-size:0.8em;min-width:auto;" onclick=\''+delCall+'\'>🗑️ حذف</button></div>':'';return '<tr><td>'+esc(String(r.dateISO||'').slice(0,10))+'<br>'+esc(r.dayName||'')+'</td><td>الوافدين</td><td>'+esc(r.teacherUsername||'-')+'</td><td style="font-weight:bold;">'+esc(r.studentName||'')+'</td><td>'+cell(r.newLesson)+'</td><td>'+time(r.newLessonTimeSeconds)+'</td><td>'+cell(r.newTopicToday||'-')+'</td><td>'+cell(r.newTopicRecited)+'</td><td>'+cell(r.oldRevision)+'</td><td>'+time(r.oldRevisionTimeSeconds)+'</td><td>'+cell(r.oldTopicToday||'-')+'</td><td>'+cell(r.oldTopicRecited)+'</td><td>'+cell(r.recitation)+'</td><td>'+time(r.recitationTimeSeconds)+'</td><td>'+cell(r.recitationTopicToday||'-')+'</td><td>'+cell(r.recitationTopicRecited)+'</td><td><strong>'+total+'</strong> / 30</td><td>'+actions+'</td></tr>';}).join(''):'<tr><td colspan="18">لا توجد سجلات وافدين محفوظة لهذا التاريخ</td></tr>';
+}
+function refreshWafdeenMainLog_(){
+  try{
+    var selected=(document.getElementById('dailyClassSelect')||{}).value || (document.getElementById('classSelect')||{}).value || '';
+    var dateEl=document.getElementById('filterDateDaily');
+    if(dateEl&&typeof wafdeenSelectedDailyDateStr==='function') dateEl.value=wafdeenSelectedDailyDateStr();
+    if(typeof renderWafdeenMainDailyLog_==='function') renderWafdeenMainDailyLog_();
+  }catch(e){console.warn('refresh wafdeen main log',e);}
+}
+function refreshWafdeenLogAfterSave_(){
+  try{
+    var d=typeof wafdeenSelectedDailyDateStr==='function'?wafdeenSelectedDailyDateStr():'';
+    var dateEl=document.getElementById('filterDateDaily');
+    if(dateEl&&d) dateEl.value=String(d).slice(0,10);
+    if(typeof renderWafdeenMainDailyLog_==='function') renderWafdeenMainDailyLog_();
+    var table=document.getElementById('gradesTable');
+    if(table) table.scrollIntoView({block:'nearest'});
+  }catch(e){console.warn('wafdeen log refresh after save',e);}
+}
 (function installShariaMode(){
   var oldUpdateFifth=window.updateFifthGradeFields;
   window.updateFifthGradeFields=function(className){ if(typeof oldUpdateFifth==='function') oldUpdateFifth(className); shariaSetMode_(className); };
@@ -15053,11 +15267,40 @@ function installDailyFormPersistence_(){
   fns.forEach(function(n){ if(typeof window[n]==='function'){ var orig=window[n]; window[n]=function(){ var selectedReportClass=n==='renderWeeklyTable'?((document.getElementById('weeklyClassSelect')||{}).value||''):n==='renderMonthlyReport'?((document.getElementById('monthlyClassSelect')||{}).value||''):''; if((n==='renderWeeklyTable'||n==='renderMonthlyReport')&&shariaIsClass_(selectedReportClass)) return orig.apply(this,arguments); var oldD=window.dailyRecords, oldS=window.studentsData; if(n==='renderClassStatusTable'){ window.dailyRecords=(oldD||[]).concat((shariaGradesData||[]).map(function(r){return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'});})); try{return orig.apply(this,arguments);} finally{window.dailyRecords=oldD;} } window.dailyRecords=filterNonSharia(oldD); window.studentsData=filterNonSharia(oldS); try{return orig.apply(this,arguments);} finally{window.dailyRecords=oldD;window.studentsData=oldS;} }; }});
   var normalDailyRender=window.renderDailyTable;
   window.renderDailyTable=function(){
-    var selected=(document.getElementById('classSelect')||{}).value||'';
+    var selected=(document.getElementById('dailyClassSelect')||{}).value || (document.getElementById('classSelect')||{}).value || '';
     if(shariaIsClass_(selected)) return renderShariaDailyLog_();
+    if(wafdeenIsClass_(selected)) return renderWafdeenMainDailyLog_();
     return normalDailyRender.apply(this,arguments);
   };
   if(typeof window.renderShariaGradesReport==='function') window.renderShariaGradesReport();
   installDailyFormPersistence_();
+  if(!window.__wafdeenSaveLogHookInstalled){
+    window.__wafdeenSaveLogHookInstalled=true;
+    if(typeof window.saveWafdeenDailyRecord==='function'){
+      var originalSaveWafdeenDailyRecord_=window.saveWafdeenDailyRecord;
+      window.saveWafdeenDailyRecord=function(){
+        var result=originalSaveWafdeenDailyRecord_.apply(this,arguments);
+        if(result&&typeof result.then==='function') result.then(function(){setTimeout(refreshWafdeenLogAfterSave_,50);});
+        else setTimeout(refreshWafdeenLogAfterSave_,50);
+        return result;
+      };
+    }
+  }
+  if(!window.__wafdeenMainLogRefreshInstalled && typeof window.wafdeenRenderGrades==='function'){
+    window.__wafdeenMainLogRefreshInstalled=true;
+    var oldWafdeenRenderGrades_=window.wafdeenRenderGrades;
+    window.wafdeenRenderGrades=function(){
+      var result=oldWafdeenRenderGrades_.apply(this,arguments);
+      setTimeout(function(){
+        var selected=(document.getElementById('dailyClassSelect')||{}).value || (document.getElementById('classSelect')||{}).value || '';
+        if(wafdeenIsClass_(selected)){
+          var dateEl=document.getElementById('filterDateDaily');
+          if(dateEl && typeof wafdeenSelectedDailyDateStr==='function') dateEl.value=wafdeenSelectedDailyDateStr();
+          if(typeof renderDailyTable==='function') renderDailyTable();
+        }
+      },0);
+      return result;
+    };
+  }
 })();
 </script>
