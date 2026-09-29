@@ -1743,6 +1743,17 @@ var memoryStorage = (function () {
         }
     };
 })();
+/* جلسات الدخول فقط تُحفظ على الجهاز حتى بعد إغلاق أو تحديث الصفحة. */
+var persistentAuthStorage = (function(){
+    try{
+        var testKey='__majd_auth_storage_test__';
+        window.localStorage.setItem(testKey,'1');
+        window.localStorage.removeItem(testKey);
+        return window.localStorage;
+    }catch(e){
+        return memoryStorage;
+    }
+})();
 (function () {
     function hideAdminInsideAnalysis() {
         var analysis = document.querySelector('#analysis-section, .student-analysis-section, [id*="analysis"]');
@@ -2572,6 +2583,8 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 #wafdeen-daily-scores-panel .field-missing-group>label{color:#d32f2f!important;font-weight:900!important;}
 #wafdeen-quran-timer.field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
 .daily-field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+#daily-workspace .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;color:#b71c1c!important;}
+#daily-workspace .daily-missing-group>label{color:#d32f2f!important;font-weight:900!important;}
 </style>
 <style id="monthly-result-v15-fix">
 .monthly-result-month{text-align:center;margin:8px 0 14px;color:var(--primary-dark);font-weight:800}
@@ -4711,7 +4724,10 @@ var shariaGradesData = [];
 var notesData = [];
 var resultsData = [];
 var resultExcelTemplates = { normal: null, preparatory: null };
-var currentTeacher = null; // جلسة الواجهة الحالية فقط، ولا تُستعاد من الجهاز.
+var currentTeacher = (function(){
+    try { return JSON.parse(persistentAuthStorage.getItem('currentTeacher') || 'null'); }
+    catch (_) { return null; }
+})();
 
 var isShowingAllDays = false;
 var currentManagerClass = 'أولى - أولاد';
@@ -4824,9 +4840,12 @@ window.onload = function () {
         var updatedTeacher = teachersData.find(function (t) { return t.username === currentTeacher.username; });
         if (updatedTeacher) {
             currentTeacher = updatedTeacher;
-            memoryStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
+            persistentAuthStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
         }
         showAppScreen();
+    }
+    else if (currentWafdeenTeacher && typeof showWafdeenAppScreen === 'function') {
+        showWafdeenAppScreen();
     }
     else {
         showLoginScreen();
@@ -5509,7 +5528,7 @@ function handleLogin() {
                             center: 'الكل'
                         };
                         try {
-                            memoryStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
+                            persistentAuthStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
                         }
                         catch (_) { }
                         showAppScreen();
@@ -5540,7 +5559,7 @@ function handleLogin() {
                         return [2 /*return*/, showMessage('login-msg', 'اسم المستخدم أو كلمة المرور غير صحيحة', 'error')];
                     currentTeacher = applyDataMapping(__assign({}, teacher));
                     try {
-                        memoryStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
+                        persistentAuthStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
                     }
                     catch (_) { }
                     showAppScreen();
@@ -5580,9 +5599,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-function handleLogout() {
+async function handleLogout() {
+    var ok = await siteConfirm('تأكيد تسجيل الخروج', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟', 'تسجيل الخروج', true);
+    if (!ok)
+        return;
     currentTeacher = null;
-    memoryStorage.removeItem('currentTeacher');
+    persistentAuthStorage.removeItem('currentTeacher');
     showLoginScreen();
 }
 function showLoginScreen() {
@@ -5700,7 +5722,7 @@ function setDailyDateEditPermission_(className, allowed) {
     adminTeacher.updatedAt = new Date().toISOString();
     currentTeacher.dailyDateEditPermissions = permissions;
     try { memoryStorage.setItem('teachersData', JSON.stringify(teachersData)); } catch (_) {}
-    try { memoryStorage.setItem('currentTeacher', JSON.stringify(currentTeacher)); } catch (_) {}
+    try { persistentAuthStorage.setItem('currentTeacher', JSON.stringify(currentTeacher)); } catch (_) {}
     renderDailyDateEditPermissions_();
     if (useFirebase && db) {
         db.collection('teachers').doc(String(adminTeacher.id)).set({ dailyDateEditPermissions: permissions, updatedAt: adminTeacher.updatedAt }, { merge: true })
@@ -7225,10 +7247,17 @@ function dailySaveTimerDraft_() {
     try {
         var key = dailyActiveStudentKey_ || dailyTimerStudentKey_();
         if (!key) return;
-        dailyTimerDrafts_[key] = {
+        var draftSeconds = {
             new: Number(dailyTimerSeconds.new || 0),
             old: Number(dailyTimerSeconds.old || 0),
-            recitation: Number(dailyTimerSeconds.recitation || 0),
+            recitation: Number(dailyTimerSeconds.recitation || 0)
+        };
+        if (dailyTimerRunning)
+            draftSeconds[dailyTimerType] = getCurrentTimerElapsed();
+        dailyTimerDrafts_[key] = {
+            new: draftSeconds.new,
+            old: draftSeconds.old,
+            recitation: draftSeconds.recitation,
             type: dailyTimerType || 'new',
             counterType: dailyCounterType || dailyTimerType || ''
         };
@@ -7657,6 +7686,46 @@ function recordAbsenceTime() {
     catch (e) { }
     showMessage('app-msg', "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u063A\u064A\u0627\u0628 \u0627\u0644\u0637\u0627\u0644\u0628 \u2014 \u0627\u0644\u0648\u0642\u062A: ".concat(zeroTime), 'success');
 }
+function validateDailyRequiredFields_(type){
+    var labels={
+        attendance:'الحضور', behavior:'السلوك', homework:'الواجب', tajweed:'التجويد',
+        newLesson:'درجة الجديد', newTopicToday:'مقرر الجديد اليوم', newPagesCount:'عدد صفحات الجديد',
+        newTopicRecited:'مقرر الجديد الذي تم تسميعه', newRecitationCount:'عدد مرات تسميع الجديد',
+        oldRevision:'درجة الماضي', oldTopicToday:'مقرر الماضي اليوم', oldPagesCount:'عدد صفحات الماضي',
+        oldTopicRecited:'مقرر الماضي الذي تم تسميعه', oldRecitationCount:'عدد مرات تسميع الماضي',
+        recitation:'درجة التلاوة', recitationTopicToday:'مقرر التلاوة اليوم', recitationPagesCount:'عدد صفحات/أجزاء التلاوة',
+        recitationTopicRecited:'مقرر التلاوة الذي تم تسميعه', recitationRecitationCount:'عدد مرات تسميع التلاوة'
+    };
+    var ids=['attendance','behavior','homework','tajweed'].concat(dailyTypeFieldIds_(type));
+    var missing=[];
+    document.querySelectorAll('#daily-workspace .field-missing').forEach(function(el){el.classList.remove('field-missing');});
+    document.querySelectorAll('#daily-workspace .daily-missing-group').forEach(function(el){el.classList.remove('daily-missing-group');});
+    ids.forEach(function(id){
+        var el=document.getElementById(id);
+        if(!el || String(el.value==null?'':el.value).trim()!=='') return;
+        el.classList.add('field-missing');
+        if(el.parentElement) el.parentElement.classList.add('daily-missing-group');
+        missing.push(labels[id]||id);
+    });
+    var timer=document.getElementById('dailySelectedTimerBox');
+    if(timer) timer.classList.remove('daily-field-missing');
+    if(Number(dailyTimerSeconds[type]||0)<=0){
+        if(timer) timer.classList.add('daily-field-missing');
+        missing.unshift('وقت التسميع (التايمر)');
+    }
+    if(missing.length){
+        var first=document.querySelector('#daily-workspace .field-missing, #daily-workspace .daily-field-missing');
+        if(first) setTimeout(function(){try{first.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}},0);
+        var safeItems=missing.map(function(item){return String(item).replace(/[&<>"']/g,function(ch){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);});});
+        showSiteModal('⚠️ خانات مطلوبة قبل الحفظ',
+            '<div style="color:var(--danger-color);font-weight:800;margin-bottom:10px;">يرجى كتابة البيانات التالية:</div>'+
+            '<ul class="daily-missing-list" style="margin:0;padding:0 24px 0 0;text-align:right;line-height:2.1;">'+
+            safeItems.map(function(item){return '<li>'+item+'</li>';}).join('')+'</ul>',
+            '<button type="button" class="action-btn modal-success" onclick="closeSiteModal()">حسنًا</button>');
+        return false;
+    }
+    return true;
+}
 function addGrade() {
     wafdeenKeepDailyScroll_();
     return __awaiter(this, arguments, void 0, function (forceAbsent) {
@@ -7684,6 +7753,10 @@ function addGrade() {
                     }
                     if (dailyTimerRunning)
                         pauseDailyTimer();
+                    updateDailyRecitationGrade(type);
+                    dailyCalculateGrade(type);
+                    if (!validateDailyRequiredFields_(type))
+                        return [2 /*return*/];
                     timerBox = document.getElementById('dailySelectedTimerBox');
                     timerBox === null || timerBox === void 0 ? void 0 : timerBox.classList.remove('daily-field-missing');
                     if (Number(dailyTimerSeconds[type] || 0) <= 0) {
@@ -11090,7 +11163,10 @@ var wafdeenDailyRecords = [];
 var wafdeenBooksData = [];
 var wafdeenExamsData = [];
 var wafdeenMonthlyImportedReports = {};
-var currentWafdeenTeacher = null;
+var currentWafdeenTeacher = (function(){
+    try { return JSON.parse(persistentAuthStorage.getItem('currentWafdeenTeacher') || 'null'); }
+    catch (_) { return null; }
+})();
 var wafdeenSelectedType = '';
 var wafdeenSelectedSubject = '';
 var wafdeenElapsedSeconds = 0;
@@ -11340,7 +11416,7 @@ function wafdeenLogin() {
                     if (!account)
                         return [2 /*return*/, showMessage('wafdeen-login-msg', 'اسم المستخدم أو اسم الطالب أو كلمة المرور غير صحيحة', 'error')];
                     currentWafdeenTeacher = account;
-                    memoryStorage.setItem('currentWafdeenTeacher', JSON.stringify(account));
+                    persistentAuthStorage.setItem('currentWafdeenTeacher', JSON.stringify(account));
                     showWafdeenAppScreen();
                     wafdeenLoadCloud();
                     return [2 /*return*/];
@@ -11368,15 +11444,16 @@ function showWafdeenAppScreen() {
         wafdeenReportPanelInit();
     }
 }
-function wafdeenLogout() {
-    if (wafdeenTimerRunning || wafdeenElapsedSeconds > 0) {
-        var ok = confirm('يوجد وقت غير محفوظ. هل تريد تسجيل الخروج دون حفظه؟');
-        if (!ok)
-            return;
-    }
+async function wafdeenLogout() {
+    var logoutMessage = (wafdeenTimerRunning || wafdeenElapsedSeconds > 0)
+        ? 'يوجد وقت غير محفوظ. هل تريد تسجيل الخروج دون حفظه؟'
+        : 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
+    var ok = await siteConfirm('تأكيد تسجيل الخروج', logoutMessage, 'تسجيل الخروج', true);
+    if (!ok)
+        return;
     wafdeenStopInterval();
     currentWafdeenTeacher = null;
-    memoryStorage.removeItem('currentWafdeenTeacher');
+    persistentAuthStorage.removeItem('currentWafdeenTeacher');
     wafdeenResetTimer();
     document.body.classList.remove('wafdeen-mode');
     showLoginScreen();
@@ -13933,6 +14010,7 @@ body.record-date-nav-allowed .v10-daily-date-bar{display:flex!important;}
       var className=hiddenClass?hiddenClass.value:(visibleClass?visibleClass.value:'');
       var studentSelect=document.getElementById('studentNameSelect');
       if(!studentSelect)return typeof oldUpdate==='function'?oldUpdate():undefined;
+      var previousStudent=String(studentSelect.value||'').trim();
       if(visibleClass && hiddenClass && visibleClass.value!==hiddenClass.value) visibleClass.value=hiddenClass.value;
       var date=currentDailyDateV10();
       var records=Array.isArray(window.dailyRecords)?window.dailyRecords:[];
@@ -13941,8 +14019,12 @@ body.record-date-nav-allowed .v10-daily-date-bar{display:flex!important;}
       studentSelect.innerHTML='<option value="">اختر اسم الطالب/الطالبة</option>';
       students.forEach(function(s){var name=String(s.name||'').trim(), done=!!todayMap[name]; studentSelect.innerHTML+='<option value="'+name.replace(/"/g,'&quot;')+'">'+name+' — '+(done?'تم رصده اليوم':'غير مسجل اليوم')+'</option>';});
       if(!students.length)studentSelect.innerHTML='<option value="">لا توجد أسماء مسجلة في هذا الصف</option>';
-      var ws=document.getElementById('daily-workspace');if(ws)ws.classList.remove('visible');
-      var info=document.getElementById('dailyStudentClass');if(info)info.textContent='';
+      var keepStudent=!!previousStudent && students.some(function(s){return String(s.name||'').trim()===previousStudent;});
+      studentSelect.value=keepStudent?previousStudent:'';
+      var ws=document.getElementById('daily-workspace');
+      if(!keepStudent && ws)ws.classList.remove('visible');
+      var info=document.getElementById('dailyStudentClass');
+      if(!keepStudent && info)info.textContent='';
     }catch(e){console.error('V10 updateStudentListDropdown',e);if(typeof oldUpdate==='function')return oldUpdate();}
   };
   // منع اعتبار سجل يوم آخر سجلًا لليوم الحالي.
@@ -14285,11 +14367,11 @@ window.__WAFDEEN_STANDALONE__ = false;
       /* لا نسمح بفقد جلسة المعلم بسبب إعادة رسم الواجهة. */
       if(!currentTeacher && st.teacher){
         currentTeacher=st.teacher;
-        try{memoryStorage.setItem('currentTeacher',JSON.stringify(currentTeacher));}catch(_){ }
+        try{persistentAuthStorage.setItem('currentTeacher',JSON.stringify(currentTeacher));}catch(_){ }
       }
       if(!currentWafdeenTeacher && st.wafdeenTeacher){
         currentWafdeenTeacher=st.wafdeenTeacher;
-        try{memoryStorage.setItem('currentWafdeenTeacher',JSON.stringify(currentWafdeenTeacher));}catch(_){ }
+        try{persistentAuthStorage.setItem('currentWafdeenTeacher',JSON.stringify(currentWafdeenTeacher));}catch(_){ }
       }
 
       /* إذا ظهرت شاشة الدخول بشكل غير مقصود، أعد شاشة العمل فقط إذا كانت الجلسة موجودة. */
@@ -15063,22 +15145,17 @@ function saveDailyFormSession_(){
     var fields={};
     dailyFormFieldIds_.forEach(function(id){var el=document.getElementById(id);if(el) fields[id]={value:el.value,checked:!!el.checked};});
     var cls=(document.getElementById('classSelect')||{}).value || (document.getElementById('dailyClassSelect')||{}).value || '';
-    var draft={className:cls,studentName:(document.getElementById('studentNameSelect')||{}).value||'',date:(document.getElementById('recordDate')||{}).value||'',fields:fields,savedAt:new Date().toISOString(),timer:{new:Number(dailyTimerSeconds&&dailyTimerSeconds.new||0),old:Number(dailyTimerSeconds&&dailyTimerSeconds.old||0),recitation:Number(dailyTimerSeconds&&dailyTimerSeconds.recitation||0),type:dailyTimerType||'new'}};
+    var sessionTimer={new:Number(dailyTimerSeconds&&dailyTimerSeconds.new||0),old:Number(dailyTimerSeconds&&dailyTimerSeconds.old||0),recitation:Number(dailyTimerSeconds&&dailyTimerSeconds.recitation||0)};
+    if(typeof dailyTimerRunning!=='undefined'&&dailyTimerRunning&&typeof getCurrentTimerElapsed==='function') sessionTimer[dailyTimerType]=getCurrentTimerElapsed();
+    var draft={className:cls,studentName:(document.getElementById('studentNameSelect')||{}).value||'',date:(document.getElementById('recordDate')||{}).value||'',fields:fields,savedAt:new Date().toISOString(),timer:{new:sessionTimer.new,old:sessionTimer.old,recitation:sessionTimer.recitation,type:dailyTimerType||'new'}};
     memoryStorage.setItem(dailyFormSessionKey_(),JSON.stringify(draft));
     try{wafdeenSaveDailyDraft_();dailySaveTimerDraft_();}catch(e){}
   }catch(e){console.error('daily form draft save',e);}
 }
 function pauseAndSaveDailySession_(){
   try{
-    if(typeof dailyTimerRunning!=='undefined' && dailyTimerRunning){
-      var elapsed=getCurrentTimerElapsed();
-      dailyTimerSeconds[dailyTimerType]=elapsed;
-      dailyTimerBaseSeconds=elapsed;
-      dailyTimerRunning=false;
-      dailyTimerStartedAt=0;
-      clearInterval(dailyTimerInterval);
-      dailyTimerInterval=null;
-    }
+    /* لا نوقف التايمر عند إخفاء التبويب؛ يعتمد الحساب على Date.now()
+       حتى يستمر الزمن أثناء وضع الصفحة في الخلفية. */
     saveDailyFormSession_();
   }catch(e){console.error('daily session pause',e);}
 }
@@ -15302,5 +15379,86 @@ function refreshWafdeenLogAfterSave_(){
       return result;
     };
   }
+})();
+</script>
+<script>
+/* إبقاء شاشة الجهاز مستيقظة طالما الصفحة مفتوحة ومرئية.
+   تعمل الميزة في المتصفحات الداعمة لـ Screen Wake Lock API،
+   وتفشل بصمت في المتصفحات الأخرى دون التأثير على وظائف الموقع. */
+(function installScreenWakeLock(){
+  var screenWakeLock = null;
+  var retryTimer = null;
+
+  function scheduleWakeLockRetry(){
+    if (retryTimer || document.visibilityState !== 'visible') return;
+    retryTimer = setTimeout(function(){
+      retryTimer = null;
+      requestScreenWakeLock();
+    }, 1500);
+  }
+
+  async function requestScreenWakeLock(){
+    if (!('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+    if (screenWakeLock && !screenWakeLock.released) return;
+
+    try{
+      screenWakeLock = await navigator.wakeLock.request('screen');
+      screenWakeLock.addEventListener('release', function(){
+        screenWakeLock = null;
+        scheduleWakeLockRetry();
+      });
+    }catch(error){
+      /* قد يرفض المتصفح الطلب مؤقتًا عند عمل الصفحة في الخلفية. */
+      screenWakeLock = null;
+      scheduleWakeLockRetry();
+    }
+  }
+
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible') requestScreenWakeLock();
+  });
+  window.addEventListener('pageshow', requestScreenWakeLock);
+  window.addEventListener('focus', requestScreenWakeLock);
+
+  requestScreenWakeLock();
+})();
+</script>
+<script>
+/* استمرار تحديث عدادات الموقع بعد وضع التبويب في الخلفية.
+   الحساب نفسه يعتمد على Date.now()، لذلك لا يتوقف عند throttling المتصفح. */
+(function keepSiteTimersAliveInBackground(){
+  function refreshRunningTimers(){
+    try{
+      if (typeof dailyTimerRunning !== 'undefined' && dailyTimerRunning){
+        if (typeof dailyTimerInterval !== 'undefined' && dailyTimerInterval) clearInterval(dailyTimerInterval);
+        dailyTimerInterval = setInterval(function(){
+          if (typeof renderDailyTimer === 'function') renderDailyTimer();
+        }, 1000);
+        if (typeof renderDailyTimer === 'function') renderDailyTimer();
+      }
+      if (typeof wafdeenTimerRunning !== 'undefined' && wafdeenTimerRunning){
+        if (wafdeenTimerInterval) clearInterval(wafdeenTimerInterval);
+        wafdeenTimerInterval = setInterval(wafdeenTick, 1000);
+        wafdeenTick();
+      }
+      if (typeof wafdeenQuranTimerRunning !== 'undefined' && wafdeenQuranTimerRunning){
+        if (typeof __wafdeenSetQuranTimerIntervalSafe === 'function') __wafdeenSetQuranTimerIntervalSafe();
+        if (typeof wafdeenQuranTick === 'function') wafdeenQuranTick();
+      }
+      if (typeof wafdeenEduTimerRunning !== 'undefined' && wafdeenEduTimerRunning){
+        if (wafdeenEduTimerInterval) clearInterval(wafdeenEduTimerInterval);
+        wafdeenEduTimerInterval = setInterval(wafdeenEduTick, 1000);
+        wafdeenEduTick();
+      }
+    }catch(error){
+      console.warn('تعذر تحديث تايمرات الخلفية', error);
+    }
+  }
+
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible') refreshRunningTimers();
+  });
+  window.addEventListener('pageshow', refreshRunningTimers);
+  refreshRunningTimers();
 })();
 </script>
