@@ -830,6 +830,29 @@ body.supervisor-mode #notes-tab #notesExportBtn{display:none!important}
   margin-top: 18px;
 }
 .site-modal-actions button { min-width: 110px; }
+.daily-missing-list {
+  list-style: none;
+  display: grid;
+  gap: 7px;
+}
+.daily-missing-list li {
+  position: relative;
+  padding: 8px 30px 8px 10px;
+  border: 1px solid rgba(211,47,47,.22);
+  border-radius: 10px;
+  background: #fff3f3;
+  color: #a52222;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.daily-missing-list li::before {
+  content: '⚠';
+  position: absolute;
+  right: 9px;
+  top: 7px;
+  color: #d32f2f;
+}
+.site-modal-open { overflow: hidden !important; }
 .site-modal .modal-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
@@ -842,6 +865,14 @@ body.supervisor-mode #notes-tab #notesExportBtn{display:none!important}
 @media (max-width: 600px) {
   .site-modal .modal-grid { grid-template-columns: 1fr; }
   .site-modal .modal-grid .full { grid-column: auto; }
+  .site-modal { padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)); }
+  .site-modal-box { max-height: calc(100svh - 16px); padding: 16px 14px; border-radius: 18px; }
+  .site-modal-title { font-size: 1.2em; line-height: 1.5; }
+  .site-modal-message { font-size: .95em; line-height: 1.75; }
+  .site-modal-actions { flex-direction: column; gap: 8px; }
+  .site-modal-actions button { width: 100%; min-height: 46px; touch-action: manipulation; }
+  .daily-missing-list { padding-right: 0 !important; }
+  .daily-missing-list li { padding-top: 9px; padding-bottom: 9px; }
 }
 
 /* ============================================================
@@ -7888,6 +7919,7 @@ function closeSiteModal() {
     modal.setAttribute('aria-hidden', 'true');
     document.getElementById('siteModalBody').innerHTML = '';
     document.getElementById('siteModalActions').innerHTML = '';
+    document.body.classList.remove('site-modal-open');
 }
 function showSiteModal(title, bodyHtml, actionsHtml) {
     if (actionsHtml === void 0) { actionsHtml = ''; }
@@ -7897,6 +7929,9 @@ function showSiteModal(title, bodyHtml, actionsHtml) {
     var modal = document.getElementById('siteModal');
     modal.classList.add('show');
     modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('site-modal-open');
+    var firstAction = document.querySelector('#siteModalActions button');
+    if(firstAction) setTimeout(function(){try{firstAction.focus({preventScroll:true});}catch(e){try{firstAction.focus();}catch(_){}}},50);
 }
 function siteConfirm(title, message, confirmText, danger) {
     if (confirmText === void 0) { confirmText = 'تأكيد'; }
