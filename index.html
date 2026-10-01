@@ -5,6 +5,16 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>معهد المجد - الموقع العادي</title>
+<!-- إعدادات تثبيت الموقع كتطبيق وإظهار اللوجو على Android وiPhone -->
+<link rel="manifest" href="./manifest.webmanifest?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=2">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=2">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=2">
+<meta name="theme-color" content="#0F3D33">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="معهد المجد">
 <!-- خطوط عربية أصيلة -->
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -14470,6 +14480,16 @@ window.__WAFDEEN_STANDALONE__ = false;
     ['addGrade','markAbsent','saveShariaGrade','markShariaAbsent','saveWafdeenDailyRecord','wafdeenSaveGradeType','wafdeenSaveGradeAndTime','wafdeenGuardedDailySave'].forEach(wrap_);
   },0);
 })();
+</script>
+<script>
+/* تسجيل عامل الخدمة اختياريًا عند تشغيل الموقع عبر HTTPS، دون التأثير على فتح الملف محليًا. */
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js?v=2', {scope: './'}).catch(function (error) {
+      console.warn('Service Worker registration skipped:', error);
+    });
+  });
+}
 </script>
 </body>
 </html>
