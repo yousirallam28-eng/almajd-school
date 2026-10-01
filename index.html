@@ -2799,6 +2799,9 @@ body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝
 <button class="action-btn student-login-link-btn modern-quick-btn" onclick="showStudentLoginScreen()" style="height: 44px;" type="button">
     👩‍🎓 تسجيل دخول الطالب
   </button>
+<button class="action-btn install-app-btn" id="loginInstallAppBtn" onclick="installSiteApp()" style="height: 44px; margin-top: 10px;" type="button">
+    📲 تثبيت الموقع على الهاتف
+  </button>
 </div>
 <!-- ================= جلسة الوافدين ================= -->
 <!-- شاشة عرض النتيجة بالكود (بدون تسجيل دخول) -->
@@ -2906,6 +2909,7 @@ body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝
 <button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصروفات</button>
 <button class="tab-btn hidden" id="payment-report-tab-btn" onclick="switchTab('payment-report-tab', event)" style="background-color:#0d9488;color:white;" type="button">🧾 مقرر الدفع</button>
 <button class="tab-btn hidden" id="analysis-tab-btn" onclick="openStudentDataAnalysis(); closeMainMenu()" type="button">📈 تحليل البيانات</button>
+<button class="tab-btn install-app-btn" id="installAppBtn" onclick="installSiteApp()" type="button">📲 تثبيت الموقع كتطبيق</button>
 <button class="tab-btn hidden" id="backup-tab-btn" onclick="switchTab('backup-tab', event)" style="background-color: var(--primary-dark); color: white;" type="button">💾 النسخة الاحتياطية</button>
 </div>
 </aside>
@@ -15515,5 +15519,61 @@ function refreshWafdeenLogAfterSave_(){
   });
   window.addEventListener('pageshow', refreshRunningTimers);
   refreshRunningTimers();
+})();
+</script>
+
+<script>
+/* تثبيت الموقع كتطبيق من Chrome وواجهة الهاتف */
+(function installFromChrome(){
+  var deferredInstallPrompt = null;
+  function isInstalledApp(){
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+  function updateInstallButton(){
+    document.querySelectorAll('.install-app-btn').forEach(function(btn){
+      if(isInstalledApp()){
+        btn.textContent='✅ الموقع مثبت على الجهاز';
+        btn.disabled=true;
+        btn.setAttribute('aria-disabled','true');
+      }else{
+        btn.textContent=btn.id==='loginInstallAppBtn'?'📲 تثبيت الموقع على الهاتف':'📲 تثبيت الموقع كتطبيق';
+        btn.disabled=false;
+        btn.removeAttribute('aria-disabled');
+      }
+    });
+  }
+  window.addEventListener('beforeinstallprompt',function(event){
+    event.preventDefault();
+    deferredInstallPrompt=event;
+    updateInstallButton();
+  });
+  window.addEventListener('appinstalled',function(){
+    deferredInstallPrompt=null;
+    updateInstallButton();
+    if(typeof showSiteModal==='function') showSiteModal('✅ تم تثبيت الموقع','تم تثبيت معهد المجد كتطبيق على جهازك. يمكنك فتحه الآن من شاشة التطبيقات.','<button type="button" class="action-btn modal-success" onclick="closeSiteModal()">حسنًا</button>');
+  });
+  window.installSiteApp=async function(){
+    if(isInstalledApp()){
+      showSiteModal('الموقع مثبت بالفعل','الموقع مثبت بالفعل على هذا الجهاز ويمكن فتحه من شاشة التطبيقات.','<button type="button" class="action-btn modal-success" onclick="closeSiteModal()">حسنًا</button>');
+      return;
+    }
+    if(deferredInstallPrompt){
+      var promptEvent=deferredInstallPrompt;
+      deferredInstallPrompt=null;
+      try{
+        await promptEvent.prompt();
+        await promptEvent.userChoice;
+      }catch(error){ console.warn('Install prompt was dismissed:',error); }
+      updateInstallButton();
+      return;
+    }
+    var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    var instructions=isIOS
+      ? 'من Safari اضغط زر المشاركة ثم اختر «إضافة إلى الشاشة الرئيسية».'
+      : 'في Chrome اضغط ⋮ من أعلى الشاشة ثم اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية». إذا لم يظهر الخيار، افتح الموقع عبر HTTPS ثم حدّث الصفحة مرة أخرى.';
+    showSiteModal('تثبيت معهد المجد', '<div style="line-height:2;text-align:right;"><strong>طريقة التثبيت:</strong><br>'+instructions+'</div>', '<button type="button" class="action-btn modal-success" onclick="closeSiteModal()">حسنًا</button>');
+  };
+  window.addEventListener('DOMContentLoaded',updateInstallButton);
+  window.addEventListener('pageshow',updateInstallButton);
 })();
 </script>
