@@ -4896,8 +4896,10 @@ function initResultMonthField() {
 window.onload = function () {
     initResultMonthField();
     // Cloud-only: لا توجد مرحلة تحميل من الجهاز.
-    if (useFirebase)
+    if (useFirebase) {
         syncDataFromCloud();
+        startAutomaticCloudSync_();
+    }
     if (currentTeacher) {
         currentTeacher = applyDataMapping(currentTeacher);
         var updatedTeacher = teachersData.find(function (t) { return t.username === currentTeacher.username; });
@@ -6227,6 +6229,38 @@ function syncDataFromCloud() {
     }
     catch (_) { } }, { storageKey: 'resultsData' });
     // Firebase هي السحابة الرئيسية لكل بيانات البرنامج.
+}
+/* ===== المزامنة التلقائية الموحدة =====
+   Firebase listeners تنقل التغييرات لحظيًا، وهذه الدورة تعيد تشغيلها
+   وتعيد إرسال أي درجات معلّقة عند عودة الاتصال أو الرجوع للتبويب. */
+var automaticCloudSyncTimer_ = null;
+var automaticCloudSyncStarted_ = false;
+var automaticCloudSyncBusy_ = false;
+function runAutomaticCloudSync_(reason) {
+    if (automaticCloudSyncBusy_ || !useFirebase || !db || navigator.onLine === false) return;
+    automaticCloudSyncBusy_ = true;
+    try {
+        syncDataFromCloud();
+        if (typeof syncPendingGrades === 'function') syncPendingGrades(false).catch(function(e){ console.warn('automatic grade sync ['+reason+']',e); });
+        if (!window.__wafdeenCloudAutoStarted && typeof wafdeenLoadCloud === 'function') {
+            window.__wafdeenCloudAutoStarted = true;
+            wafdeenLoadCloud();
+        }
+    } catch (e) {
+        console.warn('automatic cloud sync ['+reason+']', e);
+    } finally {
+        automaticCloudSyncBusy_ = false;
+    }
+}
+function startAutomaticCloudSync_() {
+    if (automaticCloudSyncStarted_) return;
+    automaticCloudSyncStarted_ = true;
+    runAutomaticCloudSync_('startup');
+    automaticCloudSyncTimer_ = setInterval(function(){ runAutomaticCloudSync_('interval'); }, 45000);
+    window.addEventListener('online', function(){ setTimeout(function(){ runAutomaticCloudSync_('online'); }, 500); });
+    document.addEventListener('visibilitychange', function(){
+        if (!document.hidden) setTimeout(function(){ runAutomaticCloudSync_('visible'); }, 250);
+    });
 }
 function showMessage(elementId, msg, type, durationMs) {
     var el = document.getElementById(elementId);
