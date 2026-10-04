@@ -3874,7 +3874,7 @@ body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
 <option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option>
-<option value="أولى شرعي">أولى شرعي</option>
+<option value="أولى شرعي">أولى شرعي</option><option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option>
 </select>
 </div>
 <div class="form-group">
@@ -7177,6 +7177,25 @@ function switchTab(tabId, event) {
         renderSheikhRegistrationView();
     }
 }
+function sheikhRegistrationStudents_(className){
+    if (String(className||'').trim()==='الوافدين') {
+        return (typeof wafdeenStudentsData!=='undefined' ? (wafdeenStudentsData||[]) : []).filter(function(s){return s && !s._deleted;}).map(function(s){return Object.assign({},s,{className:'الوافدين'});});
+    }
+    return (studentsData||[]).filter(function(s){return String(s.className||'')===String(className||'') && !s._deleted;});
+}
+function sheikhRegistrationRecords_(className){
+    var c=String(className||'').trim();
+    if(c==='الوافدين'){
+        var rows=(typeof wafdeenMainLogRecords_==='function' ? wafdeenMainLogRecords_() : ((typeof wafdeenDailyRecords!=='undefined' ? wafdeenDailyRecords : [])||[]));
+        return rows.filter(function(r){return r && !r._deleted;}).map(function(r){return Object.assign({},r,{className:'الوافدين'});});
+    }
+    return shariaIsClass_(c) ? (shariaGradesData||[]).map(function(r){return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'});}) : (dailyRecords||[]);
+}
+function sheikhRegistrationStudentKey_(student){return String(student && (student.id||student.studentId||student.uid)||student && student.name||'').trim();}
+function sheikhRegistrationRecordMatchesStudent_(record,student){
+    var sid=sheikhRegistrationStudentKey_(student);
+    return (sid && String(record.studentId||record.student_id||record.studentUid||'')===sid) || String(record.studentName||'').trim()===String(student.name||'').trim();
+}
 function renderSheikhRegistrationView() {
     var classSelect = document.getElementById('sheikhRegClassSelect');
     var dateInput = document.getElementById('sheikhRegDate');
@@ -7188,23 +7207,10 @@ function renderSheikhRegistrationView() {
     }
     var className = classSelect.value;
     var dateVal = dateInput.value;
-    // تسجيل الشيوخ لا يشمل الوافدين أو التمهيدي.
-    if (className === 'تمهيدي' || className === 'الوافدين') {
-        var sheikhClasses = getSheikhRegistrationClassOrder_();
-        classSelect.value = sheikhClasses[0] || '';
-        className = classSelect.value;
-    }
-    var classStudents = (studentsData || [])
-        .filter(function (s) { return s.className === className; })
+    var classStudents = sheikhRegistrationStudents_(className)
         .slice()
         .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-    var classRecords = (shariaIsClass_(className) ? (shariaGradesData || []).map(function(r){ return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'}); }) : (dailyRecords || [])).filter(function (r) { return r.className === className && r.dateISO === dateVal && !r._deleted; });
-    var recordByName = {};
-    classRecords.forEach(function (r) {
-        var name = String(r.studentName || '').trim();
-        if (name)
-            recordByName[name] = r;
-    });
+    var classRecords = sheikhRegistrationRecords_(className).filter(function (r) { return String(r.dateISO || '').slice(0,10) === String(dateVal).slice(0,10) && !r._deleted; });
     var recordedTbody = document.querySelector('#sheikhRegRecordedTable tbody');
     var unrecordedTbody = document.querySelector('#sheikhRegUnrecordedTable tbody');
     if (recordedTbody)
@@ -7214,7 +7220,7 @@ function renderSheikhRegistrationView() {
     var recordedCount = 0, unrecordedCount = 0;
     classStudents.forEach(function (s) {
         var name = String(s.name || '').trim();
-        var rec = recordByName[name];
+        var rec = classRecords.find(function(r){return sheikhRegistrationRecordMatchesStudent_(r,s);});
         if (rec) {
             recordedCount++;
             var isAbsentRow = !!rec.isAbsent || String(rec.attendanceStatus || '') === 'absent';
@@ -7261,30 +7267,21 @@ function renderSheikhRegistrationView() {
    - تم التسجيل باللون الأخضر، ولم يتم التسجيل باللون الأحمر.
    ============================================================ */
 function getSheikhRegistrationClassOrder_() {
-    // تسجيل الشيوخ لا يشمل التمهيدي ولا الوافدين.
-    return GENERAL_CLASSES.filter(function (className) {
-        return className !== 'تمهيدي' && className !== 'الوافدين';
-    });
+    // تسجيل الشيوخ يشمل جميع الفصول، بما فيها التمهيدي والوافدين.
+    return (GENERAL_CLASSES || []).slice();
 }
 
 function sheikhRegistrationRowsForClass_(className, dateVal) {
-    var students = (studentsData || [])
-        .filter(function (s) { return s.className === className; })
+    var students = sheikhRegistrationStudents_(className)
         .slice()
         .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-
-    var records = (shariaIsClass_(className) ? (shariaGradesData || []) : (dailyRecords || [])).filter(function (r) {
-        return r.className === className && r.dateISO === dateVal && !r._deleted;
-    });
-    var byName = {};
-    records.forEach(function (r) {
-        var name = String(r.studentName || '').trim();
-        if (name) byName[name] = r;
+    var records = sheikhRegistrationRecords_(className).filter(function (r) {
+        return String(r.dateISO || '').slice(0,10) === String(dateVal).slice(0,10) && !r._deleted;
     });
 
     return students.map(function (s) {
         var name = String(s.name || '').trim();
-        var rec = byName[name];
+        var rec = records.find(function(r){return sheikhRegistrationRecordMatchesStudent_(r,s);});
         return {
             date: dateVal,
             studentName: name,
