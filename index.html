@@ -14710,10 +14710,10 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     if(!useFirebase||!db){showMessage('app-msg','Firebase غير متصل — لم يبدأ الاختبار.','error');return;}
     state.running=true;state.failures=[];state.testedIds=[];state.summary=null;state.lastRunId='run_'+Date.now().toString(36);state.lastStudents=(Array.isArray(studentsData)?studentsData:[]).filter(function(st){return st&&!st._deleted&&String(st.name||'').trim()&&String(st.className||'').trim();});
     var start=el('daily-verification-start');if(start){start.disabled=true;start.textContent='⏳ جاري الاختبار...';}setVisible('daily-verification-retry',false);setVisible('daily-verification-failures',false);if(el('daily-verification-status'))el('daily-verification-status').style.display='block';if(el('daily-verification-result'))el('daily-verification-result').style.display='none';
-    var total=state.lastStudents.length,tested=0,success=0,failed=0,ids={};updateProgress(total,0,0,0,'');
+    var total=state.lastStudents.length,tested=0,success=0,failed=0,ids={};updateProgress(total,0,0,0,total?'جاري بدء الاختبار...':'لم يتم تحميل أي طالب بعد');if(!total){if(el('daily-verification-result')){el('daily-verification-result').style.display='block';el('daily-verification-result').innerHTML='<strong style="color:#991b1b;">❌ لم تبدأ عملية الاختبار</strong><br>لم تصل قائمة الطلاب من Firebase بعد. انتظر اكتمال المزامنة ثم اضغط «إعادة الاختبار».'.replace('اضغط «إعادة الاختبار»','اضغط «إعادة الاختبار»');}return;}
     try{
       for(var i=0;i<state.lastStudents.length;i++){
-        var st=state.lastStudents[i],sid=studentIdentity(st),id=systemId(sid,st.className,state.lastRunId);tested++;updateProgress(total,tested-1,success,failed,st.name);
+        var st=state.lastStudents[i],sid=studentIdentity(st),id=systemId(sid,st.className,state.lastRunId);tested++;updateProgress(total,tested,success,failed,st.name);
         if(!sid){state.failures.push(failure(st,id,'studentId مفقود ولا يمكن إنشاء هوية آمنة','identity'));failed++;updateProgress(total,tested,success,failed,st.name);await pause();continue;}
         if(ids[id]){state.failures.push(failure(st,id,'تصادم: نفس recordId استُخدم لطالب آخر','duplicate'));failed++;updateProgress(total,tested,success,failed,st.name);await pause();continue;}ids[id]=st.id||sid;state.testedIds.push(id);
         var expected=expectedPayload(st,id,state.lastRunId);
