@@ -3674,6 +3674,27 @@ body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝
 </div>
 </div>
 
+<!-- ================= أداة اختبار حفظ سجلات الطلاب ================= -->
+<div id="daily-record-verification-tool" data-admin-section="daily-record-verification" style="background:linear-gradient(135deg,#f0fdf4,#ffffff);padding:18px;border-radius:14px;margin-bottom:22px;border:1px solid #bbf7d0;border-top:4px solid #16a34a;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h3 style="margin:0 0 6px;font-size:1.2em;color:#166534;font-family:'Amiri',serif;">🔍 فحص حفظ سجلات جميع الطلاب</h3>
+      <p style="font-size:.86em;color:#475569;margin:0;line-height:1.8;">اختبار حقيقي: كتابة سجل اختبار مستقل، قراءته من Firestore، مطابقة بياناته، ثم إعادة قراءته قبل تنظيف سجل الاختبار. لا يتم تعديل أو حذف أي سجل حقيقي.</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="action-btn btn-save" id="daily-verification-start" onclick="startDailyRecordsVerification()" type="button">🔍 اختبار حفظ سجلات جميع الطلاب</button>
+      <button class="action-btn btn-edit" id="daily-verification-retry" onclick="retryDailyRecordsVerification()" type="button" style="display:none;">🔄 إعادة الاختبار</button>
+      <button class="action-btn btn-warning" id="daily-verification-failures" onclick="showDailyRecordsVerificationFailures()" type="button" style="display:none;">📋 عرض الطلاب الذين فشل اختبارهم</button>
+    </div>
+  </div>
+  <div id="daily-verification-status" style="display:none;margin-top:14px;padding:12px;border-radius:10px;background:#fff;border:1px solid #d1d5db;color:#334155;line-height:1.9;">
+    <div id="daily-verification-message" style="font-weight:800;margin-bottom:8px;"></div>
+    <div style="height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden;"><div id="daily-verification-bar" style="height:100%;width:0%;border-radius:999px;transition:width .2s ease;background:linear-gradient(90deg,#16a34a,#15803d);"></div></div>
+    <div id="daily-verification-stats" style="margin-top:10px;font-size:.9em;"></div>
+  </div>
+  <div id="daily-verification-result" style="display:none;margin-top:12px;padding:13px;border-radius:10px;line-height:2;background:#fff;border:1px solid #d1d5db;"></div>
+</div>
+
 <!-- ================= لوحة الحد اليومي لـ Firebase ================= -->
 <div id="firebase-daily-quota-dashboard" style="background:linear-gradient(135deg,#fff8e8,#fffdf6);padding:18px;border-radius:14px;margin-bottom:22px;border:1px solid #ead59a;border-top:4px solid #d97706;">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -3874,7 +3895,7 @@ body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
 <option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
 <option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option>
-<option value="أولى شرعي">أولى شرعي</option><option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option>
+<option value="أولى شرعي">أولى شرعي</option>
 </select>
 </div>
 <div class="form-group">
@@ -4896,10 +4917,8 @@ function initResultMonthField() {
 window.onload = function () {
     initResultMonthField();
     // Cloud-only: لا توجد مرحلة تحميل من الجهاز.
-    if (useFirebase) {
+    if (useFirebase)
         syncDataFromCloud();
-        startAutomaticCloudSync_();
-    }
     if (currentTeacher) {
         currentTeacher = applyDataMapping(currentTeacher);
         var updatedTeacher = teachersData.find(function (t) { return t.username === currentTeacher.username; });
@@ -5166,7 +5185,7 @@ function syncMergeLocalWithCloud_(local, cloud) {
     var byId = new Map();
     cloudArr.forEach(function(item){
         var id = String((item && item.id) || '').trim();
-        if (!id || (item && item._deleted)) return;
+        if (!id || (item && (item._deleted || item._legacyMigrated))) return;
         byId.set(id, applyDataMapping(__assign({}, item)));
     });
     return Array.from(byId.values());
@@ -5309,626 +5328,36 @@ window.refreshFirebaseDailyQuotaPanel=function(){
 };
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){refreshFirebaseDailyQuotaPanel();}); else setTimeout(function(){refreshFirebaseDailyQuotaPanel();},0);
 
-function firebaseWriteRecordDirect_(collectionName_1, id_1, data_1) {
-    return __awaiter(this, arguments, void 0, function (collectionName, id, data, options) {
-        var docId, payload;
-        if (options === void 0) { options = {}; }
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!useFirebase || !db)
-                        throw new Error('Firebase غير متصل');
-                    docId = String(id || (data === null || data === void 0 ? void 0 : data.id) || (data === null || data === void 0 ? void 0 : data.recordId) || '').trim();
-                    if (!docId)
-                        throw new Error('معرف السجل مفقود');
-                    payload = __assign(__assign({}, (data || {})), { id: String((data === null || data === void 0 ? void 0 : data.id) || docId), updatedAt: (data === null || data === void 0 ? void 0 : data.updatedAt) || new Date().toISOString() });
-                    dailyGradesBackupBeforeSend_(collectionName, payload, 'save');
-                    firebaseDailyQuotaInc_('writes',1);
-                    return [4 /*yield*/, db.collection(collectionName).doc(docId).set(payload, { merge: options.merge !== false })];
-                case 1:
-                    _a.sent();
-                    return [4 /*yield*/, db.collection(collectionName).doc(docId).get()];
-                case 2:
-                    firebaseDailyQuotaInc_('reads',1);
-                    if (!(_a.sent()).exists) throw new Error('لم يتم التحقق من حفظ الدرجة في Firebase');
-                    dailyGradesBackupClear_(collectionName, docId);
-                    return [2 /*return*/, payload];
-            }
-        });
-    });
+function dailyQueueRead_(){try{return JSON.parse(localStorage.getItem('majd_daily_pending_queue_v2')||'[]')||[];}catch(_){return[];}}
+function dailyQueueWrite_(q){try{localStorage.setItem('majd_daily_pending_queue_v2',JSON.stringify(q.slice(-200)));}catch(_) {}}
+function dailyQueueAdd_(collectionName,id,payload){if(String(collectionName)!=='dailyRecords')return;var q=dailyQueueRead_().filter(function(x){return !(x.collection===collectionName&&String(x.id)===String(id));});q.push({collection:collectionName,id:String(id),payload:payload,queuedAt:new Date().toISOString(),status:'pending'});dailyQueueWrite_(q);}
+async function dailyRetryQueue_(){if(!useFirebase||!db||!navigator.onLine)return;var q=dailyQueueRead_();var keep=[];for(var i=0;i<q.length;i++){var x=q[i];try{await firebaseWriteRecord_(x.collection,x.id,x.payload,{merge:true,skipQueue:true});}catch(_){x.status='failed';keep.push(x);}}dailyQueueWrite_(keep);}
+window.addEventListener('online',function(){setTimeout(dailyRetryQueue_,500);});
+async function firebaseWriteRecord_(collectionName, id, data, options) {
+  options=options||{};
+  var docId=String(id || (data&&data.id) || (data&&data.recordId) || '').trim();
+  if(!useFirebase || !db) throw new Error('Firebase غير متصل');
+  if(!docId) throw new Error('معرف السجل مفقود');
+  var payload=Object.assign({},data||{},{id:String((data&&data.id)||docId),updatedAt:(data&&data.updatedAt)||new Date().toISOString()});
+  var lastError;
+  for(var attempt=0;attempt<3;attempt++){
+    try{
+      dailyGradesBackupBeforeSend_(collectionName,payload,'save');
+      firebaseDailyQuotaInc_('writes',1);
+      var ref=db.collection(collectionName).doc(docId);
+      await ref.set(payload,{merge:options.merge!==false});
+      var snap=await ref.get(); firebaseDailyQuotaInc_('reads',1);
+      if(!snap.exists) throw new Error('لم يتم التحقق من وجود المستند بعد الحفظ');
+      var saved=snap.data()||{};
+      var keys=String(collectionName)==='dailyRecords'?['id','studentId','studentName','className','dateISO']:['id'];
+      for(var k=0;k<keys.length;k++){var key=keys[k];if(payload[key]!=null&&String(saved[key]??'')!==String(payload[key]??''))throw new Error('فشل التحقق من الحقل '+key);}
+      dailyGradesBackupClear_(collectionName,docId);
+      return Object.assign({},saved,{id:String(saved.id||docId)});
+    }catch(e){lastError=e;if(attempt<2)await new Promise(function(resolve){setTimeout(resolve,350*(attempt+1));});}
+  }
+  if(String(collectionName)==='dailyRecords'&&!options.skipQueue)dailyQueueAdd_(collectionName,docId,payload);
+  throw lastError||new Error('تعذر حفظ السجل');
 }
-/* =====================================================================
-   نظام حفظ الدرجات الموثوق (طابور محلي دائم + مزامنة تلقائية مع Firebase)
-   ---------------------------------------------------------------------
-   القاعدة: لا تُعتبر الدرجة "محفوظة" إلا بعد أن يؤكد Firebase نجاح الكتابة.
-   قبل ذلك تُحفظ فورًا في localStorage (طابور pending) وتبقى ظاهرة في الواجهة
-   وتُرسل بنفس المعرّف (id) في كل محاولة، فلا تتكرر المستندات ولا تضيع الدرجة.
-   ===================================================================== */
-var GRADE_OUTBOX_KEY_ = 'majd_pending_grade_sync_v2';
-var GRADE_SYNC_COLLECTIONS_ = ['dailyRecords', 'shariaGrades', 'wafdeenDailyRecords', 'wafdeenUsage'];
-var GRADE_WRITE_TIMEOUT_MS_ = 20000;
-var GRADE_RETRY_TICK_MS_ = 10000;
-var GRADE_MAX_BACKOFF_MS_ = 30000;
-var gradeOutboxMemory_ = [];
-var gradeSyncWaiters_ = Object.create(null);
-var gradeSyncBusy_ = Object.create(null);
-var gradeSyncInitDone_ = false;
-var gradeRefreshTimer_ = null;
-var GRADE_MSG_PENDING_ = '⚠️ تم حفظ الدرجة على الجهاز، لكن لم تصل إلى Firebase بعد.\nسيتم إرسالها تلقائيًا عند عودة الاتصال.';
-
-/* ---------- أدوات عامة ---------- */
-function gradeKey_(collectionName, id) { return String(collectionName) + '/' + String(id); }
-function gradeIsPlain_(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
-function gradeClone_(v) { try { return JSON.parse(JSON.stringify(v)); } catch (_) { return Object.assign({}, v || {}); } }
-function gradeDeepMerge_(a, b) {
-    var out = Object.assign({}, a || {});
-    Object.keys(b || {}).forEach(function (k) {
-        var v = b[k];
-        if (v === undefined) return;
-        out[k] = (gradeIsPlain_(v) && gradeIsPlain_(out[k])) ? gradeDeepMerge_(out[k], v) : v;
-    });
-    return out;
-}
-/* حقول للواجهة فقط ولا تُرسل إلى Firebase أبدًا */
-function gradeStripLocal_(obj) {
-    var out = Object.assign({}, obj || {});
-    delete out._syncStatus;
-    delete out._pendingSync;
-    delete out.__pendingSync;
-    return out;
-}
-function gradeErrTransient_(e) {
-    var code = String((e && e.code) || '').toLowerCase();
-    if (!code) return true;
-    return !/permission-denied|unauthenticated|invalid-argument|failed-precondition|not-found|already-exists|out-of-range|unimplemented|data-loss/.test(code);
-}
-function gradeWithTimeout_(promise, ms, state) {
-    return new Promise(function (resolve, reject) {
-        var done = false;
-        var t = setTimeout(function () {
-            if (done) return;
-            done = true;
-            if (state) state.timedOut = true;
-            var e = new Error('انتهت مهلة الاتصال بـ Firebase');
-            e.code = 'timeout';
-            reject(e);
-        }, ms);
-        Promise.resolve(promise).then(function (v) { if (done) return; done = true; clearTimeout(t); resolve(v); }, function (e) { if (done) return; done = true; clearTimeout(t); reject(e); });
-    });
-}
-function gradeAllSettledOrThrow_(promises) {
-    return Promise.all(promises.map(function (p) {
-        return Promise.resolve(p).then(function (v) { return { ok: true, v: v }; }, function (e) { return { ok: false, e: e }; });
-    })).then(function (res) {
-        var bad = res.filter(function (r) { return !r.ok; });
-        if (!bad.length) return res.map(function (r) { return r.v; });
-        var hard = bad.find(function (r) { return !(r.e && r.e.queuedLocally); });
-        throw (hard ? hard.e : bad[0].e);
-    });
-}
-
-/* ---------- التخزين المحلي الدائم للطابور ---------- */
-function gradeOutboxRead_() {
-    try {
-        var raw = window.localStorage.getItem(GRADE_OUTBOX_KEY_);
-        var parsed = raw ? JSON.parse(raw) : [];
-        if (Array.isArray(parsed)) return parsed;
-    }
-    catch (_) { return gradeOutboxMemory_.slice(); }
-    return [];
-}
-function gradeOutboxWrite_(items) {
-    gradeOutboxMemory_ = items;
-    try { window.localStorage.setItem(GRADE_OUTBOX_KEY_, JSON.stringify(items)); }
-    catch (e) { console.error('[GRADE] تعذر الحفظ المحلي الدائم؛ الدرجة محفوظة في ذاكرة الصفحة فقط:', e); }
-}
-function gradeOutboxUpdate_(key, mutator) {
-    var items = gradeOutboxRead_();
-    var entry = items.find(function (x) { return x.key === key; });
-    if (!entry) return null;
-    mutator(entry);
-    gradeOutboxWrite_(items);
-    return entry;
-}
-/* المرحلة 1: حفظ محلي فوري (متزامن) قبل أي انتظار لـ Firebase */
-function gradeOutboxEnqueue_(collectionName, docId, payload, full) {
-    var items = gradeOutboxRead_();
-    var key = gradeKey_(collectionName, docId);
-    var now = new Date().toISOString();
-    var entry = items.find(function (x) { return x.key === key; });
-    var clean = gradeClone_(gradeStripLocal_(payload));
-    var cleanFull = gradeClone_(gradeStripLocal_(full || payload));
-    if (entry) {
-        /* نفس المستند: ندمج التعديلات (آخر تعديل هو المعتمد) ونرفع رقم المراجعة */
-        entry.payload = gradeDeepMerge_(entry.payload, clean);
-        entry.full = gradeDeepMerge_(entry.full, gradeDeepMerge_(cleanFull, clean));
-        entry.rev = (entry.rev || 0) + 1;
-        entry.updatedAt = now;
-        entry.syncStatus = entry.syncStatus === 'syncing' ? 'syncing' : 'pending';
-        entry.nextRetryAt = 0;
-    }
-    else {
-        entry = {
-            key: key, collection: String(collectionName), id: String(docId),
-            payload: clean, full: gradeDeepMerge_(cleanFull, clean),
-            rev: 1, syncedRev: 0, syncStatus: 'pending', attempts: 0,
-            createdAt: now, updatedAt: now, nextRetryAt: 0, lastError: ''
-        };
-        items.push(entry);
-    }
-    gradeOutboxWrite_(items);
-    return entry;
-}
-
-/* ---------- انتظار نتيجة المزامنة (Promise لكل طلب حفظ) ---------- */
-function gradeWaitForRev_(key, rev) {
-    return new Promise(function (resolve, reject) {
-        (gradeSyncWaiters_[key] = gradeSyncWaiters_[key] || []).push({ rev: rev, resolve: resolve, reject: reject });
-    });
-}
-function gradeResolveWaiters_(key, rev) {
-    var list = gradeSyncWaiters_[key];
-    if (!list) return;
-    var rest = [];
-    list.forEach(function (w) { if (w.rev <= rev) w.resolve(true); else rest.push(w); });
-    if (rest.length) gradeSyncWaiters_[key] = rest; else delete gradeSyncWaiters_[key];
-}
-function gradeRejectWaiters_(key, err) {
-    var list = gradeSyncWaiters_[key];
-    if (!list || !list.length) return;
-    delete gradeSyncWaiters_[key];
-    gradeOutboxUpdate_(key, function (e) { e.reportedPending = true; });
-    list.forEach(function (w) { w.reject(err); });
-}
-
-/* ---------- المراحل 2 و3: الإرسال إلى Firebase ثم إعادة المحاولة ---------- */
-async function gradeSendEntry_(key) {
-    if (gradeSyncBusy_[key]) return false;
-    var entry = gradeOutboxRead_().find(function (x) { return x.key === key; });
-    if (!entry) return true;
-    if ((entry.syncedRev || 0) >= entry.rev) { gradeMarkSynced_(key, entry.rev); return true; }
-    gradeSyncBusy_[key] = true;
-    var sentRev = entry.rev;
-    var payload = gradeClone_(entry.payload);
-    gradeOutboxUpdate_(key, function (e) { e.syncStatus = 'syncing'; e.attempts = (e.attempts || 0) + 1; e.lastAttemptAt = new Date().toISOString(); });
-    gradeUpdateSyncBar_();
-    var state = { timedOut: false };
-    try {
-        if (!useFirebase || !db) { var offErr = new Error('Firebase غير متصل'); offErr.code = 'unavailable'; throw offErr; }
-        var ref = db.collection(entry.collection).doc(String(entry.id));
-        console.log('[GRADE] Firebase sync started:', entry.id);
-        if (entry.legacy) {
-            /* نسخة احتياطية قديمة لم يؤكدها Firebase: لا نكتب فوق سجل أحدث موجود في السحابة */
-            var pre = await gradeWithTimeout_(ref.get(), GRADE_WRITE_TIMEOUT_MS_, null);
-            if (pre && pre.exists) {
-                var cu = Date.parse((pre.data() || {}).updatedAt || '') || 0;
-                var eu = Date.parse(payload.updatedAt || entry.updatedAt || '') || 0;
-                if (cu > eu) {
-                    console.log('[GRADE] Legacy backup skipped (cloud is newer):', entry.id);
-                    gradeSyncBusy_[key] = false;
-                    gradeMarkSynced_(key, sentRev);
-                    return true;
-                }
-            }
-        }
-        firebaseDailyQuotaInc_('writes', 1);
-        var setPromise = ref.set(payload, { merge: true });
-        /* لو تأخر التأكيد عن المهلة ثم وصل لاحقًا، نعتمد الدرجة عند وصوله */
-        setPromise.then(function () { if (state.timedOut) gradeMarkSynced_(key, sentRev); }, function () { });
-        await gradeWithTimeout_(setPromise, GRADE_WRITE_TIMEOUT_MS_, state);
-        /* تحقق من وجود المستند بعد التأكيد (فشل قراءة التحقق بسبب الشبكة لا يلغي كتابة مؤكدة) */
-        try {
-            firebaseDailyQuotaInc_('reads', 1);
-            var snap = await gradeWithTimeout_(ref.get(), 10000, null);
-            if (snap && snap.exists === false) { var ve = new Error('لم يتم التحقق من حفظ الدرجة في Firebase'); ve.code = 'verify-failed'; throw ve; }
-        }
-        catch (verr) { if (verr && verr.code === 'verify-failed') throw verr; }
-        gradeSyncBusy_[key] = false;
-        gradeMarkSynced_(key, sentRev);
-        var again = gradeOutboxRead_().find(function (x) { return x.key === key; });
-        if (again && (again.syncedRev || 0) < again.rev) return gradeSendEntry_(key);
-        return true;
-    }
-    catch (err) {
-        gradeSyncBusy_[key] = false;
-        var transient = gradeErrTransient_(err);
-        gradeOutboxUpdate_(key, function (e) {
-            e.syncStatus = transient ? 'pending' : 'failed';
-            e.lastError = String((err && (err.code || err.message)) || err);
-            e.nextRetryAt = Date.now() + Math.min(GRADE_RETRY_TICK_MS_ * Math.max(1, e.attempts || 1), GRADE_MAX_BACKOFF_MS_);
-        });
-        console.error('[GRADE] Firebase sync failed:', err);
-        console.log('[GRADE] Retry scheduled:', entry.id);
-        var qErr = (err instanceof Error) ? err : new Error(String(err));
-        qErr.queuedLocally = true;
-        qErr.gradeKey = key;
-        gradeRejectWaiters_(key, qErr);
-        gradeUpdateSyncBar_();
-        return false;
-    }
-}
-function gradeMarkSynced_(key, ackedRev) {
-    var items = gradeOutboxRead_();
-    var entry = items.find(function (x) { return x.key === key; });
-    if (!entry) { gradeResolveWaiters_(key, ackedRev || 0); return; }
-    entry.syncedRev = Math.max(entry.syncedRev || 0, ackedRev || 0);
-    var done = entry.syncedRev >= entry.rev;
-    if (done) {
-        items = items.filter(function (x) { return x.key !== key; });
-        gradeOutboxWrite_(items);
-        gradeAfterSynced_(entry);
-    }
-    else {
-        entry.syncStatus = 'pending';
-        entry.nextRetryAt = 0;
-        gradeOutboxWrite_(items);
-    }
-    gradeResolveWaiters_(key, entry.syncedRev);
-    console.log('[GRADE] Firebase sync success:', entry.id);
-    if (done && entry.reportedPending) gradeToast_('🟢 تم الحفظ على السحابة — وصلت الدرجة المعلّقة إلى Firebase.', 'success', 5000);
-    gradeUpdateSyncBar_();
-}
-function gradeAfterSynced_(entry) {
-    /* حدّث كاش المزامنة فورًا حتى لا تُخفي لقطة قديمة من onSnapshot السجل الذي وصل للتو */
-    try {
-        if (typeof cloudSyncCloudCache_ !== 'undefined' && cloudSyncCloudCache_[entry.collection]) {
-            var cache = cloudSyncCloudCache_[entry.collection];
-            var prev = cache.get(String(entry.id));
-            var merged = prev ? gradeDeepMerge_(prev, entry.payload) : gradeDeepMerge_(entry.full, entry.payload);
-            merged.id = String(merged.id || entry.id);
-            cache.set(String(entry.id), applyDataMapping(merged));
-        }
-    } catch (_) { }
-    try {
-        var t = gradeCollectionTargets_()[entry.collection];
-        var arr = t && t.get();
-        var idKey = String((entry.payload && entry.payload.id != null) ? entry.payload.id : entry.id);
-        if (Array.isArray(arr)) arr.forEach(function (x) { if (x && String(x.id) === idKey) { delete x._syncStatus; delete x.__pendingSync; } });
-    } catch (_) { }
-    try { gradeRestoreWafdeenButtons_(); } catch (_) { }
-    gradeScheduleRefresh_();
-}
-
-/* ---------- نقطة الكتابة الموحّدة (تستبدل firebaseWriteRecord_ القديمة للدرجات) ---------- */
-function firebaseWriteRecord_(collectionName, id, data, options) {
-    options = options || {};
-    if (GRADE_SYNC_COLLECTIONS_.indexOf(String(collectionName)) === -1 || options.merge === false)
-        return firebaseWriteRecordDirect_(collectionName, id, data, options);
-    var docId = String(id || (data && data.id) || (data && data.recordId) || '').trim();
-    if (!docId) return Promise.reject(new Error('معرف السجل مفقود'));
-    var payload = Object.assign({}, data || {});
-    payload.id = String((data && data.id) || docId);
-    payload.updatedAt = (data && data.updatedAt) || new Date().toISOString();
-    var entry = gradeOutboxEnqueue_(String(collectionName), docId, payload, options.full);
-    console.log('[GRADE] Local save:', entry);
-    var waiter = gradeWaitForRev_(entry.key, entry.rev);
-    gradeSendEntry_(entry.key).catch(function (e) { console.error('[GRADE] sync error:', e); });
-    return waiter.then(function () { return payload; });
-}
-
-/* تعديل سجل درجة موجود (يُستخدم من شاشات التعديل) مع نفس الضمانات */
-async function gradeUpdateVerified_(collectionName, id, changes, findRef) {
-    var rid = String(id == null ? '' : id).trim();
-    var t = gradeCollectionTargets_()[collectionName];
-    var mem = ((t && t.get()) || []).find(function (x) { return x && String(x.id) === rid; }) || null;
-    var docId = rid;
-    var hasPending = gradeOutboxRead_().some(function (e) { return e.key === gradeKey_(collectionName, rid); });
-    if (!hasPending) {
-        try {
-            var ref = await gradeWithTimeout_(findRef(collectionName, rid), 8000, null);
-            docId = ref.id;
-        }
-        catch (e) {
-            var msg = String((e && e.message) || '');
-            if (/غير موجود/.test(msg) || !gradeErrTransient_(e)) throw e;
-            /* لا يوجد اتصال: يُحفظ التعديل محليًا ويُرسل لاحقًا */
-        }
-    }
-    var payload = Object.assign({}, changes, { id: rid });
-    var full = mem ? Object.assign({}, gradeStripLocal_(mem), payload) : payload;
-    try {
-        await firebaseWriteRecord_(collectionName, docId, payload, { merge: true, full: full });
-    }
-    catch (e2) {
-        if (e2 && e2.queuedLocally) return Object.assign({}, full, { id: rid, __pendingSync: true });
-        throw e2;
-    }
-    var data = Object.assign({}, full);
-    try {
-        var snap = await gradeWithTimeout_(db.collection(collectionName).doc(docId).get(), 10000, null);
-        if (!snap.exists) throw new Error('اختفى السجل بعد التعديل');
-        data = snap.data() || {};
-        Object.keys(changes).forEach(function (k) {
-            var a = data[k], b = changes[k];
-            if (String(a == null ? '' : a) !== String(b == null ? '' : b)) throw new Error('لم يتم التحقق من تعديل الحقل: ' + k);
-        });
-    }
-    catch (ve) { if (/لم يتم التحقق|اختفى/.test(String((ve && ve.message) || ''))) throw ve; }
-    return Object.assign({}, data, { id: String(data.id || docId) });
-}
-
-/* ---------- إبقاء الدرجات المعلّقة ظاهرة في الواجهة (لا تُمحى بلقطة onSnapshot) ---------- */
-function gradeCollectionTargets_() {
-    return {
-        dailyRecords: { get: function () { return dailyRecords; }, set: function (v) { dailyRecords = v; } },
-        shariaGrades: { get: function () { return shariaGradesData; }, set: function (v) { shariaGradesData = v; } },
-        wafdeenDailyRecords: { get: function () { return wafdeenDailyRecords; }, set: function (v) { wafdeenDailyRecords = v; } },
-        wafdeenUsage: { get: function () { return wafdeenUsageData; }, set: function (v) { wafdeenUsageData = v; } }
-    };
-}
-function gradeOverlayPending_(collectionName, arr) {
-    if (GRADE_SYNC_COLLECTIONS_.indexOf(String(collectionName)) === -1) return arr;
-    var entries;
-    try { entries = gradeOutboxRead_().filter(function (e) { return e.collection === collectionName && (e.syncedRev || 0) < e.rev; }); }
-    catch (_) { return arr; }
-    if (!entries.length) return arr;
-    var out = Array.isArray(arr) ? arr.slice() : [];
-    entries.forEach(function (e) {
-        var idKey = String((e.payload && e.payload.id != null) ? e.payload.id : e.id);
-        var idx = out.findIndex(function (x) { return x && String(x.id) === idKey; });
-        var status = e.syncStatus === 'syncing' ? 'syncing' : 'pending';
-        if (idx > -1) out[idx] = applyDataMapping(Object.assign({}, gradeDeepMerge_(out[idx], gradeClone_(e.payload)), { _syncStatus: status }));
-        else out.push(applyDataMapping(Object.assign({}, gradeDeepMerge_(gradeClone_(e.full), gradeClone_(e.payload)), { id: idKey, _syncStatus: status })));
-    });
-    return out;
-}
-function gradeHydrateMemory_() {
-    var targets = gradeCollectionTargets_();
-    GRADE_SYNC_COLLECTIONS_.forEach(function (c) {
-        try {
-            var cur = targets[c].get() || [];
-            var merged = gradeOverlayPending_(c, cur);
-            if (merged !== cur) targets[c].set(merged);
-        } catch (e) { console.warn('[GRADE] hydrate skipped:', c, e); }
-    });
-}
-function gradeScheduleRefresh_() {
-    if (gradeRefreshTimer_) return;
-    gradeRefreshTimer_ = setTimeout(function () { gradeRefreshTimer_ = null; gradeRefreshViews_(); }, 250);
-}
-function gradeRefreshViews_() {
-    try { if (!currentTeacher && !currentWafdeenTeacher) return; } catch (_) { return; }
-    try { if (typeof isRecitationPerformanceMode_ === 'function' && isRecitationPerformanceMode_()) return; } catch (_) { }
-    ['renderDailyTable', 'renderClassStatusTable', 'renderManagerView', 'renderAttendanceTable', 'renderWeeklyTable', 'renderMonthlyReport',
-        'renderShariaGradesReport', 'renderShariaDailyLog_', 'refreshWafdeenMainLog_', 'wafdeenRenderGrades', 'updateMainDailySaveButton_', 'wafdeenUpdateDailySaveButton']
-        .forEach(function (n) { try { if (typeof window[n] === 'function') window[n](); } catch (_) { } });
-}
-function gradeRestoreWafdeenButtons_() {
-    var stillPending = gradeOutboxRead_().some(function (e) { return e.collection === 'wafdeenDailyRecords' && (e.syncedRev || 0) < e.rev; });
-    if (stillPending) return;
-    document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-fields').forEach(function (box) {
-        var b = box.querySelector('.wafdeen-save-type-btn');
-        if (b && b.dataset.gradePending === '1') {
-            delete b.dataset.gradePending;
-            b.textContent = '✅ تم حفظ ' + box.dataset.gradeFields;
-            b.title = 'تم حفظ ' + box.dataset.gradeFields + ' اليوم بالفعل';
-        }
-    });
-}
-function gradeWafdeenPendingAfterSave_(type, usage, student, seconds) {
-    try {
-        wafdeenUsageData = wafdeenUsageData.filter(function (u) { return String(u.id) !== String(usage.id); });
-        wafdeenUsageData.push(usage);
-        wafdeenPersistLocal();
-    } catch (_) { }
-    try {
-        document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-fields').forEach(function (box) {
-            var b = box.querySelector('.wafdeen-save-type-btn');
-            if (b && box.dataset.gradeFields === type) {
-                b.disabled = true;
-                b.dataset.gradePending = '1';
-                b.textContent = '🟡 محفوظ على الجهاز — في انتظار المزامنة';
-                b.title = 'ستُرسل تلقائيًا إلى Firebase عند عودة الاتصال';
-            }
-        });
-    } catch (_) { }
-    try { refreshWafdeenMainLog_(); } catch (_) { }
-    gradeToastPending_('wafdeen-save-msg');
-    gradeUpdateSyncBar_();
-}
-
-/* ---------- رسائل المستخدم ---------- */
-function gradeToastPending_(elementId) { showMessage(elementId, GRADE_MSG_PENDING_, 'info', 9000); }
-function gradeToast_(msg, type, ms) {
-    var ids = ['app-msg', 'wafdeen-save-msg'];
-    try {
-        var w = document.getElementById('wafdeen-app-screen');
-        if (w && !w.classList.contains('hidden')) ids = ['wafdeen-save-msg', 'app-msg'];
-    } catch (_) { }
-    for (var i = 0; i < ids.length; i++) {
-        if (document.getElementById(ids[i])) { showMessage(ids[i], msg, type, ms); return; }
-    }
-}
-
-/* ---------- مؤشر حالة المزامنة + زر "مزامنة الآن" ---------- */
-function gradeSyncSummary_() {
-    var items = gradeOutboxRead_().filter(function (e) { return (e.syncedRev || 0) < e.rev; });
-    var s = { total: items.length, syncing: 0, failed: 0, netFailed: 0 };
-    items.forEach(function (e) {
-        if (e.syncStatus === 'syncing') s.syncing++;
-        if (e.syncStatus === 'failed') s.failed++;
-        if (e.lastError && /timeout|unavailable|network|offline|deadline/i.test(String(e.lastError)) && e.syncStatus !== 'syncing') s.netFailed++;
-    });
-    return s;
-}
-function gradeInjectStyle_() {
-    if (document.getElementById('grade-sync-style')) return;
-    var st = document.createElement('style');
-    st.id = 'grade-sync-style';
-    st.textContent = '.grade-sync-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:8px 12px;border-radius:10px;font-size:.88em;font-weight:700;border:1px solid rgba(128,128,128,.35);background:rgba(128,128,128,.10);}' +
-        '.grade-sync-bar[data-state="ok"]{border-color:rgba(46,160,67,.6);}' +
-        '.grade-sync-bar[data-state="pending"]{border-color:rgba(212,160,23,.75);}' +
-        '.grade-sync-bar[data-state="syncing"]{border-color:rgba(56,139,253,.7);}' +
-        '.grade-sync-bar[data-state="offline"]{border-color:rgba(218,54,51,.75);}' +
-        '.grade-sync-btn{padding:4px 12px;border-radius:8px;border:1px solid rgba(128,128,128,.55);background:transparent;color:inherit;font:inherit;cursor:pointer;}' +
-        '.grade-sync-btn:disabled{opacity:.5;cursor:default;}';
-    document.head.appendChild(st);
-}
-function gradeEnsureSyncBar_() {
-    ['daily-workspace', 'wafdeen-daily-scores-panel'].forEach(function (id) {
-        var host = document.getElementById(id);
-        if (!host) return;
-        for (var i = 0; i < host.children.length; i++) if (host.children[i].classList && host.children[i].classList.contains('grade-sync-bar')) return;
-        var bar = document.createElement('div');
-        bar.className = 'grade-sync-bar';
-        bar.innerHTML = '<span class="grade-sync-text"></span><button type="button" class="grade-sync-btn">🔄 مزامنة الآن</button>';
-        bar.querySelector('button').addEventListener('click', function () { syncPendingGrades(true); });
-        host.insertBefore(bar, host.firstChild);
-    });
-}
-function gradeUpdateSyncBar_() {
-    try {
-        gradeEnsureSyncBar_();
-        var bars = document.querySelectorAll('.grade-sync-bar');
-        if (!bars.length) return;
-        var s = gradeSyncSummary_();
-        var noNet = (typeof navigator !== 'undefined' && navigator.onLine === false) || !useFirebase || !db;
-        var state, text;
-        if (noNet) { state = 'offline'; text = s.total ? '🔴 تعذر الاتصال بـ Firebase — درجات محفوظة على الجهاز (' + s.total + ')' : '🔴 تعذر الاتصال بـ Firebase'; }
-        else if (s.syncing) { state = 'syncing'; text = '🔵 جارٍ المزامنة... (' + s.total + ')'; }
-        else if (s.failed) { state = 'offline'; text = '🔴 تعذر إرسال ' + s.failed + ' درجة إلى Firebase — اضغط «مزامنة الآن»'; }
-        else if (s.netFailed) { state = 'offline'; text = '🔴 تعذر الاتصال بـ Firebase — درجات في انتظار المزامنة (' + s.total + ')'; }
-        else if (s.total) { state = 'pending'; text = '🟡 توجد درجات في انتظار المزامنة (' + s.total + ')'; }
-        else { state = 'ok'; text = '🟢 Firebase متصل'; }
-        bars.forEach(function (bar) {
-            bar.setAttribute('data-state', state);
-            var span = bar.querySelector('.grade-sync-text');
-            if (span) span.textContent = text;
-            var btn = bar.querySelector('.grade-sync-btn');
-            if (btn) btn.disabled = state === 'syncing';
-        });
-    } catch (_) { }
-}
-
-/* ---------- المزامنة اليدوية والتلقائية ---------- */
-async function syncPendingGrades(force) {
-    var now = Date.now();
-    var items = gradeOutboxRead_();
-    items.filter(function (e) { return (e.syncedRev || 0) >= e.rev; }).forEach(function (e) { gradeMarkSynced_(e.key, e.rev); });
-    var due = items.filter(function (e) {
-        if ((e.syncedRev || 0) >= e.rev) return false;
-        if (gradeSyncBusy_[e.key]) return false;
-        if (force === true) return true;
-        if (e.syncStatus === 'failed') return false;
-        return !(e.nextRetryAt && e.nextRetryAt > now);
-    });
-    if (!due.length) { gradeUpdateSyncBar_(); return { sent: 0, remaining: gradeSyncSummary_().total }; }
-    due.forEach(function (e) { gradeOutboxUpdate_(e.key, function (x) { if (x.syncStatus === 'failed' && force === true) x.syncStatus = 'pending'; if (force === true) x.nextRetryAt = 0; }); });
-    gradeUpdateSyncBar_();
-    var results = await Promise.all(due.map(function (e) { return gradeSendEntry_(e.key); }));
-    var sent = results.filter(Boolean).length;
-    var remaining = gradeSyncSummary_().total;
-    if (force === true) {
-        if (!remaining) gradeToast_('🟢 تم الحفظ على السحابة — لا توجد درجات معلّقة.', 'success', 4000);
-        else gradeToast_('🟡 ما زالت ' + remaining + ' درجة في انتظار المزامنة — سيُعاد الإرسال تلقائيًا.', 'info', 6000);
-    }
-    gradeUpdateSyncBar_();
-    return { sent: sent, remaining: remaining };
-}
-function gradeKick_(hydrate) {
-    try { if (hydrate) { gradeHydrateMemory_(); gradeScheduleRefresh_(); } } catch (_) { }
-    gradeUpdateSyncBar_();
-    if (gradeOutboxRead_().length) syncPendingGrades(false).catch(function (e) { console.error('[GRADE] sync error:', e); });
-}
-/* النسخ الاحتياطية القديمة التي كانت تُكتب قبل الإرسال ولا تُقرأ أبدًا: تُرحَّل الآن إلى الطابور */
-function gradeMigrateLegacyBackup_() {
-    try {
-        if (typeof dailyGradesBackupRead_ !== 'function') return;
-        var legacy = dailyGradesBackupRead_();
-        if (!legacy.length) return;
-        var items = gradeOutboxRead_();
-        var nowIso = new Date().toISOString();
-        legacy.forEach(function (x) {
-            if (!x || !x.collection || !x.id || GRADE_SYNC_COLLECTIONS_.indexOf(String(x.collection)) === -1) return;
-            var key = gradeKey_(x.collection, x.id);
-            if (items.some(function (e) { return e.key === key; })) return;
-            var rec = gradeClone_(gradeStripLocal_(x.record || {}));
-            rec.id = String(rec.id || x.id);
-            if (!rec.updatedAt) rec.updatedAt = x.backedAt || nowIso;
-            items.push({ key: key, collection: String(x.collection), id: String(x.id), payload: rec, full: gradeClone_(rec), rev: 1, syncedRev: 0, syncStatus: 'pending', attempts: 0, createdAt: x.backedAt || nowIso, updatedAt: rec.updatedAt, nextRetryAt: 0, lastError: '', legacy: true });
-        });
-        gradeOutboxWrite_(items);
-        dailyGradesBackupWrite_([]);
-        console.log('[GRADE] Legacy backups migrated to outbox:', legacy.length);
-    } catch (e) { console.warn('[GRADE] legacy migration skipped:', e); }
-}
-function gradeWrapAfter_(name, hydrate) {
-    var orig = window[name];
-    if (typeof orig !== 'function' || orig.__gradeKick) return;
-    var w = function () {
-        var r = orig.apply(this, arguments);
-        setTimeout(function () { gradeKick_(hydrate); }, 60);
-        return r;
-    };
-    w.__gradeKick = true;
-    window[name] = w;
-}
-/* منع الضغط المزدوج السريع على نفس الطالب/النوع (lock لكل طالب + تاريخ + نوع) */
-function gradeLockKey_(name, args) {
-    var parts = ['classSelect', 'recordDate', 'studentNameSelect', 'wafdeenStudentSelect'].map(function (id) {
-        var el = document.getElementById(id);
-        return el ? String(el.value || '') : '';
-    });
-    var extra = '';
-    try { extra += String(dailySelectedGradeType || '') + '|' + String(wafdeenQuranSelectedType || '') + '|' + String(wafdeenSelectedDailyDateStr()); } catch (_) { }
-    var argKey = Array.prototype.slice.call(args).filter(function (a) { return typeof a !== 'object'; }).join(',');
-    return name + '|' + parts.join('|') + '|' + extra + '|' + argKey;
-}
-function gradeWrapLocked_(name) {
-    var orig = window[name];
-    if (typeof orig !== 'function' || orig.__gradeLocked) return;
-    var busy = {};
-    var w = function () {
-        var key = gradeLockKey_(name, arguments);
-        if (busy[key]) { gradeToast_('⏳ جارٍ حفظ هذه الدرجة، انتظر لحظة...', 'info', 2500); return Promise.resolve(); }
-        busy[key] = true;
-        var p;
-        try { p = Promise.resolve(orig.apply(this, arguments)); }
-        catch (e) { delete busy[key]; throw e; }
-        return p.then(function (v) { delete busy[key]; return v; }, function (e) { delete busy[key]; throw e; });
-    };
-    w.__gradeLocked = true;
-    window[name] = w;
-}
-function gradeInit_() {
-    if (gradeSyncInitDone_) return;
-    gradeSyncInitDone_ = true;
-    gradeInjectStyle_();
-    gradeMigrateLegacyBackup_();
-    /* عند فتح الموقع: كل سجل syncing/failed يعود pending ثم تُعاد المحاولة */
-    var items = gradeOutboxRead_();
-    if (items.length) {
-        items.forEach(function (e) { if (e.syncStatus === 'syncing' || e.syncStatus === 'failed') e.syncStatus = 'pending'; e.nextRetryAt = 0; });
-        gradeOutboxWrite_(items);
-    }
-    gradeHydrateMemory_();
-    gradeScheduleRefresh_();
-    gradeUpdateSyncBar_();
-    window.addEventListener('online', function () {
-        var its = gradeOutboxRead_();
-        its.forEach(function (e) { e.nextRetryAt = 0; });
-        gradeOutboxWrite_(its);
-        gradeUpdateSyncBar_();
-        syncPendingGrades(false).catch(function () { });
-    });
-    window.addEventListener('offline', gradeUpdateSyncBar_);
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) gradeKick_(false); });
-    setInterval(function () {
-        gradeUpdateSyncBar_();
-        if (gradeOutboxRead_().length) syncPendingGrades(false).catch(function () { });
-    }, GRADE_RETRY_TICK_MS_);
-    ['showAppScreen', 'showWafdeenAppScreen'].forEach(function (n) { gradeWrapAfter_(n, true); });
-    gradeWrapAfter_('switchTab', false);
-    ['addGrade', 'markAbsent', 'saveShariaGrade', 'markShariaAbsent', 'saveWafdeenDailyRecord', 'wafdeenSaveGradeType'].forEach(gradeWrapLocked_);
-    setTimeout(function () { syncPendingGrades(false).catch(function () { }); }, 1500);
-}
-(function () {
-    function start() { try { gradeInit_(); } catch (e) { console.error('[GRADE] init failed:', e); } }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(start, 0); });
-    else setTimeout(start, 0);
-})();
-/* ===================== نهاية نظام حفظ الدرجات الموثوق ===================== */
-
 function firebaseReadRecord_(collectionName, id) {
     return __awaiter(this, void 0, void 0, function () {
         var snap, v;
@@ -6025,7 +5454,7 @@ function flushCloudRenderQueue_() {
         try {
             var localRaw = Array.isArray(d.localGetter()) ? d.localGetter() : [];
             var local = localRaw.filter(function (x) { return !(x === null || x === void 0 ? void 0 : x._deleted); });
-            var merged = gradeOverlayPending_(collectionName, syncMergeLocalWithCloud_(local, d.cloudRaw || []));
+            var merged = syncMergeLocalWithCloud_(local, d.cloudRaw || []);
             d.localSetter(merged);
             queueCloudRender_(collectionName, d.renderFn, d.localGetter, d.storageKey);
         } catch (e) { console.warn('Deferred cloud sync flush skipped [' + collectionName + ']:', e); }
@@ -6110,7 +5539,7 @@ function syncCollection_(collectionName_1, localGetter_1, localSetter_1, renderF
                                 return [3 /*break*/, 6];
                             }
                             // Cloud-only: لا نقرأ أو نرفع أو ندمج بيانات من الجهاز.
-                            localSetter(gradeOverlayPending_(collectionName, syncMergeLocalWithCloud_([], cloudRaw)));
+                            localSetter(syncMergeLocalWithCloud_([], cloudRaw));
                             if (isRecitationPerformanceMode_()) {
                                 // لا نعيد الرسم ولا نكتب JSON كبيرًا أثناء التسميع؛ الذاكرة فقط تتحدث.
                                 cloudRenderQueue_[collectionName] = { renderFn: renderFn, getter: localGetter, storageKey: options.storageKey || collectionName };
@@ -6170,7 +5599,7 @@ function syncDataFromCloud() {
         }
         applyDailyDateEditPermission_();
     }, { storageKey: 'teachersData' });
-    syncCollection_('students', function () { return studentsData; }, function (v) { studentsData = ensureStudentLoginCodes(v); }, function () {
+    syncCollection_('students', function () { return studentsData; }, function (v) { studentsData = ensureStudentLoginCodes(v); try { studentFastCacheSave_(studentsData); } catch (_) {} studentFastCloudReady_ = true; }, function () {
         if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.username) === 'admin') {
             renderStudentsTable();
             renderClassCards();
@@ -6230,48 +5659,12 @@ function syncDataFromCloud() {
     catch (_) { } }, { storageKey: 'resultsData' });
     // Firebase هي السحابة الرئيسية لكل بيانات البرنامج.
 }
-/* ===== المزامنة التلقائية الموحدة =====
-   Firebase listeners تنقل التغييرات لحظيًا، وهذه الدورة تعيد تشغيلها
-   وتعيد إرسال أي درجات معلّقة عند عودة الاتصال أو الرجوع للتبويب. */
-var automaticCloudSyncTimer_ = null;
-var automaticCloudSyncStarted_ = false;
-var automaticCloudSyncBusy_ = false;
-function runAutomaticCloudSync_(reason) {
-    if (automaticCloudSyncBusy_ || !useFirebase || !db || navigator.onLine === false) return;
-    automaticCloudSyncBusy_ = true;
-    try {
-        syncDataFromCloud();
-        if (typeof syncPendingGrades === 'function') syncPendingGrades(false).catch(function(e){ console.warn('automatic grade sync ['+reason+']',e); });
-        if (!window.__wafdeenCloudAutoStarted && typeof wafdeenLoadCloud === 'function') {
-            window.__wafdeenCloudAutoStarted = true;
-            wafdeenLoadCloud();
-        }
-    } catch (e) {
-        console.warn('automatic cloud sync ['+reason+']', e);
-    } finally {
-        automaticCloudSyncBusy_ = false;
-    }
-}
-function startAutomaticCloudSync_() {
-    if (automaticCloudSyncStarted_) return;
-    automaticCloudSyncStarted_ = true;
-    runAutomaticCloudSync_('startup');
-    automaticCloudSyncTimer_ = setInterval(function(){ runAutomaticCloudSync_('interval'); }, 45000);
-    window.addEventListener('online', function(){ setTimeout(function(){ runAutomaticCloudSync_('online'); }, 500); });
-    document.addEventListener('visibilitychange', function(){
-        if (!document.hidden) setTimeout(function(){ runAutomaticCloudSync_('visible'); }, 250);
-    });
-}
-function showMessage(elementId, msg, type, durationMs) {
+function showMessage(elementId, msg, type) {
     var el = document.getElementById(elementId);
-    if (!el)
-        return;
     el.innerText = msg;
     el.className = "toast-msg toast-".concat(type);
     el.style.display = 'block';
-    if (el.__hideTimer)
-        clearTimeout(el.__hideTimer);
-    el.__hideTimer = setTimeout(function () { el.style.display = 'none'; }, durationMs || 3500);
+    setTimeout(function () { el.style.display = 'none'; }, 3500);
 }
 function handleLogin() {
     return __awaiter(this, void 0, void 0, function () {
@@ -6673,6 +6066,7 @@ function showAppScreen() {
         populateAnalysisStudents();
         populateAnalysisWeeks();
     }
+    if (window.refreshDailyRecordsVerificationVisibility_) window.refreshDailyRecordsVerificationVisibility_();
 }
 function toggleReportsMenu(event) {
     event.preventDefault();
@@ -7211,25 +6605,6 @@ function switchTab(tabId, event) {
         renderSheikhRegistrationView();
     }
 }
-function sheikhRegistrationStudents_(className){
-    if (String(className||'').trim()==='الوافدين') {
-        return (typeof wafdeenStudentsData!=='undefined' ? (wafdeenStudentsData||[]) : []).filter(function(s){return s && !s._deleted;}).map(function(s){return Object.assign({},s,{className:'الوافدين'});});
-    }
-    return (studentsData||[]).filter(function(s){return String(s.className||'')===String(className||'') && !s._deleted;});
-}
-function sheikhRegistrationRecords_(className){
-    var c=String(className||'').trim();
-    if(c==='الوافدين'){
-        var rows=(typeof wafdeenMainLogRecords_==='function' ? wafdeenMainLogRecords_() : ((typeof wafdeenDailyRecords!=='undefined' ? wafdeenDailyRecords : [])||[]));
-        return rows.filter(function(r){return r && !r._deleted;}).map(function(r){return Object.assign({},r,{className:'الوافدين'});});
-    }
-    return shariaIsClass_(c) ? (shariaGradesData||[]).map(function(r){return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'});}) : (dailyRecords||[]);
-}
-function sheikhRegistrationStudentKey_(student){return String(student && (student.id||student.studentId||student.uid)||student && student.name||'').trim();}
-function sheikhRegistrationRecordMatchesStudent_(record,student){
-    var sid=sheikhRegistrationStudentKey_(student);
-    return (sid && String(record.studentId||record.student_id||record.studentUid||'')===sid) || String(record.studentName||'').trim()===String(student.name||'').trim();
-}
 function renderSheikhRegistrationView() {
     var classSelect = document.getElementById('sheikhRegClassSelect');
     var dateInput = document.getElementById('sheikhRegDate');
@@ -7241,10 +6616,23 @@ function renderSheikhRegistrationView() {
     }
     var className = classSelect.value;
     var dateVal = dateInput.value;
-    var classStudents = sheikhRegistrationStudents_(className)
+    // تسجيل الشيوخ لا يشمل الوافدين أو التمهيدي.
+    if (className === 'تمهيدي' || className === 'الوافدين') {
+        var sheikhClasses = getSheikhRegistrationClassOrder_();
+        classSelect.value = sheikhClasses[0] || '';
+        className = classSelect.value;
+    }
+    var classStudents = (studentsData || [])
+        .filter(function (s) { return s.className === className; })
         .slice()
         .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-    var classRecords = sheikhRegistrationRecords_(className).filter(function (r) { return String(r.dateISO || '').slice(0,10) === String(dateVal).slice(0,10) && !r._deleted; });
+    var classRecords = (shariaIsClass_(className) ? (shariaGradesData || []).map(function(r){ return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'}); }) : (dailyRecords || [])).filter(function (r) { return r.className === className && r.dateISO === dateVal && !r._deleted; });
+    var recordByName = {};
+    classRecords.forEach(function (r) {
+        var name = String(r.studentName || '').trim();
+        if (name)
+            recordByName[name] = r;
+    });
     var recordedTbody = document.querySelector('#sheikhRegRecordedTable tbody');
     var unrecordedTbody = document.querySelector('#sheikhRegUnrecordedTable tbody');
     if (recordedTbody)
@@ -7254,7 +6642,7 @@ function renderSheikhRegistrationView() {
     var recordedCount = 0, unrecordedCount = 0;
     classStudents.forEach(function (s) {
         var name = String(s.name || '').trim();
-        var rec = classRecords.find(function(r){return sheikhRegistrationRecordMatchesStudent_(r,s);});
+        var rec = recordByName[name];
         if (rec) {
             recordedCount++;
             var isAbsentRow = !!rec.isAbsent || String(rec.attendanceStatus || '') === 'absent';
@@ -7301,21 +6689,30 @@ function renderSheikhRegistrationView() {
    - تم التسجيل باللون الأخضر، ولم يتم التسجيل باللون الأحمر.
    ============================================================ */
 function getSheikhRegistrationClassOrder_() {
-    // تسجيل الشيوخ يشمل جميع الفصول، بما فيها التمهيدي والوافدين.
-    return (GENERAL_CLASSES || []).slice();
+    // تسجيل الشيوخ لا يشمل التمهيدي ولا الوافدين.
+    return GENERAL_CLASSES.filter(function (className) {
+        return className !== 'تمهيدي' && className !== 'الوافدين';
+    });
 }
 
 function sheikhRegistrationRowsForClass_(className, dateVal) {
-    var students = sheikhRegistrationStudents_(className)
+    var students = (studentsData || [])
+        .filter(function (s) { return s.className === className; })
         .slice()
         .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-    var records = sheikhRegistrationRecords_(className).filter(function (r) {
-        return String(r.dateISO || '').slice(0,10) === String(dateVal).slice(0,10) && !r._deleted;
+
+    var records = (shariaIsClass_(className) ? (shariaGradesData || []) : (dailyRecords || [])).filter(function (r) {
+        return r.className === className && r.dateISO === dateVal && !r._deleted;
+    });
+    var byName = {};
+    records.forEach(function (r) {
+        var name = String(r.studentName || '').trim();
+        if (name) byName[name] = r;
     });
 
     return students.map(function (s) {
         var name = String(s.name || '').trim();
-        var rec = records.find(function(r){return sheikhRegistrationRecordMatchesStudent_(r,s);});
+        var rec = byName[name];
         return {
             date: dateVal,
             studentName: name,
@@ -7768,24 +7165,6 @@ document.addEventListener('DOMContentLoaded', function () {
     wafdeenMountBehaviorPanel('daily-behavior-grid', 'daily');
     wafdeenResetBehaviorState('daily', {});
 });
-/* ===== هوية الطالب الثابتة: الاسم للعرض فقط وstudentId هو المفتاح ===== */
-function getStableStudentId_(student){
-    return String(student && (student.studentId || student.student_id || student.id || student.uid) || '').trim();
-}
-function getSelectedDailyStudent_(){
-    var name=String((document.getElementById('studentNameSelect')||{}).value||'').trim();
-    var cls=String((document.getElementById('classSelect')||{}).value||'').trim();
-    if(!name) return null;
-    return (studentsData||[]).find(function(st){return String(st.name||st.studentName||'').trim()===name && (!cls || String(st.className||'')===cls);}) ||
-           (studentsData||[]).find(function(st){return String(st.name||st.studentName||'').trim()===name;}) || null;
-}
-function dailyRecordBelongsToStudent_(record, student, studentName){
-    var sid=getStableStudentId_(student);
-    if(sid && String(record && (record.studentId||record.student_id||record.studentUid)||'').trim()===sid) return true;
-    /* توافق مع السجلات القديمة: الاسم بديل فقط إذا لم يوجد studentId داخل السجل. */
-    return !record.studentId && !record.student_id && String(record.studentName||'').trim()===String(studentName||'').trim();
-}
-function dailyStableRecordId_(studentId,dateISO){ return 'rec_'+String(studentId).replace(/[^a-zA-Z0-9_-]+/g,'_')+'_'+String(dateISO).slice(0,10); }
 /* ================= تايمر الرصد اليومي ================= */
 var dailyTimerType = 'new';
 var dailyTimerRunning = false;
@@ -7818,8 +7197,7 @@ function getSelectedDailyRecord() {
     var date = (_b = document.getElementById('recordDate')) === null || _b === void 0 ? void 0 : _b.value;
     if (!student || !date)
         return null;
-    var selected=getSelectedDailyStudent_();
-    return dailyRecords.find(function (r) { return dailyRecordBelongsToStudent_(r,selected,student) && String(r.dateISO||'').slice(0,10)===String(date).slice(0,10) && r.teacherName === currentTeacher.username; }) || null;
+    return dailyRecords.find(function (r) { return r.studentName === student && r.dateISO === date && r.teacherName === currentTeacher.username; }) || null;
 }
 function getCurrentTimerElapsed() {
     return dailyTimerRunning ? dailyTimerBaseSeconds + Math.floor((Date.now() - dailyTimerStartedAt) / 1000) : dailyTimerBaseSeconds;
@@ -7879,7 +7257,7 @@ function wafdeenDailyDraftKey_() {
     var _a, _b;
     var student = ((_a = document.getElementById('studentNameSelect')) === null || _a === void 0 ? void 0 : _a.value) || '';
     var date = ((_b = document.getElementById('recordDate')) === null || _b === void 0 ? void 0 : _b.value) || '';
-    var selected=getSelectedDailyStudent_(); var stable=getStableStudentId_(selected) || student; return 'wafdeenDailyDraft:' + stable + ':' + date;
+    return 'wafdeenDailyDraft:' + student + ':' + date;
 }
 function wafdeenSaveDailyDraft_() {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
@@ -8032,10 +7410,8 @@ function dailyLoadCountersFromRecord(record) {
 }
 function dailyTimerStudentKey_() {
     var student = (document.getElementById('studentNameSelect') || {}).value || '';
-    var selected=getSelectedDailyStudent_();
-    var stable=getStableStudentId_(selected) || student;
     var date = (document.getElementById('recordDate') || {}).value || '';
-    return String(stable) + '|' + String(date);
+    return String(student) + '|' + String(date);
 }
 function dailySaveTimerDraft_() {
     try {
@@ -8099,7 +7475,7 @@ function showDailyStudentWorkspace() {
     if (ws)
         ws.classList.add('visible');
     document.getElementById('dailyTimerStudent').textContent = student;
-    var selectedStudent = getSelectedDailyStudent_();
+    var selectedStudent = studentsData.find(function (s) { return s.name === student; });
     var classInfo = document.getElementById('dailyStudentClass');
     if (classInfo)
         classInfo.textContent = (selectedStudent === null || selectedStudent === void 0 ? void 0 : selectedStudent.className) ? "\u2014 \u0627\u0644\u0635\u0641: ".concat(selectedStudent.className) : '';
@@ -8188,11 +7564,8 @@ function stopDailyTimer() {
 async function markAbsent() {
     var studentNameEl = document.getElementById('studentNameSelect');
     var studentName = studentNameEl ? studentNameEl.value : '';
-    var selectedStudent=getSelectedDailyStudent_(), studentId=getStableStudentId_(selectedStudent);
     if (!studentName)
         return showMessage('app-msg', 'يرجى اختيار الاسم بشكل صحيح', 'error');
-    if (!studentId)
-        return showMessage('app-msg', 'تعذر تسجيل الغياب: معرف الطالب غير موجود.', 'error');
     var existing = hasDailyRecordForSelectedStudent_();
     if (existing) {
         updateMainDailySaveButton_();
@@ -8210,8 +7583,8 @@ async function markAbsent() {
         return showMessage('app-msg', 'يرجى اختيار التاريخ بشكل صحيح', 'error');
     var now = new Date();
     var record = {
-        id: dailyStableRecordId_(studentId, dateISO),
-                            studentId: String(studentId),
+        id: dailyStableRecordId_(dailyStudentId_(studentName, className), className, dateISO),
+        studentId: dailyStudentId_(studentName, className),
         teacherName: (currentTeacher && currentTeacher.username) || '',
         className: className,
         dateISO: dateISO,
@@ -8229,15 +7602,15 @@ async function markAbsent() {
         timeRecordedAt: now.toISOString()
     };
     record.total = getDailyTotal(record);
-    var gradePendingAbsent_ = false;
+    if (!useFirebase || !db) {
+        return showMessage('app-msg', 'Firebase غير متصل — لم يتم اعتماد تسجيل الغياب.', 'error');
+    }
     try {
         await firebaseWriteRecord_('dailyRecords', record.id, record, { merge: true });
     }
     catch (e) {
         console.error('Firebase absence record save error:', e);
-        if (!(e && e.queuedLocally))
-            return showMessage('app-msg', 'تعذر حفظ تسجيل الغياب على Firebase — تحقق من الاتصال.', 'error');
-        gradePendingAbsent_ = true;
+        return showMessage('app-msg', 'تعذر حفظ تسجيل الغياب على Firebase — تحقق من الاتصال.', 'error');
     }
     var idx = dailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
     if (idx > -1)
@@ -8274,10 +7647,6 @@ async function markAbsent() {
         renderSheikhRegistrationView();
     }
     updateMainDailySaveButton_();
-    if (gradePendingAbsent_) {
-        gradeToastPending_('app-msg');
-        return;
-    }
     showMessage('app-msg', "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 ".concat(studentName, " \u063A\u0627\u0626\u0628\u064B\u0627 \u0648\u0635\u0641\u0631 \u0641\u064A \u0627\u0644\u064A\u0648\u0645 \u0643\u0627\u0645\u0644 \uD83D\uDEAB"), 'success');
 }
 function dailyGradeFromRecitationCount(count) {
@@ -8430,10 +7799,11 @@ function hasDailyRecordForSelectedStudent_() {
     var className = ((_a = document.getElementById('classSelect')) === null || _a === void 0 ? void 0 : _a.value) || '';
     var dateISO = ((_b = document.getElementById('recordDate')) === null || _b === void 0 ? void 0 : _b.value) || '';
     var studentName = String(((_c = document.getElementById('studentNameSelect')) === null || _c === void 0 ? void 0 : _c.value) || '').trim();
-    var selectedStudent=getSelectedDailyStudent_();
     if (!className || !dateISO || !studentName)
         return null;
-    return (dailyRecords || []).find(function (r) { return !r._deleted && String(r.className || '') === String(className) && String(r.dateISO || '').slice(0, 10) === String(dateISO).slice(0, 10) && dailyRecordBelongsToStudent_(r,selectedStudent,studentName); }) || null;
+    var sid = dailyStudentId_(studentName, className);
+    var stableId = sid ? dailyStableRecordId_(sid, className, dateISO) : '';
+    return (dailyRecords || []).find(function (r) { return !r._deleted && !r._legacyMigrated && ((stableId && String(r.id) === stableId) || (sid && String(r.studentId || '') === String(sid) && String(r.className || '') === String(className) && String(r.dateISO || '').slice(0, 10) === String(dateISO).slice(0, 10)) || (!sid && String(r.className || '') === String(className) && String(r.dateISO || '').slice(0, 10) === String(dateISO).slice(0, 10) && String(r.studentName || '').trim() === studentName)); }) || null;
 }
 function recordAbsenceTime() {
     var _a, _b, _c, _d;
@@ -8532,7 +7902,7 @@ function validateDailyRequiredFields_(type){
 function addGrade() {
     wafdeenKeepDailyScroll_();
     return __awaiter(this, arguments, void 0, function (forceAbsent) {
-        var className, dateISO, dayName, studentName, student, studentId, type, label, record, timerBox, val, num, countId, gradeId, topicTodayId, pagesId, topicRecitedId, count, grade, limit, now, existing, seconds, timeKey, ec, prefix, commonPatch, typeFields, e_27, idx, gradePendingSave_;
+        var className, dateISO, dayName, studentName, type, label, record, timerBox, val, num, countId, gradeId, topicTodayId, pagesId, topicRecitedId, count, grade, limit, now, existing, seconds, timeKey, ec, prefix, commonPatch, typeFields, e_27, idx;
         var _a;
         var _b, _c, _d, _e;
         if (forceAbsent === void 0) { forceAbsent = false; }
@@ -8545,11 +7915,6 @@ function addGrade() {
                     studentName = (((_e = document.getElementById('studentNameSelect')) === null || _e === void 0 ? void 0 : _e.value) || '').trim();
                     if (!studentName)
                         return [2 /*return*/, showMessage('app-msg', 'يرجى اختيار الاسم بشكل صحيح', 'error')];
-                    student = getSelectedDailyStudent_();
-                    studentId = getStableStudentId_(student);
-                    if (!studentId)
-                        return [2 /*return*/, showMessage('app-msg', 'تعذر حفظ الدرجة: معرف الطالب غير موجود.', 'error')];
-                    console.log('[GRADE SAVE] studentId:', studentId, 'studentName:', studentName, 'date:', dateISO);
                     if (!dateISO)
                         return [2 /*return*/, showMessage('app-msg', 'يرجى اختيار التاريخ بشكل صحيح', 'error')];
                     type = dailySelectedGradeType || dailyTimerType || 'new';
@@ -8597,8 +7962,8 @@ function addGrade() {
                     existing = record || {};
                     if (!record) {
                         record = {
-                            id: dailyStableRecordId_(studentId, dateISO),
-                            studentId: String(studentId),
+                            id: dailyStableRecordId_(dailyStudentId_(studentName, className), className, dateISO),
+                            studentId: dailyStudentId_(studentName, className),
                             teacherName: (currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.username) || '',
                             className: className,
                             dateISO: dateISO,
@@ -8622,7 +7987,6 @@ function addGrade() {
                     record.dateISO = dateISO;
                     record.dayName = dayName;
                     record.studentName = studentName;
-                    record.studentId = String(studentId);
                     record.behaviorReasons = __assign({}, (wafdeenBehaviorState.daily || {}));
                     record.behaviorReasonsText = wafdeenBehaviorSummaryText('daily');
                     record.attendanceStatus = Number(record.attendance) === 0 ? 'present' : 'present';
@@ -8643,28 +8007,25 @@ function addGrade() {
                     record._dailyTypeSaved = __assign(__assign({}, (record._dailyTypeSaved || {})), (_a = {}, _a[type] = true, _a));
                     record.timeRecordedAt = now.toISOString();
                     record.total = getDailyTotal(record);
-                    commonPatch = { id: String(record.id), recordId: String(record.id), studentId: String(studentId), studentName: record.studentName, className: record.className, dateISO: record.dateISO, dayName: record.dayName, teacherName: record.teacherName, attendance: record.attendance, behavior: record.behavior, behaviorReasons: record.behaviorReasons, behaviorReasonsText: record.behaviorReasonsText, tajweed: record.tajweed, homework: record.homework, attendanceStatus: record.attendanceStatus, isAbsent: record.isAbsent, total: record.total, updatedAt: now.toISOString() };
+                    commonPatch = { id: String(record.id), recordId: String(record.id), studentId: String(record.studentId || dailyStudentId_(record.studentName, record.className)), studentName: record.studentName, className: record.className, dateISO: record.dateISO, dayName: record.dayName, teacherName: record.teacherName, attendance: record.attendance, behavior: record.behavior, behaviorReasons: record.behaviorReasons, behaviorReasonsText: record.behaviorReasonsText, tajweed: record.tajweed, homework: record.homework, attendanceStatus: record.attendanceStatus, isAbsent: record.isAbsent, total: record.total, updatedAt: now.toISOString() };
                     typeFields = {
                         new: { newLesson: record.newLesson, newPagesCount: record.newPagesCount, newTopicToday: record.newTopicToday, newTopicRecited: record.newTopicRecited, newRecitationCount: record.newRecitationCount, newLessonTimeSeconds: record.newLessonTimeSeconds, newErrors: record.newErrors, newTashkeel: record.newTashkeel, newRepetition: record.newRepetition, _dailyTypeSaved: { new: true } },
                         old: { oldRevision: record.oldRevision, oldPagesCount: record.oldPagesCount, oldTopicToday: record.oldTopicToday, oldTopicRecited: record.oldTopicRecited, oldRecitationCount: record.oldRecitationCount, oldRevisionTimeSeconds: record.oldRevisionTimeSeconds, oldErrors: record.oldErrors, oldTashkeel: record.oldTashkeel, oldRepetition: record.oldRepetition, _dailyTypeSaved: { old: true } },
                         recitation: { recitation: record.recitation, recitationPagesCount: record.recitationPagesCount, recitationTopicToday: record.recitationTopicToday, recitationTopicRecited: record.recitationTopicRecited, recitationRecitationCount: record.recitationRecitationCount, recitationTimeSeconds: record.recitationTimeSeconds, recitationErrors: record.recitationErrors, recitationTashkeel: record.recitationTashkeel, recitationRepetition: record.recitationRepetition, _dailyTypeSaved: { recitation: true } }
                     };
-                    /* لا نرفض الحفظ عند غياب Firebase: تُحفظ الدرجة محليًا في الطابور وتُرسل لاحقًا */
+                    if (!useFirebase || !db)
+                        return [2 /*return*/, showMessage('app-msg', 'Firebase غير متصل — لم يتم اعتماد الرصد.', 'error')];
                     _f.label = 1;
                 case 1:
                     _f.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, firebaseWriteRecord_('dailyRecords', record.id, __assign(__assign({}, commonPatch), typeFields[type]), { merge: true, full: record })];
+                    return [4 /*yield*/, firebaseWriteRecord_('dailyRecords', record.id, __assign(__assign({}, commonPatch), typeFields[type]), { merge: true })];
                 case 2:
                     _f.sent();
                     return [3 /*break*/, 4];
                 case 3:
                     e_27 = _f.sent();
                     console.error('Firebase daily record save error:', e_27);
-                    if (!(e_27 && e_27.queuedLocally))
-                        return [2 /*return*/, showMessage('app-msg', 'تعذر حفظ الرصد — لم يتم اعتماد الحفظ.', 'error')];
-                    /* الدرجة محفوظة محليًا في الطابور (pending) وستصل إلى Firebase تلقائيًا؛ لا نمسح شيئًا من الشاشة */
-                    gradePendingSave_ = true;
-                    return [3 /*break*/, 4];
+                    return [2 /*return*/, showMessage('app-msg', 'تعذر حفظ الرصد على Firebase — لم يتم اعتماد الحفظ. تحقق من الاتصال.', 'error')];
                 case 4:
                     idx = dailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
                     if (idx > -1)
@@ -8679,10 +8040,8 @@ function addGrade() {
                     dailyTimerBaseSeconds = seconds;
                     updateDailyTypeTimes();
                     renderDailyTimer();
-                    if (!gradePendingSave_) {
-                        dailyErrorCounters[type] = { errors: 0, tashkeel: 0, repetition: 0 };
-                        dailyRenderCounters();
-                    }
+                    dailyErrorCounters[type] = { errors: 0, tashkeel: 0, repetition: 0 };
+                    dailyRenderCounters();
                     renderDailyTable();
                     renderAttendanceTable();
                     renderWeeklyTable();
@@ -8690,11 +8049,7 @@ function addGrade() {
                     renderManagerView();
                     renderClassStatusTable();
                     updateMainDailySaveButton_();
-                    if (gradePendingSave_) {
-                        gradeToastPending_('app-msg');
-                        return [2 /*return*/];
-                    }
-                    showMessage('app-msg', "\u062A\u0645 \u062D\u0641\u0638 ".concat(label, " \u0648\u0648\u0642\u062A \u0627\u0644\u062A\u0633\u0645\u064A\u0639 \u0628\u0646\u062C\u0627\u062D \u0644\u0644\u0637\u0627\u0644\u0628 ").concat(studentName, " \u2705 (").concat(formatTimerSeconds(seconds), ")") + ' — 🟢 تم الحفظ على السحابة', 'success');
+                    showMessage('app-msg', "\u062A\u0645 \u062D\u0641\u0638 ".concat(label, " \u0648\u0648\u0642\u062A \u0627\u0644\u062A\u0633\u0645\u064A\u0639 \u0628\u0646\u062C\u0627\u062D \u0644\u0644\u0637\u0627\u0644\u0628 ").concat(studentName, " \u2705 (").concat(formatTimerSeconds(seconds), ")"), 'success');
                     return [2 /*return*/];
             }
         });
@@ -9032,19 +8387,23 @@ function editRecord(id) {
                             }
                             dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
                             updatedRecord = __assign(__assign({}, record), { dateISO: dateISO, dayName: dayNames[new Date(dateISO + 'T00:00:00').getDay()], recitationTopicToday: recitationTopicToday, recitationTopicRecited: recitationTopicRecited, recitationTopic: recitationTopicToday, oldTopicToday: fifth ? '' : oldTopicToday, oldTopicRecited: fifth ? '' : oldTopicRecited, newTopicToday: fifth ? '' : newTopicToday, newTopicRecited: fifth ? '' : newTopicRecited, oldTopicText: fifth ? '' : oldTopicToday, newTopicText: fifth ? '' : newTopicToday, attendance: clampGrade(values[0]), behavior: clampGrade(values[1]), behaviorReasons: __assign({}, (wafdeenBehaviorState.modal || {})), behaviorReasonsText: wafdeenBehaviorSummaryText('modal'), newLesson: fifth ? 0 : clampGrade(values[2]), oldRevision: fifth ? 0 : clampGrade(values[3]), recitation: fifth ? clampGrade(values[2]) : clampGrade(values[4]), homework: fifth ? clampGrade(values[3]) : clampGrade(values[5]), tajweed: fifth ? clampGrade(values[4]) : clampGrade(values[6]), newLessonTimeSeconds: Number(record.newLessonTimeSeconds || 0), oldRevisionTimeSeconds: Number(record.oldRevisionTimeSeconds || 0), recitationTimeSeconds: Number(record.recitationTimeSeconds || 0), recitation1: 0, recitation2: 0, recitation3: 0, recitation4: 0 });
-                            /* لا نغيّر معرّف المستند عند تعديل التاريخ؛ تغيير المعرّف كان
-                               يحذف السجل القديم قبل التأكد من إنشاء الجديد، فتختفي الدرجات. */
-                            newId = record.id.toString();
+                            newId = dailyStableRecordId_(record.studentId || dailyStudentId_(record.studentName, record.className), record.className, dateISO);
                             updatedRecord.id = newId;
+                            updatedRecord.studentId = String(record.studentId || dailyStudentId_(record.studentName, record.className));
                             _b.label = 1;
                         case 1:
                             _b.trys.push([1, 7, , 8]);
-                            if (!useFirebase || !db) return [3 /*break*/, 4];
-                            return [4 /*yield*/, firebaseWriteRecord_('dailyRecords', newId, updatedRecord, { merge: true, full: updatedRecord })];
+                            if (!useFirebase || !db) return [3 /*break*/, 5];
+                            if (!(newId !== record.id)) return [3 /*break*/, 3];
+                            return [4 /*yield*/, Promise.resolve({ok:true, preservedLegacy:true})];
                         case 2:
                             _b.sent();
-                            return [3 /*break*/, 4];
+                            _b.label = 3;
+                        case 3: return [4 /*yield*/, firebaseWriteRecord_('dailyRecords', newId, updatedRecord, { merge: true })];
                         case 4:
+                            _b.sent();
+                            return [3 /*break*/, 5];
+                        case 5:
                             idx = dailyRecords.findIndex(function (r) { return r.id.toString() === record.id.toString(); });
                             if (idx > -1)
                                 dailyRecords[idx] = updatedRecord;
@@ -9064,7 +8423,7 @@ function editRecord(id) {
                             return [3 /*break*/, 8];
                         case 7:
                             e_28 = _b.sent();
-                            showSiteError('تعذر حفظ التعديل مع بقاء السجل الأصلي دون حذف: '+(e_28 && (e_28.message || e_28) || 'خطأ غير معروف'));
+                            showSiteError('تعذر حفظ التعديل. حاول مرة أخرى.');
                             console.error(e_28);
                             return [3 /*break*/, 8];
                         case 8: return [2 /*return*/];
@@ -11430,7 +10789,7 @@ function importGradesFromExcel(event) {
                         event.target.value = '';
                         return [2 /*return*/];
                     }
-                    imported = mapRowsToObjects(rows, gradesHeaderMap).map(function (r) { return (__assign(__assign({}, r), { attendance: r.attendance === '' ? 0 : Number(r.attendance), behavior: r.behavior === '' ? 0 : Number(r.behavior), tajweed: r.tajweed === '' || r.tajweed == null ? 0 : Number(r.tajweed), oldRevision: r.oldRevision === '' ? 0 : Number(r.oldRevision), newLesson: r.newLesson === '' ? 0 : Number(r.newLesson), recitation: r.recitation === '' ? 0 : Number(r.recitation), homework: r.homework === '' ? 0 : Number(r.homework), recitation1: r.recitation1 === '' || r.recitation1 == null ? 0 : Number(r.recitation1), recitation2: r.recitation2 === '' || r.recitation2 == null ? 0 : Number(r.recitation2), recitation3: r.recitation3 === '' || r.recitation3 == null ? 0 : Number(r.recitation3), recitation4: r.recitation4 === '' || r.recitation4 == null ? 0 : Number(r.recitation4), id: r.id || "rec_".concat(r.studentName, "_").concat(r.dateISO).replace(/\s+/g, '_') })); });
+                    imported = mapRowsToObjects(rows, gradesHeaderMap).map(function (r) { return (__assign(__assign({}, r), { attendance: r.attendance === '' ? 0 : Number(r.attendance), behavior: r.behavior === '' ? 0 : Number(r.behavior), tajweed: r.tajweed === '' || r.tajweed == null ? 0 : Number(r.tajweed), oldRevision: r.oldRevision === '' ? 0 : Number(r.oldRevision), newLesson: r.newLesson === '' ? 0 : Number(r.newLesson), recitation: r.recitation === '' ? 0 : Number(r.recitation), homework: r.homework === '' ? 0 : Number(r.homework), recitation1: r.recitation1 === '' || r.recitation1 == null ? 0 : Number(r.recitation1), recitation2: r.recitation2 === '' || r.recitation2 == null ? 0 : Number(r.recitation2), recitation3: r.recitation3 === '' || r.recitation3 == null ? 0 : Number(r.recitation3), recitation4: r.recitation4 === '' || r.recitation4 == null ? 0 : Number(r.recitation4), id: r.id || dailyStableRecordId_(r.studentId || dailyStudentId_(r.studentName, r.className), r.className, r.dateISO), studentId: r.studentId || dailyStudentId_(r.studentName, r.className) })); });
                     return [4 /*yield*/, siteConfirm('📂 استعادة الدرجات من النسخة الاحتياطية', "\u0633\u064A\u062A\u0645 \u0627\u0633\u062A\u0628\u062F\u0627\u0644 \u0643\u0644 \u0627\u0644\u062F\u0631\u062C\u0627\u062A \u0627\u0644\u062D\u0627\u0644\u064A\u0629 (".concat(dailyRecords.length, " \u0633\u062C\u0644) \u0628\u0639\u062F\u062F ").concat(imported.length, " \u0633\u062C\u0644 \u0645\u0646 \u0645\u0644\u0641 \u0627\u0644\u0625\u0643\u0633\u0644. \u0647\u0644 \u062A\u0631\u064A\u062F \u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629\u061F"), 'استعادة الدرجات', true)];
                 case 3:
                     confirmed = _b.sent();
@@ -12658,7 +12017,7 @@ function wafdeenEduStopTimer() {
                 wafdeenUsageData.push(rec);
                 wafdeenPersistLocal();
                 if (!(useFirebase && db)) return [3 /*break*/, 3];
-                return [4 /*yield*/, firebaseWriteRecord_('wafdeenUsage', rec.id, rec, { merge: true })];
+                return [4 /*yield*/, db.collection('wafdeenUsage').doc(rec.id).set(rec, { merge: true })];
             case 2:
                 _a.sent();
                 _a.label = 3;
@@ -12673,13 +12032,7 @@ function wafdeenEduStopTimer() {
             case 5:
                 e_2 = _a.sent();
                 console.error(e_2);
-                if (e_2 && e_2.queuedLocally) {
-                    gradeToastPending_('wafdeen-save-msg');
-                    wafdeenEduReset();
-                }
-                else {
-                    showMessage('wafdeen-save-msg', 'تعذر حفظ وقت المواد التعليمية', 'error');
-                }
+                showMessage('wafdeen-save-msg', 'تعذر حفظ وقت المواد التعليمية', 'error');
                 return [3 /*break*/, 6];
             case 6: return [2 /*return*/];
         }
@@ -12855,7 +12208,8 @@ function wafdeenSaveGradeType(type) {
                     wafdeenQuranSessionSavedByType[type] = true;
                     wafdeenPersistLocal();
                     refreshWafdeenMainLog_();
-                    /* الحفظ يمر على الطابور المحلي حتى لو كان Firebase غير متصل */
+                    if (!useFirebase || !db)
+                        return [2 /*return*/, showMessage('wafdeen-save-msg', 'Firebase غير متصل — لم يتم اعتماد الحفظ.', 'error')];
                     cloudCommon = { id: String(record.id), recordId: String(record.id), teacherUsername: record.teacherUsername, studentId: record.studentId, studentName: record.studentName, dateISO: record.dateISO, attendanceStatus: record.attendanceStatus, isAbsent: record.isAbsent, status: record.status, dayName: record.dayName, quranSessionTimeSeconds: Number(record.quranSessionTimeSeconds || seconds || 0), quranSessionTimeByType: Object.assign({ الجديد: 0, الماضي: 0, التلاوة: 0 }, record.quranSessionTimeByType || {}), updatedAt: new Date().toISOString() };
                     cloudType = type === 'الجديد'
                         ? { newLesson: record.newLesson, newPagesCount: record.newPagesCount, newTopicRecited: record.newTopicRecited, newErrors: record.newErrors, newTashkeel: record.newTashkeel, newRepetition: record.newRepetition, newLessonTimeSeconds: record.newLessonTimeSeconds }
@@ -12866,8 +12220,8 @@ function wafdeenSaveGradeType(type) {
                 case 1:
                     _j.trys.push([1, 4, , 5]);
                     usage = { id: String(student.id) + '_' + String(dateISO) + '_' + String(type), teacherUsername: currentWafdeenTeacher.username, studentId: student.id, studentName: student.name, category: 'quran', subject: 'القرآن الكريم', type: type, seconds: seconds, sessionSeconds: seconds, dateISO: wafdeenSelectedDailyDateStr(), month: wafdeenPeriodKeyForDate(wafdeenSelectedDailyDateObj()), sessionMaxSeconds: Number(WAFDEEN_QURAN_SESSION_MAX_SECONDS || 7200), completedInTwoHours: seconds >= Number(WAFDEEN_QURAN_SESSION_MAX_SECONDS || 7200), updatedAt: new Date().toISOString() };
-                    return [4 /*yield*/, gradeAllSettledOrThrow_([
-                            firebaseWriteRecord_('wafdeenDailyRecords', record.id, __assign(__assign(__assign({}, cloudCommon), cloudType), { total: record.total, _dailyTypeSaved: (_d = {}, _d[type] = true, _d) }), { merge: true, full: record }),
+                    return [4 /*yield*/, Promise.all([
+                            firebaseWriteRecord_('wafdeenDailyRecords', record.id, __assign(__assign(__assign({}, cloudCommon), cloudType), { total: record.total, _dailyTypeSaved: (_d = {}, _d[type] = true, _d) }), { merge: true }),
                             firebaseWriteRecord_('wafdeenUsage', usage.id, usage, { merge: true })
                         ])];
                 case 2:
@@ -12879,10 +12233,6 @@ function wafdeenSaveGradeType(type) {
                 case 4:
                     e_3 = _j.sent();
                     console.error('Wafdeen Firebase save error:', e_3);
-                    if (e_3 && e_3.queuedLocally)
-                        return [2 /*return*/, gradeWafdeenPendingAfterSave_(type, usage, student, seconds)];
-                    wafdeenQuranHeardTypes[type] = false;
-                    wafdeenQuranSessionSavedByType[type] = false;
                     return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ ' + type + ' على Firebase — لم يتم اعتماد الحفظ.', 'error')];
                 case 5:
                     resetMap = { 'الجديد': ['wafdeenNewLesson', 'wafdeenNewPagesCount', 'wafdeenNewTopicRecited'], 'الماضي': ['wafdeenOldRevision', 'wafdeenOldPagesCount', 'wafdeenOldTopicRecited'], 'التلاوة': ['wafdeenRecitation', 'wafdeenRecitationPagesCount', 'wafdeenRecitationTopicRecited'] };
@@ -12959,7 +12309,7 @@ function wafdeenGuardedDailySave() {
 }
 function saveWafdeenDailyRecord() {
     return __awaiter(this, arguments, void 0, function (isAbsent) {
-        var sel, student, val, num, dateISO, d, existingToday, id, record, e_4, existingIndex, gradePendingSave_;
+        var sel, student, val, num, dateISO, d, existingToday, id, record, e_4, existingIndex;
         if (isAbsent === void 0) { isAbsent = false; }
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -13000,7 +12350,8 @@ function saveWafdeenDailyRecord() {
                         recitationErrors: isAbsent ? 0 : wafdeenQuranErrorCounters['التلاوة'].errors, recitationTashkeel: isAbsent ? 0 : wafdeenQuranErrorCounters['التلاوة'].tashkeel, recitationRepetition: isAbsent ? 0 : wafdeenQuranErrorCounters['التلاوة'].repetition,
                         savedAt: new Date().toISOString()
                     };
-                    /* الحفظ يمر على الطابور المحلي حتى لو كان Firebase غير متصل */
+                    if (!useFirebase || !db)
+                        return [2 /*return*/, showMessage('wafdeen-save-msg', 'Firebase غير متصل — لم يتم اعتماد الرصد.', 'error')];
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
@@ -13011,10 +12362,7 @@ function saveWafdeenDailyRecord() {
                 case 3:
                     e_4 = _a.sent();
                     console.error('Wafdeen daily Firebase save error:', e_4);
-                    if (!(e_4 && e_4.queuedLocally))
-                        return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ الرصد على Firebase — لم يتم اعتماد الحفظ.', 'error')];
-                    gradePendingSave_ = true;
-                    return [3 /*break*/, 4];
+                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ الرصد على Firebase — لم يتم اعتماد الحفظ.', 'error')];
                 case 4:
                     existingIndex = wafdeenDailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
                     if (existingIndex >= 0)
@@ -13025,10 +12373,6 @@ function saveWafdeenDailyRecord() {
                     refreshWafdeenMainLog_();
                     wafdeenRenderGrades();
                     wafdeenUpdateDailySaveButton();
-                    if (gradePendingSave_) {
-                        gradeToastPending_('wafdeen-save-msg');
-                        return [2 /*return*/];
-                    }
                     showMessage('wafdeen-save-msg', isAbsent ? "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u063A\u064A\u0627\u0628 ".concat(student.name, " \u0628\u0635\u0641\u0631 \u0641\u064A \u0643\u0644 \u0627\u0644\u062E\u0627\u0646\u0627\u062A \uD83D\uDEAB") : "\u062A\u0645 \u062D\u0641\u0638 \u0627\u0644\u0631\u0635\u062F \u0627\u0644\u064A\u0648\u0645\u064A \u0644\u0644\u0637\u0627\u0644\u0628 ".concat(student.name, " \u0639\u0644\u0649 Firebase \u2705"), 'success');
                     wafdeenResetQuranCounters();
                     return [2 /*return*/];
@@ -13341,10 +12685,12 @@ async function wafdeenEditGrade(recordId){
     var q=prompt('درجة التلاوة من 10:',String(r.recitation==null?0:r.recitation));if(q===null)return false;
     var grade=function(v){return Math.max(0,Math.min(10,Number(v)||0));};
     var changes={newLesson:grade(n),oldRevision:grade(o),recitation:grade(q)};changes.total=changes.newLesson+changes.oldRevision+changes.recitation;changes.editedAt=new Date().toISOString();changes.editedBy=(currentWafdeenTeacher&&currentWafdeenTeacher.username)||((currentTeacher&&currentTeacher.username)||'');
-    var saved=await window.firebaseUpdateVerified_('wafdeenDailyRecords',id,changes);
+    var ref=await wafdeenFindFirebaseRef_(id);await ref.update(Object.assign({},changes,{updatedAt:new Date().toISOString()}));
+    var snap=await ref.get();if(!snap.exists)throw new Error('لم يتم العثور على السجل بعد التعديل');
+    var saved=Object.assign({},snap.data()||{}, {id:String((snap.data()||{}).id||snap.id)});
     var ix=wafdeenDailyRecords.findIndex(function(x){return String(x.id)===id;});if(ix>-1)wafdeenDailyRecords[ix]=Object.assign({},wafdeenDailyRecords[ix],saved);else wafdeenDailyRecords.push(saved);
     try{wafdeenPersistLocal();}catch(e){};try{if(typeof refreshWafdeenLogAfterSave_==='function')refreshWafdeenLogAfterSave_();else if(typeof renderDailyTable==='function')renderDailyTable();}catch(e){}
-    if(saved&&saved.__pendingSync){gradeToastPending_('wafdeen-save-msg');return true;}showMessage('wafdeen-save-msg','تم تعديل الرصد بنجاح ✅','success');return true;
+    showMessage('wafdeen-save-msg','تم تعديل الرصد بنجاح ✅','success');return true;
   }catch(e){console.error('wafdeenEditGrade error:',e);showMessage('wafdeen-save-msg','تعذر تعديل الرصد: '+(e.message||e),'error');return false;}
 }
 window.wafdeenEditGrade=wafdeenEditGrade;
@@ -15314,11 +14660,124 @@ window.__WAFDEEN_STANDALONE__ = false;
 /* تسجيل عامل الخدمة اختياريًا عند تشغيل الموقع عبر HTTPS، دون التأثير على فتح الملف محليًا. */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./sw.js?v=4', {scope: './'}).catch(function (error) {
+    navigator.serviceWorker.register('./sw.js?v=3', {scope: './'}).catch(function (error) {
       console.warn('Service Worker registration skipped:', error);
     });
   });
 }
+</script>
+<script>
+/* ===== Stable daily-record identity + non-destructive legacy compatibility ===== */
+(function installStableDailyIdentity_(){
+  function norm(v){return String(v==null?'':v).trim();}
+  function token(v){var x=encodeURIComponent(norm(v)).replace(/%/g,'_');return x.length>90?x.slice(0,90):x;}
+  function hash(v){var h=2166136261;for(var i=0;i<String(v).length;i++){h^=String(v).charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);}
+  window.dailyStudentId_=function(name,cls){var list=Array.isArray(window.studentsData)?window.studentsData:[];var st=list.find(function(x){return norm(x.name)===norm(name)&&norm(x.className)===norm(cls);})||list.find(function(x){return norm(x.name)===norm(name);});if(st){if(!st.id)st.id='s_'+hash(norm(st.name)+'|'+norm(st.className));if(!st.studentId)st.studentId=String(st.id);return String(st.studentId||st.id);}return 'legacy_'+hash(norm(name)+'|'+norm(cls));};
+  window.dailyStableRecordId_=function(sid,cls,date){return 'daily_'+token(sid)+'_'+token(cls)+'_'+norm(date).slice(0,10);};
+  window.dailyNormalizeStudents_=function(){var list=Array.isArray(window.studentsData)?window.studentsData:[];var dirty=false;list.forEach(function(st){if(!st.id){st.id='s_'+hash(norm(st.name)+'|'+norm(st.className));dirty=true;}if(String(st.studentId||'')!==String(st.id)){st.studentId=String(st.id);dirty=true;}});if(dirty){try{memoryStorage.setItem('studentsData',JSON.stringify(list));}catch(_){}if(useFirebase&&db)list.forEach(function(st){db.collection('students').doc(String(st.id)).set({studentId:String(st.id)},{merge:true}).catch(function(e){console.warn('studentId migration',e);});});}return list;};
+  window.dailyNormalizeRecords_=function(records){var out=[],byKey={};(records||[]).forEach(function(r){if(!r||r._deleted||r._legacyMigrated)return;var sid=String(r.studentId||dailyStudentId_(r.studentName,r.className));var key=sid+'|'+norm(r.className)+'|'+norm(r.dateISO).slice(0,10);var stable=dailyStableRecordId_(sid,r.className,r.dateISO);var item=Object.assign({},r,{studentId:sid});if(String(item.id)!==stable && !String(item.id).startsWith('daily_')) item._legacy=true;else item.id=stable;if(!byKey[key]||(!item._legacy&&byKey[key]._legacy))byKey[key]=item;});Object.keys(byKey).forEach(function(k){out.push(byKey[k]);});return out;};
+  var oldHas=window.hasDailyRecordForSelectedStudent_;
+  window.hasDailyRecordForSelectedStudent_=function(){var cls=(document.getElementById('classSelect')||{}).value||'',date=(document.getElementById('recordDate')||{}).value||'',name=norm((document.getElementById('studentNameSelect')||{}).value||'');if(!name||!cls||!date)return null;var sid=dailyStudentId_(name,cls),stable=dailyStableRecordId_(sid,cls,date);return (window.dailyRecords||[]).find(function(r){return !r._deleted&&!r._legacyMigrated&&(String(r.id)===stable||(String(r.studentId||'')===sid&&norm(r.className)===norm(cls)&&norm(r.dateISO).slice(0,10)===norm(date).slice(0,10))||(!r.studentId&&norm(r.studentName)===name&&norm(r.className)===norm(cls)&&norm(r.dateISO).slice(0,10)===norm(date).slice(0,10)));})||null;};
+  var oldSelected=window.getSelectedDailyRecord;
+  window.getSelectedDailyRecord=function(){var cls=(document.getElementById('classSelect')||{}).value||'',date=(document.getElementById('recordDate')||{}).value||'',name=norm((document.getElementById('studentNameSelect')||{}).value||'');var sid=dailyStudentId_(name,cls),stable=dailyStableRecordId_(sid,cls,date);return (window.dailyRecords||[]).find(function(r){return !r._deleted&&!r._legacyMigrated&&(String(r.id)===stable||(String(r.studentId||'')===sid&&norm(r.dateISO).slice(0,10)===norm(date).slice(0,10)));})||null;};
+  async function migrate(){if(!useFirebase||!db)return;dailyNormalizeStudents_();try{var snap=await db.collection('dailyRecords').get();var students=Array.isArray(window.studentsData)?window.studentsData:[];for(var i=0;i<snap.docs.length;i++){var d=snap.docs[i],r=Object.assign({id:d.id},d.data()||{});if(r._legacyMigrated)continue;var st=students.find(function(x){return String(x.id)===String(r.studentId||'')||norm(x.name)===norm(r.studentName)&&norm(x.className)===norm(r.className);});if(!st)continue;var sid=String(st.studentId||st.id),nid=dailyStableRecordId_(sid,r.className,r.dateISO),copy=Object.assign({},r,{id:nid,recordId:nid,studentId:sid,studentName:st.name,legacyId:String(d.id),migratedAt:new Date().toISOString()});if(nid!==String(d.id)){var target=db.collection('dailyRecords').doc(nid);await target.set(copy,{merge:true});var check=await target.get();if(check.exists)await d.ref.set({_legacyMigrated:true,legacyCanonicalId:nid,migratedAt:new Date().toISOString()},{merge:true});}}}catch(e){console.warn('daily legacy migration deferred',e);}}
+  var oldSync=window.syncDataFromCloud;window.syncDataFromCloud=function(){dailyNormalizeStudents_();return oldSync.apply(this,arguments);};
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){dailyNormalizeStudents_();migrate();dailyRetryQueue_();},1200);});
+})();
+</script>
+<script>
+/* ===== أداة تحقق حقيقية من ثبات dailyRecords — الإدارة فقط ===== */
+(function installDailyRecordsVerificationTool_(){
+  if(window.__dailyRecordsVerificationInstalled)return;
+  window.__dailyRecordsVerificationInstalled=true;
+  var state={running:false,failures:[],lastStudents:[],lastRunId:'',testedIds:[],summary:null};
+  var TEST_DATE='2099-12-31';
+  function el(id){return document.getElementById(id);}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];});}
+  function adminOnly(){return !!(window.currentTeacher&&String(window.currentTeacher.username||'').trim()==='admin');}
+  function setVisible(id,on){var x=el(id);if(x)x.style.display=on?'inline-flex':'none';}
+  function pause(){return new Promise(function(resolve){setTimeout(resolve,80);});}
+  function systemId(studentId,className,runId){var safe=function(v){return encodeURIComponent(String(v==null?'':v)).replace(/%/g,'_');};return 'daily_systemVerification_'+safe(studentId)+'_'+safe(className)+'_'+runId;}
+  function studentIdentity(st){var sid=String(st.studentId||st.id||'').trim();if(!sid&&typeof dailyStudentId_==='function')sid=String(dailyStudentId_(st.name,st.className)||'').trim();return sid;}
+  function expectedPayload(st,recordId,runId){var sid=studentIdentity(st),name=String(st.name||'').trim(),cls=String(st.className||'').trim();return {id:recordId,recordId:recordId,studentId:sid,studentName:name,className:cls,dateISO:TEST_DATE,_systemVerification:true,verificationRunId:runId,verificationCreatedAt:new Date().toISOString(),attendance:0,behavior:0,tajweed:0,homework:0,newLesson:0,oldRevision:0,recitation:0,total:0,attendanceStatus:'system_verification'};}
+  function updateProgress(total,tested,success,failed,current){var pct=total?Math.floor(tested*100/total):0;if(el('daily-verification-bar'))el('daily-verification-bar').style.width=pct+'%';if(el('daily-verification-message'))el('daily-verification-message').textContent=current?'جاري اختبار الطالب: '+current:'جاري اختبار حفظ سجلات الطلاب...';if(el('daily-verification-stats'))el('daily-verification-stats').innerHTML='<strong>إجمالي الطلاب:</strong> '+total+' &nbsp; <strong>تم الاختبار:</strong> '+tested+' &nbsp; <strong>نجح:</strong> '+success+' &nbsp; <strong>فشل:</strong> '+failed+' &nbsp; <strong>التقدم:</strong> '+pct+'%';}
+  function mismatch(saved,expected){var fields=['id','studentId','studentName','className','dateISO'];var bad=[];fields.forEach(function(k){if(String((saved||{})[k]??'')!==String(expected[k]??''))bad.push(k);});return bad;}
+  async function readAndVerify(id,expected,phase){var saved=await firebaseReadRecord_('dailyRecords',id);if(!saved)return {ok:false,error:phase+': السجل غير موجود في Firebase',kind:phase};var bad=mismatch(saved,expected);if(bad.length)return {ok:false,error:phase+': عدم تطابق '+bad.join('، '),kind:phase};return {ok:true,data:saved};}
+  function failure(st,id,err,phase){return {studentName:String(st.name||''),studentId:studentIdentity(st),className:String(st.className||''),recordId:id,error:String(err||'خطأ غير معروف'),phase:phase||'unknown'};}
+  async function run(){
+    if(!adminOnly()){showMessage('app-msg','هذه الأداة متاحة للمدير فقط.','error');return;}
+    if(state.running)return;
+    if(!useFirebase||!db){showMessage('app-msg','Firebase غير متصل — لم يبدأ الاختبار.','error');return;}
+    state.running=true;state.failures=[];state.testedIds=[];state.summary=null;state.lastRunId='run_'+Date.now().toString(36);state.lastStudents=(Array.isArray(studentsData)?studentsData:[]).filter(function(st){return st&&!st._deleted&&String(st.name||'').trim()&&String(st.className||'').trim();});
+    var start=el('daily-verification-start');if(start){start.disabled=true;start.textContent='⏳ جاري الاختبار...';}setVisible('daily-verification-retry',false);setVisible('daily-verification-failures',false);if(el('daily-verification-status'))el('daily-verification-status').style.display='block';if(el('daily-verification-result'))el('daily-verification-result').style.display='none';
+    var total=state.lastStudents.length,tested=0,success=0,failed=0,ids={};updateProgress(total,0,0,0,'');
+    try{
+      for(var i=0;i<state.lastStudents.length;i++){
+        var st=state.lastStudents[i],sid=studentIdentity(st),id=systemId(sid,st.className,state.lastRunId);tested++;updateProgress(total,tested-1,success,failed,st.name);
+        if(!sid){state.failures.push(failure(st,id,'studentId مفقود ولا يمكن إنشاء هوية آمنة','identity'));failed++;updateProgress(total,tested,success,failed,st.name);await pause();continue;}
+        if(ids[id]){state.failures.push(failure(st,id,'تصادم: نفس recordId استُخدم لطالب آخر','duplicate'));failed++;updateProgress(total,tested,success,failed,st.name);await pause();continue;}ids[id]=st.id||sid;state.testedIds.push(id);
+        var expected=expectedPayload(st,id,state.lastRunId);
+        try{await firebaseWriteRecord_('dailyRecords',id,expected,{merge:false,skipQueue:true});var first=await readAndVerify(id,expected,'القراءة الأولى');if(!first.ok)throw new Error(first.error);await pause();var second=await readAndVerify(id,expected,'إعادة القراءة');if(!second.ok)throw new Error(second.error);success++;}
+        catch(e){failed++;state.failures.push(failure(st,id,e.message||e,'firebase'));}
+        updateProgress(total,tested,success,failed,st.name);await pause();
+      }
+      /* إعادة قراءة جميع المستندات التي نجحت قبل التنظيف لاكتشاف الاختفاء المتأخر. */
+      var vanished=0,duplicateCount=0;
+      for(var j=0;j<state.testedIds.length;j++){var rid=state.testedIds[j],st2=state.lastStudents.find(function(x){return systemId(studentIdentity(x),x.className,state.lastRunId)===rid;});if(!st2)continue;var exp=expectedPayload(st2,rid,state.lastRunId);try{var finalRead=await readAndVerify(rid,exp,'الفحص النهائي');if(!finalRead.ok){vanished++;state.failures.push(failure(st2,rid,finalRead.error,'vanished'));}}catch(e){vanished++;state.failures.push(failure(st2,rid,e.message||e,'vanished'));}await pause();}
+      var unique={};state.testedIds.forEach(function(x){unique[x]=(unique[x]||0)+1;});Object.keys(unique).forEach(function(x){if(unique[x]>1)duplicateCount+=unique[x]-1;});try{var runSnap=await db.collection('dailyRecords').where('verificationRunId','==',state.lastRunId).get(),seenStudents={};runSnap.forEach(function(doc){var d=doc.data()||{},key=String(d.studentId||'');if(seenStudents[key])duplicateCount++;seenStudents[key]=true;});}catch(queryError){console.warn('تعذر فحص التكرارات في تشغيل الاختبار',queryError);}
+      var failedNames={};state.failures.forEach(function(x){failedNames[x.recordId]=true;});state.summary={total:total,tested:tested,success:Math.max(0,success-vanished),failed:state.failures.length,vanished:vanished,duplicates:duplicateCount,ids:state.failures.filter(function(x){return x.phase==='identity'||x.phase==='duplicate';}).length,firebase:state.failures.filter(function(x){return x.phase==='firebase';}).length};
+      var cleanupErrors=[];for(var c=0;c<state.testedIds.length;c++){try{var check=await db.collection('dailyRecords').doc(state.testedIds[c]).get();if(check.exists&&check.data()&&check.data()._systemVerification){await db.collection('dailyRecords').doc(state.testedIds[c]).delete();var gone=await db.collection('dailyRecords').doc(state.testedIds[c]).get();if(gone.exists)cleanupErrors.push(state.testedIds[c]);}}catch(e){cleanupErrors.push(state.testedIds[c]);}await pause();}
+      if(cleanupErrors.length)state.summary.cleanupErrors=cleanupErrors.length;
+      showResult();
+    }catch(e){state.failures.push({studentName:'-',studentId:'-',className:'-',recordId:'-',error:e.message||String(e),phase:'tool'});state.summary={total:total,tested:tested,success:success,failed:state.failures.length,vanished:0,duplicates:0,ids:0,firebase:1};showResult();}
+    finally{state.running=false;if(start){start.disabled=false;start.textContent='🔍 اختبار حفظ سجلات جميع الطلاب';}setVisible('daily-verification-retry',true);setVisible('daily-verification-failures',state.failures.length>0);}
+  }
+  function showResult(){var x=el('daily-verification-result');if(!x||!state.summary)return;var q=state.summary,ok=q.failed===0&&q.vanished===0&&q.duplicates===0&&q.ids===0&&(!q.cleanupErrors);x.style.display='block';x.style.borderColor=ok?'#86efac':'#fecaca';x.style.background=ok?'#f0fdf4':'#fff7f7';x.innerHTML='<strong style="font-size:1.08em;color:'+(ok?'#166534':'#991b1b')+';">'+(ok?'🟢 النظام سليم — تم اختبار جميع الطلاب بنجاح':'🔴 تم اكتشاف مشكلة وتحتاج إلى مراجعة')+'</strong><br><strong>إجمالي الطلاب:</strong> '+q.total+'　<strong>تم الاختبار:</strong> '+q.tested+'　<strong>نجح:</strong> '+q.success+'　<strong>فشل:</strong> '+q.failed+'<br><strong>سجلات اختفت:</strong> '+q.vanished+'　<strong>سجلات مكررة:</strong> '+q.duplicates+'　<strong>مشاكل IDs:</strong> '+q.ids+'　<strong>مشاكل Firebase:</strong> '+q.firebase+(q.cleanupErrors?'　<strong>أخطاء تنظيف سجلات الاختبار:</strong> '+q.cleanupErrors:'')+'<br><span style="color:'+(ok?'#166534':'#991b1b')+';">'+(ok?'✅ تمت الكتابة والقراءة والتحقق وإعادة القراءة من Firestore، ثم تنظيف سجلات الاختبار فقط.':'❌ راجع قائمة الطلاب الفاشلين للتفاصيل؛ لم يتم حذف أي سجل حقيقي.')+'</span>'+'<br><small style="color:#64748b;">معرّف التشغيل: '+esc(state.lastRunId)+'</small>';}
+  window.showDailyRecordsVerificationFailures=function(){if(!state.failures.length)return;var body='<div style="max-height:55vh;overflow:auto;text-align:right;"><table style="width:100%;border-collapse:collapse;font-size:.86em;"><thead><tr><th>الطالب</th><th>studentId</th><th>recordId</th><th>المرحلة</th><th>الخطأ</th></tr></thead><tbody>'+state.failures.map(function(f){return '<tr><td>'+esc(f.studentName)+'</td><td>'+esc(f.studentId)+'</td><td>'+esc(f.recordId)+'</td><td>'+esc(f.phase)+'</td><td>'+esc(f.error)+'</td></tr>';}).join('')+'</tbody></table></div>';showSiteModal('📋 الطلاب الذين فشل اختبارهم',body,'<button type="button" class="action-btn modal-success" onclick="closeSiteModal()">حسنًا</button>');};
+  window.startDailyRecordsVerification=run;
+  window.retryDailyRecordsVerification=function(){if(!state.running)run();};
+  window.refreshDailyRecordsVerificationVisibility_=function(){var box=el('daily-record-verification-tool');if(box)box.style.display=adminOnly()?'block':'none';};document.addEventListener('DOMContentLoaded',function(){if(window.refreshDailyRecordsVerificationVisibility_)window.refreshDailyRecordsVerificationVisibility_();});
+})();
+</script>
+<script>
+/* ===== Cache سريع لقائمة طلاب الرصد اليومي دون تغيير مزامنة Firebase ===== */
+(function installStudentFastCache_(){
+  if(window.__studentFastCacheInstalled)return;
+  window.__studentFastCacheInstalled=true;
+  var KEY='majd_students_fast_cache_v1', MAX_AGE=1000*60*60*24*30;
+  window.studentFastCloudReady_=false;
+  window.studentFastCacheLoaded_=false;
+  function storage_(){try{var k='__majd_student_cache_test__';localStorage.setItem(k,'1');localStorage.removeItem(k);return localStorage;}catch(_){return memoryStorage;}}
+  function norm_(v){return String(v==null?'':v).trim();}
+  function allowed_(s){var t=window.currentTeacher;if(!t)return true;var u=norm_(t.username),a=norm_(t.assignedClass);if(u==='admin'||a==='الكل')return true;if(norm_(s.className)==='الوافدين'&&typeof teacherCanAccessWafdeen_==='function'&&!teacherCanAccessWafdeen_(t))return false;return !a||norm_(s.className)===a;}
+  window.studentFastCacheSave_=function(list){var arr=(Array.isArray(list)?list:[]).filter(function(s){return s&&!s._deleted&&norm_(s.name)&&norm_(s.className);}).map(function(s){return {id:String(s.id||s.studentId||''),studentId:String(s.studentId||s.id||''),name:norm_(s.name),className:norm_(s.className),loginCode:s.loginCode||'',loginCodeMonth:s.loginCodeMonth||''};});if(!arr.length)return;try{storage_().setItem(KEY,JSON.stringify({savedAt:Date.now(),students:arr}));}catch(e){console.warn('تعذر حفظ Cache الطلاب',e);}};
+  window.studentFastCacheLoad_=function(){try{var raw=storage_().getItem(KEY);if(!raw)return false;var box=JSON.parse(raw);if(!box||!Array.isArray(box.students)||!box.students.length||Date.now()-Number(box.savedAt||0)>MAX_AGE)return false;var cached=box.students.filter(allowed_);if(!cached.length)return false;studentsData=cached;window.studentFastCacheLoaded_=true;return true;}catch(e){return false;}};
+  var originalUpdate=window.updateStudentListDropdown;
+  window.updateStudentListDropdown=function(){
+    var sel=document.getElementById('studentNameSelect'),previous=sel?String(sel.value||''):'';
+    var result=typeof originalUpdate==='function'?originalUpdate.apply(this,arguments):undefined;
+    var className=String((document.getElementById('classSelect')||document.getElementById('dailyClassSelect')||{}).value||'');
+    var hasStudents=Array.isArray(window.studentsData)&&window.studentsData.some(function(s){return s&&!s._deleted&&norm_(s.className)===norm_(className)&&allowed_(s);});
+    if(sel&&!hasStudents&&!window.studentFastCloudReady_){sel.innerHTML='<option value="">'+(navigator.onLine?'⏳ جاري تحميل أسماء الطلاب…':'⚠️ لا يوجد اتصال — تعذر تحميل أسماء الطلاب')+'</option>';var ws=document.getElementById('daily-workspace');if(ws)ws.classList.remove('visible');}
+    if(sel&&previous&&Array.prototype.some.call(sel.options,function(o){return String(o.value)===previous;}))sel.value=previous;
+    if(Array.isArray(window.studentsData)&&window.studentsData.length)try{studentFastCacheSave_(window.studentsData);}catch(_){ }
+    return result;
+  };
+  function refresh_(){try{if(typeof window.updateStudentListDropdown==='function')window.updateStudentListDropdown();}catch(e){console.warn('student list refresh',e);}}
+  window.studentFastCacheBootstrap_=function(){
+    if(!window.studentFastCloudReady_)window.studentFastCacheLoad_();
+    refresh_();
+  };
+  /* Cache is loaded before the existing app render; Firebase sync continues unchanged. */
+  var originalShow=window.showAppScreen;
+  if(typeof originalShow==='function')window.showAppScreen=function(){studentFastCacheBootstrap_();return originalShow.apply(this,arguments);};
+  var originalOnload=window.onload;
+  if(typeof originalOnload==='function')window.onload=function(e){studentFastCacheBootstrap_();return originalOnload.call(this,e);};
+  window.addEventListener('online',function(){window.studentFastCloudReady_=false;refresh_();});
+  /* First valid cloud snapshot: replace cache and preserve the selected student. */
+  window.studentFastMarkCloudReady_=function(){window.studentFastCloudReady_=true;try{studentFastCacheSave_(studentsData);}catch(_){ }refresh_();};
+  document.addEventListener('DOMContentLoaded',function(){if(window.currentTeacher)studentFastCacheBootstrap_();});
+})();
 </script>
 </body>
 </html>
@@ -15557,8 +15016,6 @@ if (typeof window.wafdeenMonthlyImportedReports === 'undefined')
     throw new Error('السجل غير موجود في Firebase: '+key);
   }
   async function updateVerified_(collectionName,id,changes){
-    /* تعديل الدرجات يمر على الطابور المحلي (لا يضيع إذا انقطع الاتصال) */
-    if(['dailyRecords','shariaGrades','wafdeenDailyRecords'].indexOf(String(collectionName))>-1) return await gradeUpdateVerified_(collectionName,id,changes,findRef_);
     var ref=await findRef_(collectionName,id);
     var payload=Object.assign({},changes,{updatedAt:new Date().toISOString()});
     /* نسخة احتياطية دائمة قبل تحديث الدرجات عبر مسار التعديل المباشر. */
@@ -15611,7 +15068,7 @@ if (typeof window.wafdeenMonthlyImportedReports === 'undefined')
       var name=norm(document.getElementById('v9StudentName').value), cls=document.getElementById('v9StudentClass').value;
       if(!name || !cls) throw new Error('يرجى إدخال الاسم واختيار الصف');
       var oldName=String(st.name||'');
-      var saved=await updateVerified_('students',id,{name:name,className:cls,studentId:String(st.studentId||st.id||id)});
+      var saved=await updateVerified_('students',id,{name:name,className:cls});
 
       /* الحفاظ على الدرجات عند تغيير اسم الطالب:
          السجلات القديمة في بعض الإصدارات كانت مرتبطة بالاسم، لذلك نحدّث
@@ -15766,12 +15223,9 @@ if (typeof window.wafdeenMonthlyImportedReports === 'undefined')
       else dailyRecords.push(saved);
       try{memoryStorage.setItem('dailyRecords',JSON.stringify(dailyRecords));}catch(e){}
       try{populateWeeks();renderDailyTable();renderAttendanceTable();renderWeeklyTable();renderMonthlyReport();renderManagerView();renderClassStatusTable();}catch(e){}
-      if(saved && saved.__pendingSync){ gradeToastPending_('app-msg'); }
-      else {
-        showMessage('app-msg','تم تعديل الرصد في Firebase والتحقق من التعديل دون إنشاء سجل جديد ✅','success');
-        /* فحص مؤخر للتأكد أن المزامنة لم تُعد السجل إلى نسخة قديمة أو تخفيه. */
-        setTimeout(function(){ verifyDailyRecordAfterSave_(id,changes); }, 900);
-      }
+      showMessage('app-msg','تم تعديل الرصد في Firebase والتحقق من التعديل دون إنشاء سجل جديد ✅','success');
+      /* فحص مؤخر للتأكد أن المزامنة لم تُعد السجل إلى نسخة قديمة أو تخفيه. */
+      setTimeout(function(){ verifyDailyRecordAfterSave_(id,changes); }, 900);
     }catch(e){
       console.error('V9 editRecord',e);
       showDailySaveIssues_('تنبيه: لم يتم حفظ تعديل الرصد',['تعذر اعتماد التعديل في Firebase: '+(e.message||e),'لم يتم تأكيد بقاء الدرجات بعد الحفظ.']);
@@ -15800,17 +15254,12 @@ function shariaEsc_(value){
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 async function shariaCloudSaveAndVerify_(id, rec){
-  /* الكتابة تمر عبر الطابور المحلي الدائم: تُرفض بخطأ queuedLocally إذا لم يؤكد Firebase الحفظ بعد */
-  await firebaseWriteRecord_('shariaGrades', String(id), rec, {merge:true});
-  var saved = rec;
-  try{
-    var snap = await gradeWithTimeout_(db.collection('shariaGrades').doc(String(id)).get(), 10000, null);
-    if (!snap.exists) throw new Error('لم يتم العثور على السجل بعد الحفظ');
-    saved = snap.data() || {};
-  }catch(e){
-    if (/لم يتم العثور/.test(String((e && e.message) || ''))) throw e;
-    return rec; /* الكتابة مؤكدة بالفعل؛ تعذرت قراءة التحقق بسبب الشبكة فقط */
-  }
+  if (!useFirebase || !db) throw new Error('Firebase غير متصل؛ لم يتم اعتماد الدرجة');
+  var ref = db.collection('shariaGrades').doc(String(id));
+  await ref.set(rec, {merge:true});
+  var snap = await ref.get();
+  if (!snap.exists) throw new Error('لم يتم العثور على السجل بعد الحفظ');
+  var saved = snap.data() || {};
   ['studentId','dateISO','attendance','behavior','examScore','absent'].forEach(function(k){
     if (String(saved[k] == null ? '' : saved[k]) !== String(rec[k] == null ? '' : rec[k]))
       throw new Error('فشل التحقق من الحقل: ' + k);
@@ -15897,7 +15346,7 @@ async function editShariaGrade_(id){
     if(i>=0) shariaGradesData[i]=Object.assign({},shariaGradesData[i],saved); else shariaGradesData.push(Object.assign({},rec,saved));
     memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
     renderShariaGradesReport(); renderShariaDailyLog_();
-    if(saved && saved.__pendingSync) gradeToastPending_('app-msg'); else showMessage('app-msg','تم تعديل سجل الشرعي بنجاح','success');
+    showMessage('app-msg','تم تعديل سجل الشرعي بنجاح','success');
   }catch(err){ console.error('Sharia edit error:',err); showMessage('app-msg','تعذر تعديل سجل الشرعي: '+String(err.message||err),'error'); }
 }
 async function deleteShariaGrade_(id){
@@ -15998,12 +15447,11 @@ async function saveShariaGrade(forceAbsent){
   var saveBtn=document.querySelector('#daily-workspace .daily-scores-card .btn-save');
   if(saveBtn){ saveBtn.disabled=true; saveBtn.dataset.oldText=saveBtn.innerText; saveBtn.innerText='⏳ جارٍ الحفظ والتحقق...'; }
   try{
-    var shariaPending=false;
-    try{ await shariaCloudSaveAndVerify_(id,rec); }catch(e0){ if(e0 && e0.queuedLocally){ shariaPending=true; } else { throw e0; } }
+    await shariaCloudSaveAndVerify_(id,rec);
     var idx=shariaGradesData.findIndex(function(r){return String(r.id)===id;});
     if(idx>=0) shariaGradesData[idx]=Object.assign({},shariaGradesData[idx],rec); else shariaGradesData.push(rec);
     memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
-    if(shariaPending) gradeToastPending_('app-msg'); else showMessage('app-msg',(forceAbsent?'تم تسجيل الغياب':'تم الحفظ')+' — 🟢 تم الحفظ على السحابة','success');
+    showMessage('app-msg',forceAbsent?'تم تسجيل الغياب':'تم الحفظ','success');
     renderShariaGradesReport();
     renderShariaDailyLog_();
   }catch(e){
@@ -16022,12 +15470,11 @@ async function markShariaAbsent(){
   var rec={id:id,studentId:st.id,studentName:st.name,className:'أولى شرعي',teacherName:currentTeacher.username,dateISO:date,dayName:(document.getElementById('daySelect')||{}).value||'',attendance:0,absent:true,subject:existing&&existing.subject||'',behavior:0,examScore:0,updatedAt:new Date().toISOString()};
   if(!window.confirm('سيتم تسجيل الطالب غائبًا وتصفير السلوك ودرجة الامتحان لهذا التاريخ. هل تريد المتابعة؟')) return;
   try{
-    var shariaPending=false;
-    try{ await shariaCloudSaveAndVerify_(id,rec); }catch(e0){ if(e0 && e0.queuedLocally){ shariaPending=true; } else { throw e0; } }
+    await shariaCloudSaveAndVerify_(id,rec);
     var idx=shariaGradesData.findIndex(function(r){return String(r.id)===id;});
     if(idx>=0) shariaGradesData[idx]=Object.assign({},shariaGradesData[idx],rec); else shariaGradesData.push(rec);
     memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
-    if(shariaPending) gradeToastPending_('app-msg'); else showMessage('app-msg','تم تسجيل الغياب والتحقق من حفظه ✅ — 🟢 تم الحفظ على السحابة','success');
+    showMessage('app-msg','تم تسجيل الغياب والتحقق من حفظه ✅','success');
     renderShariaGradesReport();
     renderShariaDailyLog_();
   }catch(e){
