@@ -3695,6 +3695,19 @@ body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝
   <div id="daily-verification-result" style="display:none;margin-top:12px;padding:13px;border-radius:10px;line-height:2;background:#fff;border:1px solid #d1d5db;"></div>
 </div>
 
+<!-- ================= أداة مراجعة واستعادة سجلات الرصد من Firebase ================= -->
+<div id="daily-cloud-recovery-tool" data-admin-section="daily-cloud-recovery" style="background:linear-gradient(135deg,#eff6ff,#ffffff);padding:18px;border-radius:14px;margin-bottom:22px;border:1px solid #bfdbfe;border-top:4px solid #2563eb;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h3 style="margin:0 0 6px;font-size:1.2em;color:#1e3a8a;font-family:'Amiri',serif;">☁️ مراجعة واستعادة سجلات الرصد من Firebase</h3>
+      <p style="font-size:.86em;color:#475569;margin:0;line-height:1.8;">يقارن السجلات الموجودة على الجهاز بسجلات <b>dailyRecords</b> في Firebase، ويعيد أي سجل موجود في السحابة وغير موجود محليًا، مع إظهار اسم الطالب والمعلم والتاريخ والفصل.</p>
+    </div>
+    <button class="action-btn btn-save" id="daily-cloud-recovery-start" onclick="reviewAndRestoreDailyRecordsFromCloud()" type="button" style="min-width:190px;">☁️ مراجعة السحابة واستعادة</button>
+  </div>
+  <div id="daily-cloud-recovery-status" style="display:none;margin-top:14px;padding:12px;border-radius:10px;background:#fff;border:1px solid #d1d5db;color:#334155;line-height:1.9;"></div>
+  <div id="daily-cloud-recovery-result" style="display:none;margin-top:12px;padding:13px;border-radius:10px;line-height:2;background:#fff;border:1px solid #d1d5db;overflow:auto;"></div>
+</div>
+
 <!-- ================= لوحة الحد اليومي لـ Firebase ================= -->
 <div id="firebase-daily-quota-dashboard" style="background:linear-gradient(135deg,#fff8e8,#fffdf6);padding:18px;border-radius:14px;margin-bottom:22px;border:1px solid #ead59a;border-top:4px solid #d97706;">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -4069,6 +4082,14 @@ var ALL_CLASSES = [
     "أولى شرعي"
 ];
 var GENERAL_CLASSES = ALL_CLASSES;
+// حماية قائمة الفصول: لا تسمح لأي مزامنة أو فلتر مؤقت بمسح الفصول من الواجهة.
+function restoreCanonicalClasses_(){
+  if(!Array.isArray(window.ALL_CLASSES)||window.ALL_CLASSES.length===0) window.ALL_CLASSES = ["تمهيدي","الوافدين","أولى - أولاد","أولى - بنات","ثانية - أولاد","ثانية - بنات","ثالثة - أولاد","ثالثة - بنات","رابعة - أولاد","رابعة - بنات","خامسة - أولاد","خامسة - بنات","أولى شرعي"];
+  window.GENERAL_CLASSES = window.ALL_CLASSES;
+  try{ if(typeof renderClassCards==='function') renderClassCards(); }catch(e){}
+  try{ if(typeof ensureAllClassSelects_==='function') ensureAllClassSelects_(); }catch(e){}
+}
+
 /* ================= 1. تهيئة السحابة (Firebase Configuration) ================= */
 var firebaseConfig = {
     apiKey: "AIzaSyDMusCd7XWnzwgDYlaAJJxi6-LCfHniu64",
@@ -4216,6 +4237,8 @@ function firebaseSaveByAction_(action, data) {
                         col = 'wafdeenMonthlyReports';
                     else if (/^saveExam|^updateExam|^deleteExam/.test(action))
                         col = 'exams';
+                    if (!useFirebase || !db)
+                        return [2 /*return*/, false];
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 6, , 7]);
@@ -4224,7 +4247,7 @@ function firebaseSaveByAction_(action, data) {
                 case 2:
                     _a.sent();
                     return [3 /*break*/, 5];
-                case 3: return [4 /*yield*/, firebaseWriteRecord_(col, id, __assign(__assign({}, r), { id: id, recordId: String(r.recordId || id), updatedAt: new Date().toISOString() }), { merge: true })];
+                case 3: return [4 /*yield*/, db.collection(col).doc(id).set(__assign(__assign({}, r), { id: id, recordId: String(r.recordId || id), updatedAt: new Date().toISOString() }), { merge: true })];
                 case 4:
                     _a.sent();
                     _a.label = 5;
@@ -4339,7 +4362,7 @@ function savePaymentToFirebase_(recordId, data) {
                         throw new Error('معرف الدفعة مفقود');
                     record = __assign(__assign({}, (data || {})), { recordId: id, id: id, updatedAt: new Date().toISOString() });
                     if (!(useFirebase && db)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, firebaseWriteRecord_('payments', id, record, { merge: true })];
+                    return [4 /*yield*/, db.collection('payments').doc(id).set(record, { merge: true })];
                 case 1:
                     _a.sent();
                     _a.label = 2;
@@ -5202,46 +5225,17 @@ function syncStamp_(obj) {
     return 0;
 }
 function syncMergeLocalWithCloud_(local, cloud) {
-    /* لا يجوز أن تمحو onSnapshot بيانات محلية لم تصل إلى Firebase بعد.
-       نستخدم السحابة كمصدر الحقيقة، لكن نحافظ مؤقتًا على عمليات الحفظ المعلقة
-       وعمليات الحذف المعلقة حتى تنجح المزامنة. */
+    // Cloud-only: تجاهل أي بيانات من ذاكرة الجهاز وإرجاع بيانات Firestore فقط.
     var cloudArr = Array.isArray(cloud) ? cloud : [];
-    var localArr = Array.isArray(local) ? local : [];
     var byId = new Map();
-    var pendingSaves = new Map();
-    var pendingDeletes = new Set();
-    try {
-        var pq = (typeof dailyQueueRead_ === 'function') ? dailyQueueRead_() : [];
-        pq.forEach(function (q) {
-            var id = String(q && q.id || '').trim();
-            if (!id) return;
-            if (String(q.operation || 'save') === 'delete') pendingDeletes.add(id);
-            else if (q.payload) pendingSaves.set(id, applyDataMapping(__assign({}, q.payload)));
-        });
-    } catch (_) {}
     cloudArr.forEach(function(item){
-        var id = String((item && (item.id || item.recordId)) || '').trim();
-        if (!id || (item && (item._deleted || item._legacyMigrated)) || pendingDeletes.has(id)) return;
+        var id = String((item && item.id) || '').trim();
+        if (!id || (item && (item._deleted || item._legacyMigrated))) return;
         byId.set(id, applyDataMapping(__assign({}, item)));
     });
-    /* السجل الموجود في طابور الحفظ أحدث من لقطة Firebase الحالية. */
-    pendingSaves.forEach(function(item, id){
-        if (!pendingDeletes.has(id)) byId.set(id, item);
-    });
-    /* إذا كان الحفظ دخل النسخة الاحتياطية الدائمة ولم ينجح بعد، لا نخسر
-       السجل بسبب لقطة Firebase قديمة أو فارغة. */
-    try {
-        if (typeof dailyGradesBackupRead_ === 'function') {
-            dailyGradesBackupRead_().forEach(function (b) {
-                if (!b || !b.record) return;
-                var id = String(b.id || b.record.id || b.record.recordId || '').trim();
-                if (!id || pendingDeletes.has(id) || byId.has(id)) return;
-                if (String(b.operation || 'save') !== 'delete') byId.set(id, applyDataMapping(__assign({}, b.record)));
-            });
-        }
-    } catch (_) {}
     return Array.from(byId.values());
 }
+
 // حفظ موحد وفوري للسجلات، حتى لا تختفي الدرجات عند إعادة تحميل الصفحة.
 function wafdeenSaveRecordDurably_(collectionName, record) {
     return __awaiter(this, void 0, void 0, function () {
@@ -5253,7 +5247,7 @@ function wafdeenSaveRecordDurably_(collectionName, record) {
                         return [2 /*return*/, false];
                     item = __assign(__assign({}, record), { updatedAt: record.updatedAt || new Date().toISOString() });
                     if (!(useFirebase && db)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, firebaseWriteRecord_(collectionName, String(item.id), item, { merge: true })];
+                    return [4 /*yield*/, db.collection(collectionName).doc(String(item.id)).set(item, { merge: true })];
                 case 1:
                     _a.sent();
                     _a.label = 2;
@@ -5277,7 +5271,8 @@ function wafdeenPersistRegistrationState_(active_1) {
                     }
                     catch (_) { }
                     if (!(useFirebase && db)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, firebaseWriteRecord_("wafdeenSettings", "registrationState", state, { merge: true })];
+                    return [4 /*yield*/, db.collection("wafdeenSettings").doc("registrationState")
+                            .set(state, { merge: true })];
                 case 1:
                     _a.sent();
                     _a.label = 2;
@@ -5378,79 +5373,50 @@ window.refreshFirebaseDailyQuotaPanel=function(){
 };
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){refreshFirebaseDailyQuotaPanel();}); else setTimeout(function(){refreshFirebaseDailyQuotaPanel();},0);
 
-function dailyQueueRead_(){try{return JSON.parse(localStorage.getItem('majd_daily_pending_queue_v3')||localStorage.getItem('majd_daily_pending_queue_v2')||'[]')||[];}catch(_){return[];}}
-function dailyQueueWrite_(q){try{localStorage.setItem('majd_daily_pending_queue_v3',JSON.stringify(q.slice(-500)));}catch(_) {}}
-function dailyQueueAdd_(collectionName,id,payload){
-  var col=String(collectionName||''), key=String(id||'').trim(); if(!col||!key)return;
-  var q=dailyQueueRead_().filter(function(x){return !(String(x.collection)===col&&String(x.id)===key&&String(x.operation||'save')==='save');});
-  q.push({collection:col,id:key,payload:payload||{},operation:'save',queuedAt:new Date().toISOString(),status:'pending'});dailyQueueWrite_(q);
-}
-function dailyDeleteQueueAdd_(collectionName,id){
-  var col=String(collectionName||''),key=String(id||'').trim();if(!col||!key)return;
-  var q=dailyQueueRead_().filter(function(x){return !(String(x.collection)===col&&String(x.id)===key);});
-  q.push({collection:col,id:key,payload:{id:key,_deleted:true,deletedAt:new Date().toISOString()},operation:'delete',queuedAt:new Date().toISOString(),status:'pending'});dailyQueueWrite_(q);
-}
-async function dailyRetryQueue_(){
-  if(!useFirebase||!db||!navigator.onLine)return;
-  var q=dailyQueueRead_(),keep=[];
-  for(var i=0;i<q.length;i++){
-    var x=q[i];
-    try{
-      if(String(x.operation||'save')==='delete') await firebaseDeleteRecord_(x.collection,x.id,{skipQueue:true});
-      else await firebaseWriteRecord_(x.collection,x.id,x.payload,{merge:true,skipQueue:true});
-    }catch(e){x.status='failed';x.lastError=String(e&&e.message||e||'');keep.push(x);}
-  }
-  dailyQueueWrite_(keep);
-}
+function dailyQueueRead_(){try{return JSON.parse(localStorage.getItem('majd_daily_pending_queue_v2')||'[]')||[];}catch(_){return[];}}
+function dailyQueueWrite_(q){try{localStorage.setItem('majd_daily_pending_queue_v2',JSON.stringify(q.slice(-200)));}catch(_) {}}
+function dailyQueueAdd_(collectionName,id,payload){if(String(collectionName)!=='dailyRecords')return;var q=dailyQueueRead_().filter(function(x){return !(x.collection===collectionName&&String(x.id)===String(id));});q.push({collection:collectionName,id:String(id),payload:payload,queuedAt:new Date().toISOString(),status:'pending'});dailyQueueWrite_(q);}
+async function dailyRetryQueue_(){if(!useFirebase||!db||!navigator.onLine)return;var q=dailyQueueRead_();var keep=[];for(var i=0;i<q.length;i++){var x=q[i];try{await firebaseWriteRecord_(x.collection,x.id,x.payload,{merge:true,skipQueue:true});}catch(_){x.status='failed';keep.push(x);}}dailyQueueWrite_(keep);}
 window.addEventListener('online',function(){setTimeout(dailyRetryQueue_,500);});
-window.addEventListener('pageshow',function(){setTimeout(dailyRetryQueue_,800);});
-document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(dailyRetryQueue_,800);});
-
-async function firebaseWriteRecord_(collectionName,id,data,options){
+async function firebaseWriteRecord_(collectionName, id, data, options) {
   options=options||{};
-  var col=String(collectionName||''),docId=String(id||(data&&data.id)||(data&&data.recordId)||'').trim();
-  if(!col)throw new Error('مجموعة Firebase مفقودة');
-  if(!docId)throw new Error('معرف السجل مفقود');
+  var docId=String(id || (data&&data.id) || (data&&data.recordId) || '').trim();
+  if(!useFirebase || !db) throw new Error('Firebase غير متصل');
+  if(!docId) throw new Error('معرف السجل مفقود');
   var payload=Object.assign({},data||{},{id:String((data&&data.id)||docId),updatedAt:(data&&data.updatedAt)||new Date().toISOString()});
-  if(!useFirebase||!db){if(!options.skipQueue)dailyQueueAdd_(col,docId,payload);return {pending:true,offline:true,id:docId};}
+  try{
+    var localNow=localSyncRead_(collectionName).filter(function(x){return String(x.id)!==docId;});
+    localNow.push(payload); localSyncWrite_(collectionName,localNow);
+  }catch(_){}
   var lastError;
   for(var attempt=0;attempt<3;attempt++){
     try{
-      dailyGradesBackupBeforeSend_(col,payload,'save');firebaseDailyQuotaInc_('writes',1);
-      var ref=db.collection(col).doc(docId);await ref.set(payload,{merge:options.merge!==false});
-      var snap=await ref.get();firebaseDailyQuotaInc_('reads',1);
-      if(!snap.exists)throw new Error('لم يتم التحقق من وجود المستند بعد الحفظ');
+      dailyGradesBackupBeforeSend_(collectionName,payload,'save');
+      /* أرشيف سحابي دائم لسجلات الرصد: لا نحذفه عند حذف السجل الأساسي. */
+      if(String(collectionName)==='dailyRecords'){
+        try{
+          var archivePayload=Object.assign({},payload,{archivedAt:(payload&&payload.archivedAt)||new Date().toISOString(),_archiveVersion:1});
+          await db.collection('dailyRecordsArchive').doc(docId).set(archivePayload,{merge:true});
+          firebaseDailyQuotaInc_('writes',1);
+        }catch(archiveErr){
+          console.warn('تعذر حفظ النسخة الآمنة لسجل dailyRecords:',archiveErr);
+        }
+      }
+      firebaseDailyQuotaInc_('writes',1);
+      var ref=db.collection(collectionName).doc(docId);
+      await ref.set(payload,{merge:options.merge!==false});
+      var snap=await ref.get(); firebaseDailyQuotaInc_('reads',1);
+      if(!snap.exists) throw new Error('لم يتم التحقق من وجود المستند بعد الحفظ');
       var saved=snap.data()||{};
-      var keys=col==='dailyRecords'?['id','studentId','studentName','className','dateISO']:['id'];
+      var keys=String(collectionName)==='dailyRecords'?['id','studentId','studentName','className','dateISO']:['id'];
       for(var k=0;k<keys.length;k++){var key=keys[k];if(payload[key]!=null&&String(saved[key]??'')!==String(payload[key]??''))throw new Error('فشل التحقق من الحقل '+key);}
-      dailyGradesBackupClear_(col,docId);return Object.assign({},saved,{id:String(saved.id||docId)});
+      dailyGradesBackupClear_(collectionName,docId);
+      return Object.assign({},saved,{id:String(saved.id||docId)});
     }catch(e){lastError=e;if(attempt<2)await new Promise(function(resolve){setTimeout(resolve,350*(attempt+1));});}
   }
-  if(!options.skipQueue) {
-    dailyQueueAdd_(col,docId,payload);
-    var code=String(lastError&&lastError.code||'').toLowerCase();
-    var msg=String(lastError&&lastError.message||lastError||'').toLowerCase();
-    var hardFailure=/permission-denied|unauthenticated|failed-precondition|invalid-argument|not-found/.test(code) || /permission|unauthenticated|غير مصرح|صلاحية/.test(msg);
-    if(!hardFailure) return {pending:true,queued:true,id:docId,error:lastError||null};
-  }
+  if(!options.skipQueue)localSyncQueue_(collectionName,docId,payload,'save');
+  if(String(collectionName)==='dailyRecords'&&!options.skipQueue)dailyQueueAdd_(collectionName,docId,payload);
   throw lastError||new Error('تعذر حفظ السجل');
-}
-async function firebaseDeleteRecord_(collectionName,id,options){
-  options=options||{};var col=String(collectionName||''),key=String(id||'').trim();
-  if(!col||!key)throw new Error('بيانات الحذف غير مكتملة');
-  if(!useFirebase||!db){if(!options.skipQueue)dailyDeleteQueueAdd_(col,key);return {pending:true,offline:true,deleted:true,id:key};}
-  try{
-    var collectionRef=db.collection(col),direct=collectionRef.doc(key),refs=[],seen={};
-    var directSnap=await direct.get();firebaseDailyQuotaInc_('reads',1);
-    if(directSnap.exists){refs.push(direct);seen[key]=true;}
-    if(!refs.length){try{var q1=await collectionRef.where('id','==',key).get();firebaseDailyQuotaInc_('reads',1);q1.forEach(function(d){if(!seen[d.id]){seen[d.id]=true;refs.push(d.ref);}});}catch(_){} }
-    if(!refs.length){try{var q2=await collectionRef.where('recordId','==',key).get();firebaseDailyQuotaInc_('reads',1);q2.forEach(function(d){if(!seen[d.id]){seen[d.id]=true;refs.push(d.ref);}});}catch(_){} }
-    if(!refs.length){ dailyGradesBackupClear_(col,key); return {ok:true,collection:col,id:key,deleted:true,count:0,verified:true,alreadyAbsent:true}; }
-    for(var i=0;i<refs.length;i++){await refs[i].delete();}
-    firebaseDailyQuotaInc_('deletes',refs.length);
-    var verify=await collectionRef.doc(key).get();firebaseDailyQuotaInc_('reads',1);if(verify.exists)throw new Error('ما زال المستند موجودًا بعد الحذف: '+key);
-    dailyGradesBackupClear_(col,key);return {ok:true,collection:col,id:key,deleted:true,count:refs.length,verified:true};
-  }catch(e){if(!options.skipQueue)dailyDeleteQueueAdd_(col,key);throw e;}
 }
 function firebaseReadRecord_(collectionName, id) {
     return __awaiter(this, void 0, void 0, function () {
@@ -5566,118 +5532,104 @@ function flushCloudRenderQueue_() {
     });
 }
 
+function localSyncKey_(collectionName){ return 'majd_local_sync_v3_' + String(collectionName || ''); }
+function localSyncRead_(collectionName){
+  try{
+    var raw=localStorage.getItem(localSyncKey_(collectionName));
+    var arr=raw?JSON.parse(raw):[];
+    return Array.isArray(arr)?arr:[];
+  }catch(_){return [];}
+}
+function localSyncWrite_(collectionName, arr){
+  try{localStorage.setItem(localSyncKey_(collectionName),JSON.stringify(Array.isArray(arr)?arr:[]));}catch(e){console.warn('Local sync storage error ['+collectionName+']',e);}
+}
+function localSyncMerge_(localArr, cloudArr){
+  var map=new Map();
+  (Array.isArray(localArr)?localArr:[]).forEach(function(x){
+    if(!x||x.id==null||x._deleted||x._legacyMigrated)return;
+    map.set(String(x.id),applyDataMapping(Object.assign({},x)));
+  });
+  (Array.isArray(cloudArr)?cloudArr:[]).forEach(function(x){
+    if(!x||x.id==null||x._deleted||x._legacyMigrated)return;
+    var id=String(x.id), old=map.get(id);
+    if(!old || syncStamp_(x)>=syncStamp_(old)) map.set(id,applyDataMapping(Object.assign({},x)));
+  });
+  return Array.from(map.values());
+}
+function localSyncPendingRead_(){try{return JSON.parse(localStorage.getItem('majd_local_sync_pending_v3')||'[]')||[];}catch(_){return [];}}
+function localSyncPendingWrite_(q){try{localStorage.setItem('majd_local_sync_pending_v3',JSON.stringify((q||[]).slice(-1000)));}catch(_) {}}
+function localSyncQueue_(collectionName,id,payload,operation){
+  var q=localSyncPendingRead_().filter(function(x){return !(String(x.collection)===String(collectionName)&&String(x.id)===String(id));});
+  q.push({collection:String(collectionName),id:String(id),payload:payload,operation:operation||'save',queuedAt:new Date().toISOString()});
+  localSyncPendingWrite_(q);
+}
+async function localSyncRetryQueue_(){
+  if(!useFirebase||!db||!navigator.onLine)return;
+  var q=localSyncPendingRead_(), keep=[];
+  for(var i=0;i<q.length;i++){
+    var x=q[i];
+    try{
+      if(x.operation==='delete') await db.collection(x.collection).doc(String(x.id)).delete();
+      else await firebaseWriteRecord_(x.collection,x.id,x.payload,{merge:true,skipQueue:true});
+    }catch(_){keep.push(x);}
+  }
+  localSyncPendingWrite_(keep);
+}
+window.addEventListener('online',function(){setTimeout(localSyncRetryQueue_,700);});
+
 function syncCollection_(collectionName_1, localGetter_1, localSetter_1, renderFn_1) {
-    return __awaiter(this, arguments, void 0, function (collectionName, localGetter, localSetter, renderFn, options) {
-        var _this = this;
-        if (options === void 0) { options = {}; }
-        return __generator(this, function (_a) {
-            if (!useFirebase || !db || cloudSyncListeners[collectionName])
-                return [2 /*return*/];
-            cloudSyncCloudCache_[collectionName] = cloudSyncCloudCache_[collectionName] || new Map();
-            cloudSyncListeners[collectionName] = db.collection(collectionName).onSnapshot(function (snapshot) { return __awaiter(_this, void 0, void 0, function () {
-                var state, cache, changes, cloudRaw, localRaw, local, legacyUploads, merged, err_1;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            state = cloudSyncState_[collectionName] || { initialized: false, busy: false };
-                            if (state.busy)
-                                return [2 /*return*/];
-                            cloudSyncState_[collectionName] = __assign(__assign({}, state), { busy: true });
-                            _a.label = 1;
-                        case 1:
-                            _a.trys.push([1, 4, 5, 6]);
-                            cache = cloudSyncCloudCache_[collectionName];
-                            // بعد اللقطة الأولى نعتمد على docChanges بدل إعادة نسخ كل مستندات المجموعة.
-                            if (!state.initialized) {
-                                cache.clear();
-                                snapshot.docs.forEach(function (d) { cache.set(String(d.id), applyDataMapping(__assign({ id: d.id }, d.data()))); });
-                            }
-                            else {
-                                changes = snapshot.docChanges ? snapshot.docChanges() : [];
-                                changes.forEach(function (change) {
-                                    var id = String(change.doc.id);
-                                    if (change.type === 'removed') cache.delete(id);
-                                    else cache.set(id, applyDataMapping(__assign({ id: id }, change.doc.data())));
-                                });
-                            }
-                            cloudRaw = Array.from(cache.values());
-                            /* حماية الأسماء والدرجات من الاختفاء بسبب لقطة Firebase فارغة مؤقتًا.
-                               يحدث ذلك عند بداية الاتصال أو عند سباق بين الحفظ وonSnapshot.
-                               لا نعيد الأسماء محليًا إذا حذفها المدير عمدًا؛ الحذف المقصود
-                               يمر عبر زر الحذف وينعكس من Firebase في لقطة لاحقة. */
-                            var localBeforeSync = Array.isArray(localGetter()) ? localGetter().filter(function (x) { return !(x === null || x === void 0 ? void 0 : x._deleted); }) : [];
-                            var protectedCollection = collectionName === 'students' || collectionName === 'wafdeenStudents' ||
-                                collectionName === 'dailyRecords' || collectionName === 'wafdeenDailyRecords' || collectionName === 'shariaGrades';
-                            if (!state.initialized && protectedCollection && cloudRaw.length === 0 && localBeforeSync.length > 0) {
-                                localSetter(localBeforeSync);
-                                localBeforeSync.forEach(function (item) {
-                                    var itemId = String((item && (item.id || item.recordId)) || '').trim();
-                                    if (!itemId) return;
-                                    firebaseWriteRecord_(collectionName, itemId, item, { merge: true }).catch(function (e) {
-                                        console.warn('تعذر إعادة رفع البيانات بعد لقطة Firebase الفارغة:', e);
-                                    });
-                                });
-                                queueCloudRender_(collectionName, renderFn, localGetter, options.storageKey || collectionName);
-                                return [3 /*break*/, 6];
-                            }
-                            if (isRecitationPerformanceMode_()) {
-                                // أثناء جلسة التسميع: حدّث Cache الخاص بـ Firebase فقط.
-                                // نؤجل القراءة والدمج والـrender حتى لا نستهلك CPU/RAM على الهاتف.
-                                cloudSyncDeferredCollections_[collectionName] = {
-                                    cloudRaw: cloudRaw,
-                                    localGetter: localGetter,
-                                    localSetter: localSetter,
-                                    renderFn: renderFn,
-                                    storageKey: options.storageKey || collectionName
-                                };
-                                return [3 /*break*/, 6];
-                            }
-                            // السحابة هي المصدر النهائي، مع حماية عمليات الحفظ/الحذف المعلقة
-                            // حتى لا تمسح onSnapshot تعديلات المستخدم قبل وصولها إلى Firebase.
-                            localSetter(syncMergeLocalWithCloud_(localBeforeSync, cloudRaw));
-                            if (isRecitationPerformanceMode_()) {
-                                // لا نعيد الرسم ولا نكتب JSON كبيرًا أثناء التسميع؛ الذاكرة فقط تتحدث.
-                                cloudRenderQueue_[collectionName] = { renderFn: renderFn, getter: localGetter, storageKey: options.storageKey || collectionName };
-                            }
-                            else {
-                                queueCloudRender_(collectionName, renderFn, localGetter, options.storageKey || collectionName);
-                            }
-                            if (collectionName === 'wafdeenStudents' && !isRecitationPerformanceMode_())
-                            return [3 /*break*/, 6];
-                        case 4:
-                            err_1 = _a.sent();
-                            console.error('Sync error [' + collectionName + ']:', err_1);
-                            return [3 /*break*/, 6];
-                        case 5:
-                            cloudSyncState_[collectionName] = __assign(__assign({}, (cloudSyncState_[collectionName] || {})), { busy: false, initialized: true, lastSync: Date.now() });
-                            if (collectionName.indexOf('wafdeen') === 0 && !wafdeenCloudReady) {
-                                wafdeenCloudReady = true;
-                                wafdeenCloudReadyResolve === null || wafdeenCloudReadyResolve === void 0 ? void 0 : wafdeenCloudReadyResolve(true);
-                            }
-                            if (!cloudSyncReady) {
-                                cloudSyncReady = true;
-                                cloudSyncReadyResolve === null || cloudSyncReadyResolve === void 0 ? void 0 : cloudSyncReadyResolve(true);
-                            }
-                            return [7 /*endfinally*/];
-                        case 6: return [2 /*return*/];
-                    }
-                });
-            }); }, function (err) {
-                console.error('Firestore listener error [' + collectionName + ']:', err);
-                cloudSyncState_[collectionName] = __assign(__assign({}, (cloudSyncState_[collectionName] || {})), { busy: false, error: err, initialized: true });
-                if (collectionName.indexOf('wafdeen') === 0 && !wafdeenCloudReady) {
-                    wafdeenCloudReady = true;
-                    wafdeenCloudReadyResolve === null || wafdeenCloudReadyResolve === void 0 ? void 0 : wafdeenCloudReadyResolve(false);
-                }
-                if (!cloudSyncReady) {
-                    cloudSyncReady = true;
-                    cloudSyncReadyResolve === null || cloudSyncReadyResolve === void 0 ? void 0 : cloudSyncReadyResolve(false);
-                }
-                if (!isRecitationPerformanceMode_() && typeof renderFn === 'function') renderFn();
-            });
-            return [2 /*return*/];
-        });
-    });
+  return __awaiter(this, arguments, void 0, function (collectionName, localGetter, localSetter, renderFn, options) {
+    if (options === void 0) { options = {}; }
+    if (!useFirebase || !db || cloudSyncListeners[collectionName]) return;
+    cloudSyncListeners[collectionName] = { mode:'local-first', startedAt:Date.now() };
+    cloudSyncState_[collectionName] = { initialized:false, busy:false, mode:'local-first' };
+    var storageKey=options.storageKey||collectionName;
+    var localStored=localSyncRead_(collectionName);
+    if(localStored.length){
+      try{ localSetter(localStored); }catch(_){ }
+      try{ if(typeof renderFn==='function') renderFn(); }catch(_){ }
+    }
+    async function pullOnce_(){
+      if(!useFirebase||!db||!navigator.onLine||cloudSyncState_[collectionName].busy)return;
+      cloudSyncState_[collectionName].busy=true;
+      try{
+        var snap=await db.collection(collectionName).get();
+        firebaseDailyQuotaInc_('reads',Math.max(1,snap.size||0));
+        var cloud=[];
+        snap.docs.forEach(function(d){var v=d.data()||{};if(!v._deleted&&!v._legacyMigrated)cloud.push(applyDataMapping(Object.assign({id:String(d.id)},v)));});
+        var before=Array.isArray(localGetter())?localGetter():[];
+        var merged=localSyncMerge_(before,cloud);
+        localSetter(merged);
+        localSyncWrite_(collectionName,merged);
+        try{memoryStorage.setItem(storageKey,JSON.stringify(merged));}catch(_){ }
+        // أي سجل محلي أحدث من السحابة يتم رفعه، دون Snapshot.
+        var cloudMap=new Map(); cloud.forEach(function(x){cloudMap.set(String(x.id),x);});
+        for(var i=0;i<merged.length;i++){
+          var item=merged[i], c=cloudMap.get(String(item.id));
+          if(!c || syncStamp_(item)>syncStamp_(c)){
+            try{await firebaseWriteRecord_(collectionName,String(item.id),item,{merge:true});}catch(_){localSyncQueue_(collectionName,String(item.id),item,'save');}
+          }
+        }
+        cloudSyncState_[collectionName].initialized=true;
+        cloudSyncState_[collectionName].lastSync=Date.now();
+        if(collectionName.indexOf('wafdeen')===0&&!wafdeenCloudReady){wafdeenCloudReady=true;if(wafdeenCloudReadyResolve)wafdeenCloudReadyResolve(true);}
+        if(!cloudSyncReady){cloudSyncReady=true;if(cloudSyncReadyResolve)cloudSyncReadyResolve(true);}
+        if(typeof renderFn==='function'&&!isRecitationPerformanceMode_()) renderFn();
+      }catch(e){
+        cloudSyncState_[collectionName].error=e;
+        if(!cloudSyncReady){cloudSyncReady=true;if(cloudSyncReadyResolve)cloudSyncReadyResolve(false);}
+        if(collectionName.indexOf('wafdeen')===0&&!wafdeenCloudReady){wafdeenCloudReady=true;if(wafdeenCloudReadyResolve)wafdeenCloudReadyResolve(false);}
+      }finally{cloudSyncState_[collectionName].busy=false;}
+    }
+    localSyncRetryQueue_().catch(function(){});
+    pullOnce_().catch(function(){});
+    if(!cloudSyncState_[collectionName].timer){
+      cloudSyncState_[collectionName].timer=setInterval(function(){
+        localSyncRetryQueue_().catch(function(){});
+        pullOnce_().catch(function(){});
+      },30000);
+    }
+  });
 }
 
 function getFirebaseSyncStatus_() {
@@ -5989,8 +5941,8 @@ function setDailyDateEditPermission_(className, allowed) {
     try { persistentAuthStorage.setItem('currentTeacher', JSON.stringify(currentTeacher)); } catch (_) {}
     renderDailyDateEditPermissions_();
     if (useFirebase && db) {
-        firebaseWriteRecord_('teachers', String(adminTeacher.id), { id: String(adminTeacher.id), dailyDateEditPermissions: permissions, updatedAt: adminTeacher.updatedAt }, { merge: true })
-            .then(function (r) { showMessage('daily-date-permission-msg', r && r.pending ? 'تم حفظ الصلاحية محليًا وستتم مزامنتها تلقائيًا 🔄' : 'تم حفظ صلاحية الفصل: ' + className, r && r.pending ? 'warning' : 'success'); })
+        db.collection('teachers').doc(String(adminTeacher.id)).set({ dailyDateEditPermissions: permissions, updatedAt: adminTeacher.updatedAt }, { merge: true })
+            .then(function () { showMessage('daily-date-permission-msg', 'تم حفظ صلاحية الفصل: ' + className, 'success'); })
             .catch(function (e) { console.error(e); showMessage('daily-date-permission-msg', 'تعذر حفظ الصلاحية.', 'error'); });
     } else {
         showMessage('daily-date-permission-msg', 'تم حفظ الصلاحية على الجهاز.', 'success');
@@ -7699,8 +7651,11 @@ async function markAbsent() {
         timeRecordedAt: now.toISOString()
     };
     record.total = getDailyTotal(record);
+    if (!useFirebase || !db) {
+        return showMessage('app-msg', 'Firebase غير متصل — لم يتم اعتماد تسجيل الغياب.', 'error');
+    }
     try {
-        var absenceSync = await firebaseWriteRecord_('dailyRecords', record.id, record, { merge: true });
+        await firebaseWriteRecord_('dailyRecords', record.id, record, { merge: true });
     }
     catch (e) {
         console.error('Firebase absence record save error:', e);
@@ -7899,64 +7854,59 @@ function hasDailyRecordForSelectedStudent_() {
     var stableId = sid ? dailyStableRecordId_(sid, className, dateISO) : '';
     return (dailyRecords || []).find(function (r) { return !r._deleted && !r._legacyMigrated && ((stableId && String(r.id) === stableId) || (sid && String(r.studentId || '') === String(sid) && String(r.className || '') === String(className) && String(r.dateISO || '').slice(0, 10) === String(dateISO).slice(0, 10)) || (!sid && String(r.className || '') === String(className) && String(r.dateISO || '').slice(0, 10) === String(dateISO).slice(0, 10) && String(r.studentName || '').trim() === studentName)); }) || null;
 }
-async function recordAbsenceTime() {
-    var normalSelect = document.getElementById('studentSelect');
-    var wafdeenSelect = document.getElementById('wafdeenStudentSelect');
-    var isWafdeen = !!(wafdeenSelect && wafdeenSelect.value && !(normalSelect && normalSelect.value));
-    var studentId = isWafdeen ? String(wafdeenSelect.value) : String((normalSelect && normalSelect.value) || '');
-    var dateEl = isWafdeen ? document.getElementById('wafdeenDate') : document.getElementById('gradeDate');
-    var date = String((dateEl && dateEl.value) || new Date().toISOString().slice(0, 10));
+function recordAbsenceTime() {
+    var _a, _b, _c, _d;
+    var studentId = ((_a = document.getElementById('studentSelect')) === null || _a === void 0 ? void 0 : _a.value) || ((_b = document.getElementById('wafdeenStudentSelect')) === null || _b === void 0 ? void 0 : _b.value);
+    var date = ((_c = document.getElementById('gradeDate')) === null || _c === void 0 ? void 0 : _c.value) || ((_d = document.getElementById('wafdeenDate')) === null || _d === void 0 ? void 0 : _d.value) || new Date().toISOString().slice(0, 10);
     if (!studentId) {
         showMessage('app-msg', 'من فضلك اختر الطالب أولاً!', 'error');
         return;
     }
     var now = new Date();
-    var timeText = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    var collection = isWafdeen ? 'wafdeenDailyRecords' : 'dailyRecords';
-    /* معرف ثابت: الضغط أكثر من مرة في نفس اليوم يعدّل نفس سجل الغياب ولا ينشئ سجلات مكررة. */
-    var stableId = 'absence-' + studentId + '-' + date;
-    var existing = (isWafdeen ? (window.wafdeenDailyRecords || []) : (window.dailyRecords || []))
-        .find(function (r) { return r && String(r.id || '') === stableId; });
-    var rec = Object.assign({}, existing || {}, {
-        id: stableId,
-        recordId: stableId,
+    var timeText = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    var zeroTime = 0;
+    // Record a dedicated absence event with time = 0, without asking for grades.
+    var rec = {
+        id: 'absence-' + studentId + '-' + date + '-' + Date.now(),
         studentId: studentId,
         date: date,
-        dateISO: date,
         attendanceStatus: 'absent',
-        attendance: 'absent',
         isAbsent: true,
         absence: true,
-        absenceTime: 0,
-        time: 0,
+        absenceTime: zeroTime,
+        time: zeroTime,
         recordedAt: now.toISOString(),
         recordedTimeText: timeText,
-        updatedAt: now.toISOString()
-    });
-    var list = isWafdeen ? (window.wafdeenDailyRecords = Array.isArray(window.wafdeenDailyRecords) ? window.wafdeenDailyRecords : [])
-                         : (window.dailyRecords = Array.isArray(window.dailyRecords) ? window.dailyRecords : []);
-    var idx = list.findIndex(function (r) { return r && String(r.id || '') === stableId; });
-    if (idx >= 0) list[idx] = rec; else list.push(rec);
-    try { memoryStorage.setItem(collection, JSON.stringify(list)); } catch (e) {}
-    var result = null;
-    try {
-        if (typeof firebaseWriteRecord_ === 'function') {
-            result = await firebaseWriteRecord_(collection, stableId, rec, { merge: true });
-        } else if (typeof syncCollection_ === 'function') {
-            syncCollection_(collection, list);
+    };
+    if (Array.isArray(window.dailyRecords)) {
+        window.dailyRecords.push(rec);
+        try {
+            memoryStorage.setItem('dailyRecords', JSON.stringify(window.dailyRecords));
         }
-        if (isWafdeen && typeof window.renderWafdeenDailyRecords === 'function') window.renderWafdeenDailyRecords();
-        if (!isWafdeen && typeof window.renderDailyRecords === 'function') window.renderDailyRecords();
-        if (result && result.pending) {
-            showMessage('app-msg', 'تم تسجيل الغياب محليًا، وسيتم رفعه تلقائيًا عند عودة الاتصال بالإنترنت 🔄', 'warning');
-        } else {
-            showMessage('app-msg', 'تم تسجيل الغياب بنجاح — الوقت: 0', 'success');
-        }
-    } catch (e) {
-        /* الحفظ المحلي مضمون حتى لو فشل Firebase، والطابور أضيف داخل firebaseWriteRecord_. */
-        console.error('absence save:', e);
-        showMessage('app-msg', 'تم تسجيل الغياب محليًا، وسيتم إعادة المزامنة تلقائيًا 🔄', 'warning');
+        catch (e) { }
     }
+    // Also update any available Wafdeen collection.
+    if (Array.isArray(window.wafdeenDailyRecords)) {
+        window.wafdeenDailyRecords.push(rec);
+        try {
+            memoryStorage.setItem('wafdeenDailyRecords', JSON.stringify(window.wafdeenDailyRecords));
+        }
+        catch (e) { }
+    }
+    try {
+        if (typeof window.syncCollection_ === 'function') {
+            window.syncCollection_('dailyRecords', window.dailyRecords || []);
+        }
+    }
+    catch (e) { }
+    try {
+        if (typeof window.renderDailyRecords === 'function')
+            window.renderDailyRecords();
+        if (typeof window.renderWafdeenDailyRecords === 'function')
+            window.renderWafdeenDailyRecords();
+    }
+    catch (e) { }
+    showMessage('app-msg', "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u063A\u064A\u0627\u0628 \u0627\u0644\u0637\u0627\u0644\u0628 \u2014 \u0627\u0644\u0648\u0642\u062A: ".concat(zeroTime), 'success');
 }
 function validateDailyRequiredFields_(type){
     var labels={
@@ -8001,7 +7951,7 @@ function validateDailyRequiredFields_(type){
 function addGrade() {
     wafdeenKeepDailyScroll_();
     return __awaiter(this, arguments, void 0, function (forceAbsent) {
-        var className, dateISO, dayName, studentName, type, label, record, timerBox, val, num, countId, gradeId, topicTodayId, pagesId, topicRecitedId, count, grade, limit, now, existing, seconds, timeKey, ec, prefix, commonPatch, typeFields, e_27, idx, syncResult;
+        var className, dateISO, dayName, studentName, type, label, record, timerBox, val, num, countId, gradeId, topicTodayId, pagesId, topicRecitedId, count, grade, limit, now, existing, seconds, timeKey, ec, prefix, commonPatch, typeFields, e_27, idx;
         var _a;
         var _b, _c, _d, _e;
         if (forceAbsent === void 0) { forceAbsent = false; }
@@ -8114,21 +8064,19 @@ function addGrade() {
                         old: { oldRevision: record.oldRevision, oldPagesCount: record.oldPagesCount, oldTopicToday: record.oldTopicToday, oldTopicRecited: record.oldTopicRecited, oldRecitationCount: record.oldRecitationCount, oldRevisionTimeSeconds: record.oldRevisionTimeSeconds, oldErrors: record.oldErrors, oldTashkeel: record.oldTashkeel, oldRepetition: record.oldRepetition, _dailyTypeSaved: { old: true } },
                         recitation: { recitation: record.recitation, recitationPagesCount: record.recitationPagesCount, recitationTopicToday: record.recitationTopicToday, recitationTopicRecited: record.recitationTopicRecited, recitationRecitationCount: record.recitationRecitationCount, recitationTimeSeconds: record.recitationTimeSeconds, recitationErrors: record.recitationErrors, recitationTashkeel: record.recitationTashkeel, recitationRepetition: record.recitationRepetition, _dailyTypeSaved: { recitation: true } }
                     };
-                    idx = dailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
-                    if (idx > -1) dailyRecords[idx] = __assign(__assign({}, dailyRecords[idx]), record);
-                    else dailyRecords.push(record);
-                    try { memoryStorage.setItem('dailyRecords', JSON.stringify(dailyRecords)); } catch (_) {}
+                    if (!useFirebase || !db)
+                        return [2 /*return*/, showMessage('app-msg', 'Firebase غير متصل — لم يتم اعتماد الرصد.', 'error')];
                     _f.label = 1;
                 case 1:
                     _f.trys.push([1, 3, , 4]);
                     return [4 /*yield*/, firebaseWriteRecord_('dailyRecords', record.id, __assign(__assign({}, commonPatch), typeFields[type]), { merge: true })];
                 case 2:
-                    syncResult = _f.sent();
+                    _f.sent();
                     return [3 /*break*/, 4];
                 case 3:
                     e_27 = _f.sent();
                     console.error('Firebase daily record save error:', e_27);
-                    return [2 /*return*/, showMessage('app-msg', 'تم حفظ الرصد على هذا الجهاز، وسيتم رفعه تلقائيًا عند عودة الاتصال. تحقق من الإنترنت إذا طال الانتظار.', 'info')];
+                    return [2 /*return*/, showMessage('app-msg', 'تعذر حفظ الرصد على Firebase — لم يتم اعتماد الحفظ. تحقق من الاتصال.', 'error')];
                 case 4:
                     idx = dailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
                     if (idx > -1)
@@ -9314,7 +9262,7 @@ function editStudent(id) {
                     renderAttendanceTable();
                     renderClassStatusTable();
                     if (!(useFirebase && db)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, firebaseWriteRecord_("students", id.toString(), localUpdated, { merge: true })];
+                    return [4 /*yield*/, db.collection("students").doc(id.toString()).set(localUpdated, { merge: true })];
                 case 3:
                     _a.sent();
                     _a.label = 4;
@@ -9364,7 +9312,7 @@ function editTeacher(id) {
                     renderTeachersTable();
                     renderClassCards();
                     if (!(useFirebase && db)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, firebaseWriteRecord_("teachers", id.toString(), localUpdated, { merge: true })];
+                    return [4 /*yield*/, db.collection("teachers").doc(id.toString()).set(localUpdated, { merge: true })];
                 case 3:
                     _a.sent();
                     _a.label = 4;
@@ -9514,7 +9462,7 @@ function generateMissingStudentCodes() {
                     student.loginCode = deterministicStudentLoginCode(student, monthKey);
                     student.loginCodeMonth = monthKey;
                     if (!useFirebase) return [3 /*break*/, 5];
-                    return [4 /*yield*/, firebaseWriteRecord_("students", student.id.toString(), student, { merge: true })];
+                    return [4 /*yield*/, db.collection("students").doc(student.id.toString()).set(student, { merge: true })];
                 case 4:
                     _b.sent();
                     _b.label = 5;
@@ -9581,7 +9529,7 @@ function addTeacher() {
                     renderTeachersTable();
                     renderClassCards();
                     if (!(useFirebase && db)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, firebaseWriteRecord_("teachers", newTeacher.id, newTeacher, { merge: true })];
+                    return [4 /*yield*/, db.collection("teachers").doc(newTeacher.id).set(newTeacher, { merge: true })];
                 case 1:
                     _a.sent();
                     _a.label = 2;
@@ -10302,7 +10250,7 @@ function generateStudentResultCodes(preparatoryOnly) {
             return isPreparatoryResult_(r) === !!preparatoryOnly && getResultStudentCode_(r);
         });
         return Promise.all(targets.map(function(r) {
-            return firebaseWriteRecord_('results', String(r.code), {
+            return db.collection('results').doc(String(r.code)).set({
                 code: r.code, studentCode: r.studentCode, studentType: r.studentType || (preparatoryOnly ? 'تمهيدي' : 'طالب'),
                 fields: r.fields, monthKey: r.monthKey || ''
             }, { merge: true });
@@ -10454,10 +10402,10 @@ function handleTypedResultsExcelUpload(event, preparatoryOnly) {
             var cloudPromise = Promise.resolve();
             if (useFirebase && db) {
                 cloudPromise = Promise.all(oldSameType.map(function(r) {
-                    return firebaseDeleteRecord_('results', String(r.code), {skipQueue:false}).catch(function(){ return null; });
+                    return db.collection('results').doc(String(r.code)).delete().catch(function(){ return null; });
                 })).then(function() {
                     return Promise.all(newResults.map(function(r) {
-                        return firebaseWriteRecord_('results', r.id, {
+                        return db.collection('results').doc(r.id).set({
                             code: r.code, studentCode: r.studentCode || '', studentType: targetType,
                             monthKey: r.monthKey, fields: r.fields, createdAt: new Date().toISOString()
                         });
@@ -10911,7 +10859,7 @@ function importGradesFromExcel(event) {
                 case 5:
                     if (!!dailyRecords_1_1.done) return [3 /*break*/, 8];
                     r = dailyRecords_1_1.value;
-                    return [4 /*yield*/, firebaseWriteRecord_("dailyRecords", r.id.toString(), r, {merge:true})];
+                    return [4 /*yield*/, db.collection("dailyRecords").doc(r.id.toString()).set(r)];
                 case 6:
                     _b.sent();
                     _b.label = 7;
@@ -11002,7 +10950,7 @@ function importTeachersFromExcel(event) {
                 case 5:
                     if (!!teachersData_1_1.done) return [3 /*break*/, 8];
                     t = teachersData_1_1.value;
-                    return [4 /*yield*/, firebaseWriteRecord_("teachers", t.id.toString(), t, {merge:true})];
+                    return [4 /*yield*/, db.collection("teachers").doc(t.id.toString()).set(t)];
                 case 6:
                     _b.sent();
                     _b.label = 7;
@@ -11087,7 +11035,7 @@ function importStudentsFromExcel(event) {
                 case 5:
                     if (!!studentsData_1_1.done) return [3 /*break*/, 8];
                     s = studentsData_1_1.value;
-                    return [4 /*yield*/, firebaseWriteRecord_("students", s.id.toString(), s, {merge:true})];
+                    return [4 /*yield*/, db.collection("students").doc(s.id.toString()).set(s)];
                 case 6:
                     _b.sent();
                     _b.label = 7;
@@ -11223,7 +11171,7 @@ function restoreData(event) {
                                     case 2:
                                         if (!!teachersData_2_1.done) return [3 /*break*/, 5];
                                         t = teachersData_2_1.value;
-                                        return [4 /*yield*/, firebaseWriteRecord_("teachers", t.id.toString(), t, {merge:true})];
+                                        return [4 /*yield*/, db.collection("teachers").doc(t.id.toString()).set(t)];
                                     case 3:
                                         _e.sent();
                                         _e.label = 4;
@@ -11248,7 +11196,7 @@ function restoreData(event) {
                                     case 9:
                                         if (!!studentsData_2_1.done) return [3 /*break*/, 12];
                                         s = studentsData_2_1.value;
-                                        return [4 /*yield*/, firebaseWriteRecord_("students", s.id.toString(), s, {merge:true})];
+                                        return [4 /*yield*/, db.collection("students").doc(s.id.toString()).set(s)];
                                     case 10:
                                         _e.sent();
                                         _e.label = 11;
@@ -11273,7 +11221,7 @@ function restoreData(event) {
                                     case 16:
                                         if (!!dailyRecords_2_1.done) return [3 /*break*/, 19];
                                         r = dailyRecords_2_1.value;
-                                        return [4 /*yield*/, firebaseWriteRecord_("dailyRecords", r.id.toString(), r, {merge:true})];
+                                        return [4 /*yield*/, db.collection("dailyRecords").doc(r.id.toString()).set(r)];
                                     case 17:
                                         _e.sent();
                                         _e.label = 18;
@@ -11298,7 +11246,7 @@ function restoreData(event) {
                                     case 23:
                                         if (!!notesData_1_1.done) return [3 /*break*/, 26];
                                         n = notesData_1_1.value;
-                                        return [4 /*yield*/, firebaseWriteRecord_("notes", n.id.toString(), n, {merge:true})];
+                                        return [4 /*yield*/, db.collection("notes").doc(n.id.toString()).set(n)];
                                     case 24:
                                         _e.sent();
                                         _e.label = 25;
@@ -11317,7 +11265,7 @@ function restoreData(event) {
                                         finally { if (e_45) throw e_45.error; }
                                         return [7 /*endfinally*/];
                                     case 29:
-                                        showMessage('app-msg', dailyQueueRead_().length ? 'تمت استعادة البيانات محليًا، وهناك عمليات في انتظار المزامنة 🔄' : 'تمت استعادة البيانات ومزامنتها بنجاح! 🎉', dailyQueueRead_().length ? 'warning' : 'success');
+                                        showMessage('app-msg', 'تمت استعادة البيانات بنجاح! 🎉', 'success');
                                         showAppScreen();
                                         return [2 /*return*/];
                                 }
@@ -11921,7 +11869,7 @@ function firebaseSaveWafdeenUsage_(usage) {
             case 1:
                 _a.trys.push([1, 3, , 4]);
                 id = String((usage === null || usage === void 0 ? void 0 : usage.id) || "usage_".concat(Date.now()));
-                return [4 /*yield*/, firebaseWriteRecord_('wafdeenUsage', id, __assign(__assign({}, usage), { id: id, updatedAt: new Date().toISOString() }), { merge: true })];
+                return [4 /*yield*/, db.collection('wafdeenUsage').doc(id).set(__assign(__assign({}, usage), { id: id, updatedAt: new Date().toISOString() }), { merge: true })];
             case 2:
                 _a.sent();
                 return [2 /*return*/, true];
@@ -12120,7 +12068,7 @@ function wafdeenEduStopTimer() {
                 wafdeenUsageData.push(rec);
                 wafdeenPersistLocal();
                 if (!(useFirebase && db)) return [3 /*break*/, 3];
-                return [4 /*yield*/, firebaseWriteRecord_('wafdeenUsage', rec.id, rec, { merge: true })];
+                return [4 /*yield*/, db.collection('wafdeenUsage').doc(rec.id).set(rec, { merge: true })];
             case 2:
                 _a.sent();
                 _a.label = 3;
@@ -12311,6 +12259,8 @@ function wafdeenSaveGradeType(type) {
                     wafdeenQuranSessionSavedByType[type] = true;
                     wafdeenPersistLocal();
                     refreshWafdeenMainLog_();
+                    if (!useFirebase || !db)
+                        return [2 /*return*/, showMessage('wafdeen-save-msg', 'Firebase غير متصل — لم يتم اعتماد الحفظ.', 'error')];
                     cloudCommon = { id: String(record.id), recordId: String(record.id), teacherUsername: record.teacherUsername, studentId: record.studentId, studentName: record.studentName, dateISO: record.dateISO, attendanceStatus: record.attendanceStatus, isAbsent: record.isAbsent, status: record.status, dayName: record.dayName, quranSessionTimeSeconds: Number(record.quranSessionTimeSeconds || seconds || 0), quranSessionTimeByType: Object.assign({ الجديد: 0, الماضي: 0, التلاوة: 0 }, record.quranSessionTimeByType || {}), updatedAt: new Date().toISOString() };
                     cloudType = type === 'الجديد'
                         ? { newLesson: record.newLesson, newPagesCount: record.newPagesCount, newTopicRecited: record.newTopicRecited, newErrors: record.newErrors, newTashkeel: record.newTashkeel, newRepetition: record.newRepetition, newLessonTimeSeconds: record.newLessonTimeSeconds }
@@ -12326,8 +12276,7 @@ function wafdeenSaveGradeType(type) {
                             firebaseWriteRecord_('wafdeenUsage', usage.id, usage, { merge: true })
                         ])];
                 case 2:
-                    var syncResults = _j.sent();
-                    var isPending = syncResults.some(function (x) { return x && x.pending; });
+                    _j.sent();
                     wafdeenUsageData = wafdeenUsageData.filter(function (u) { return String(u.id) !== String(usage.id); });
                     wafdeenUsageData.push(usage);
                     wafdeenPersistLocal();
@@ -12335,7 +12284,7 @@ function wafdeenSaveGradeType(type) {
                 case 4:
                     e_3 = _j.sent();
                     console.error('Wafdeen Firebase save error:', e_3);
-                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تم حفظ ' + type + ' على هذا الجهاز وسيتم رفعه تلقائيًا عند عودة الاتصال.', 'info')];
+                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ ' + type + ' على Firebase — لم يتم اعتماد الحفظ.', 'error')];
                 case 5:
                     resetMap = { 'الجديد': ['wafdeenNewLesson', 'wafdeenNewPagesCount', 'wafdeenNewTopicRecited'], 'الماضي': ['wafdeenOldRevision', 'wafdeenOldPagesCount', 'wafdeenOldTopicRecited'], 'التلاوة': ['wafdeenRecitation', 'wafdeenRecitationPagesCount', 'wafdeenRecitationTopicRecited'] };
                     (resetMap[type] || []).forEach(function (id) { var el = document.getElementById(id); if (el)
@@ -12452,12 +12401,8 @@ function saveWafdeenDailyRecord() {
                         recitationErrors: isAbsent ? 0 : wafdeenQuranErrorCounters['التلاوة'].errors, recitationTashkeel: isAbsent ? 0 : wafdeenQuranErrorCounters['التلاوة'].tashkeel, recitationRepetition: isAbsent ? 0 : wafdeenQuranErrorCounters['التلاوة'].repetition,
                         savedAt: new Date().toISOString()
                     };
-                    existingIndex = wafdeenDailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
-                    if (existingIndex >= 0) wafdeenDailyRecords[existingIndex] = record; else wafdeenDailyRecords.push(record);
-                    wafdeenPersistLocal();
-                    refreshWafdeenMainLog_();
-                    wafdeenRenderGrades();
-                    wafdeenUpdateDailySaveButton();
+                    if (!useFirebase || !db)
+                        return [2 /*return*/, showMessage('wafdeen-save-msg', 'Firebase غير متصل — لم يتم اعتماد الرصد.', 'error')];
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
@@ -12468,8 +12413,17 @@ function saveWafdeenDailyRecord() {
                 case 3:
                     e_4 = _a.sent();
                     console.error('Wafdeen daily Firebase save error:', e_4);
-                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تم حفظ الرصد على هذا الجهاز وسيتم رفعه تلقائيًا عند عودة الاتصال.', 'info')];
+                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ الرصد على Firebase — لم يتم اعتماد الحفظ.', 'error')];
                 case 4:
+                    existingIndex = wafdeenDailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
+                    if (existingIndex >= 0)
+                        wafdeenDailyRecords[existingIndex] = record;
+                    else
+                        wafdeenDailyRecords.push(record);
+                    wafdeenPersistLocal();
+                    refreshWafdeenMainLog_();
+                    wafdeenRenderGrades();
+                    wafdeenUpdateDailySaveButton();
                     showMessage('wafdeen-save-msg', isAbsent ? "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u063A\u064A\u0627\u0628 ".concat(student.name, " \u0628\u0635\u0641\u0631 \u0641\u064A \u0643\u0644 \u0627\u0644\u062E\u0627\u0646\u0627\u062A \uD83D\uDEAB") : "\u062A\u0645 \u062D\u0641\u0638 \u0627\u0644\u0631\u0635\u062F \u0627\u0644\u064A\u0648\u0645\u064A \u0644\u0644\u0637\u0627\u0644\u0628 ".concat(student.name, " \u0639\u0644\u0649 Firebase \u2705"), 'success');
                     wafdeenResetQuranCounters();
                     return [2 /*return*/];
@@ -12717,7 +12671,7 @@ function wafdeenImportGradePeriodExcel(event) {
                         throw new Error('لم أجد صفوفًا صالحة. تأكد أن الملف صادر من درجات الأسبوع أو الشهر في الموقع.');
                     memoryStorage.setItem('wafdeenDailyRecords', JSON.stringify(wafdeenDailyRecords));
                     if (!(useFirebase && db)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, Promise.all(imported.map(function (r) { return firebaseWriteRecord_('wafdeenDailyRecords', String(r.id), __assign(__assign({}, r), { updatedAt: new Date().toISOString() }), { merge: true }).catch(function (e) { return console.error(e); }); }))];
+                    return [4 /*yield*/, Promise.all(imported.map(function (r) { return db.collection('wafdeenDailyRecords').doc(String(r.id)).set(__assign(__assign({}, r), { updatedAt: new Date().toISOString() }), { merge: true }).catch(function (e) { return console.error(e); }); }))];
                 case 3:
                     _d.sent();
                     _d.label = 4;
@@ -12782,9 +12736,9 @@ async function wafdeenEditGrade(recordId){
     var q=prompt('درجة التلاوة من 10:',String(r.recitation==null?0:r.recitation));if(q===null)return false;
     var grade=function(v){return Math.max(0,Math.min(10,Number(v)||0));};
     var changes={newLesson:grade(n),oldRevision:grade(o),recitation:grade(q)};changes.total=changes.newLesson+changes.oldRevision+changes.recitation;changes.editedAt=new Date().toISOString();changes.editedBy=(currentWafdeenTeacher&&currentWafdeenTeacher.username)||((currentTeacher&&currentTeacher.username)||'');
-    var saved=Object.assign({},r,changes,{id:id,updatedAt:new Date().toISOString()});
-    var syncEdit=await firebaseWriteRecord_('wafdeenDailyRecords',id,saved,{merge:true});
-    if(!syncEdit.pending){ saved=Object.assign({},syncEdit,{id:String(syncEdit.id||id)}); }
+    var ref=await wafdeenFindFirebaseRef_(id);await ref.update(Object.assign({},changes,{updatedAt:new Date().toISOString()}));
+    var snap=await ref.get();if(!snap.exists)throw new Error('لم يتم العثور على السجل بعد التعديل');
+    var saved=Object.assign({},snap.data()||{}, {id:String((snap.data()||{}).id||snap.id)});
     var ix=wafdeenDailyRecords.findIndex(function(x){return String(x.id)===id;});if(ix>-1)wafdeenDailyRecords[ix]=Object.assign({},wafdeenDailyRecords[ix],saved);else wafdeenDailyRecords.push(saved);
     try{wafdeenPersistLocal();}catch(e){};try{if(typeof refreshWafdeenLogAfterSave_==='function')refreshWafdeenLogAfterSave_();else if(typeof renderDailyTable==='function')renderDailyTable();}catch(e){}
     showMessage('wafdeen-save-msg','تم تعديل الرصد بنجاح ✅','success');return true;
@@ -12797,7 +12751,7 @@ async function wafdeenDeleteGrade(recordId){
   if(!r){showMessage('wafdeen-save-msg','الرصد غير موجود','error');return false;}
   if(!confirm('هل تريد مسح هذا الرصد نهائياً؟'))return false;
   try{
-    var syncDelete=await firebaseDeleteRecord_('wafdeenDailyRecords',id);
+    var ref=await wafdeenFindFirebaseRef_(id);await ref.delete();
     wafdeenDailyRecords=records.filter(function(x){return String(x.id)!==id;});
     try{wafdeenPersistLocal();}catch(e){};try{if(typeof refreshWafdeenLogAfterSave_==='function')refreshWafdeenLogAfterSave_();else if(typeof renderDailyTable==='function')renderDailyTable();}catch(e){}
     if(wafdeenCurrentGradeStudentId)try{wafdeenShowStudentGrades(wafdeenCurrentGradeStudentId);}catch(e){}
@@ -13046,17 +13000,17 @@ function addWafdeenTeacher() {
                     if (wafdeenTeachersData.some(function (t) { return t.username === u; }) || wafdeenStudentsData.some(function (s) { return s.username === u; }))
                         return [2 /*return*/, showMessage('wafdeen-save-msg', 'اسم المستخدم موجود بالفعل', 'error')];
                     t = { id: Date.now().toString(), username: u, password: p };
-                    wafdeenTeachersData.push(t);
-                    wafdeenPersistLocal();
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 5, , 6]);
                     if (!useFirebase) return [3 /*break*/, 3];
-                    return [4 /*yield*/, firebaseWriteRecord_('wafdeenTeachers', t.id, t, { merge: true })];
+                    return [4 /*yield*/, db.collection('wafdeenTeachers').doc(t.id).set(t)];
                 case 2:
                     _a.sent();
                     return [3 /*break*/, 4];
                 case 3:
+                    wafdeenTeachersData.push(t);
+                    wafdeenPersistLocal();
                     _a.label = 4;
                 case 4:
                     document.getElementById('wafdeenNewTeacherUser').value = '';
@@ -13129,7 +13083,7 @@ function addWafdeenStudent() {
                 case 1:
                     _a.trys.push([1, 5, , 6]);
                     if (!(useFirebase && db)) return [3 /*break*/, 3];
-                    return [4 /*yield*/, firebaseWriteRecord_('wafdeenStudents', String(s.id), s, { merge: true })];
+                    return [4 /*yield*/, db.collection('wafdeenStudents').doc(String(s.id)).set(s, { merge: true })];
                 case 2:
                     _a.sent();
                     showMessage('wafdeen-save-msg', 'تم إضافة الطالب وحفظه في السحابة بنجاح ✅', 'success');
@@ -13595,7 +13549,7 @@ function wafdeenSaveExam(subject, level) {
                     wafdeenExamsData.push(rec);
                     wafdeenPersistLocal();
                     if (!(useFirebase && db)) return [3 /*break*/, 3];
-                    return [4 /*yield*/, firebaseWriteRecord_('wafdeenExams', id, rec, { merge: true })];
+                    return [4 /*yield*/, db.collection('wafdeenExams').doc(id).set(rec, { merge: true })];
                 case 2:
                     _c.sent();
                     _c.label = 3;
@@ -14757,7 +14711,7 @@ window.__WAFDEEN_STANDALONE__ = false;
 /* تسجيل عامل الخدمة اختياريًا عند تشغيل الموقع عبر HTTPS، دون التأثير على فتح الملف محليًا. */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./sw.js?v=5', {scope: './'}).then(function(reg){ try{ reg.update(); }catch(_){} try{ var k='majd_sw_refresh_v5'; if(navigator.serviceWorker.controller && sessionStorage.getItem(k)!=='1'){ sessionStorage.setItem(k,'1'); setTimeout(function(){ try{reg.update();}catch(_){} location.reload(); },350); } }catch(_){} }).catch(function (error) {
+    navigator.serviceWorker.register('./sw.js?v=3', {scope: './'}).catch(function (error) {
       console.warn('Service Worker registration skipped:', error);
     });
   });
@@ -14876,6 +14830,149 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   document.addEventListener('DOMContentLoaded',function(){if(window.currentTeacher)studentFastCacheBootstrap_();});
 })();
 </script>
+
+<style id="quick-registration-style">
+.quick-registration-table table{min-width:980px}.quick-registration-toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.quick-registration-toolbar .form-group{min-width:180px;flex:1}.quick-registration-absent{display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--border-soft);border-radius:12px;background:var(--surface-alt);font-weight:800}.quick-registration-absent input{width:20px;height:20px}.quick-registration-class-card{margin-top:10px!important;width:100%!important;min-width:0!important}.quick-registration-class-card .quick-registration-launch{width:100%;min-width:0!important}.quick-registration-note{background:rgba(212,175,55,.08);border-right:4px solid var(--accent-gold);padding:10px 12px;border-radius:10px;color:var(--text-muted);font-size:.86em;line-height:1.8;margin-bottom:14px}.quick-registration-permission-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--border-soft);border-radius:12px;background:#fff}.quick-registration-permission-row label{display:flex;align-items:center;gap:8px;margin:0;cursor:pointer}.quick-registration-permission-row input{width:20px;height:20px}
+body.supervisor-mode #quick-registration-tab-btn{display:none!important}
+@media(max-width:600px){.quick-registration-toolbar{display:grid;grid-template-columns:1fr}.quick-registration-toolbar .form-group{min-width:0}.quick-registration-table table{min-width:900px}}
+</style>
+<script id="quick-registration-feature">
+(function(){
+'use strict';
+var QUICK_FIELDS=['newLesson','oldRevision','recitation','behavior','attendance','homework','tajweed'];
+var QUICK_LABELS={newLesson:'الجديد',oldRevision:'الماضي',recitation:'التلاوة',behavior:'السلوك',attendance:'الحضور',homework:'الواجب',tajweed:'التجويد'};
+function qesc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];});}
+function qtoday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function qteacher(){return window.currentTeacher||null;}
+function qisAdmin(){var t=qteacher();return !!t&&String(t.username||'').trim()==='admin';}
+function qowns(c){try{return typeof teacherOwnsClass_==='function'&&teacherOwnsClass_(c);}catch(e){var t=qteacher();return !!t&&(qisAdmin()||String(t.assignedClass||'')===String(c||''));}}
+function qdateAllowed(){var t=qteacher();return qisAdmin()||!!(t&&t.quickRegistrationDateEditAllowed===true);}
+function qrecordKey(studentId,cls,date){return typeof dailyStableRecordId_==='function'?dailyStableRecordId_(studentId,cls,date):'daily_'+String(studentId)+'_'+String(cls)+'_'+String(date).slice(0,10);}
+function qstudentId(name,cls){try{return dailyStudentId_(name,cls);}catch(e){var st=(window.studentsData||[]).find(function(x){return String(x.name||'').trim()===String(name||'').trim()&&String(x.className||'')===String(cls||'');});return st?String(st.studentId||st.id):'legacy_'+String(name)+'_'+String(cls);}}
+function qfind(name,cls,date){var sid=qstudentId(name,cls),id=qrecordKey(sid,cls,date),list=window.dailyRecords||[];return list.find(function(r){return !r._deleted&&!r._legacyMigrated&&(String(r.id)===String(id)||(String(r.studentId||'')===String(sid)&&String(r.className||'')===String(cls)&&String(r.dateISO||'').slice(0,10)===String(date).slice(0,10)));})||null;}
+function qclasses(){var all=window.ALL_CLASSES||[];var t=qteacher();if(qisAdmin()||String(t&&t.assignedClass||'')==='الكل')return all.slice();return all.filter(function(c){return qowns(c);});}
+function qshowTab(){if(qteacher()&&String(qteacher().center||'')==='مشرف')return showMessage('app-msg','التسجيل السريع متاح للمدير والمدرسين فقط.','error');var btn=document.getElementById('quick-registration-tab-btn');if(btn)btn.classList.add('active');document.querySelectorAll('.sidebar-nav .tab-btn').forEach(function(b){if(b!==btn)b.classList.remove('active');});document.querySelectorAll('.tab-content').forEach(function(x){x.classList.remove('active');});var tab=document.getElementById('quick-registration-tab');if(tab)tab.classList.add('active');try{closeMainMenu();}catch(e){} qrender();}
+window.openQuickRegistration=function(cls){if(!qowns(cls))return showMessage('app-msg','لا يمكنك الوصول إلى التسجيل السريع لهذا الفصل.','error');var cs=document.getElementById('quickClassSelect');if(cs){cs.value=cls;qstudents();}qshowTab();};
+function qstudents(){var cls=(document.getElementById('quickClassSelect')||{}).value||'',sel=document.getElementById('quickStudentSelect'),prev=sel&&sel.value;if(!sel)return;var list=(window.studentsData||[]).filter(function(s){return String(s.className||'')===String(cls);}).sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'ar');});sel.innerHTML='<option value="">اختر الطالب</option>'+list.map(function(s){return '<option value="'+qesc(s.name)+'" data-id="'+qesc(s.studentId||s.id||'')+'">'+qesc(s.name)+'</option>';}).join('');if(prev&&list.some(function(s){return String(s.name)===String(prev);}))sel.value=prev;qload();}
+function qsetDate(v){var input=document.getElementById('quickDate');if(!input)return;var d=v||qtoday();if(!qdateAllowed()&&d!==qtoday())d=qtoday();input.value=d;qload();qrenderDateControls();}
+function qchangeDate(delta){if(!qdateAllowed())return showMessage('app-msg','ليس لديك صلاحية الرجوع بالتاريخ في التسجيل السريع.','error');var input=document.getElementById('quickDate');var d=new Date((input&&input.value||qtoday())+'T00:00:00');d.setDate(d.getDate()+Number(delta||0));qsetDate(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));}
+function qrenderDateControls(){var b=document.getElementById('quickDateNav');if(!b)return;b.style.display=qdateAllowed()?'flex':'none';}
+function qload(){var cls=(document.getElementById('quickClassSelect')||{}).value||'',name=(document.getElementById('quickStudentSelect')||{}).value||'',date=(document.getElementById('quickDate')||{}).value||qtoday();var r=name?qfind(name,cls,date):null;QUICK_FIELDS.forEach(function(id){var el=document.getElementById('quick-'+id);if(el)el.value=r&&r[id]!==undefined&&r[id]!==null?r[id]:'';});var absent=document.getElementById('quick-absent');if(absent)absent.checked=!!(r&&((r.isAbsent===true)||String(r.attendanceStatus||'')==='absent'));var note=document.getElementById('quick-existing-note');if(note)note.textContent=r?'يوجد تسجيل لهذا الطالب في هذا اليوم. سيتم تحديث نفس السجل عند الحفظ، ولن يُنشأ سجل مكرر.':'لا يوجد تسجيل لهذا الطالب في هذا اليوم.';qcalc();}
+function qcalc(){var total=QUICK_FIELDS.reduce(function(sum,id){var v=Number(document.getElementById('quick-'+id)?.value);return sum+(Number.isFinite(v)?Math.max(0,Math.min(10,v)):0);},0);var el=document.getElementById('quick-total');if(el)el.value=total;}
+function qclear(){QUICK_FIELDS.forEach(function(id){var el=document.getElementById('quick-'+id);if(el)el.value='';});var a=document.getElementById('quick-absent');if(a)a.checked=false;qcalc();}
+window.quickRegistrationToggleAbsent=function(){var a=document.getElementById('quick-absent'),on=!!(a&&a.checked);QUICK_FIELDS.forEach(function(id){var el=document.getElementById('quick-'+id);if(el){el.value=on?'0':'';el.disabled=on;}});if(a&&!on)QUICK_FIELDS.forEach(function(id){var el=document.getElementById('quick-'+id);if(el)el.disabled=false;});qcalc();};
+window.quickRegistrationDateChange=function(){var input=document.getElementById('quickDate');var today=qtoday();if(!qdateAllowed()&&input&&input.value!==today){input.value=today;return showMessage('app-msg','هذا المدرس مسموح له بالتسجيل في اليوم الحالي فقط.','error');}qload();};
+window.quickRegistrationSave=async function(){try{var cls=(document.getElementById('quickClassSelect')||{}).value||'',name=(document.getElementById('quickStudentSelect')||{}).value||'',date=(document.getElementById('quickDate')||{}).value||qtoday();if(!cls||!name)return showMessage('app-msg','اختر الفصل والطالب أولاً.','error');if(!qowns(cls))return showMessage('app-msg','لا يمكنك التسجيل خارج الفصل المسموح لك به.','error');if(!qdateAllowed()&&date!==qtoday())return showMessage('app-msg','لا يمكنك تسجيل يوم سابق بهذا الحساب.','error');var sid=qstudentId(name,cls),id=qrecordKey(sid,cls,date),old=qfind(name,cls,date),abs=!!document.getElementById('quick-absent')?.checked,now=new Date(),record=Object.assign({},old||{},{id:id,recordId:id,studentId:String(sid),studentName:name,className:cls,dateISO:date,dayName:(typeof updateDayOfWeek==='function'&&date===((document.getElementById('recordDate')||{}).value||''))?((document.getElementById('daySelect')||{}).value||''):['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][new Date(date+'T00:00:00').getDay()],teacherName:(qteacher()&&qteacher().username)||'',updatedAt:now.toISOString(),quickRegistration:true});
+if(abs){record.attendance=0;record.behavior=0;record.newLesson=0;record.oldRevision=0;record.recitation=0;record.homework=0;record.tajweed=0;record.attendanceStatus='absent';record.isAbsent=true;record.absence=true;record._quickFields=['newLesson','oldRevision','recitation','behavior','attendance','homework','tajweed'];}
+else{var bad=[];QUICK_FIELDS.forEach(function(id2){var raw=(document.getElementById('quick-'+id2)||{}).value;if(String(raw||'').trim()==='')bad.push(QUICK_LABELS[id2]);else{var n=Number(raw);if(!Number.isFinite(n)||n<0||n>10)bad.push(QUICK_LABELS[id2]);else record[id2]=n;}});if(bad.length)return showMessage('app-msg','يرجى إدخال الدرجات بشكل صحيح: '+bad.join('، '),'error');record.attendanceStatus='present';record.isAbsent=false;record.absence=false;record._quickFields=QUICK_FIELDS.slice();}
+record.total=typeof getDailyTotal==='function'?getDailyTotal(record):QUICK_FIELDS.reduce(function(s,k){return s+Number(record[k]||0);},0);
+record._dailyTypeSaved=Object.assign({},record._dailyTypeSaved||{},{new:true,old:true,recitation:true});
+if(!(window.useFirebase&&window.db))return showMessage('app-msg','Firebase غير متصل — لم يتم اعتماد التسجيل.','error');
+await firebaseWriteRecord_('dailyRecords',id,record,{merge:true});
+var idx=(window.dailyRecords||[]).findIndex(function(r){return String(r.id)===String(id);});if(idx>=0)window.dailyRecords[idx]=Object.assign({},window.dailyRecords[idx],record);else(window.dailyRecords||(window.dailyRecords=[])).push(record);try{memoryStorage.setItem('dailyRecords',JSON.stringify(window.dailyRecords));}catch(e){}
+try{if(typeof renderDailyTable==='function')renderDailyTable();if(typeof renderManagerView==='function')renderManagerView();if(typeof renderClassStatusTable==='function')renderClassStatusTable();}catch(e){}
+qrenderTable();showMessage('app-msg',abs?'تم تسجيل غياب '+name+' في الرصد اليومي بنجاح ✅':'تم حفظ التسجيل السريع لـ '+name+' داخل سجلات الرصد اليومي ✅','success');qload();
+}catch(e){console.error('quickRegistrationSave',e);showMessage('app-msg','تعذر حفظ التسجيل السريع: '+(e.message||e),'error');}};
+function qrenderTable(){var body=document.querySelector('#quickRegistrationTable tbody');if(!body)return;var cls=(document.getElementById('quickClassSelect')||{}).value||'',date=(document.getElementById('quickDate')||{}).value||'';var list=(window.dailyRecords||[]).filter(function(r){return !r._deleted&&(!cls||String(r.className)===String(cls))&&(!date||String(r.dateISO||'').slice(0,10)===String(date).slice(0,10))&&r.quickRegistration===true&&qowns(r.className);}).sort(function(a,b){return String(a.studentName||'').localeCompare(String(b.studentName||''),'ar');});body.innerHTML=list.length?list.map(function(r){var abs=!!r.isAbsent||String(r.attendanceStatus||'')==='absent';return '<tr><td>'+qesc(r.className)+'</td><td>'+qesc(r.studentName)+'</td><td>'+qesc(r.dateISO)+'</td>'+QUICK_FIELDS.map(function(k){return '<td>'+ (abs&&k!=='attendance'?'-':(r[k]===undefined||r[k]===null||r[k]===''?'-':qesc(r[k]))) +'</td>';}).join('')+'<td><strong>'+qesc(typeof getDailyTotal==='function'?getDailyTotal(r):r.total||0)+'</strong></td></tr>';}).join(''):'<tr><td colspan="11">لا توجد سجلات تسجيل سريع لهذا التاريخ.</td></tr>';}
+function qrender(){var cls=document.getElementById('quickClassSelect');if(cls){var cur=cls.value,arr=qclasses();cls.innerHTML=arr.map(function(c){return '<option value="'+qesc(c)+'">'+qesc(c)+'</option>';}).join('');if(arr.indexOf(cur)>=0)cls.value=cur;else if(arr.length)cls.value=arr[0];}var date=document.getElementById('quickDate');if(date&&!date.value)date.value=qtoday();if(date&&!qdateAllowed())date.value=qtoday();qstudents();qrenderDateControls();qrenderTable();}
+function installUI(){if(document.getElementById('quick-registration-tab'))return;var side=document.querySelector('.sidebar-nav .tabs');if(!side)return;var dailyBtn=side.querySelector('#daily-tab-btn')||side.querySelector('button[onclick*="daily-tab"]');var btn=document.createElement('button');btn.className='tab-btn';btn.id='quick-registration-tab-btn';btn.type='button';btn.innerHTML='⚡ التسجيل السريع';btn.onclick=qshowTab;if(dailyBtn&&dailyBtn.parentNode)dailyBtn.insertAdjacentElement('afterend',btn);else side.prepend(btn);
+var main=document.querySelector('main.content-area');if(!main)return;var tab=document.createElement('div');tab.className='tab-content';tab.id='quick-registration-tab';tab.innerHTML='<div class="card-view"><h3 class="card-title">⚡ التسجيل السريع</h3><div class="quick-registration-note">يسجل هذا القسم في نفس سجلات الرصد اليومي. عند إعادة فتح نفس الطالب والتاريخ ستظهر البيانات المحفوظة وسيتم تحديث نفس السجل بدل إنشاء سجل جديد.</div><div class="quick-registration-toolbar"><div class="form-group"><label>الفصل:</label><select id="quickClassSelect" onchange="quickRegistrationClassChange()"></select></div><div class="form-group"><label>الطالب:</label><select id="quickStudentSelect" onchange="quickRegistrationStudentChange()"></select></div><div class="form-group"><label>التاريخ:</label><div id="quickDateNav" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="action-btn btn-warning" type="button" onclick="quickRegistrationChangeDate(-1)">◀ السابق</button><input id="quickDate" type="date" onchange="quickRegistrationDateChange()" style="flex:1;min-width:150px"><button class="action-btn btn-warning" type="button" onclick="quickRegistrationChangeDate(1)">التالي ▶</button><button class="action-btn btn-export" type="button" onclick="quickRegistrationGoToday()">اليوم</button></div></div></div><div id="quick-existing-note" class="quick-registration-note" style="margin-top:12px"></div><div class="form-grid"><div class="quick-registration-absent"><input id="quick-absent" type="checkbox" onchange="quickRegistrationToggleAbsent()"><span>تسجيل الطالب غائب</span></div><div class="form-group"><label>الجديد (10):</label><input id="quick-newLesson" type="number" min="0" max="10" oninput="quickRegistrationRecalc()"></div><div class="form-group"><label>الماضي (10):</label><input id="quick-oldRevision" type="number" min="0" max="10" oninput="quickRegistrationRecalc()"></div><div class="form-group"><label>التلاوة (10):</label><input id="quick-recitation" type="number" min="0" max="10" oninput="quickRegistrationRecalc()"></div><div class="form-group"><label>السلوك (10):</label><input id="quick-behavior" type="number" min="0" max="10" oninput="quickRegistrationRecalc()"></div><div class="form-group"><label>الحضور (10):</label><input id="quick-attendance" type="number" min="0" max="10" oninput="quickRegistrationRecalc()"></div><div class="form-group"><label>الواجب (10):</label><input id="quick-homework" type="number" min="0" max="10" oninput="quickRegistrationRecalc()"></div><div class="form-group"><label>التجويد (10):</label><input id="quick-tajweed" type="number" min="0" max="10" oninput="quickRegistrationRecalc()"></div><div class="form-group"><label>المجموع:</label><input id="quick-total" type="number" readonly></div></div><div class="btn-group"><button class="action-btn btn-save" type="button" onclick="quickRegistrationSave()">💾 حفظ التسجيل</button><button class="action-btn btn-warning" type="button" onclick="quickRegistrationClear()">🧹 تفريغ</button></div></div><div class="card-view quick-registration-table"><h3 class="card-title">📋 سجلات التسجيل السريع</h3><div class="table-responsive"><table id="quickRegistrationTable"><thead><tr><th>الفصل</th><th>الطالب</th><th>التاريخ</th><th>الجديد</th><th>الماضي</th><th>التلاوة</th><th>السلوك</th><th>الحضور</th><th>الواجب</th><th>التجويد</th><th>المجموع</th></tr></thead><tbody></tbody></table></div></div></div>';main.appendChild(tab);
+}
+window.quickRegistrationClassChange=function(){qstudents();};window.quickRegistrationStudentChange=function(){qload();};window.quickRegistrationRecalc=function(){qcalc();};window.quickRegistrationClear=function(){qclear();};window.quickRegistrationChangeDate=function(d){qchangeDate(d);};window.quickRegistrationGoToday=function(){qsetDate(qtoday());};
+function installAdminPermission(){if(!qisAdmin())return;var admin=document.getElementById('admin-tab');if(!admin||document.getElementById('quickRegistrationTeacherPermissions'))return;var card=document.createElement('div');card.className='card-view';card.id='quickRegistrationTeacherPermissions';card.style.borderTop='4px solid var(--primary-color)';card.innerHTML='<h3 class="card-title">⚡ صلاحية الرجوع بالتاريخ في التسجيل السريع</h3><p style="font-size:.88em;color:#666;line-height:1.8;margin-top:-6px">حدد لكل مدرس هل يُسمح له بالرجوع إلى الأيام السابقة في التسجيل السريع. المدرس غير المسموح له يرى اليوم الحالي فقط، مع بقاء صلاحيات الفصول كما هي.</p><div id="quickRegistrationTeacherPermissionsList" style="display:grid;gap:10px"></div><div class="toast-msg" id="quick-registration-permission-msg"></div>';var anchor=document.getElementById('dailyDateEditPermissions');if(anchor&&anchor.closest('.card-view'))anchor.closest('.card-view').insertAdjacentElement('afterend',card);else admin.prepend(card);qrenderTeacherPermissions();}
+function qrenderTeacherPermissions(){var box=document.getElementById('quickRegistrationTeacherPermissionsList');if(!box)return;box.innerHTML=(window.teachersData||[]).map(function(t){var disabled=String(t.username||'')==='admin';var allowed=t.quickRegistrationDateEditAllowed===true;return '<div class="quick-registration-permission-row"><strong>'+qesc(t.username)+' — '+qesc(t.assignedClass||'')+'</strong><label><input type="checkbox" '+(allowed?'checked':'')+(disabled?' disabled':'')+' onchange="setQuickRegistrationDatePermission(\''+qesc(String(t.id))+'\',this.checked)"><span>'+ (allowed?'مسموح':'منع')+'</span></label></div>';}).join('');}
+window.setQuickRegistrationDatePermission=async function(id,allowed){if(!qisAdmin())return;var t=(window.teachersData||[]).find(function(x){return String(x.id)===String(id);});if(!t)return;t.quickRegistrationDateEditAllowed=!!allowed;t.updatedAt=new Date().toISOString();try{if(window.useFirebase&&window.db)await window.db.collection('teachers').doc(String(t.id)).set({quickRegistrationDateEditAllowed:!!allowed,updatedAt:t.updatedAt},{merge:true});memoryStorage.setItem('teachersData',JSON.stringify(window.teachersData));qrenderTeacherPermissions();showMessage('app-msg','تم تحديث صلاحية '+t.username+' للتسجيل السريع.','success');}catch(e){t.quickRegistrationDateEditAllowed=!allowed;qrenderTeacherPermissions();showMessage('app-msg','تعذر حفظ صلاحية المدرس: '+(e.message||e),'error');}};
+function patchClassCards(){document.querySelectorAll('#class-cards-container .class-box').forEach(function(card){if(card.querySelector('.quick-registration-class-card'))return;var h=card.querySelector('h4');if(!h)return;var txt=String(h.textContent||'').replace(/\s*\(.*?\)\s*$/,'').trim();if(!txt||!qowns(txt))return;var wrap=document.createElement('div');wrap.className='quick-registration-class-card';wrap.innerHTML='<button type="button" class="action-btn btn-save quick-registration-launch">⚡ تسجيل سريع - '+qesc(txt)+'</button>';wrap.querySelector('button').onclick=function(){openQuickRegistration(txt);};card.appendChild(wrap);});}
+var oldRenderClassCards=window.renderClassCards; if(typeof oldRenderClassCards==='function'){window.renderClassCards=function(){var r=oldRenderClassCards.apply(this,arguments);setTimeout(patchClassCards,0);return r;};}
+var oldSwitchTab=window.switchTab; if(typeof oldSwitchTab==='function'){window.switchTab=function(tabId,event){var r=oldSwitchTab.apply(this,arguments);if(tabId==='quick-registration-tab'){qrender();}return r;};}
+function boot(){installUI();installAdminPermission();patchClassCards();qrenderDateControls();var obs=document.getElementById('class-cards-container');if(obs){new MutationObserver(function(){patchClassCards();}).observe(obs,{childList:true,subtree:true});}var t=qteacher();if(t&&t.username!=='admin'&&String(t.assignedClass||'')!=='الكل'){var btn=document.getElementById('quick-registration-tab-btn');if(btn)btn.style.display='';}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+<script id="daily-cloud-recovery-feature">
+(function(){
+  function esc(v){return String(v==null?'':v).replace(/[&<>'"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c];});}
+  function recoveryKey(r){
+    if(!r)return '';
+    var sid=String(r.studentId||'').trim();
+    var cls=String(r.className||'').trim();
+    var date=String(r.dateISO||'').slice(0,10);
+    var name=String(r.studentName||'').trim();
+    if(sid||cls||date||name)return [sid,cls,date,name].join('||');
+    return String(r.id||'');
+  }
+  function localDailyRecords(){
+    try{
+      var arr=Array.isArray(window.dailyRecords)?window.dailyRecords:[];
+      if(!arr.length){
+        var raw=localStorage.getItem('majd_local_sync_v3_dailyRecords');
+        var parsed=raw?JSON.parse(raw):[];
+        if(Array.isArray(parsed)) arr=parsed;
+      }
+      return Array.isArray(arr)?arr:[];
+    }catch(_){return Array.isArray(window.dailyRecords)?window.dailyRecords:[];}
+  }
+  function persistRecovered(arr){
+    try{localStorage.setItem('majd_local_sync_v3_dailyRecords',JSON.stringify(arr));}catch(_){ }
+    try{memoryStorage.setItem('dailyRecords',JSON.stringify(arr));}catch(_){ }
+    try{window.dailyRecords=arr;}catch(_){ }
+  }
+  window.reviewAndRestoreDailyRecordsFromCloud=async function(){
+    var btn=document.getElementById('daily-cloud-recovery-start'), status=document.getElementById('daily-cloud-recovery-status'), result=document.getElementById('daily-cloud-recovery-result');
+    if(!status||!result)return;
+    status.style.display='block'; result.style.display='none';
+    if(!window.useFirebase || !window.db){status.innerHTML='<b style="color:#b91c1c">❌ Firebase غير متصل حاليًا.</b><br>تأكد من الاتصال ثم حاول مرة أخرى.';return;}
+    if(btn)btn.disabled=true;
+    try{
+      status.innerHTML='⏳ جاري فحص السجلات الحالية + الأرشيف السحابي ومقارنتها بالسجلات الموجودة على الجهاز...';
+      var snaps=await Promise.all([
+        window.db.collection('dailyRecords').get(),
+        window.db.collection('dailyRecordsArchive').get()
+      ]);
+      var cloudMap=new Map();
+      snaps.forEach(function(snap){
+        if(typeof window.firebaseDailyQuotaInc_==='function')window.firebaseDailyQuotaInc_('reads',Math.max(1,snap.size||0));
+        snap.docs.forEach(function(d){
+          var x=d.data()||{}; if(x._legacyMigrated)return;
+          var id=String(x.id||d.id); if(!id)return;
+          var old=cloudMap.get(id);
+          if(!old || syncStamp_(x)>=syncStamp_(old)) cloudMap.set(id,Object.assign({id:id},x));
+        });
+      });
+      var cloud=Array.from(cloudMap.values());
+      var local=localDailyRecords();
+      var localIds=new Set(local.map(function(x){return String(x&&x.id||'');}).filter(Boolean));
+      var localKeys=new Set(local.map(recoveryKey).filter(Boolean));
+      var missing=[];
+      cloud.forEach(function(r){
+        var id=String(r.id||''); var key=recoveryKey(r);
+        if((id&&!localIds.has(id)) && (!key||!localKeys.has(key)) && !r._deleted) missing.push(r);
+      });
+      if(!missing.length){
+        status.innerHTML='<b style="color:#166534">✅ تمت المراجعة.</b><br>كل السجلات الموجودة في السحابة/الأرشيف موجودة محليًا بالفعل.<br><small>تم فحص '+cloud.length.toLocaleString('ar-EG')+' سجلًا محفوظًا سحابيًا.</small>';
+        result.style.display='block'; result.innerHTML='<div style="color:#166534;font-weight:800">لا توجد سجلات تحتاج إلى استعادة.</div>';
+        return;
+      }
+      missing.sort(function(a,b){return String(a.dateISO||'').localeCompare(String(b.dateISO||''));});
+      var merged=local.concat(missing);
+      persistRecovered(merged);
+      try{window.dailyRecords=merged;}catch(_){ }
+      try{if(typeof window.renderDailyTable==='function')window.renderDailyTable();}catch(_){ }
+      try{if(typeof window.renderManagerView==='function')window.renderManagerView();}catch(_){ }
+      try{if(typeof window.renderClassStatusTable==='function')window.renderClassStatusTable();}catch(_){ }
+      var rows=missing.map(function(r,i){
+        var teacher=r.teacherName||r.teacherUsername||r.savedBy||r.createdBy||r.updatedBy||'غير مسجل';
+        return '<tr><td>'+((i+1))+'</td><td>'+esc(r.studentName||'غير معروف')+'</td><td>'+esc(r.className||'—')+'</td><td>'+esc(r.dateISO||'—')+'</td><td>'+esc(teacher)+'</td><td>'+esc(r.id||'—')+'</td><td>'+esc(r.archivedAt||r.updatedAt||'—')+'</td></tr>';
+      }).join('');
+      status.innerHTML='<b style="color:#166534">✅ تمت الاستعادة بنجاح.</b><br>تم العثور على <b>'+missing.length.toLocaleString('ar-EG')+'</b> سجلًا من السجلات الحالية أو الأرشيف السحابي، ولم تكن موجودة على هذا الجهاز، وتم إرجاعها.';
+      result.style.display='block';
+      result.innerHTML='<div style="font-weight:800;color:#1e3a8a;margin-bottom:8px">📋 تفاصيل السجلات التي تم إرجاعها</div><div style="overflow:auto"><table style="width:100%;min-width:900px;border-collapse:collapse"><thead><tr><th style="padding:8px;border:1px solid #ddd">#</th><th style="padding:8px;border:1px solid #ddd">اسم الطالب</th><th style="padding:8px;border:1px solid #ddd">الفصل</th><th style="padding:8px;border:1px solid #ddd">التاريخ</th><th style="padding:8px;border:1px solid #ddd">المعلم الذي سجل</th><th style="padding:8px;border:1px solid #ddd">معرف السجل</th><th style="padding:8px;border:1px solid #ddd">وقت الأرشفة</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    }catch(e){
+      console.error('daily cloud recovery failed',e);
+      status.innerHTML='<b style="color:#b91c1c">❌ فشلت المراجعة.</b><br>'+esc(e&&e.message?e.message:e);
+    }finally{if(btn)btn.disabled=false;}
+  };})();
+</script>
 </body>
 </html>
 <script>var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -14945,8 +15042,84 @@ window.wafdeenStopRegistration = function () {
     });
 };
 /* ===== حذف Firebase موحد وآمن ===== */
-function deleteFirebaseRecord(collectionName, recordId){ return firebaseDeleteRecord_(collectionName, recordId); }
-
+function deleteFirebaseRecord(collectionName, recordId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var id, col, collectionRef, direct, directSnap, refs, seen, q1, q2, i, err, code, msg;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    id = String(recordId || '').trim();
+                    col = String(collectionName || '').trim();
+                    if (!col || !id) throw new Error('بيانات الحذف غير مكتملة');
+                    if (typeof db === 'undefined' || !db || !db.collection) throw new Error('Firebase غير متصل');
+                    collectionRef = db.collection(col);
+                    direct = collectionRef.doc(id);
+                    refs = [];
+                    seen = {};
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 6, , 7]);
+                    /* أولًا: نختبر المستند بالـ Document ID فقط.
+                       هذا مهم لأن بعض قواعد Firestore تسمح بالقراءة/الحذف المباشر
+                       لكنها لا تسمح بعمل collection query. */
+                    return [4 /*yield*/, direct.get()];
+                case 2:
+                    directSnap = _a.sent();
+                    if (directSnap.exists) {
+                        refs.push(direct);
+                        seen[id] = true;
+                    }
+                    if (refs.length) return [3 /*break*/, 5];
+                    /* لو الـ Document ID مختلف، نبحث عن id ثم recordId. */
+                    return [4 /*yield*/, collectionRef.where('id', '==', id).get()];
+                case 3:
+                    q1 = _a.sent();
+                    q1.forEach(function(d){ if(!seen[d.id]){ seen[d.id]=true; refs.push(d.ref); } });
+                    return [4 /*yield*/, collectionRef.where('recordId', '==', id).get()];
+                case 4:
+                    q2 = _a.sent();
+                    q2.forEach(function(d){ if(!seen[d.id]){ seen[d.id]=true; refs.push(d.ref); } });
+                    _a.label = 5;
+                case 5:
+                    if (!refs.length) throw new Error('السجل غير موجود في Firebase: '+id+' | المجموعة: '+col);
+                    i = 0;
+                    _a.label = 8;
+                case 8:
+                    if (!(i < refs.length)) return [3 /*break*/, 11];
+                    return [4 /*yield*/, refs[i].delete()];
+                case 9:
+                    _a.sent();
+                    i++;
+                    return [3 /*break*/, 8];
+                case 10: return [3 /*break*/, 11];
+                case 11:
+                    /* تحقق نهائي: المستند المباشر أولًا، ثم الاستعلامات إذا لزم */
+                    return [4 /*yield*/, direct.get()];
+                case 12:
+                    directSnap = _a.sent();
+                    if (directSnap.exists) throw new Error('تم رفض حذف المستند من Firebase: '+id);
+                    return [4 /*yield*/, collectionRef.where('id', '==', id).get()];
+                case 13:
+                    q1 = _a.sent();
+                    if (!q1.empty) throw new Error('ما زال سجل يحمل id='+id+' في Firebase');
+                    return [4 /*yield*/, collectionRef.where('recordId', '==', id).get()];
+                case 14:
+                    q2 = _a.sent();
+                    if (!q2.empty) throw new Error('ما زال سجل يحمل recordId='+id+' في Firebase');
+                    firebaseDailyQuotaInc_('deletes',refs.length);
+                    return [2 /*return*/, {ok:true, collection:col, id:id, deleted:true, count:refs.length, verified:true}];
+                case 6:
+                    err = _a.sent();
+                    code = String((err && err.code) || '');
+                    msg = String((err && err.message) || err || 'خطأ غير معروف');
+                    if (code.indexOf('permission-denied') >= 0 || /Missing or insufficient permissions|permission/i.test(msg))
+                        throw new Error('Firebase منع عملية الحذف بسبب الصلاحيات (permission-denied). المجموعة: '+col+' — المعرّف: '+id);
+                    throw err;
+                case 7: return [2 /*return*/];
+            }
+        });
+    });
+}
 /* ===== توافق وحماية متغيرات Firebase القديمة ===== */
 if (typeof window.wafdeenUsageData === 'undefined')
     window.wafdeenUsageData = [];
@@ -16004,5 +16177,43 @@ function refreshWafdeenLogAfterSave_(){
   };
   window.addEventListener('DOMContentLoaded',updateInstallButton);
   window.addEventListener('pageshow',updateInstallButton);
+})();
+</script>
+
+<script>
+(function(){
+  function ensure(){try{if(window.ALL_CLASSES&&window.ALL_CLASSES.length){window.GENERAL_CLASSES=window.ALL_CLASSES;} if(typeof window.renderClassCards==='function') window.renderClassCards(); if(typeof window.ensureAllClassSelects_==='function') window.ensureAllClassSelects_();}catch(e){console.warn('class restore guard',e);}}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(ensure,300);setTimeout(ensure,1500);}); else {setTimeout(ensure,300);setTimeout(ensure,1500);}
+})();
+</script>
+
+<script id="final-class-quick-registration-guard">
+(function(){
+  var CANONICAL_CLASSES=["تمهيدي","الوافدين","أولى - أولاد","أولى - بنات","ثانية - أولاد","ثانية - بنات","ثالثة - أولاد","ثالثة - بنات","رابعة - أولاد","رابعة - بنات","خامسة - أولاد","خامسة - بنات","أولى شرعي"];
+  function guard(){
+    try{
+      if(!Array.isArray(window.ALL_CLASSES)||!window.ALL_CLASSES.length) window.ALL_CLASSES=CANONICAL_CLASSES.slice();
+      if(!Array.isArray(window.GENERAL_CLASSES)||!window.GENERAL_CLASSES.length) window.GENERAL_CLASSES=window.ALL_CLASSES;
+      if(typeof window.renderClassCards==='function') window.renderClassCards();
+    }catch(e){console.warn('class guard:',e);}
+    try{
+      if(typeof window.installUI==='function') window.installUI();
+    }catch(e){console.warn('quick UI guard:',e);}
+    try{
+      if(typeof window.patchClassCards==='function') window.patchClassCards();
+    }catch(e){console.warn('quick class button guard:',e);}
+  }
+  function start(){
+    guard();
+    [500,1500,3000,6000].forEach(function(ms){setTimeout(guard,ms);});
+    try{
+      var mo=new MutationObserver(function(){
+        if(!document.getElementById('quick-registration-tab-btn') || !document.getElementById('quick-registration-tab')) guard();
+      });
+      mo.observe(document.body,{childList:true,subtree:true});
+    }catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+  window.addEventListener('pageshow',function(){setTimeout(guard,500);});
 })();
 </script>
