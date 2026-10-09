@@ -859,5 +859,13 @@
       "id": "backup-tab",
       "title": "📊 نسخة درجات الرصد اليومي (كل السنين)"
     }
+  ],
+  "compatibility_overrides": [
+    {
+      "file": "public/legacy/30-supabase-auth.js",
+      "original_sha256": "e7fdefa35a4ca4994ec06c4c45d11e90b9f00ef8ec6a24532c35375ad7d54401",
+      "patched_sha256": "c3bcdf0915033ee10429592968c8816d0da6519138dd3d1bf153aa5bf9340354",
+      "reason": "Preserve the existing local administrator login path before delegating other accounts to Supabase."
+    }
   ]
 }

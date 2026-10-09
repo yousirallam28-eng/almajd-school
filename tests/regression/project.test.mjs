@@ -8,10 +8,16 @@ const root = process.cwd();
 const manifest = JSON.parse(await readFile(path.join(root, 'docs/source-manifest.json'), 'utf8'));
 const hash = (s) => createHash('sha256').update(s).digest('hex');
 
-test('all original inline script payloads are preserved byte-for-byte in ordered source files', async () => {
+test('all original script payloads are preserved or have a documented compatibility patch', async () => {
   for (const item of manifest.legacy_scripts) {
     const body = await readFile(path.join(root, item.file), 'utf8');
-    assert.equal(hash(body.replace(/\n$/, '')), item.sha256, item.file);
+    const override = manifest.compatibility_overrides?.find(entry => entry.file === item.file);
+    if (override) {
+      assert.equal(item.sha256, override.original_sha256, `original hash changed: ${item.file}`);
+      assert.equal(hash(body.replace(/\n$/, '')), override.patched_sha256, `patch changed: ${item.file}`);
+    } else {
+      assert.equal(hash(body.replace(/\n$/, '')), item.sha256, item.file);
+    }
   }
 });
 
