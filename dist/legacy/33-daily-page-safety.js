@@ -1,0 +1,2 @@
+/* Local-file safety: لا تترك الصفحة بيضاء إذا تعطل طلب خارجي قبل تهيئة الواجهة. */
+window.addEventListener('DOMContentLoaded',function(){setTimeout(function(){try{var u=window.currentTeacher||(typeof currentTeacher!=='undefined'?currentTeacher:null);var login=document.getElementById('login-screen'),app=document.getElementById('app-screen');if(!u&&login&&app&&app.classList.contains('hidden'))login.classList.remove('hidden');}catch(_){var l=document.getElementById('login-screen');if(l)l.classList.remove('hidden');}},50);});
