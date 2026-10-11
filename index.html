@@ -4810,19 +4810,36 @@ function deletePaymentRecord(recordId) {
         });
     });
 }
-/* Firebase هو مصدر البيانات الرئيسي حاليًا، وتبقى أسماء useFirebase/db للتوافق الداخلي. */
-/* طبقة توافق احتياطية: تُستخدم Supabase فقط إذا تعذر تشغيل Firebase المباشر. */
+/* Supabase هو مسار الكتابة والتحقق ومصدر القراءة الأوثق؛ تبقى أسماء useFirebase/db للتوافق الداخلي. */
+/* توافق مرحلي يحتفظ بـ Firestore للصفوف القديمة غير الموجودة في Supabase فقط. */
 (function () {
   'use strict';
   const APP_URL = 'https://kryihlhqsxauhnbaukqe.supabase.co/functions/v1/smart-worker';
   const TOKEN_KEY = 'majd_supabase_app_token';
   const token = () => { try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch (_) { return ''; } };
+  function errorText(value) {
+    if (value == null) return 'خطأ غير معروف';
+    if (typeof value === 'string') return value.trim() || 'خطأ غير معروف';
+    if (value instanceof Error) return errorText(value.message);
+    if (typeof value === 'object') {
+      for (const k of ['message','error_description','details','hint','error','code']) {
+        const v=value[k];
+        if (v != null && v !== value) { const t=errorText(v); if(t && t!=='خطأ غير معروف') return t; }
+      }
+      try { return JSON.stringify(value); } catch (_) { return 'تعذر قراءة تفاصيل الخطأ'; }
+    }
+    return String(value);
+  }
   async function call(action, body) {
     const headers = { 'Content-Type': 'application/json' };
     const t = token(); if (t) headers.Authorization = 'Bearer ' + t;
     const r = await fetch(APP_URL, { method: 'POST', headers, body: JSON.stringify({ action, ...(body || {}) }), cache: 'no-store' });
-    const x = await r.json().catch(() => ({}));
-    if (!r.ok || x.ok === false) throw new Error(x.error || ('Supabase HTTP ' + r.status));
+    const raw = await r.text().catch(() => '');
+    let x={}; try { x=raw ? JSON.parse(raw) : {}; } catch (_) { x={error:raw}; }
+    if (!r.ok || x.ok === false || x.error != null) {
+      const detail=errorText(x.error ?? x.message ?? x);
+      throw new Error((detail || 'تعذر تنفيذ طلب Supabase') + (r.status ? ' (HTTP '+r.status+')' : ''));
+    }
     return x;
   }
   function snap(id, value, exists) {
@@ -4836,7 +4853,7 @@ function deletePaymentRecord(recordId) {
     limit(n) { return new Query(this.name, this.filters, this.order, Number(n), this.after); }
     startAfter(value) { return new Query(this.name, this.filters, this.order, this.max, value && value.id != null ? value.id : value); }
     async rows() {
-      if (!token()) return [];
+      if (!token()) throw new Error('SESSION_REQUIRED: سجّل الدخول إلى Supabase قبل قراءة البيانات.');
       // جلب كل الصفحات حتى لا تختفي السجلات القديمة بعد أول 5000 سجل.
       let raw = [], offset = 0, page = 0, x;
       do {
@@ -4845,6 +4862,7 @@ function deletePaymentRecord(recordId) {
         offset = Number(x.nextOffset ?? (offset + (x.rows || []).length));
         page++;
       } while (x.hasMore && page < 100);
+      if (x && x.hasMore) throw new Error('تجاوزت القراءة 500,000 سجل؛ يلزم ترقيم صفحات إضافي.');
       let rows = raw.map(v => ({ id:String(v.id), value:{...v} }));
       const get = (o, path) => String(path).split('.').reduce((a,k)=>a == null ? undefined : a[k], o);
       rows = rows.filter(r => this.filters.every(([f,op,v]) => { const a=get(r.value,f); if(op==='==') return String(a ?? '')===String(v ?? ''); if(op==='!=') return String(a ?? '')!==String(v ?? ''); return true; }));
@@ -4858,7 +4876,7 @@ function deletePaymentRecord(recordId) {
   }
   class Doc {
     constructor(name,id){this.name=name;this.id=String(id);}
-    async get(){const q=new Query(this.name).where('id','==',this.id).limit(1);const s=await q.get();const d=s.docs[0]||snap(this.id,{},false);d.ref=this;return d;}
+    async get(){const x=await call('get',{collection:this.name,id:this.id});const v=x.record||null;const d=snap(this.id,v||{},!!v);d.ref=this;return d;}
     async set(data, opts){const x=await call('save',{collection:this.name,id:this.id,record:{...(data||{}),id:this.id},merge:!(opts&&opts.merge===false)});return x;}
     async update(data){return this.set(data,{merge:true});}
     async delete(){return call('delete',{collection:this.name,id:this.id});}
@@ -4867,7 +4885,7 @@ function deletePaymentRecord(recordId) {
     constructor(name){super(name,[],null,null,null);this.name=name;}
     doc(id){return new Doc(this.name,id);}
   }
-  window.__MAJD_SUPABASE_APP__={call,token,TOKEN_KEY,db:{collection:name=>new Collection(name),batch(){const ops=[];return {set:(ref,data,opts)=>ops.push(()=>ref.set(data,opts)),delete:ref=>ops.push(()=>ref.delete()),commit:()=>Promise.all(ops.map(f=>f()))};}}};
+  window.__MAJD_SUPABASE_APP__={call,token,TOKEN_KEY,errorText,db:{collection:name=>new Collection(name),batch(){const ops=[];return {set:(ref,data,opts)=>ops.push(()=>ref.set(data,opts)),delete:ref=>ops.push(()=>ref.delete()),commit:()=>Promise.all(ops.map(f=>f()))};}}};
 })();
 
 if (!window.__MAJD_FIREBASE_ACTIVE__) {
@@ -4880,34 +4898,43 @@ if (!window.__MAJD_FIREBASE_ACTIVE__) {
     console.warn("تعذر تهيئة طبقة Supabase الاحتياطية", e);
   }
 } else {
-  // Firebase للقراءة فقط، وSupabase للكتابة فقط.
+  // Supabase هو المصدر المفضّل؛ Firestore يُقرأ فقط كسجلات قديمة غير مرحّلة، والتحقق والكتابة على Supabase.
   try {
     var firebaseReadDb = db;
     var supabaseWriteDb = window.__MAJD_SUPABASE_APP__ && window.__MAJD_SUPABASE_APP__.db;
     if (firebaseReadDb && supabaseWriteDb) {
-      function dualQuery(fq, sq) {
+      function mergedSnapshots_(firebaseSnap, supabaseSnap, supabaseCollection) {
+        var byId=new Map();
+        // Supabase wins on duplicate IDs; Firestore contributes only legacy rows not yet migrated.
+        (supabaseSnap.docs||[]).forEach(function(d){byId.set(String(d.id),d);});
+        (firebaseSnap.docs||[]).forEach(function(d){var id=String(d.id);if(!byId.has(id)){var legacy={id:id,exists:d.exists,data:function(){return d.data();},ref:supabaseCollection.doc(id)};byId.set(id,legacy);}});
+        var docs=Array.from(byId.values());
+        return {docs:docs,size:docs.length,empty:docs.length===0,forEach:function(fn){docs.forEach(fn);}};
+      }
+      function dualGet_(fq,sq,sc){return sq.get().then(function(ss){return fq.get().then(function(fs){return mergedSnapshots_(fs,ss,sc);},function(){return mergedSnapshots_({docs:[]},ss,sc);});});}
+      function dualQuery(fq, sq, sc) {
         return {
-          where:function(){var a=arguments;return dualQuery(fq.where.apply(fq,a),sq.where.apply(sq,a));},
-          orderBy:function(){var a=arguments;return dualQuery(fq.orderBy.apply(fq,a),sq.orderBy.apply(sq,a));},
-          limit:function(){var a=arguments;return dualQuery(fq.limit.apply(fq,a),sq.limit.apply(sq,a));},
-          startAfter:function(){var a=arguments;return dualQuery(fq.startAfter.apply(fq,a),sq.startAfter.apply(sq,a));},
-          get:function(){return fq.get();},
-          onSnapshot:function(){return fq.onSnapshot.apply(fq,arguments);}
+          where:function(){var a=arguments;return dualQuery(fq.where.apply(fq,a),sq.where.apply(sq,a),sc);},
+          orderBy:function(){var a=arguments;return dualQuery(fq.orderBy.apply(fq,a),sq.orderBy.apply(sq,a),sc);},
+          limit:function(){var a=arguments;return dualQuery(fq.limit.apply(fq,a),sq.limit.apply(sq,a),sc);},
+          startAfter:function(){var a=arguments;return dualQuery(fq.startAfter.apply(fq,a),sq.startAfter.apply(sq,a),sc);},
+          get:function(){return dualGet_(fq,sq,sc);},
+          onSnapshot:function(next,error){var stopped=false,last='';async function poll(){try{var v=await dualGet_(fq,sq,sc);var sig=v.docs.map(function(d){return d.id+JSON.stringify(d.data());}).join('|');if(sig!==last){last=sig;next(v);}}catch(e){if(error)error(e);}}poll();var timer=setInterval(function(){if(!stopped)poll();},30000);return function(){stopped=true;clearInterval(timer);};}
         };
       }
       function dualCollection(name) {
         var fc=firebaseReadDb.collection(name), sc=supabaseWriteDb.collection(name);
         return {
-          get:function(){return fc.get();},
-          where:function(){var a=arguments;return dualQuery(fc.where.apply(fc,a),sc.where.apply(sc,a));},
-          orderBy:function(){var a=arguments;return dualQuery(fc.orderBy.apply(fc,a),sc.orderBy.apply(sc,a));},
-          limit:function(){var a=arguments;return dualQuery(fc.limit.apply(fc,a),sc.limit.apply(sc,a));},
-          doc:function(id){var fd=fc.doc(String(id)), sd=sc.doc(String(id));return {id:String(id),get:function(){return fd.get();},set:function(data,opts){return sd.set(data,opts);},delete:function(){return sd.delete();},update:function(data){return sd.set(data,{merge:true});}};}
+          get:function(){return dualGet_(fc,sc,sc);},
+          where:function(){var a=arguments;return dualQuery(fc.where.apply(fc,a),sc.where.apply(sc,a),sc);},
+          orderBy:function(){var a=arguments;return dualQuery(fc.orderBy.apply(fc,a),sc.orderBy.apply(sc,a),sc);},
+          limit:function(){var a=arguments;return dualQuery(fc.limit.apply(fc,a),sc.limit.apply(sc,a),sc);},
+          doc:function(id){var fd=fc.doc(String(id)), sd=sc.doc(String(id));return {id:String(id),get:async function(){var cloud=await sd.get();if(cloud.exists)return cloud;var legacy;try{legacy=await fd.get();}catch(_){return cloud;}return legacy.exists?{id:String(id),exists:true,data:function(){return legacy.data();},ref:sd}:cloud;},set:function(data,opts){return sd.set(data,opts);},delete:function(){return sd.delete();},update:function(data){return sd.set(data,{merge:true});}};}
         };
       }
       db={collection:dualCollection,batch:function(){return supabaseWriteDb.batch();}};
       window.__MAJD_FIREBASE_READ_ONLY__=true;
-      console.info('Firebase قراءة فقط — كل الكتابة تذهب إلى Supabase.');
+      console.info('Supabase: كتابة وتحقق وقراءة أساسية؛ Firestore fallback للسجلات القديمة غير الموجودة في Supabase.');
     }
   } catch (e) { console.warn('تعذر تفعيل وضع Firebase قراءة فقط:', e); }
 }
@@ -4932,7 +4959,7 @@ window.addEventListener('online', function () {
     catch (e) { }
 })();
 var defaultStudents = [];
-var defaultTeachers = [{ id: "1", username: "admin", password: "admin123", assignedClass: "الكل", center: "الكل" }];
+var defaultTeachers = [];
 var teachersData = [];
 var studentsData = [];
 var dailyRecords = [];
@@ -5866,23 +5893,8 @@ function handleLogin() {
                     _c.label = 1;
                 case 1:
                     _c.trys.push([1, 6, 7, 8]);
-                    // المدير الافتراضي — مستقل عن Supabase.
-                    if (u === 'admin' && p === 'admin123') {
-                        currentTeacher = {
-                            id: '1',
-                            username: 'admin',
-                            password: 'admin123',
-                            assignedClass: 'الكل',
-                            center: 'الكل'
-                        };
-                        try {
-                            persistentAuthStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
-                        }
-                        catch (_) { }
-                        showAppScreen();
-                        return [2 /*return*/];
-                    }
-                    teacher = Array.isArray(teachersData)
+                    // لا توجد بيانات دخول افتراضية؛ يتحقق الخادم من بيانات Supabase فقط.
+teacher = Array.isArray(teachersData)
                         ? teachersData.find(function (t) { return t && !t._deleted &&
                             String(t.username || '').trim() === u &&
                             String(t.password || '').trim() === p; })
@@ -5953,6 +5965,7 @@ async function handleLogout() {
         return;
     currentTeacher = null;
     persistentAuthStorage.removeItem('currentTeacher');
+    try { sessionStorage.removeItem(window.__MAJD_SUPABASE_APP__ && window.__MAJD_SUPABASE_APP__.TOKEN_KEY || 'majd_supabase_app_token'); } catch (_) {}
     showLoginScreen();
 }
 function showLoginScreen() {
@@ -6082,6 +6095,7 @@ function setDailyDateEditPermission_(className, allowed) {
 }
 
 function showAppScreen() {
+    if (window.__MAJD_SUPABASE_APP__ && !window.__MAJD_SUPABASE_APP__.token()) { showLoginScreen(); return; }
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
     document.body.classList.remove('login-screen-active', 'wafdeen-mode');
     (_a = document.getElementById('wafdeen-login-screen')) === null || _a === void 0 ? void 0 : _a.classList.add('hidden');
@@ -7997,59 +8011,30 @@ function hasDailyRecordForSelectedStudent_() {
     var stableId = sid ? dailyStableRecordId_(sid, className, dateISO) : '';
     return (dailyRecords || []).find(function (r) { return !r._deleted && !r._legacyMigrated && ((stableId && String(r.id) === stableId) || (sid && String(r.studentId || '') === String(sid) && String(r.className || '') === String(className) && String(r.dateISO || '').slice(0, 10) === String(dateISO).slice(0, 10)) || (!sid && String(r.className || '') === String(className) && String(r.dateISO || '').slice(0, 10) === String(dateISO).slice(0, 10) && String(r.studentName || '').trim() === studentName)); }) || null;
 }
-function recordAbsenceTime() {
-    var _a, _b, _c, _d;
-    var studentId = ((_a = document.getElementById('studentSelect')) === null || _a === void 0 ? void 0 : _a.value) || ((_b = document.getElementById('wafdeenStudentSelect')) === null || _b === void 0 ? void 0 : _b.value);
-    var date = ((_c = document.getElementById('gradeDate')) === null || _c === void 0 ? void 0 : _c.value) || ((_d = document.getElementById('wafdeenDate')) === null || _d === void 0 ? void 0 : _d.value) || new Date().toISOString().slice(0, 10);
-    if (!studentId) {
-        showMessage('app-msg', 'من فضلك اختر الطالب أولاً!', 'error');
-        return;
+async function recordAbsenceTime() {
+    var cls = String((document.getElementById('classSelect') || {}).value || '').trim();
+    var date = String((document.getElementById('recordDate') || {}).value || new Date().toISOString().slice(0,10)).slice(0,10);
+    var name = String((document.getElementById('studentNameSelect') || {}).value || '').trim();
+    if (!cls || !name) {
+        var wafdeenSelect=document.getElementById('wafdeenStudentSelect');
+        if (wafdeenSelect && wafdeenSelect.value && typeof saveWafdeenDailyRecord==='function') return saveWafdeenDailyRecord(true);
+        showMessage('app-msg','اختر الفصل والطالب أولاً لتسجيل الغياب.','error'); return false;
     }
-    var now = new Date();
-    var timeText = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-    var zeroTime = 0;
-    // Record a dedicated absence event with time = 0, without asking for grades.
-    var rec = {
-        id: 'absence-' + studentId + '-' + date + '-' + Date.now(),
-        studentId: studentId,
-        date: date,
-        attendanceStatus: 'absent',
-        isAbsent: true,
-        absence: true,
-        absenceTime: zeroTime,
-        time: zeroTime,
-        recordedAt: now.toISOString(),
-        recordedTimeText: timeText,
-    };
-    if (Array.isArray(window.dailyRecords)) {
-        window.dailyRecords.push(rec);
-        try {
-            memoryStorage.setItem('dailyRecords', JSON.stringify(window.dailyRecords));
-        }
-        catch (e) { }
-    }
-    // Also update any available Wafdeen collection.
-    if (Array.isArray(window.wafdeenDailyRecords)) {
-        window.wafdeenDailyRecords.push(rec);
-        try {
-            memoryStorage.setItem('wafdeenDailyRecords', JSON.stringify(window.wafdeenDailyRecords));
-        }
-        catch (e) { }
-    }
+    var student=(studentsData||[]).find(function(x){return String(x.name||'').trim()===name&&String(x.className||'').trim()===cls;});
+    var studentId=student&&student.id?String(student.id):String(dailyStudentId_(name,cls)||'');
+    if(!studentId){showMessage('app-msg','تعذر تحديد معرّف الطالب؛ لم يُسجل الغياب.','error');return false;}
+    var existing=window.DailyArchitectureV2&&DailyArchitectureV2.findByContext(studentId,cls,date);
+    var nowDate=new Date(), timeText=nowDate.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+    var rec=Object.assign({},existing||{}, {id:String((existing&&existing.id)||dailyStableRecordId_(studentId,cls,date)),recordId:String((existing&&existing.id)||dailyStableRecordId_(studentId,cls,date)),studentId:studentId,studentName:name,className:cls,dateISO:date,teacherName:(currentTeacher&&currentTeacher.username)||'',attendanceStatus:'absent',isAbsent:true,absence:true,absenceTime:0,time:0,recordedAt:nowDate.toISOString(),recordedTimeText:timeText,updatedAt:nowDate.toISOString()});
     try {
-        if (typeof window.syncCollection_ === 'function') {
-            window.syncCollection_('dailyRecords', window.dailyRecords || []);
-        }
+        var result=await DailyArchitectureV2.save(rec);
+        renderDailyTable();renderAttendanceTable();renderWeeklyTable();renderMonthlyReport();renderManagerView();renderClassStatusTable();
+        if(result.status==='synced') showMessage('app-msg','تم تسجيل الغياب والتحقق من حفظه في Supabase ✅','success');
+        else showMessage('app-msg','تم الاحتفاظ بتسجيل الغياب محليًا؛ لم تؤكد Supabase الحفظ بعد وسيعاد إرساله تلقائيًا.','info');
+        return result.status==='synced';
+    } catch(e) {
+        var detail=window.__MAJD_SUPABASE_APP__?window.__MAJD_SUPABASE_APP__.errorText(e):String(e&&e.message||e);showMessage('app-msg','فشل تسجيل الغياب: '+detail,'error');return false;
     }
-    catch (e) { }
-    try {
-        if (typeof window.renderDailyRecords === 'function')
-            window.renderDailyRecords();
-        if (typeof window.renderWafdeenDailyRecords === 'function')
-            window.renderWafdeenDailyRecords();
-    }
-    catch (e) { }
-    showMessage('app-msg', "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u063A\u064A\u0627\u0628 \u0627\u0644\u0637\u0627\u0644\u0628 \u2014 \u0627\u0644\u0648\u0642\u062A: ".concat(zeroTime), 'success');
 }
 function validateDailyRequiredFields_(type){
     var labels={
@@ -8219,7 +8204,7 @@ function addGrade() {
                 case 3:
                     e_27 = _f.sent();
                     console.error('Firebase daily record save error:', e_27);
-                    return [2 /*return*/, showMessage('app-msg', 'تعذر حفظ الرصد على Firebase — لم يتم اعتماد الحفظ. تحقق من الاتصال.', 'error')];
+                    return [2 /*return*/, showMessage('app-msg', 'تعذر حفظ الرصد على Supabase — لم يتم اعتماد الحفظ. تحقق من الاتصال.', 'error')];
                 case 4:
                     idx = dailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
                     if (idx > -1)
@@ -11615,7 +11600,7 @@ var WAFDEEN_SUBJECTS = {
 };
 function getWafdeenAdminPassword() {
     var admin = teachersData.find(function (t) { return t.username === 'admin'; });
-    return admin ? String(admin.password || '') : 'admin123';
+    return admin ? String(admin.password || '') : '';
 }
 function wafdeenLocalLoad() {
     // Cloud-only: لا نقرأ أي بيانات محفوظة على الجهاز.
@@ -12426,7 +12411,7 @@ function wafdeenSaveGradeType(type) {
                 case 4:
                     e_3 = _j.sent();
                     console.error('Wafdeen Supabase save error:', e_3);
-                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ ' + type + ' على Firebase — لم يتم اعتماد الحفظ.', 'error')];
+                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ ' + type + ' على Supabase — لم يتم اعتماد الحفظ.', 'error')];
                 case 5:
                     resetMap = { 'الجديد': ['wafdeenNewLesson', 'wafdeenNewPagesCount', 'wafdeenNewTopicRecited'], 'الماضي': ['wafdeenOldRevision', 'wafdeenOldPagesCount', 'wafdeenOldTopicRecited'], 'التلاوة': ['wafdeenRecitation', 'wafdeenRecitationPagesCount', 'wafdeenRecitationTopicRecited'] };
                     (resetMap[type] || []).forEach(function (id) { var el = document.getElementById(id); if (el)
@@ -12555,7 +12540,7 @@ function saveWafdeenDailyRecord() {
                 case 3:
                     e_4 = _a.sent();
                     console.error('Wafdeen daily Supabase save error:', e_4);
-                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ الرصد على Firebase — لم يتم اعتماد الحفظ.', 'error')];
+                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ الرصد على Supabase — لم يتم اعتماد الحفظ.', 'error')];
                 case 4:
                     existingIndex = wafdeenDailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
                     if (existingIndex >= 0)
@@ -15241,7 +15226,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script>
 /* تسجيل الدخول عبر Supabase بدل Firebase */
 (function(){
-  if(window.__MAJD_FIREBASE_ACTIVE__)return;
   const APP=window.__MAJD_SUPABASE_APP__, KEY=APP&&APP.TOKEN_KEY;
   if(!APP)return;
   async function auth(action,body){const r=await APP.call(action,body);if(r.token)sessionStorage.setItem(KEY,r.token);return r;}
@@ -15260,20 +15244,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 <script>
-/* وضع Firebase قراءة فقط: إصدار جلسة Supabase للكتابة دون استخدام Firebase للكتابة. */
-(function(){
-  if(!window.__MAJD_FIREBASE_READ_ONLY__ || !window.__MAJD_SUPABASE_APP__) return;
-  var oldLogin=window.handleLogin;
-  window.handleLogin=async function(){
-    var u=(document.getElementById('username')||{}).value||'', p=(document.getElementById('password')||{}).value||'';
-    var result=await oldLogin.apply(this,arguments);
-    try{
-      var r=await window.__MAJD_SUPABASE_APP__.call('login',{username:String(u).trim(),password:String(p).trim()});
-      if(r&&r.token)sessionStorage.setItem(window.__MAJD_SUPABASE_APP__.TOKEN_KEY,r.token);
-    }catch(e){console.warn('Supabase write session unavailable; Firebase remains read-only:',e);}
-    return result;
-  };
-})();
+/* المصادقة على Supabase تتم في handleLogin أعلاه قبل فتح التطبيق؛ لا نتابع بجلسة Firebase عند فشلها. */
 </script>
 <script id="supabase-usage-monitor-script">
 (function(){
@@ -15719,16 +15690,17 @@ async function runDailySyncDiagnostic_(){
       var ok=await siteConfirm('✏️ تعديل بيانات المعلم / المعلمة',
         '<div class="modal-grid">'+
         '<div class="form-group"><label>اسم المستخدم:</label><input id="v9TeacherUsername" value="'+esc(t.username)+'"></div>'+
-        '<div class="form-group"><label>كلمة المرور:</label><input id="v9TeacherPassword" value="'+esc(t.password)+'"></div>'+
+        '<div class="form-group"><label>كلمة مرور جديدة (اتركها فارغة للإبقاء على الحالية):</label><input id="v9TeacherPassword" type="password" autocomplete="new-password" placeholder="فارغة = دون تغيير"></div>'+
         '<div class="form-group"><label>الصف المسند:</label><select id="v9TeacherClass"><option value="الكل" '+(t.assignedClass==='الكل'?'selected':'')+'>مدير (جميع الصفوف)</option>'+ALL_CLASSES.map(function(c){return '<option value="'+esc(c)+'" '+(c===t.assignedClass?'selected':'')+'>'+esc(c)+'</option>';}).join('')+'</select></div>'+
         '<div class="form-group"><label style="display:block;">صلاحية فصل الوافدين:</label><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="v9TeacherWafdeen" '+(t.canWafdeen?'checked':'')+'><span>السماح لهذا الشيخ باختيار «الوافدين» عند الدخول</span></label></div>'+
         '<div class="form-group"><label>الدور / المركز:</label><select id="v9TeacherCenter"><option value="رئيسي" '+(t.center==='رئيسي'?'selected':'')+'>معلم رئيسي</option><option value="مساعد" '+(t.center==='مساعد'?'selected':'')+'>معلم مساعد</option><option value="الكل" '+(t.center==='الكل'?'selected':'')+'>مدير نظام</option></select></div>'+
         '</div>','حفظ التعديل');
       if(!ok) return;
       var username=norm(document.getElementById('v9TeacherUsername').value), password=norm(document.getElementById('v9TeacherPassword').value), assignedClass=document.getElementById('v9TeacherClass').value, center=document.getElementById('v9TeacherCenter').value, canWafdeen=!!document.getElementById('v9TeacherWafdeen').checked;
-      if(!username || !password) throw new Error('اسم المستخدم وكلمة المرور مطلوبان');
+      if(!username) throw new Error('اسم المستخدم مطلوب');
       if(duplicateCheck(username)) throw new Error('اسم المستخدم موجود بالفعل لمعلم آخر');
-      var saved=await updateVerified_('teachers',id,{username:username,password:password,assignedClass:assignedClass,center:center,canWafdeen:canWafdeen});
+      var teacherChanges={username:username,assignedClass:assignedClass,center:center,canWafdeen:canWafdeen};if(password)teacherChanges.password=password;
+      var saved=await updateVerified_('teachers',id,teacherChanges);
       var idx=teachersData.findIndex(function(x){return String(x.id)===String(t.id);}); if(idx>-1) teachersData[idx]=Object.assign({},teachersData[idx],saved);
       refreshTeachers_();
       showMessage('app-msg','تم تعديل المعلم وحفظ التعديل في Supabase والتحقق منه ✅','success');
@@ -16673,11 +16645,12 @@ function refreshWafdeenLogAfterSave_(){
     try{
       var saved=await cloudSave(payload);
       upsertLocal(saved);
+      state.lastOperation={type:'save',id:payload.id,status:'synced',at:now()};
       removeQueueItem(payload.id);
       state.status='synced';state.lastError=null;state.pending=readQueue().length;persistState();
       return {status:'synced',record:saved};
     }catch(e){
-      state.lastError=String(e&&e.message||e);state.status='pending';persistState();
+      state.lastError=window.__MAJD_SUPABASE_APP__?window.__MAJD_SUPABASE_APP__.errorText(e):String(e&&e.message||e);state.status='pending';state.lastOperation={type:'save',id:payload.id,status:'pending',error:state.lastError,at:now()};persistState();
       if(String(e&&e.message)!=='OFFLINE') console.warn('[DailyV2] cloud save pending:',e);
       return {status:'pending',record:payload,error:e};
     }
@@ -16694,7 +16667,7 @@ function refreshWafdeenLogAfterSave_(){
           if(op.type==='delete')await cloudDelete(op.id);else await cloudSave(normalize(op.payload));
           removeQueueItem(op.id);q=readQueue();i=-1;
         }catch(e){
-          op.attempts=Number(op.attempts||0)+1;op.lastError=String(e&&e.message||e);q[i]=op;writeQueue(q);
+          op.attempts=Number(op.attempts||0)+1;op.lastError=window.__MAJD_SUPABASE_APP__?window.__MAJD_SUPABASE_APP__.errorText(e):String(e&&e.message||e);q[i]=op;writeQueue(q);
           if(op.attempts>=5)break;
         }
       }
@@ -16706,11 +16679,12 @@ function refreshWafdeenLogAfterSave_(){
     var r=find(id);if(!r)throw new Error('السجل غير موجود');
     if(!allowed(r))throw new Error('ليس لديك صلاحية حذف هذا السجل');
     removeLocal(id);enqueue({type:'delete',id:s(id)});
-    try{await cloudDelete(id);removeQueueItem(id);state.status='synced';state.lastError=null;persistState();}
-    catch(e){state.status='pending';state.lastError=String(e&&e.message||e);persistState();}
+    state.lastOperation={type:'delete',id:s(id),status:'pending',at:now()};
+    try{await cloudDelete(id);removeQueueItem(id);state.status='synced';state.lastError=null;state.lastOperation={type:'delete',id:s(id),status:'synced',at:now()};persistState();}
+    catch(e){state.status='pending';state.lastError=String(e&&e.message||e);state.lastOperation={type:'delete',id:s(id),status:'pending',error:state.lastError,at:now()};persistState();}
     return true;
   }
-  function getState(){return Object.assign({},state,{pending:readQueue().length});}
+  function getState(){return Object.assign({},state,{pending:readQueue().length,lastOperation:state.lastOperation||null});}
 
   window.DailyArchitectureV2={save:save,delete:del,sync:sync,find:find,findByContext:findByContext,normalize:normalize,state:getState,readLocal:readLocal};
 
@@ -16722,7 +16696,7 @@ function refreshWafdeenLogAfterSave_(){
       var payload=normalize(Object.assign({},data||{},{id:String(id||data&&data.id||data&&data.recordId||'')}));
       if(!payload.id)throw new Error('معرف سجل الرصد مفقود');
       var result=await save(payload);
-      /* الدالة القديمة تتوقع Promise ناجحة حتى في الوضع المحلي؛ pending حالة صالحة وليست فقدًا للبيانات. */
+      if(result.status!=='synced'){var pendingError=result.error||new Error('لم تؤكد Supabase حفظ الرصد بعد؛ بقي محليًا في قائمة المزامنة.');pendingError.code='SUPABASE_PENDING';throw pendingError;}
       return result.record;
     };
   }
@@ -16741,7 +16715,7 @@ function refreshWafdeenLogAfterSave_(){
     window.addGrade=async function(){
       if(locked){showMessage('app-msg','جارٍ حفظ الرصد الحالي، انتظر لحظة واحدة.', 'info');return;}
       locked=true;
-      try{var result=await window.__dailyV2LegacyAdd.apply(this,arguments);try{var st=DailyArchitectureV2.state();if(st.pending>0)showMessage('app-msg','تم حفظ الرصد على هذا الجهاز، وجارٍ مزامنته مع السحابة تلقائيًا.','info');}catch(_){}return result;}finally{locked=false;}
+      try{var result=await window.__dailyV2LegacyAdd.apply(this,arguments);try{var st=DailyArchitectureV2.state(),op=st.lastOperation;if(op&&op.type==='save'&&op.status==='pending')showMessage('app-msg','الرصد محفوظ محليًا فقط؛ لم تؤكد Supabase الحفظ بعد وسيعاد إرساله تلقائيًا.','info');}catch(_){}return result;}finally{locked=false;}
     };
   }
   if(typeof window.deleteRecord==='function'&&!window.__dailyV2LegacyDeleteRecord){
@@ -16750,7 +16724,7 @@ function refreshWafdeenLogAfterSave_(){
     window.deleteRecord=async function(id){
       if(deleteLocked)return;
       deleteLocked=true;
-      try{return await window.__dailyV2LegacyDeleteRecord.apply(this,arguments);}finally{deleteLocked=false;}
+      try{var result=await window.__dailyV2LegacyDeleteRecord.apply(this,arguments);var op=DailyArchitectureV2.state().lastOperation;if(op&&op.type==='delete'&&String(op.id)===String(id)&&op.status==='pending')showMessage('app-msg','حُذف السجل من هذه الشاشة فقط؛ لم تؤكد Supabase الحذف بعد، وسيعاد المحاولة تلقائيًا.','error');return result;}finally{deleteLocked=false;}
     };
   }
 
