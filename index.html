@@ -3893,6 +3893,7 @@ body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝
 <div class="form-group">
 <label>الصف الدراسي:</label>
 <select id="sheikhRegClassSelect" onchange="renderSheikhRegistrationView()">
+<option value="تمهيدي">تمهيدي</option><option value="الوافدين">الوافدين</option>
 <option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
 <option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option>
 <option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
@@ -6820,22 +6821,14 @@ function renderSheikhRegistrationView() {
     }
     var className = classSelect.value;
     var dateVal = dateInput.value;
-    // تسجيل الشيوخ لا يشمل الوافدين أو التمهيدي.
-    if (className === 'تمهيدي' || className === 'الوافدين') {
-        var sheikhClasses = getSheikhRegistrationClassOrder_();
-        classSelect.value = sheikhClasses[0] || '';
-        className = classSelect.value;
-    }
-    var classStudents = (studentsData || [])
-        .filter(function (s) { return s.className === className; })
-        .slice()
-        .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-    var classRecords = (shariaIsClass_(className) ? (shariaGradesData || []).map(function(r){ return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'}); }) : (dailyRecords || [])).filter(function (r) { return r.className === className && String(r.dateISO || '').slice(0, 10) === dateVal && !r._deleted; });
-    var recordByName = {};
+    var classStudents = sheikhStudentsForClass_(className);
+    var classRecords = sheikhRecordsForClass_(className, dateVal);
+    var recordByName = {}, recordById = {};
     classRecords.forEach(function (r) {
         var name = String(r.studentName || '').trim();
-        if (name)
-            recordByName[name] = r;
+        var id = String(r.studentId || '').trim();
+        if (name) recordByName[name] = r;
+        if (id) recordById[id] = r;
     });
     var recordedTbody = document.querySelector('#sheikhRegRecordedTable tbody');
     var unrecordedTbody = document.querySelector('#sheikhRegUnrecordedTable tbody');
@@ -6845,8 +6838,9 @@ function renderSheikhRegistrationView() {
         unrecordedTbody.innerHTML = '';
     var recordedCount = 0, unrecordedCount = 0;
     classStudents.forEach(function (s) {
-        var name = String(s.name || '').trim();
-        var rec = recordByName[name];
+        var name = String(s.name || s.studentName || '').trim();
+        var studentId = String(s.id || s.studentId || '').trim();
+        var rec = (studentId && recordById[studentId]) || recordByName[name];
         if (rec) {
             recordedCount++;
             var isAbsentRow = !!rec.isAbsent || String(rec.attendanceStatus || '') === 'absent';
@@ -6893,40 +6887,71 @@ function renderSheikhRegistrationView() {
    - تم التسجيل باللون الأخضر، ولم يتم التسجيل باللون الأحمر.
    ============================================================ */
 function getSheikhRegistrationClassOrder_() {
-    // تسجيل الشيوخ لا يشمل التمهيدي ولا الوافدين.
-    return GENERAL_CLASSES.filter(function (className) {
-        return className !== 'تمهيدي' && className !== 'الوافدين';
+    return (Array.isArray(GENERAL_CLASSES) ? GENERAL_CLASSES.slice() : []).filter(Boolean);
+}
+function sheikhStudentsForClass_(className) {
+    var source;
+    if (className === 'الوافدين') {
+        source = (Array.isArray(wafdeenStudentsData) ? wafdeenStudentsData : []).concat(
+            (studentsData || []).filter(function (s) { return String(s.className || '').trim() === 'الوافدين'; })
+        );
+        var seen = {};
+        source = source.filter(function (s) {
+            var name = String(s && (s.name || s.studentName) || '').trim();
+            if (!name || seen[name]) return false;
+            seen[name] = true;
+            return true;
+        });
+    } else {
+        source = (studentsData || []).filter(function (s) { return String(s.className || '').trim() === className; });
+    }
+    return source.slice().sort(function (a, b) {
+        return String(a.name || a.studentName || '').localeCompare(String(b.name || b.studentName || ''), 'ar');
     });
 }
-
-function sheikhRegistrationRowsForClass_(className, dateVal) {
-    var students = (studentsData || [])
-        .filter(function (s) { return s.className === className; })
-        .slice()
-        .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-
-    var records = (shariaIsClass_(className) ? (shariaGradesData || []) : (dailyRecords || [])).filter(function (r) {
-        return r.className === className && String(r.dateISO || '').slice(0, 10) === dateVal && !r._deleted;
+function sheikhRecordsForClass_(className, dateVal) {
+    var source;
+    if (className === 'الوافدين') {
+        source = typeof wafdeenMainLogRecords_ === 'function' ? wafdeenMainLogRecords_() : (wafdeenDailyRecords || []);
+        source = source.map(function (r) { return Object.assign({}, r, {
+            className: String(r.className || 'الوافدين').trim(),
+            teacherName: r.teacherName || r.teacherUsername || r.username || ''
+        }); });
+    } else if (shariaIsClass_(className)) {
+        source = (shariaGradesData || []).map(function (r) {
+            return Object.assign({}, r, { isAbsent: !!r.absent, attendanceStatus: r.absent ? 'absent' : 'present' });
+        });
+    } else {
+        source = dailyRecords || [];
+    }
+    return source.filter(function (r) {
+        return String(r.className || '').trim() === className &&
+            String(r.dateISO || '').slice(0, 10) === String(dateVal || '').slice(0, 10) && !r._deleted;
     });
-    var byName = {};
+}
+function sheikhRegistrationRowsForClass_(className, dateVal) {
+    var students = sheikhStudentsForClass_(className);
+    var records = sheikhRecordsForClass_(className, dateVal);
+    var byId = {}, byName = {};
     records.forEach(function (r) {
+        var id = String(r.studentId || '').trim();
         var name = String(r.studentName || '').trim();
+        if (id) byId[id] = r;
         if (name) byName[name] = r;
     });
-
     return students.map(function (s) {
-        var name = String(s.name || '').trim();
-        var rec = byName[name];
+        var name = String(s.name || s.studentName || '').trim();
+        var id = String(s.id || s.studentId || '').trim();
+        var rec = (id && byId[id]) || byName[name];
         return {
             date: dateVal,
             studentName: name,
             className: className,
             status: rec ? 'تم التسجيل' : 'لم يتم التسجيل',
-            teacherName: rec ? String(rec.teacherName || '').trim() : ''
+            teacherName: rec ? String(rec.teacherName || rec.teacherUsername || rec.username || '').trim() : ''
         };
     });
 }
-
 function sheikhExcelSafeSheetName_(name, fallback) {
     var s = String(name || fallback || 'Sheet').replace(/[\\\/\?\*\[\]\:]/g, ' ').trim();
     if (!s) s = fallback || 'Sheet';
@@ -15827,6 +15852,15 @@ function shariaEsc_(value){
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+function shariaErrorText_(err){
+  try{
+    var app=window.__MAJD_SUPABASE_APP__;
+    if(app && typeof app.errorText==='function') return app.errorText(err);
+    if(err && typeof err.message==='string') return err.message;
+    if(typeof err==='string') return err;
+    return JSON.stringify(err);
+  }catch(_){return 'تعذر قراءة تفاصيل الخطأ';}
+}
 async function shariaCloudSaveAndVerify_(id, rec){
   if (!useFirebase || !db) throw new Error('Supabase غير متصل؛ لم يتم اعتماد الدرجة');
   var ref = db.collection('shariaGrades').doc(String(id));
@@ -15921,7 +15955,7 @@ async function editShariaGrade_(id){
     memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
     renderShariaGradesReport(); renderShariaDailyLog_();
     showMessage('app-msg','تم تعديل سجل الشرعي بنجاح','success');
-  }catch(err){ console.error('Sharia edit error:',err); showMessage('app-msg','تعذر تعديل سجل الشرعي: '+String(err.message||err),'error'); }
+  }catch(err){ console.error('Sharia edit error:',err); showMessage('app-msg','تعذر تعديل سجل الشرعي: '+shariaErrorText_(err),'error'); }
 }
 async function deleteShariaGrade_(id){
   try{id=decodeURIComponent(String(id));}catch(e){}
@@ -15936,7 +15970,7 @@ async function deleteShariaGrade_(id){
     memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
     renderShariaGradesReport(); renderShariaDailyLog_();
     showMessage('app-msg','تم حذف سجل الشرعي بنجاح','success');
-  }catch(err){ console.error('Sharia delete error:',err); showMessage('app-msg','تعذر حذف سجل الشرعي: '+String(err.message||err),'error'); }
+  }catch(err){ console.error('Sharia delete error:',err); showMessage('app-msg','تعذر حذف سجل الشرعي: '+shariaErrorText_(err),'error'); }
 }
 var shariaDailyTableOriginalHead_=null;
 function renderShariaDailyLog_(){
@@ -16030,7 +16064,7 @@ async function saveShariaGrade(forceAbsent){
     renderShariaDailyLog_();
   }catch(e){
     console.error('Sharia save error:',e);
-    showMessage('app-msg','فشل حفظ درجة الشرعي: '+String(e.message||e),'error');
+    showMessage('app-msg','فشل حفظ درجة الشرعي: '+shariaErrorText_(e),'error');
   }finally{
     if(saveBtn){ saveBtn.disabled=false; saveBtn.innerText=shariaIsClass_((document.getElementById('classSelect')||{}).value)?'💾 حفظ':(saveBtn.dataset.oldText||'💾 حفظ الدرجات'); }
   }
@@ -16053,7 +16087,7 @@ async function markShariaAbsent(){
     renderShariaDailyLog_();
   }catch(e){
     console.error('Sharia absent error:',e);
-    showMessage('app-msg','فشل تسجيل الغياب: '+String(e.message||e),'error');
+    showMessage('app-msg','فشل تسجيل الغياب: '+shariaErrorText_(e),'error');
   }
 }
 function shariaPeriodRange_(period,date){
