@@ -23,6 +23,10 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <!-- مكتبة Supabase للمزامنة السحابية عبر جميع الموبايلات -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- مكتبة EmailJS لإرسال النسخ الاحتياطية تلقائياً للبريد الإلكتروني -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -605,7 +609,7 @@ tr:hover { background-color: rgba(212, 175, 55, 0.10) !important; }
 .sidebar-nav .tabs{display:flex;flex-direction:column;gap:8px}.sidebar-nav .tab-btn{position:relative;overflow:hidden;min-height:48px;padding:12px 14px;border-radius:14px;background:rgba(18,30,26,.78);border-color:rgba(212,175,55,.16);box-shadow:0 4px 12px rgba(0,0,0,.16);transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}.sidebar-nav .tab-btn::after{content:"";position:absolute;top:0;bottom:0;right:0;width:3px;background:var(--accent-gold);transform:scaleY(0);transition:transform .2s ease}.sidebar-nav .tab-btn:hover{transform:translateX(-3px);background:rgba(27,50,42,.94);border-color:rgba(212,175,55,.42)}.sidebar-nav .tab-btn.active{background:linear-gradient(120deg,rgba(18,144,120,.96),rgba(6,61,51,.98));border-color:var(--accent-gold);box-shadow:0 8px 18px rgba(0,0,0,.24)}.sidebar-nav .tab-btn.active::after{transform:scaleY(1)}
 /* المشرف يرى زر حالة الإنجاز فقط */
 body.supervisor-mode .sidebar-nav .tab-btn{display:none!important}
-body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn{display:flex!important}
+body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn,body.supervisor-mode .sidebar-nav #total-expenses-tab-btn{display:flex!important}
 @media(max-width:850px){.main-menu-handle{top:10px!important;right:10px!important;height:48px;min-width:48px;padding:0 13px;border-radius:16px}.menu-handle-text{font-size:.78em}.sidebar-nav{top:8px;right:8px;height:calc(100dvh - 16px);width:min(340px,calc(100vw - 16px));border-radius:24px}.main-menu-handle.open{right:10px!important}}
 @media(max-width:430px){.menu-handle-text{display:none}.main-menu-handle{width:48px;padding:0}.sidebar-nav{width:calc(100vw - 12px);right:6px;top:6px;height:calc(100dvh - 12px);border-radius:22px}}
 
@@ -2684,7 +2688,8 @@ body.sharia-teacher #top-students-tab-btn,
 body.sharia-teacher #notes-tab-btn,
 body.sharia-teacher #wafdeen-time-tab-btn,
 body.sharia-teacher #payments-tab-btn,
-body.sharia-teacher #payment-report-tab-btn { display:none!important; }
+body.sharia-teacher #payment-report-tab-btn,
+body.sharia-teacher #total-expenses-tab-btn { display:none!important; }
 </style>
 <style id="sharia-simple-daily-style">
 /* أولى شرعي: نفس واجهة الفصول العادية، مع حقول الرصد المطلوبة فقط */
@@ -2906,6 +2911,7 @@ body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
 <button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصروفات</button>
 <button class="tab-btn hidden" id="payment-report-tab-btn" onclick="switchTab('payment-report-tab', event)" style="background-color:#0d9488;color:white;" type="button">🧾 مقرر الدفع</button>
+<button class="tab-btn hidden" id="total-expenses-tab-btn" onclick="switchTab('total-expenses-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 إجمالي المصروفات</button>
 <button class="tab-btn hidden" id="analysis-tab-btn" onclick="openStudentDataAnalysis(); closeMainMenu()" type="button">📈 تحليل البيانات</button>
 <button class="tab-btn install-app-btn" id="installAppBtn" onclick="installSiteApp()" type="button">📲 تثبيت الموقع كتطبيق</button>
 <button class="tab-btn hidden" id="backup-tab-btn" onclick="switchTab('backup-tab', event)" style="background-color: var(--primary-dark); color: white;" type="button">💾 النسخة الاحتياطية</button>
@@ -3528,6 +3534,24 @@ body.sharia-ui-selected #daily-workspace .daily-scores-title:after{content:'📝
 <div class="toast-msg" id="payments-msg"></div>
 </div>
 </div>
+<!-- تبويب إجمالي المصروفات (قراءة فقط) -->
+<div class="tab-content" id="total-expenses-tab">
+<div class="card-view">
+<h3 class="card-title">💰 إجمالي المصروفات</h3>
+<p style="font-size:.9em;color:#666;margin-top:-6px;">إجمالي الدفعات الفعلية المسجلة لكل طالب من بيانات الدفع الحالية، مع استبعاد الوافدين.</p>
+<div id="total-expenses-status" role="status" aria-live="polite" style="margin:10px 0;color:var(--text-muted);">افتح التقرير لتحميل البيانات.</div>
+<div class="table-responsive notes-table" style="overflow-x:auto;">
+<table id="totalExpensesTable" style="min-width:680px;width:100%;">
+<thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>الشيخ</th><th>إجمالي المبلغ المدفوع</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+<div class="card-view" style="border-top:4px solid var(--accent-gold);">
+<h3 class="card-title">💰 إجمالي المصروفات المدفوعة لجميع الطلاب</h3>
+<div id="total-expenses-grand-total" style="font-size:1.45em;font-weight:800;color:var(--primary-dark);" aria-live="polite">—</div>
+</div>
+</div>
 <!-- تبويب مقرر الدفع -->
 <div class="tab-content" id="payment-report-tab">
 <div class="card-view">
@@ -4068,7 +4092,21 @@ var firebaseConfig = {
 };
 var useFirebase = false;
 var db = null;
-var wafdeenStorage = null;
+var firebaseDirectReady = false;
+try {
+    if (window.firebase && firebaseConfig && (!firebase.apps || !firebase.apps.length)) firebase.initializeApp(firebaseConfig);
+    if (window.firebase && firebase.apps && firebase.apps.length) {
+        db = firebase.firestore();
+        useFirebase = true;
+        firebaseDirectReady = true;
+        window.__MAJD_FIREBASE_ACTIVE__ = true;
+        try { wafdeenStorage = firebase.storage(); } catch (_) { wafdeenStorage = null; }
+        console.info('Firebase مباشر مفعل: Firestore هو مصدر البيانات الرئيسي.');
+    }
+} catch (e) {
+    console.warn('تعذر تهيئة Firebase المباشر، سيتم استخدام Supabase الاحتياطي:', e);
+}
+var wafdeenStorage = wafdeenStorage || null;
 /* ================= Google Drive: كتب الوافدين (ملفات فقط) =================
    الرفع يتم إلى مجلد "كتب" عبر Google Apps Script.
    ملاحظة: Apps Script الحالي يستقبل الرفع عبر POST.
@@ -4772,8 +4810,8 @@ function deletePaymentRecord(recordId) {
         });
     });
 }
-/* Supabase هو مصدر البيانات الرئيسي. يحتفظ الموقع بأسماء useFirebase/db للتوافق الداخلي فقط. */
-/* طبقة توافق تشغيلية: واجهة Supabase داخل الموقع، والتخزين الفعلي في Supabase. */
+/* Firebase هو مصدر البيانات الرئيسي حاليًا، وتبقى أسماء useFirebase/db للتوافق الداخلي. */
+/* طبقة توافق احتياطية: تُستخدم Supabase فقط إذا تعذر تشغيل Firebase المباشر. */
 (function () {
   'use strict';
   const APP_URL = 'https://kryihlhqsxauhnbaukqe.supabase.co/functions/v1/smart-worker';
@@ -4799,8 +4837,15 @@ function deletePaymentRecord(recordId) {
     startAfter(value) { return new Query(this.name, this.filters, this.order, this.max, value && value.id != null ? value.id : value); }
     async rows() {
       if (!token()) return [];
-      const x = await call('list', { collection: this.name, limit: 10000 });
-      let rows = (x.rows || []).map(v => ({ id:String(v.id), value:{...v} }));
+      // جلب كل الصفحات حتى لا تختفي السجلات القديمة بعد أول 5000 سجل.
+      let raw = [], offset = 0, page = 0, x;
+      do {
+        x = await call('list', { collection: this.name, limit: 5000, offset });
+        raw = raw.concat(x.rows || []);
+        offset = Number(x.nextOffset ?? (offset + (x.rows || []).length));
+        page++;
+      } while (x.hasMore && page < 100);
+      let rows = raw.map(v => ({ id:String(v.id), value:{...v} }));
       const get = (o, path) => String(path).split('.').reduce((a,k)=>a == null ? undefined : a[k], o);
       rows = rows.filter(r => this.filters.every(([f,op,v]) => { const a=get(r.value,f); if(op==='==') return String(a ?? '')===String(v ?? ''); if(op==='!=') return String(a ?? '')!==String(v ?? ''); return true; }));
       if (this.after != null) rows = rows.filter(r => r.id > String(this.after));
@@ -4825,14 +4870,46 @@ function deletePaymentRecord(recordId) {
   window.__MAJD_SUPABASE_APP__={call,token,TOKEN_KEY,db:{collection:name=>new Collection(name),batch(){const ops=[];return {set:(ref,data,opts)=>ops.push(()=>ref.set(data,opts)),delete:ref=>ops.push(()=>ref.delete()),commit:()=>Promise.all(ops.map(f=>f()))};}}};
 })();
 
-window.firebase = { firestore: { FieldPath: { documentId: function(){ return '__document_id__'; } } }, auth: function(){ return { currentUser:null, signInAnonymously:function(){ return Promise.reject(new Error('Firebase Auth disabled')); } }; }, storage: function(){ return null; } };
-try {
+if (!window.__MAJD_FIREBASE_ACTIVE__) {
+  try {
     db = window.__MAJD_SUPABASE_APP__.db;
     useFirebase = true;
     wafdeenStorage = null;
-}
-catch (e) {
-    console.warn("تعذر تهيئة طبقة Supabase", e);
+  }
+  catch (e) {
+    console.warn("تعذر تهيئة طبقة Supabase الاحتياطية", e);
+  }
+} else {
+  // Firebase للقراءة فقط، وSupabase للكتابة فقط.
+  try {
+    var firebaseReadDb = db;
+    var supabaseWriteDb = window.__MAJD_SUPABASE_APP__ && window.__MAJD_SUPABASE_APP__.db;
+    if (firebaseReadDb && supabaseWriteDb) {
+      function dualQuery(fq, sq) {
+        return {
+          where:function(){var a=arguments;return dualQuery(fq.where.apply(fq,a),sq.where.apply(sq,a));},
+          orderBy:function(){var a=arguments;return dualQuery(fq.orderBy.apply(fq,a),sq.orderBy.apply(sq,a));},
+          limit:function(){var a=arguments;return dualQuery(fq.limit.apply(fq,a),sq.limit.apply(sq,a));},
+          startAfter:function(){var a=arguments;return dualQuery(fq.startAfter.apply(fq,a),sq.startAfter.apply(sq,a));},
+          get:function(){return fq.get();},
+          onSnapshot:function(){return fq.onSnapshot.apply(fq,arguments);}
+        };
+      }
+      function dualCollection(name) {
+        var fc=firebaseReadDb.collection(name), sc=supabaseWriteDb.collection(name);
+        return {
+          get:function(){return fc.get();},
+          where:function(){var a=arguments;return dualQuery(fc.where.apply(fc,a),sc.where.apply(sc,a));},
+          orderBy:function(){var a=arguments;return dualQuery(fc.orderBy.apply(fc,a),sc.orderBy.apply(sc,a));},
+          limit:function(){var a=arguments;return dualQuery(fc.limit.apply(fc,a),sc.limit.apply(sc,a));},
+          doc:function(id){var fd=fc.doc(String(id)), sd=sc.doc(String(id));return {id:String(id),get:function(){return fd.get();},set:function(data,opts){return sd.set(data,opts);},delete:function(){return sd.delete();},update:function(data){return sd.set(data,{merge:true});}};}
+        };
+      }
+      db={collection:dualCollection,batch:function(){return supabaseWriteDb.batch();}};
+      window.__MAJD_FIREBASE_READ_ONLY__=true;
+      console.info('Firebase قراءة فقط — كل الكتابة تذهب إلى Supabase.');
+    }
+  } catch (e) { console.warn('تعذر تفعيل وضع Firebase قراءة فقط:', e); }
 }
 // حماية الواجهة من أخطاء JavaScript غير المتوقعة: لا تمنع حفظ البيانات المحلية.
 window.addEventListener('error', function (e) { return console.error('Global JS error:', e.error || e.message); });
@@ -4879,6 +4956,24 @@ var nameMapping = {
     "الصف الخامس - أولاد": "خامسة - أولاد", "الصف الخامس - بنات": "خامسة - بنات"
 };
 function applyDataMapping(item) {
+    if (!item || typeof item !== 'object') return item;
+    // توحيد أسماء الحقول القديمة القادمة من سجلات Firebase/Supabase.
+    if (!item.className) item.className = item.class || item.gradeClass || item.assignedClass || '';
+    if (!item.studentName) item.studentName = item.student || item.nameStudent || '';
+    if (!item.teacherName) item.teacherName = item.teacher || item.teacherUsername || item.savedBy || '';
+    if (!item.dateISO) item.dateISO = item.date || item.recordDate || item.day || '';
+    // بعض السجلات القديمة فقدت dateISO/className، لكن المعرّف يحتوي التاريخ وstudentId يربطها بالطالب.
+    if (!item.dateISO) {
+        var idDate=String(item.id||item.recordId||'').match(/(20\d{2}-\d{2}-\d{2})$/);
+        if(idDate) item.dateISO=idDate[1];
+    }
+    if ((!item.className || !item.studentName) && item.studentId && Array.isArray(window.studentsData)) {
+        var linkedStudent=window.studentsData.find(function(st){return String(st&&st.id||'')===String(item.studentId);});
+        if(linkedStudent){
+            if(!item.className) item.className=linkedStudent.className||linkedStudent.class||'';
+            if(!item.studentName) item.studentName=linkedStudent.name||linkedStudent.studentName||'';
+        }
+    }
     if (item.className && nameMapping[item.className])
         item.className = nameMapping[item.className];
     if (item.assignedClass && nameMapping[item.assignedClass])
@@ -5202,7 +5297,7 @@ function updateStudentListDropdown() {
         ws.classList.remove('visible');
 }
 // ================= مزامنة موحدة وآمنة بين كل الأجهزة =================
-// Firestore هو المصدر الرئيسي الوحيد. لا يوجد تخزين محلي دائم؛ memoryStorage ذاكرة مؤقتة داخل الجلسة فقط.
+// Supabase هو المصدر الرئيسي الوحيد. لا يوجد تخزين محلي دائم؛ memoryStorage ذاكرة مؤقتة داخل الجلسة فقط.
 // عند أول اتصال لا يتم مسح بيانات الجهاز إذا كانت السحابة فارغة؛
 // بل تُدمج البيانات ثم تُرفع الناقص/الأحدث، وبعدها onSnapshot يزامن كل الأجهزة.
 var cloudSyncReady = false;
@@ -5235,7 +5330,7 @@ function syncStamp_(obj) {
     return 0;
 }
 function syncMergeLocalWithCloud_(local, cloud) {
-    // Cloud-only: تجاهل أي بيانات من ذاكرة الجهاز وإرجاع بيانات Firestore فقط.
+    // Cloud-only: السحابة هي المصدر، مع الاحتفاظ بالسجلات القديمة التي لا تملك نسخة بديلة.
     var cloudArr = Array.isArray(cloud) ? cloud : [];
     var byId = new Map();
     cloudArr.forEach(function(item){
@@ -5556,13 +5651,31 @@ function localSyncWrite_(collectionName, arr){
 function localSyncMerge_(localArr, cloudArr){
   var map=new Map();
   (Array.isArray(localArr)?localArr:[]).forEach(function(x){
-    if(!x||x.id==null||x._deleted||x._legacyMigrated)return;
-    map.set(String(x.id),applyDataMapping(Object.assign({},x)));
+    if(!x||x.id==null||x._deleted)return;
+    // السجل المرحّل يظل ظاهرًا إذا لم توجد له نسخة أساسية بديلة.
+    var clean=Object.assign({},x); delete clean._legacyMigrated;
+    map.set(String(clean.id),applyDataMapping(clean));
   });
   (Array.isArray(cloudArr)?cloudArr:[]).forEach(function(x){
-    if(!x||x.id==null||x._deleted||x._legacyMigrated)return;
-    var id=String(x.id), old=map.get(id);
-    if(!old || syncStamp_(x)>=syncStamp_(old)) map.set(id,applyDataMapping(Object.assign({},x)));
+    if(!x||x.id==null||x._deleted)return;
+    var clean=Object.assign({},x); delete clean._legacyMigrated;
+    var id=String(clean.id), old=map.get(id);
+    if(!old || syncStamp_(clean)>=syncStamp_(old)) map.set(id,applyDataMapping(clean));
+  });
+  return Array.from(map.values());
+}
+function mergeHistoricalCloudRows_(mainRows, archiveRows){
+  var all=(Array.isArray(mainRows)?mainRows:[]).concat(Array.isArray(archiveRows)?archiveRows:[]);
+  var canonicalIds=new Set(all.filter(function(x){return x&&!x._deleted&&!x._legacyMigrated;}).map(function(x){return String(x.id||'');}));
+  var map=new Map();
+  all.forEach(function(x){
+    if(!x||x.id==null||x._deleted)return;
+    var canonical=String(x.legacyCanonicalId||'');
+    // إذا كانت النسخة المرحّلة لها نسخة أساسية فعلية، نعرض الأساسية فقط.
+    if(x._legacyMigrated && canonical && canonicalIds.has(canonical))return;
+    var clean=Object.assign({},x); delete clean._legacyMigrated;
+    var id=String(clean.id), old=map.get(id);
+    if(!old || syncStamp_(clean)>=syncStamp_(old)) map.set(id,applyDataMapping(clean));
   });
   return Array.from(map.values());
 }
@@ -5588,7 +5701,7 @@ async function localSyncRetryQueue_(){
 window.addEventListener('online',function(){setTimeout(localSyncRetryQueue_,700);});
 
 function syncCollection_(collectionName_1, localGetter_1, localSetter_1, renderFn_1) {
-    if(window.__MAJD_SUPABASE_APP__&&!window.__MAJD_SUPABASE_APP__.token()) return;
+    if(!window.__MAJD_FIREBASE_ACTIVE__ && window.__MAJD_SUPABASE_APP__&&!window.__MAJD_SUPABASE_APP__.token()) return;
     var collectionName=collectionName_1, localGetter=localGetter_1, localSetter=localSetter_1, renderFn=renderFn_1, options=arguments[4]||{};
     if (!useFirebase || !db || cloudSyncListeners[collectionName]) return;
     cloudSyncListeners[collectionName] = { mode:'local-first', startedAt:Date.now() };
@@ -5603,10 +5716,18 @@ function syncCollection_(collectionName_1, localGetter_1, localSetter_1, renderF
       if(!useFirebase||!db||!navigator.onLine||cloudSyncState_[collectionName].busy)return;
       cloudSyncState_[collectionName].busy=true;
       try{
-        var snap=await db.collection(collectionName).get();
-        firebaseDailyQuotaInc_('reads',Math.max(1,snap.size||0));
-        var cloud=[];
-        snap.docs.forEach(function(d){var v=d.data()||{};if(!v._deleted&&!v._legacyMigrated)cloud.push(applyDataMapping(Object.assign({id:String(d.id)},v)));});
+        var snap, archiveSnap=null;
+        if(String(collectionName)==='dailyRecords'){
+          var pair=await Promise.all([db.collection('dailyRecords').get(),db.collection('dailyRecordsArchive').get()]);
+          snap=pair[0]; archiveSnap=pair[1];
+          firebaseDailyQuotaInc_('reads',Math.max(1,(snap.size||0)+(archiveSnap.size||0)));
+        }else{
+          snap=await db.collection(collectionName).get();
+          firebaseDailyQuotaInc_('reads',Math.max(1,snap.size||0));
+        }
+        var mainRows=[]; snap.docs.forEach(function(d){mainRows.push(Object.assign({id:String(d.id)},d.data()||{}));});
+        var archiveRows=[]; if(archiveSnap) archiveSnap.docs.forEach(function(d){archiveRows.push(Object.assign({id:String(d.id)},d.data()||{}));});
+        var cloud=String(collectionName)==='dailyRecords' ? mergeHistoricalCloudRows_(mainRows,archiveRows) : mainRows.filter(function(v){return !v._deleted;}).map(function(v){return applyDataMapping(v);});
         var before=Array.isArray(localGetter())?localGetter():[];
         var merged=localSyncMerge_(before,cloud);
         localSetter(merged);
@@ -5655,7 +5776,7 @@ function syncDataFromCloud() {
         }
         applyDailyDateEditPermission_();
     }, { storageKey: 'teachersData' });
-    syncCollection_('students', function () { return studentsData; }, function (v) { studentsData = ensureStudentLoginCodes(v); try { studentFastCacheSave_(studentsData); } catch (_) {} studentFastCloudReady_ = true; }, function () {
+    syncCollection_('students', function () { return studentsData; }, function (v) { studentsData = ensureStudentLoginCodes(v); try { if(Array.isArray(window.dailyRecords)) window.dailyRecords=window.dailyRecords.map(function(r){return applyDataMapping(r);}); } catch (_) {} try { studentFastCacheSave_(studentsData); } catch (_) {} studentFastCloudReady_ = true; }, function () {
         if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.username) === 'admin') {
             renderStudentsTable();
             renderClassCards();
@@ -5669,6 +5790,7 @@ function syncDataFromCloud() {
         renderTopStudents();
         renderAttendanceTable();
         renderClassStatusTable();
+        renderTotalExpensesIfOpen_();
     }, { storageKey: 'studentsData' });
     syncCollection_('notes', function () { return notesData; }, function (v) { notesData = v; }, function () { renderNotesTable(); updateNotesStudentList(); }, { storageKey: 'notesData' });
     // مزامنة الرصد اليومي لحظياً بين أجهزة المعلمين والمشرف.
@@ -5691,6 +5813,7 @@ function syncDataFromCloud() {
     syncCollection_('payments', function () { return getLocalPayments_(); }, function (v) { setLocalPayments_(v); }, function () { try {
         renderPaymentReportTable();
         updatePaymentsStudentPaidMonths();
+        renderTotalExpensesIfOpen_();
     }
     catch (_) { } }, { storageKey: 'wafdeenPaymentsLocal_v2' });
     syncCollection_('wafdeenDailyRecords', function () { return wafdeenDailyRecords; }, function (v) { wafdeenDailyRecords = v; }, function () { try {
@@ -6002,6 +6125,7 @@ function showAppScreen() {
         (_d = document.getElementById('top-students-tab-btn')) === null || _d === void 0 ? void 0 : _d.classList.remove('hidden');
         (_e = document.getElementById('payments-tab-btn')) === null || _e === void 0 ? void 0 : _e.classList.remove('hidden');
         (_f = document.getElementById('payment-report-tab-btn')) === null || _f === void 0 ? void 0 : _f.classList.remove('hidden');
+        document.getElementById('total-expenses-tab-btn')?.classList.remove('hidden');
         reportsMenuWrap.classList.add('hidden');
         dailyExportBtn.classList.add('hidden');
         notesExportBtn.classList.add('hidden');
@@ -6053,6 +6177,7 @@ function showAppScreen() {
         adminBtn.classList.remove('hidden');
         (_m = document.getElementById('payments-tab-btn')) === null || _m === void 0 ? void 0 : _m.classList.remove('hidden');
         (_o = document.getElementById('payment-report-tab-btn')) === null || _o === void 0 ? void 0 : _o.classList.remove('hidden');
+        document.getElementById('total-expenses-tab-btn')?.classList.toggle('hidden', !isAdminUser);
         (_p = document.getElementById('analysis-tab-btn')) === null || _p === void 0 ? void 0 : _p.classList.remove('hidden');
         backupBtn.classList.remove('hidden');
         managerBtn.classList.remove('hidden');
@@ -6088,6 +6213,7 @@ function showAppScreen() {
         adminBtn.classList.add('hidden');
         (_q = document.getElementById('payments-tab-btn')) === null || _q === void 0 ? void 0 : _q.classList.add('hidden');
         (_r = document.getElementById('payment-report-tab-btn')) === null || _r === void 0 ? void 0 : _r.classList.add('hidden');
+        document.getElementById('total-expenses-tab-btn')?.classList.add('hidden');
         backupBtn.classList.add('hidden');
         managerBtn.classList.add('hidden');
         weeklyBtn.classList.add('hidden');
@@ -6304,7 +6430,7 @@ function getAnalysisRecords(studentName, className, weekKey) {
     return dailyRecords.filter(function (r) {
         return r.studentName === studentName &&
             r.className === className &&
-            dates.has(r.dateISO);
+            dates.has(String(r.dateISO || '').slice(0, 10));
     });
 }
 function analysisAverage(records, field) {
@@ -6602,7 +6728,7 @@ function exportWafdeenTimeReportExcel(){
 function switchTab(tabId, event) {
     if (tabId === 'supabase-usage-tab' && (!currentTeacher || String(currentTeacher.username || '').trim() !== 'admin' || currentTeacher.center === 'مشرف')) return;
     // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، الأوائل، المصروفات، ومقرر الدفع.
-    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab', 'wafdeen-time-tab'].includes(tabId)) {
+    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab', 'total-expenses-tab', 'wafdeen-time-tab'].includes(tabId)) {
         tabId = 'status-tab';
     }
     if (tabId !== 'admin-tab') {
@@ -6664,6 +6790,7 @@ function switchTab(tabId, event) {
         populatePaymentReportClasses();
         updatePaymentReportStudentList();
     }
+    else if (tabId === 'total-expenses-tab') { renderTotalExpenses_(); }
     else if (tabId === 'sheikh-registration-tab') {
         renderSheikhRegistrationView();
     }
@@ -6689,7 +6816,7 @@ function renderSheikhRegistrationView() {
         .filter(function (s) { return s.className === className; })
         .slice()
         .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-    var classRecords = (shariaIsClass_(className) ? (shariaGradesData || []).map(function(r){ return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'}); }) : (dailyRecords || [])).filter(function (r) { return r.className === className && r.dateISO === dateVal && !r._deleted; });
+    var classRecords = (shariaIsClass_(className) ? (shariaGradesData || []).map(function(r){ return Object.assign({},r,{isAbsent:!!r.absent,attendanceStatus:r.absent?'absent':'present'}); }) : (dailyRecords || [])).filter(function (r) { return r.className === className && String(r.dateISO || '').slice(0, 10) === dateVal && !r._deleted; });
     var recordByName = {};
     classRecords.forEach(function (r) {
         var name = String(r.studentName || '').trim();
@@ -6765,7 +6892,7 @@ function sheikhRegistrationRowsForClass_(className, dateVal) {
         .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
 
     var records = (shariaIsClass_(className) ? (shariaGradesData || []) : (dailyRecords || [])).filter(function (r) {
-        return r.className === className && r.dateISO === dateVal && !r._deleted;
+        return r.className === className && String(r.dateISO || '').slice(0, 10) === dateVal && !r._deleted;
     });
     var byName = {};
     records.forEach(function (r) {
@@ -6931,7 +7058,7 @@ function getSheikhRegistrationAllDates_() {
 function getSheikhDetailedExcelRow_(className, dateVal, studentName) {
     var name = String(studentName || '').trim();
     var rec = (shariaIsClass_(className) ? (shariaGradesData || []) : (dailyRecords || [])).find(function (r) {
-        return r && !r._deleted && r.className === className && r.dateISO === dateVal && String(r.studentName || '').trim() === name;
+        return r && !r._deleted && r.className === className && String(r.dateISO || '').slice(0, 10) === dateVal && String(r.studentName || '').trim() === name;
     });
 
     var status = !rec ? 'لم يسجل' : (rec.isAbsent || rec.absent || String(rec.attendanceStatus || '').toLowerCase() === 'absent' ? 'غائب' : 'حاضر');
@@ -7260,7 +7387,7 @@ function getSelectedDailyRecord() {
     var date = (_b = document.getElementById('recordDate')) === null || _b === void 0 ? void 0 : _b.value;
     if (!student || !date)
         return null;
-    return dailyRecords.find(function (r) { return r.studentName === student && r.dateISO === date && r.teacherName === currentTeacher.username; }) || null;
+    return dailyRecords.find(function (r) { return r.studentName === student && String(r.dateISO || '').slice(0, 10) === date && r.teacherName === currentTeacher.username; }) || null;
 }
 function getCurrentTimerElapsed() {
     return dailyTimerRunning ? dailyTimerBaseSeconds + Math.floor((Date.now() - dailyTimerStartedAt) / 1000) : dailyTimerBaseSeconds;
@@ -8377,7 +8504,7 @@ function renderDailyTable() {
         var matchesClass = (safeTeacher.username === 'admin' || safeTeacher.assignedClass === 'الكل')
             ? true : teacherOwnsClass_(r.className);
         var matchesSearch = String(r.studentName || '').toLowerCase().includes(searchKeyword);
-        var matchesDate = filterDate ? (r.dateISO === filterDate) : true;
+        var matchesDate = filterDate ? (String(r.dateISO || '').slice(0, 10) === filterDate) : true;
         return matchesClass && matchesSearch && matchesDate;
     });
     filteredRecords.sort(function (a, b) {
@@ -8521,7 +8648,7 @@ function renderClassStatusTable() {
     GENERAL_CLASSES.forEach(function (cName) {
         var classStudents = studentsData.filter(function (s) { return s.className === cName; });
         var totalCount = classStudents.length;
-        var classRecords = dailyRecords.filter(function (r) { return r.className === cName && r.dateISO === dateVal && !r._deleted; });
+        var classRecords = dailyRecords.filter(function (r) { return r.className === cName && String(r.dateISO || '').slice(0, 10) === dateVal && !r._deleted; });
         var recordedNames = new Set(classRecords.map(function (r) { return String(r.studentName || '').trim(); }).filter(Boolean));
         var unrecorded = classStudents.filter(function (s) { return !recordedNames.has(String(s.name || '').trim()); });
         var recordedCount = Math.min(recordedNames.size, totalCount);
@@ -8566,7 +8693,7 @@ function renderClassStatusTable() {
 }
 function showUnrecordedStudents(className, dateVal) {
     var classStudents = studentsData.filter(function (s) { return s.className === className; });
-    var classRecords = dailyRecords.filter(function (r) { return r.className === className && r.dateISO === dateVal; });
+    var classRecords = dailyRecords.filter(function (r) { return r.className === className && String(r.dateISO || '').slice(0, 10) === dateVal; });
     var recordedNames = classRecords.map(function (r) { return r.studentName; });
     var unrecorded = classStudents.filter(function (s) { return !recordedNames.includes(s.name); });
     var card = document.getElementById('unrecordedDetailsCard');
@@ -8640,7 +8767,7 @@ function renderAttendanceTable() {
             var rec = dailyRecords.find(function (r) {
                 return r.className === selectedClass &&
                     r.studentName === student &&
-                    r.dateISO === dStr;
+                    String(r.dateISO || '').slice(0, 10) === dStr;
             });
             if (rec) {
                 if (Number(rec.attendance) > 0) {
@@ -8869,7 +8996,7 @@ function renderMonthlyReport() {
         var attendedDaysCount = 0;
         var recordedDaysCount = 0;
         workingDays.forEach(function (wd) {
-            var rec = dailyRecords.find(function (r) { return r.className === selectedClass && r.studentName === student && r.dateISO === wd.dateISO; });
+            var rec = dailyRecords.find(function (r) { return r.className === selectedClass && r.studentName === student && String(r.dateISO || '').slice(0, 10) === wd.dateISO; });
             if (rec) {
                 recordedDaysCount++;
                 var dailyScore = getDailyTotal(rec);
@@ -9054,7 +9181,7 @@ function renderManagerView() {
     document.getElementById('mgr-today-date').innerText = today;
     var tDaily = document.querySelector('#mgrDailyTable tbody');
     tDaily.innerHTML = '';
-    var dailyClassRecs = dailyRecords.filter(function (r) { return r.className === currentManagerClass && r.dateISO === today; })
+    var dailyClassRecs = dailyRecords.filter(function (r) { return r.className === currentManagerClass && String(r.dateISO || '').slice(0, 10) === today; })
         .sort(function (a, b) { return a.studentName.localeCompare(b.studentName, 'ar'); });
     if (dailyClassRecs.length === 0) {
         tDaily.innerHTML = '<tr><td colspan="14">لا توجد درجات مسجلة لهذا الصف اليوم.</td></tr>';
@@ -9119,7 +9246,7 @@ function renderManagerView() {
             var attCnt = 0;
             var recCnt = 0;
             workingDays.forEach(function (wd) {
-                var rec = dailyRecords.find(function (r) { return r.className === currentManagerClass && r.studentName === st && r.dateISO === wd.dateISO; });
+                var rec = dailyRecords.find(function (r) { return r.className === currentManagerClass && r.studentName === st && String(r.dateISO || '').slice(0, 10) === wd.dateISO; });
                 if (rec) {
                     recCnt++;
                     var dScore = getDailyTotal(rec);
@@ -10614,7 +10741,7 @@ function getStudentPortalStats(student) {
     var className = student.className;
     var dailyMax = getDailyMax(className);
     var todayRec = dailyRecords.find(function (r) {
-        return r.className === className && r.studentName === student.name && r.dateISO === today;
+        return r.className === className && r.studentName === student.name && String(r.dateISO || '').slice(0, 10) === today;
     });
     var weekKey = getWeekKey(today);
     var weekRecords = dailyRecords.filter(function (r) {
@@ -10644,7 +10771,7 @@ function getStudentPortalStats(student) {
         var tzoffset = dd.getTimezoneOffset() * 60000;
         var iso = new Date(dd.getTime() - tzoffset).toISOString().slice(0, 10);
         var rec = dailyRecords.find(function (r) {
-            return r.className === className && r.studentName === student.name && r.dateISO === iso;
+            return r.className === className && r.studentName === student.name && String(r.dateISO || '').slice(0, 10) === iso;
         });
         attendanceDays.push({
             iso: iso,
@@ -15114,6 +15241,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script>
 /* تسجيل الدخول عبر Supabase بدل Firebase */
 (function(){
+  if(window.__MAJD_FIREBASE_ACTIVE__)return;
   const APP=window.__MAJD_SUPABASE_APP__, KEY=APP&&APP.TOKEN_KEY;
   if(!APP)return;
   async function auth(action,body){const r=await APP.call(action,body);if(r.token)sessionStorage.setItem(KEY,r.token);return r;}
@@ -15128,6 +15256,22 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!code)return showMessage('student-login-msg','اكتب كود تسجيل الدخول أولاً','error');
     try{const r=await auth('student_login',{code});window.currentStudent=r.user;return window.studentLoginLegacy();}
     catch(e){showMessage('student-login-msg',e.message||'الكود غير صحيح','error');}
+  };
+})();
+</script>
+<script>
+/* وضع Firebase قراءة فقط: إصدار جلسة Supabase للكتابة دون استخدام Firebase للكتابة. */
+(function(){
+  if(!window.__MAJD_FIREBASE_READ_ONLY__ || !window.__MAJD_SUPABASE_APP__) return;
+  var oldLogin=window.handleLogin;
+  window.handleLogin=async function(){
+    var u=(document.getElementById('username')||{}).value||'', p=(document.getElementById('password')||{}).value||'';
+    var result=await oldLogin.apply(this,arguments);
+    try{
+      var r=await window.__MAJD_SUPABASE_APP__.call('login',{username:String(u).trim(),password:String(p).trim()});
+      if(r&&r.token)sessionStorage.setItem(window.__MAJD_SUPABASE_APP__.TOKEN_KEY,r.token);
+    }catch(e){console.warn('Supabase write session unavailable; Firebase remains read-only:',e);}
+    return result;
   };
 })();
 </script>
@@ -16454,6 +16598,7 @@ function refreshWafdeenLogAfterSave_(){
   }
   function normalize(r){
     r=Object.assign({},r||{});
+    try{ if(typeof applyDataMapping==='function') r=applyDataMapping(r); }catch(e){}
     r.id=s(r.id||r.recordId);
     if(!r.id && r.studentId && r.className && r.dateISO && typeof dailyStableRecordId_==='function'){
       try{r.id=dailyStableRecordId_(r.studentId,r.className,String(r.dateISO).slice(0,10));}catch(e){}
@@ -16638,5 +16783,84 @@ function refreshWafdeenLogAfterSave_(){
   }
 
   window.getDailyArchitectureStatus=function(){return DailyArchitectureV2.state();};
+})();
+</script>
+
+<script>
+/* تقرير إجمالي المصروفات: قراءة فقط من الطلاب والمدفوعات الحالية. */
+(function(){
+  'use strict';
+  function teEsc_(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
+  function teMoney_(amount){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}).format(amount)+' جنيه';}
+  function renderTotalExpensesIfOpen_(){
+    var pane=document.getElementById('total-expenses-tab');
+    if(pane&&pane.classList.contains('active')) renderTotalExpenses_();
+  }
+  async function renderTotalExpenses_(){
+    var tbody=document.querySelector('#totalExpensesTable tbody');
+    var status=document.getElementById('total-expenses-status');
+    var grand=document.getElementById('total-expenses-grand-total');
+    if(!tbody||!status||!grand)return;
+    var run=(window.__totalExpensesRenderRun__||0)+1;window.__totalExpensesRenderRun__=run;
+    status.textContent='⏳ جاري تحميل الطلاب والمدفوعات من قاعدة البيانات…';
+    grand.textContent='—';
+    tbody.innerHTML='<tr><td colspan="5">جاري تحميل البيانات…</td></tr>';
+    try{
+      if(!window.db||!window.useFirebase) throw new Error('اتصال قاعدة البيانات السحابية غير متاح. تعذر إنشاء إجمالي موثوق.');
+      var snap=await window.db.collection('payments').get();
+      var payments=[];
+      snap.forEach(function(doc){var row=doc.data()||{};if(!row._deleted)payments.push(Object.assign({},row,{_reportDocId:String(doc.id)}));});
+      var allClasses=(Array.isArray(window.ALL_CLASSES)?window.ALL_CLASSES:[]).filter(function(c){return String(c).trim()&&String(c).trim()!=='الوافدين';});
+      var classRank=new Map(allClasses.map(function(c,i){return [String(c),i];}));
+      var students=(Array.isArray(window.studentsData)?window.studentsData:[]).filter(function(st){return st&&!st._deleted&&String(st.name||'').trim()&&String(st.className||'').trim()!=='الوافدين'&&classRank.has(String(st.className||''));});
+      students.sort(function(a,b){return classRank.get(String(a.className))-classRank.get(String(b.className))||String(a.name||'').localeCompare(String(b.name||''),'ar');});
+      var byId=new Map(), byNameClass=new Map(), nameClassCounts=new Map();
+      students.forEach(function(st){var id=String(st.id||st.studentId||'');if(id)byId.set(id,st);var key=String(st.className||'')+'\u0000'+String(st.name||'').trim();nameClassCounts.set(key,(nameClassCounts.get(key)||0)+1);byNameClass.set(key,st);});
+      var totals=new Map(), seenPayments=new Set(), skippedAmbiguous=0;
+      students.forEach(function(st){totals.set(st,0);});
+      payments.forEach(function(row){
+        var identity=String(row.recordId||row.id||row._reportDocId||'');
+        if(identity&&seenPayments.has(identity))return;
+        if(identity)seenPayments.add(identity);
+        var student=null, paymentStudentId=String(row.studentId||'');
+        if(paymentStudentId){student=byId.get(paymentStudentId)||null;}
+        else {
+          var key=String(row.className||'')+'\u0000'+String(row.studentName||'').trim();
+          if(nameClassCounts.get(key)===1)student=byNameClass.get(key)||null;
+          else if(nameClassCounts.get(key)>1)skippedAmbiguous++;
+        }
+        if(!student||String(student.className||'')==='الوافدين')return;
+        var raw=row.amount;
+        if(raw===null||raw===undefined||String(raw).trim()==='')throw new Error('توجد دفعة بلا مبلغ صالح؛ أوقف التقرير لتجنب عرض إجمالي غير صحيح.');
+        var amount=Number(raw);
+        if(!Number.isFinite(amount)||amount<0)throw new Error('توجد دفعة بمبلغ غير صالح؛ أوقف التقرير لتجنب عرض إجمالي غير صحيح.');
+        totals.set(student,(totals.get(student)||0)+amount);
+      });
+      if(run!==window.__totalExpensesRenderRun__)return;
+      var teachers=Array.isArray(window.teachersData)?window.teachersData:[];
+      var serial=0, generalTotal=0, rows=[];
+      var activeClass='';
+      students.forEach(function(st){
+        var cls=String(st.className||''), amount=totals.get(st)||0;
+        if(cls!==activeClass){activeClass=cls;rows.push('<tr class="total-expenses-class-row"><th colspan="5" style="text-align:right;background:var(--surface-alt);color:var(--primary-dark);border-top:2px solid var(--border-soft-strong);">'+teEsc_(cls)+'</th></tr>');}
+        var assigned=teachers.filter(function(t){return t&&!t._deleted&&String(t.assignedClass||'')===cls&&String(t.username||'').trim().toLowerCase()!=='admin'&&String(t.assignedClass||'')!=='الكل';});
+        var names=Array.from(new Set(assigned.map(function(t){return String(t.name||t.teacherName||t.fullName||t.username||'').trim();}).filter(Boolean)));
+        var sheikh=names.length?names.join('، '):'—';
+        serial++;generalTotal+=amount;
+        rows.push('<tr><td>'+serial+'</td><td style="font-weight:700;">'+teEsc_(st.name)+'</td><td>'+teEsc_(cls)+'</td><td>'+teEsc_(sheikh)+'</td><td style="text-align:right;font-weight:700;white-space:nowrap;">'+teMoney_(amount)+'</td></tr>');
+      });
+      tbody.innerHTML=rows.length?rows.join(''):'<tr><td colspan="5" style="padding:20px;">لا يوجد طلاب عاديون مسجلون في الصفوف المعتمدة.</td></tr>';
+      grand.textContent=teMoney_(generalTotal);
+      status.textContent='تم تحميل '+serial+' طالبًا. مصدر الدفعات: قاعدة البيانات الحالية.'+(skippedAmbiguous?' تعذر ربط '+skippedAmbiguous+' سجل/سجلات قديمة لالتباس الاسم والفصل؛ لم تُحتسب لتجنب إسنادها لطالب خطأ.':'');
+    }catch(error){
+      if(run!==window.__totalExpensesRenderRun__)return;
+      console.error('Total expenses report load failed:',error);
+      tbody.innerHTML='<tr><td colspan="5" style="padding:20px;color:var(--danger-color);">تعذر تحميل التقرير. '+teEsc_(error&&error.message||'تحقق من اتصال قاعدة البيانات ثم أعد المحاولة.')+'</td></tr>';
+      status.textContent='لم تُعرض أرقام تقديرية؛ أعد فتح التقرير بعد استعادة الاتصال.';
+      grand.textContent='غير متاح';
+    }
+  }
+  window.renderTotalExpenses_=renderTotalExpenses_;
+  window.renderTotalExpensesIfOpen_=renderTotalExpensesIfOpen_;
 })();
 </script>
