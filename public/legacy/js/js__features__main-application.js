@@ -2051,6 +2051,11 @@ function exportWafdeenTimeReportExcel(){
 }
 
 function switchTab(tabId, event) {
+    if (window.MajdApp && typeof window.MajdApp.loadFeature === 'function') {
+        Promise.resolve(window.MajdApp.loadFeature(tabId)).catch(function (error) {
+            console.error('[MajdApp] tab feature load failed', tabId, error);
+        });
+    }
     if (tabId === 'localdata-usage-tab') return;
     // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، الأوائل، المصروفات، ومقرر الدفع.
     if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab', 'total-expenses-tab', 'wafdeen-time-tab'].includes(tabId)) {

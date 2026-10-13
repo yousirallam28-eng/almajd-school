@@ -1,9 +1,14 @@
 import { cloudClient } from './api/client.js';
 import * as teachersApi from './api/teachers.api.js';
-
+import * as domainApis from './api/domain.apis.js';
+import { loadFeatureForTab } from './app/router.js';
+import { getAppState } from './app/state.js';
 const app = {
   cloud: cloudClient,
   teachers: teachersApi,
+  domains: domainApis,
+  state: getAppState(),
+  loadFeature: loadFeatureForTab,
   version: 'modular-v1'
 };
 
