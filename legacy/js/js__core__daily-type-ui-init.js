@@ -1,0 +1,8 @@
+/* ===== ./js/core/daily-type-ui-init.js ===== */
+window.addEventListener('DOMContentLoaded', function () { try {
+    markDailyTypeFieldGroups_();
+    selectDailyGradeType('new');
+}
+catch (e) {
+    console.warn('daily type UI init', e);
+} });

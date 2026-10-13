@@ -1,0 +1,7 @@
+/* ===== ./css/22-wafdeen-time-report-style.css ===== */
+
+#wafdeenTimeReportTable{width:100%;border-collapse:collapse;min-width:760px}
+#wafdeenTimeReportTable th,#wafdeenTimeReportTable td{padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);text-align:center;white-space:nowrap}
+#wafdeenTimeReportTable th{font-weight:800;background:rgba(15,61,51,.08)}
+#wafdeenTimeReportTable td:last-child{font-weight:900;color:var(--primary-dark)}
+.wafdeen-time-period-tabs .active{box-shadow:0 5px 14px rgba(0,0,0,.16)}

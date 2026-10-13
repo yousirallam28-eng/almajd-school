@@ -1,0 +1,9 @@
+/* ===== ./css/11-wafdeen-click-fix.css ===== */
+
+#wafdeen-app-screen{position:relative!important;z-index:100!important;pointer-events:auto!important;}
+#wafdeen-app-screen button,#wafdeen-app-screen select,#wafdeen-app-screen input{position:relative;z-index:101;pointer-events:auto!important;}
+#wafdeen-app-screen .wafdeen-panel,#wafdeen-app-screen .wafdeen-monitor-card{position:relative;z-index:2;}
+#wafdeen-menu-overlay{z-index:-1!important;pointer-events:none!important;}
+#wafdeen-menu-overlay.open{z-index:2147483645!important;pointer-events:auto!important;}
+#wafdeen-drawer{z-index:2147483646!important;}
+.wafdeen-type-btn{pointer-events:auto!important;user-select:none;}

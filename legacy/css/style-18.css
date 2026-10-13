@@ -1,0 +1,9 @@
+/* ===== ./css/18-block.css ===== */
+
+/* تثبيت ظهور التنبيه الأحمر للحقول الناقصة بعد أي قواعد لاحقة */
+#wafdeen-daily-scores-panel .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;color:#b71c1c!important;}
+#wafdeen-daily-scores-panel .field-missing-group>label{color:#d32f2f!important;font-weight:900!important;}
+#wafdeen-quran-timer.field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+.daily-field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+#daily-workspace .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;color:#b71c1c!important;}
+#daily-workspace .daily-missing-group>label{color:#d32f2f!important;font-weight:900!important;}

@@ -1,0 +1,12 @@
+/* ===== ./css/05-main-menu-white-text-fix.css ===== */
+
+#main-menu-drawer .tabs .tab-btn,
+#main-menu-drawer .tabs .tab-btn *,
+#main-menu-drawer .reports-submenu .tab-btn,
+#main-menu-drawer .reports-submenu .tab-btn * {
+  color: #ffffff !important;
+}
+#main-menu-drawer .tabs .tab-btn:hover,
+#main-menu-drawer .tabs .tab-btn:hover * {
+  color: #ffffff !important;
+}
