@@ -8893,15 +8893,16 @@ function editTeacher(id) {
                     _a.trys.push([2, 5, , 6]);
                     idx = teachersData.findIndex(function (t) { return t.id.toString() === id.toString(); });
                     localUpdated = __assign(__assign({}, updatedTeacher), { updatedAt: new Date().toISOString() });
+                    if (!localIsAvailable() || !window.MajdLocalDataAPI || typeof window.MajdLocalDataAPI.writeRecord !== 'function' || (typeof window.MajdLocalDataAPI.isAvailable === 'function' && !window.MajdLocalDataAPI.isAvailable()))
+                        throw new Error('اتصال السحابة غير متاح. أعد تسجيل الدخول وحاول مرة أخرى.');
+                    return [4 /*yield*/, window.MajdLocalDataAPI.writeRecord('teachers', id.toString(), localUpdated, { merge: true })];
+                case 3:
+                    _a.sent();
                     if (idx > -1)
                         teachersData[idx] = localUpdated;
                     memoryStorage.setItem('teachersData', JSON.stringify(teachersData));
                     renderTeachersTable();
                     renderClassCards();
-                    if (!localIsAvailable()) return [3 /*break*/, 4];
-                    return [4 /*yield*/, window.MajdLocalDataAPI.collection("teachers").doc(id.toString()).set(localUpdated, { merge: true })];
-                case 3:
-                    _a.sent();
                     _a.label = 4;
                 case 4:
                     showMessage('app-msg', 'تم تعديل بيانات المعلم بنجاح', 'success');
@@ -9097,7 +9098,7 @@ function exportStudentLoginCodes() {
 }
 function addTeacher() {
     return __awaiter(this, void 0, void 0, function () {
-        var u, p, c, cn, canWafdeen, newTeacher;
+        var u, p, c, cn, canWafdeen, newTeacher, saveResult;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -9112,15 +9113,18 @@ function addTeacher() {
                         return [2 /*return*/, showMessage('app-msg', 'يرجى إدخال البيانات كاملة', 'error')];
                     if (teachersData.some(function (t) { return t.username === u; }))
                         return [2 /*return*/, showMessage('app-msg', 'اسم المستخدم موجود مسبقاً', 'error')];
-                    newTeacher = { id: Date.now().toString(), username: u, password: p, assignedClass: c, center: cn, canWafdeen: canWafdeen };
-                    teachersData.push(__assign(__assign({}, newTeacher), { updatedAt: new Date().toISOString() }));
+                    newTeacher = { id: Date.now().toString(), username: u, password: p, assignedClass: c, center: cn, canWafdeen: canWafdeen, updatedAt: new Date().toISOString() };
+                    if (!localIsAvailable() || !window.MajdLocalDataAPI || typeof window.MajdLocalDataAPI.writeRecord !== 'function' || (typeof window.MajdLocalDataAPI.isAvailable === 'function' && !window.MajdLocalDataAPI.isAvailable()))
+                        return [2 /*return*/, showMessage('app-msg', 'اتصال السحابة غير متاح. أعد تسجيل الدخول وحاول مرة أخرى.', 'error')];
+                    return [4 /*yield*/, window.MajdLocalDataAPI.writeRecord('teachers', newTeacher.id, newTeacher, { merge: true }).catch(function (e) { console.error('teacher cloud save error:', e); return null; })];
+                case 1:
+                    saveResult = _a.sent();
+                    if (!saveResult)
+                        return [2 /*return*/, showMessage('app-msg', 'تعذر رفع المعلم إلى السحابة. أعد تسجيل الدخول وحاول مرة أخرى.', 'error')];
+                    teachersData.push(newTeacher);
                     memoryStorage.setItem('teachersData', JSON.stringify(teachersData));
                     renderTeachersTable();
                     renderClassCards();
-                    if (!localIsAvailable()) return [3 /*break*/, 2];
-                    return [4 /*yield*/, window.MajdLocalDataAPI.collection("teachers").doc(newTeacher.id).set(newTeacher, { merge: true })];
-                case 1:
-                    _a.sent();
                     _a.label = 2;
                 case 2:
                     showMessage('app-msg', 'تم إضافة المعلم/المعلمة بنجاح', 'success');
@@ -15178,7 +15182,7 @@ function refreshWafdeenLogAfterSave_(){
   var EDGE_URL = PROJECT_URL + '/functions/v1/majd-api';
   var PUBLIC_EDGE_URL = PROJECT_URL + '/functions/v1/majd-public';
   var BOOKS_URL = PROJECT_URL + '/functions/v1/majd-books';
-  var sessionToken = '';
+  var sessionToken = (function () { try { return sessionStorage.getItem('majdSessionToken') || ''; } catch (_) { return ''; } })();
   var loadGeneration = 0;
   var saveToastTimer = null;
   var REQUEST_TIMEOUT_MS = 20000;
@@ -15476,6 +15480,7 @@ function refreshWafdeenLogAfterSave_(){
   async function doLogin(username, password, mode) {
     var result = await request('login', { username: username, password: password, mode: mode || 'staff' }, '');
     sessionToken = result.token;
+    try { sessionStorage.setItem('majdSessionToken', sessionToken); } catch (_) {}
     if (result.mustChangePassword) await changeInitialPassword(password);
     return result.user;
   }
@@ -15573,7 +15578,7 @@ function refreshWafdeenLogAfterSave_(){
     var ok = await w.siteConfirm('تأكيد تسجيل الخروج', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟', 'تسجيل الخروج', true);
     if (!ok) return;
     loadGeneration++;
-    sessionToken = ''; w.currentTeacher = null; w.currentWafdeenTeacher = null;
+      sessionToken = ''; try { sessionStorage.removeItem('majdSessionToken'); } catch (_) {} w.currentTeacher = null; w.currentWafdeenTeacher = null;
     memoryStorage.removeItem('currentTeacher'); memoryStorage.removeItem('currentWafdeenTeacher');
     w.showLoginScreen();
   };
