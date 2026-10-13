@@ -5058,8 +5058,8 @@ function addTeacher() {
                     canWafdeen = !!document.getElementById('newTeacherWafdeen') && document.getElementById('newTeacherWafdeen').checked;
                     if (!u || !p)
                         return [2 /*return*/, showMessage('app-msg', 'يرجى إدخال البيانات كاملة', 'error')];
-                    if (p.length < 10)
-                        return [2 /*return*/, showMessage('app-msg', 'كلمة المرور يجب ألا تقل عن 10 أحرف حسب إعدادات Supabase.', 'error')];
+                    if (p.length < 1)
+                        return [2 /*return*/, showMessage('app-msg', 'يرجى إدخال كلمة المرور.', 'error')];
                     if (teachersData.some(function (t) { return String(t.username || '').trim().toLocaleLowerCase() === u.toLocaleLowerCase(); }))
                         return [2 /*return*/, showMessage('app-msg', 'اسم المستخدم موجود مسبقاً', 'error')];
                     newTeacher = { id: Date.now().toString(), username: u, password: p, assignedClass: c, center: cn, canWafdeen: canWafdeen, updatedAt: new Date().toISOString() };
@@ -5070,7 +5070,7 @@ function addTeacher() {
                     saveResult = _a.sent();
                     if (saveResult && saveResult.__error) {
                         if (saveResult.__error.message === 'PASSWORD_TOO_SHORT')
-                            return [2 /*return*/, showMessage('app-msg', 'Supabase رفض الحفظ: كلمة المرور يجب ألا تقل عن 10 أحرف.', 'error')];
+                            return [2 /*return*/, showMessage('app-msg', 'Supabase رفض كلمة المرور المدخلة.', 'error')];
                         if (saveResult.__error.message === 'UNAUTHORIZED' || saveResult.__error.message === 'AUTH_EXPIRED')
                             return [2 /*return*/, showMessage('app-msg', 'انتهت جلسة Supabase. سجّل الخروج ثم ادخل بحساب المدير مرة أخرى.', 'error')];
                         if (saveResult.__error.message === 'ACCOUNT_SAVE_FAILED')
