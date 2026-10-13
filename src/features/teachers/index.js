@@ -1,7 +1,10 @@
-import { installTeachersFeature } from './teachers.controller.js';
+import { registerFeature } from '../register.js';
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', installTeachersFeature, { once: true });
-} else {
-  installTeachersFeature();
-}
+// تبقى وظائف المعلمين القديمة هي المسؤولة عن الإضافة والتعديل والحذف
+// إلى أن تكتمل مطابقة طبقة API الجديدة مع جلسة السحابة الحالية.
+registerFeature('teachers', [
+  'addTeacher',
+  'editTeacher',
+  'deleteTeacher',
+  'renderTeachersTable'
+]);
