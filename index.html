@@ -15099,40 +15099,47 @@ function refreshWafdeenLogAfterSave_(){
   var accountCollections = { teachers: true, wafdeenTeachers: true, wafdeenStudents: true };
 
   async function request(op, fields, token) {
-    var headers = { 'Content-Type': 'application/json', 'apikey': PUBLISHABLE_KEY };
-    var t = token === undefined ? sessionToken : token;
-    if (t) headers.Authorization = 'Bearer ' + t;
-    var controller = typeof AbortController === 'function' ? new AbortController() : null;
-    var timeout = controller ? setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS) : null;
-    var response;
+    var isMutation = ['upsert', 'delete', 'bulkUpsert', 'importBatch', 'changePassword'].includes(String(op));
+    var data = fields && fields.data ? fields.data : {};
+    var deletedFlag = data && data._deleted;
+    var isDelete = op === 'delete' || (op === 'upsert' && (deletedFlag === true || deletedFlag === 1 || ['true','1','yes'].includes(String(deletedFlag || '').trim().toLowerCase())));
+    if (isMutation) beginLoadingOperation(isDelete ? 'جارٍ حذف البيانات...' : 'جارٍ حفظ البيانات...');
     try {
-      response = await fetch(EDGE_URL, { method: 'POST', headers: headers, body: JSON.stringify(Object.assign({ op: op }, fields || {})), signal: controller ? controller.signal : undefined });
-    } catch (networkError) {
-      var networkMessage = networkError && networkError.name === 'AbortError' ? 'انتهت مهلة الاتصال بقاعدة البيانات.' : 'تعذر الاتصال بقاعدة البيانات. تحقق من الإنترنت وحاول مرة أخرى.';
-      var connectionError = new Error(networkMessage);
-      connectionError.code = networkError && networkError.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK_ERROR';
-      lastConnectionError = connectionError;
-      throw connectionError;
-    } finally { if (timeout) clearTimeout(timeout); }
-    var payload = {};
-    try { payload = await response.json(); } catch (_) {}
-    if (!response.ok) {
-      var err = new Error(payload.error || ('HTTP_' + response.status));
-      err.status = response.status;
-      if (response.status === 401 || response.status === 403) err.code = 'AUTH_EXPIRED';
-      lastConnectionError = err;
-      throw err;
+      var headers = { 'Content-Type': 'application/json', 'apikey': PUBLISHABLE_KEY };
+      var t = token === undefined ? sessionToken : token;
+      if (t) headers.Authorization = 'Bearer ' + t;
+      var controller = typeof AbortController === 'function' ? new AbortController() : null;
+      var timeout = controller ? setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS) : null;
+      var response;
+      try {
+        response = await fetch(EDGE_URL, { method: 'POST', headers: headers, body: JSON.stringify(Object.assign({ op: op }, fields || {})), signal: controller ? controller.signal : undefined });
+      } catch (networkError) {
+        var networkMessage = networkError && networkError.name === 'AbortError' ? 'انتهت مهلة الاتصال بقاعدة البيانات.' : 'تعذر الاتصال بقاعدة البيانات. تحقق من الإنترنت وحاول مرة أخرى.';
+        var connectionError = new Error(networkMessage);
+        connectionError.code = networkError && networkError.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK_ERROR';
+        lastConnectionError = connectionError;
+        throw connectionError;
+      } finally { if (timeout) clearTimeout(timeout); }
+      var payload = {};
+      try { payload = await response.json(); } catch (_) {}
+      if (!response.ok) {
+        var err = new Error(payload.error || ('HTTP_' + response.status));
+        err.status = response.status;
+        if (response.status === 401 || response.status === 403) err.code = 'AUTH_EXPIRED';
+        lastConnectionError = err;
+        throw err;
+      }
+      lastConnectionError = null;
+      if (op === 'upsert') {
+        var saveAction = payload.saveAction;
+        if (Object.prototype.hasOwnProperty.call(payload, 'saveAction')) delete payload.saveAction;
+        showSavedToast(isDelete ? 'تم الحذف' : (saveAction === 'updated' ? 'تم التعديل' : 'تم الحفظ'));
+      } else if (op === 'bulkUpsert' || op === 'importBatch') showSavedToast('تم الحفظ');
+      else if (op === 'delete') showSavedToast('تم الحذف');
+      return payload;
+    } finally {
+      if (isMutation) endLoadingOperation();
     }
-    lastConnectionError = null;
-    if (op === 'upsert') {
-      var saveAction = payload.saveAction;
-      if (Object.prototype.hasOwnProperty.call(payload, 'saveAction')) delete payload.saveAction;
-      var deletedValue = fields && fields.data ? fields.data._deleted : false;
-      var isSoftDelete = deletedValue === true || deletedValue === 1 || ['true', '1', 'yes'].includes(String(deletedValue || '').trim().toLowerCase());
-      showSavedToast(isSoftDelete ? 'تم الحذف' : (saveAction === 'updated' ? 'تم التعديل' : 'تم الحفظ'));
-    } else if (op === 'bulkUpsert' || op === 'importBatch') showSavedToast('تم الحفظ');
-    else if (op === 'delete') showSavedToast('تم الحذف');
-    return payload;
   }
   async function publicRequest(op, fields) {
     var response;
@@ -15144,12 +15151,18 @@ function refreshWafdeenLogAfterSave_(){
     return payload;
   }
   async function booksRequest(op, fields) {
-    var response = await fetch(BOOKS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': PUBLISHABLE_KEY, 'Authorization': 'Bearer ' + sessionToken }, body: JSON.stringify(Object.assign({ op: op }, fields || {})) });
-    var payload = {}; try { payload = await response.json(); } catch (_) {}
-    if (!response.ok) { var e = new Error(payload.error || ('HTTP_' + response.status)); e.status = response.status; throw e; }
-    if (op === 'finalizeUpload') showSavedToast('تم الحفظ');
-    else if (op === 'delete') showSavedToast('تم الحذف');
-    return payload;
+    var isMutation = op === 'finalizeUpload' || op === 'delete';
+    if (isMutation) beginLoadingOperation(op === 'delete' ? 'جارٍ حذف الكتاب...' : 'جارٍ حفظ الكتاب...');
+    try {
+      var response = await fetch(BOOKS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': PUBLISHABLE_KEY, 'Authorization': 'Bearer ' + sessionToken }, body: JSON.stringify(Object.assign({ op: op }, fields || {})) });
+      var payload = {}; try { payload = await response.json(); } catch (_) {}
+      if (!response.ok) { var e = new Error(payload.error || ('HTTP_' + response.status)); e.status = response.status; throw e; }
+      if (op === 'finalizeUpload') showSavedToast('تم الحفظ');
+      else if (op === 'delete') showSavedToast('تم الحذف');
+      return payload;
+    } finally {
+      if (isMutation) endLoadingOperation();
+    }
   }
   function showSavedToast(message) {
     if (!document || !document.body) return;
@@ -15185,7 +15198,9 @@ function refreshWafdeenLogAfterSave_(){
     }, 1800);
   }
   var loadingCardOverlay = null;
-  function showLoadingCard(message) {
+  var loadingCardPinned = false;
+  var loadingOperationCount = 0;
+  function renderLoadingCard(message) {
     if (!document || !document.body) return;
     if (!document.getElementById('majd-loading-card-style')) {
       var style = document.createElement('style');
@@ -15215,14 +15230,33 @@ function refreshWafdeenLogAfterSave_(){
     if (label) label.textContent = message || 'جارٍ التحميل...';
     loadingCardOverlay.style.display = 'flex';
   }
-  function hideLoadingCard() {
+  function removeLoadingCard() {
     if (loadingCardOverlay) {
       loadingCardOverlay.style.display = 'none';
       if (loadingCardOverlay.parentNode) loadingCardOverlay.parentNode.removeChild(loadingCardOverlay);
       loadingCardOverlay = null;
     }
   }
-
+  function showLoadingCard(message) {
+    loadingCardPinned = true;
+    renderLoadingCard(message);
+  }
+  function hideLoadingCard() {
+    loadingCardPinned = false;
+    if (loadingOperationCount > 0) {
+      if (loadingCardOverlay) loadingCardOverlay.style.display = 'flex';
+      return;
+    }
+    removeLoadingCard();
+  }
+  function beginLoadingOperation(message) {
+    loadingOperationCount++;
+    renderLoadingCard(message);
+  }
+  function endLoadingOperation() {
+    if (loadingOperationCount > 0) loadingOperationCount--;
+    if (loadingOperationCount === 0 && !loadingCardPinned) removeLoadingCard();
+  }
   window.showLoadingCard = showLoadingCard;
   window.hideLoadingCard = hideLoadingCard;
   function localMatches(record, filters) {
@@ -15395,7 +15429,22 @@ function refreshWafdeenLogAfterSave_(){
     findWafdeenRecord: async function (id) { id = String(id); var ref = { id: id, update: function (patch) { return w.MajdLocalDataAPI.writeRecord('wafdeenDailyRecords', id, patch, { merge: true }); }, get: async function () { var r = await w.MajdLocalDataAPI.readRecord('wafdeenDailyRecords', id); return { id: id, exists: !!r, data: function () { return r; } }; }, delete: function () { return w.MajdLocalDataAPI.deleteRecord('wafdeenDailyRecords', id); } }; var rec = await w.MajdLocalDataAPI.readRecord('wafdeenDailyRecords', id); return rec ? ref : null; },
     saveWafdeenUsage: async function (record) { return w.MajdLocalDataAPI.writeRecord('wafdeenUsage', record.id, record, { merge: true }); },
     loadWafdeen: hydrateWafdeen,
-    loadBooks: async function () { var r = await booksRequest('list'); return r.books || []; }, uploadBook: async function (file, title, level, subject, onProgress) { if (!file || file.size > 25 * 1024 * 1024 || !/\.pdf$/i.test(file.name || '')) throw new Error('اختر ملف PDF حجمه 25 ميجابايت أو أقل.'); if (!sessionToken) throw new Error('UNAUTHORIZED'); var meta = { title: title, level: Number(level), subject: subject, fileName: file.name }; var p = await booksRequest('prepareUpload', meta); if (onProgress) onProgress(20); var up = await fetch(p.uploadUrl, { method: 'PUT', headers: { 'apikey': PUBLISHABLE_KEY, 'Content-Type': 'application/pdf', 'x-upsert': 'false' }, body: file }); if (!up.ok) throw new Error('STORAGE_UPLOAD_FAILED_' + up.status); if (onProgress) onProgress(80); var done = await booksRequest('finalizeUpload', { id: p.id, storagePath: p.storagePath, title: meta.title, level: meta.level, subject: meta.subject, fileName: meta.fileName }); if (onProgress) onProgress(100); return done.book; }, deleteBookFromDrive: async function (id) { await booksRequest('delete', { id: String(id) }); return true; },
+    loadBooks: async function () { var r = await booksRequest('list'); return r.books || []; }, uploadBook: async function (file, title, level, subject, onProgress) {
+      if (!file || file.size > 25 * 1024 * 1024 || !/\.pdf$/i.test(file.name || '')) throw new Error('اختر ملف PDF حجمه 25 ميجابايت أو أقل.');
+      if (!sessionToken) throw new Error('UNAUTHORIZED');
+      beginLoadingOperation('جارٍ رفع الكتاب...');
+      try {
+        var meta = { title: title, level: Number(level), subject: subject, fileName: file.name };
+        var p = await booksRequest('prepareUpload', meta);
+        if (onProgress) onProgress(20);
+        var up = await fetch(p.uploadUrl, { method: 'PUT', headers: { 'apikey': PUBLISHABLE_KEY, 'Content-Type': 'application/pdf', 'x-upsert': 'false' }, body: file });
+        if (!up.ok) throw new Error('STORAGE_UPLOAD_FAILED_' + up.status);
+        if (onProgress) onProgress(80);
+        var done = await booksRequest('finalizeUpload', { id: p.id, storagePath: p.storagePath, title: meta.title, level: meta.level, subject: meta.subject, fileName: meta.fileName });
+        if (onProgress) onProgress(100);
+        return done.book;
+      } finally { endLoadingOperation(); }
+    }, deleteBookFromDrive: async function (id) { await booksRequest('delete', { id: String(id) }); return true; },
     getWafdeenMonthlyReports: async function () { return readAll('wafdeenMonthlyReports'); }
   };
   w.localdataWriteRecord_ = async function (c, id, data, options) { return w.MajdLocalDataAPI.writeRecord(c, id, data, options); };
