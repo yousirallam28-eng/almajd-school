@@ -2931,9 +2931,6 @@ function handleImgError(el, isWatermark) {
 <button class="action-btn student-login-link-btn modern-quick-btn" onclick="showStudentLoginScreen()" style="height: 44px;" type="button">
     👩‍🎓 تسجيل دخول الطالب
   </button>
-<button class="action-btn install-app-btn" id="loginInstallAppBtn" onclick="installSiteApp()" style="height: 44px; margin-top: 10px;" type="button">
-    📲 تثبيت الموقع على الهاتف
-  </button>
 </div>
 <!-- ================= جلسة الوافدين ================= -->
 <!-- شاشة عرض النتيجة بالكود (بدون تسجيل دخول) -->
@@ -3048,8 +3045,6 @@ function handleImgError(el, isWatermark) {
 <button class="tab-btn" id="total-expenses-tab-btn" onclick="switchTab('total-expenses-tab', event)" type="button">📊 إجمالي المصاريف</button>
 </div>
 </div>
-<button class="tab-btn install-app-btn" id="installAppBtn" onclick="installSiteApp()" type="button">📲 تثبيت الموقع كتطبيق</button>
-<button class="tab-btn hidden" id="backup-tab-btn" onclick="switchTab('backup-tab', event)" style="background-color: var(--primary-dark); color: white;" type="button">💾 النسخة الاحتياطية</button>
 </div>
 </aside>
 <main class="content-area">
@@ -5450,7 +5445,6 @@ function showAppScreen() {
     var visibleDailyClass = document.getElementById('dailyClassSelect');
     var adminBtn = document.getElementById('admin-tab-btn');
     var localdataUsageBtn = null; // تبويب مراقبة الخدمات الخارجية معطل.
-    var backupBtn = document.getElementById('backup-tab-btn');
     var managerBtn = document.getElementById('manager-tab-btn');
     var weeklyBtn = document.getElementById('weekly-tab-btn');
     var reportsBtn = document.getElementById('reports-tab-btn');
@@ -5536,7 +5530,6 @@ function showAppScreen() {
         document.getElementById('total-expenses-tab-btn')?.classList.toggle('hidden', !isAdminUser);
         document.getElementById('expenses-menu-wrap')?.classList.toggle('hidden', !isAdminUser);
         (_p = document.getElementById('analysis-tab-btn')) === null || _p === void 0 ? void 0 : _p.classList.remove('hidden');
-        backupBtn.classList.remove('hidden');
         managerBtn.classList.remove('hidden');
         document.getElementById('top-students-tab-btn').classList.remove('hidden');
         weeklyBtn.classList.remove('hidden');
@@ -5572,7 +5565,6 @@ function showAppScreen() {
         document.getElementById('payments-entry-tab-btn')?.classList.add('hidden');
         document.getElementById('payment-report-tab-btn')?.classList.add('hidden');
         document.getElementById('total-expenses-tab-btn')?.classList.add('hidden');
-        backupBtn.classList.add('hidden');
         managerBtn.classList.add('hidden');
         weeklyBtn.classList.add('hidden');
         reportsBtn.classList.add('hidden');
