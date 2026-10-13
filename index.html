@@ -3039,7 +3039,7 @@ function handleImgError(el, isWatermark) {
 <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ لوحة الإدارة</button>
 
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
-<div class="reports-menu-wrap" id="expenses-menu-wrap">
+<div class="reports-menu-wrap hidden" id="expenses-menu-wrap">
 <button class="tab-btn reports-toggle" id="payments-tab-btn" onclick="toggleExpensesMenu(event)" type="button" style="background-color:#0d9488;color:white;">💰 المصاريف <span class="reports-chevron">⌄</span></button>
 <div class="reports-submenu" id="expenses-submenu">
 <button class="tab-btn" id="payments-entry-tab-btn" onclick="switchTab('payments-tab', event)" type="button">💰 تسجيل المصاريف</button>
@@ -5529,10 +5529,11 @@ function showAppScreen() {
     applyDailyDateEditPermission_();
     if (isManager) {
         adminBtn.classList.remove('hidden');
-        (_m = document.getElementById('payments-tab-btn')) === null || _m === void 0 ? void 0 : _m.classList.remove('hidden');
-        document.getElementById('payments-entry-tab-btn')?.classList.remove('hidden');
-        (_o = document.getElementById('payment-report-tab-btn')) === null || _o === void 0 ? void 0 : _o.classList.remove('hidden');
+        (_m = document.getElementById('payments-tab-btn')) === null || _m === void 0 ? void 0 : _m.classList.toggle('hidden', !isAdminUser);
+        document.getElementById('payments-entry-tab-btn')?.classList.toggle('hidden', !isAdminUser);
+        (_o = document.getElementById('payment-report-tab-btn')) === null || _o === void 0 ? void 0 : _o.classList.toggle('hidden', !isAdminUser);
         document.getElementById('total-expenses-tab-btn')?.classList.toggle('hidden', !isAdminUser);
+        document.getElementById('expenses-menu-wrap')?.classList.toggle('hidden', !isAdminUser);
         (_p = document.getElementById('analysis-tab-btn')) === null || _p === void 0 ? void 0 : _p.classList.remove('hidden');
         backupBtn.classList.remove('hidden');
         managerBtn.classList.remove('hidden');
@@ -5566,16 +5567,16 @@ function showAppScreen() {
         if (visibleDailyClass_2)
             visibleDailyClass_2.disabled = !teacherCanAccessWafdeen_(currentTeacher);
         adminBtn.classList.add('hidden');
-        (_q = document.getElementById('payments-tab-btn')) === null || _q === void 0 ? void 0 : _q.classList.remove('hidden');
-        document.getElementById('payments-entry-tab-btn')?.classList.remove('hidden');
-        document.getElementById('payment-report-tab-btn')?.classList.remove('hidden');
+        (_q = document.getElementById('payments-tab-btn')) === null || _q === void 0 ? void 0 : _q.classList.add('hidden');
+        document.getElementById('payments-entry-tab-btn')?.classList.add('hidden');
+        document.getElementById('payment-report-tab-btn')?.classList.add('hidden');
         document.getElementById('total-expenses-tab-btn')?.classList.add('hidden');
         backupBtn.classList.add('hidden');
         managerBtn.classList.add('hidden');
         weeklyBtn.classList.add('hidden');
         reportsBtn.classList.add('hidden');
         reportsMenuWrap.classList.add('hidden');
-        document.getElementById('expenses-menu-wrap')?.classList.remove('hidden');
+        document.getElementById('expenses-menu-wrap')?.classList.add('hidden');
         attendanceBtn.classList.add('hidden');
         statusBtn.classList.add('hidden');
         dailyExportBtn.classList.add('hidden');
