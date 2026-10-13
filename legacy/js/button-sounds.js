@@ -44,16 +44,20 @@
     if (now - lastPlayedAt < 45) return;
     lastPlayedAt = now;
     if (kind === 'success') {
-      tone(523.25, 0.11, 'sine', 0.045, 0);
-      tone(659.25, 0.16, 'sine', 0.04, 0.09);
+      tone(523.25, 0.20, 'sine', 0.034, 0);
+      tone(659.25, 0.22, 'sine', 0.032, 0.10);
+      tone(783.99, 0.28, 'sine', 0.034, 0.21);
+      tone(1046.5, 0.20, 'sine', 0.32, 0.32);
     } else if (kind === 'error') {
-      tone(220, 0.16, 'triangle', 0.04, 0);
-      tone(174.61, 0.18, 'triangle', 0.035, 0.12);
+      tone(293.66, 0.25, 'sine', 0.028, 0);
+      tone(233.08, 0.28, 'sine', 0.026, 0.08);
+      tone(174.61, 0.24, 'sine', 0.025, 0.21);
     } else if (kind === 'warning') {
-      tone(392, 0.1, 'sine', 0.035, 0);
-      tone(329.63, 0.12, 'sine', 0.03, 0.1);
+      tone(493.88, 0.18, 'sine', 0.03, 0);
+      tone(392, 0.21, 'sine', 0.028, 0.16);
+      tone(329.63, 0.16, 'sine', 0.022, 0.28);
     } else {
-      tone(440, 0.055, 'sine', 0.025, 0);
+      tone(660, 0.10, 'sine', 0.022, 0);
     }
   }
 
