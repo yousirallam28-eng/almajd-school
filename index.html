@@ -4364,6 +4364,7 @@ function savePaymentRecord() {
                     if (saveBtn && saveBtn.disabled) return [2 /*return*/];
                     oldButtonText = saveBtn ? saveBtn.textContent : '';
                     if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ جارٍ حفظ المصروف...'; }
+                    if (window.showLoadingCard) window.showLoadingCard('جارٍ حفظ بيانات المصروف...');
                     id = paymentRecordId_(studentId, studentName, month);
                     _a.label = 1;
                 case 1:
@@ -4389,6 +4390,7 @@ function savePaymentRecord() {
                     return [3 /*break*/, 6];
                 case 5:
                     if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = oldButtonText || '💾 تسجيل المصروف'; }
+                    if (window.hideLoadingCard) window.hideLoadingCard();
                     return [7 /*endfinally*/];
                 case 6: return [2 /*return*/];
             }
@@ -4504,88 +4506,66 @@ function getPaymentByRecordId_(recordId) {
     });
 }
 function editPaymentRecord(recordId) {
-    return __awaiter(this, void 0, void 0, function () {
-        var row, amountRaw, dateRaw, paidDate, updated, ok;
-        var _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0: return [4 /*yield*/, getPaymentByRecordId_(recordId)];
-                case 1:
-                    row = _b.sent();
-                    if (!row)
-                        return [2 /*return*/, showMessage('payment-report-msg', 'تعذر العثور على الدفعة.', 'error')];
-                    amountRaw = prompt('اكتب المبلغ الجديد:', String((_a = row.amount) !== null && _a !== void 0 ? _a : ''));
-                    if (amountRaw === null)
-                        return [2 /*return*/];
-                    if (!/^\\d+$/.test(String(amountRaw).trim())) {
-                        return [2 /*return*/, showMessage('payment-report-msg', 'المبلغ يجب أن يكون أرقامًا فقط.', 'error')];
-                    }
-                    dateRaw = prompt('اكتب تاريخ الدفع (مثال: 2026-09-15):', String(row.paidDate || ''));
-                    if (dateRaw === null)
-                        return [2 /*return*/];
-                    paidDate = String(dateRaw).trim();
-                    if (paidDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(paidDate)) {
-                        return [2 /*return*/, showMessage('payment-report-msg', 'صيغة التاريخ يجب أن تكون YYYY-MM-DD.', 'error')];
-                    }
-                    updated = __assign(__assign({}, row), { amount: Number(String(amountRaw).trim()), paidDate: paidDate || row.paidDate || '', recordId: String(recordId) });
-                    upsertLocalPayment_(updated);
-                    return [4 /*yield*/, window.MajdLocalDataAPI.savePaymentAction('updatePayment', String(recordId), updated)];
-                case 2:
-                    ok = _b.sent();
-                    if (ok)
-                        showMessage('payment-report-msg', 'تم تعديل الدفعة في localdata بنجاح ✅', 'success');
-                    else
-                        showMessage('payment-report-msg', 'تم تعديل الدفعة وحفظها في localdata.', 'info');
-                    return [4 /*yield*/, renderPaymentReportTable()];
-                case 3:
-                    _b.sent();
-                    updatePaymentsStudentPaidMonths();
-                    return [2 /*return*/];
-            }
-        });
-    });
+    return (async function () {
+        var row = null;
+        if (window.showLoadingCard) window.showLoadingCard('جارٍ تحميل بيانات المصروف...');
+        try { row = await getPaymentByRecordId_(recordId); }
+        catch (err) { console.error('payment edit lookup error:', err); }
+        finally { if (window.hideLoadingCard) window.hideLoadingCard(); }
+        if (!row) return showMessage('payment-report-msg', 'تعذر العثور على الدفعة.', 'error');
+
+        var amountRaw = prompt('اكتب المبلغ الجديد:', String(row.amount == null ? '' : row.amount));
+        if (amountRaw === null) return;
+        if (!/^\d+$/.test(String(amountRaw).trim())) return showMessage('payment-report-msg', 'المبلغ يجب أن يكون أرقامًا فقط.', 'error');
+        var dateRaw = prompt('اكتب تاريخ الدفع (مثال: 2026-09-15):', String(row.paidDate || ''));
+        if (dateRaw === null) return;
+        var paidDate = String(dateRaw).trim();
+        if (paidDate && !/^\d{4}-\d{2}-\d{2}$/.test(paidDate)) return showMessage('payment-report-msg', 'صيغة التاريخ يجب أن تكون YYYY-MM-DD.', 'error');
+
+        var updated = Object.assign({}, row, { amount: Number(String(amountRaw).trim()), paidDate: paidDate || row.paidDate || '', recordId: String(recordId) });
+        if (window.showLoadingCard) window.showLoadingCard('جارٍ حفظ تعديل المصروف...');
+        try {
+            var result = await window.MajdLocalDataAPI.savePaymentAction('updatePayment', String(recordId), updated);
+            if (!result) throw new Error('لم يؤكد الخادم حفظ التعديل.');
+            upsertLocalPayment_(updated);
+            showMessage('payment-report-msg', 'تم تعديل الدفعة في قاعدة البيانات ✅', 'success');
+        } catch (err) {
+            console.error('payment edit error:', err);
+            showMessage('payment-report-msg', 'تعذر تعديل الدفعة: ' + String((err && err.message) || err), 'error');
+        } finally {
+            if (window.hideLoadingCard) window.hideLoadingCard();
+        }
+        await renderPaymentReportTable();
+        updatePaymentsStudentPaidMonths();
+    })();
 }
 function deletePaymentRecord(recordId) {
-    return __awaiter(this, void 0, void 0, function () {
-        var id, row, result, e_22;
-        var _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    id = String(recordId || '').trim();
-                    if (!id)
-                        return [2 /*return*/, showMessage('payment-report-msg', 'معرف الدفعة غير موجود.', 'error')];
-                    return [4 /*yield*/, getPaymentByRecordId_(id)];
-                case 1:
-                    row = _b.sent();
-                    if (!row)
-                        return [2 /*return*/, showMessage('payment-report-msg', 'تعذر العثور على الدفعة.', 'error')];
-                    if (!confirm("\u0647\u0644 \u062A\u0631\u064A\u062F \u0645\u0633\u062D \u062F\u0641\u0639\u0629 \u0634\u0647\u0631 ".concat(row.month || '', " \u0628\u0645\u0628\u0644\u063A ").concat((_a = row.amount) !== null && _a !== void 0 ? _a : '', "\u061F\n\u0633\u064A\u062A\u0645 \u062D\u0630\u0641\u0647\u0627 \u0646\u0647\u0627\u0626\u064A\u064B\u0627 \u0645\u0646 localdata.")))
-                        return [2 /*return*/];
-                    _b.label = 2;
-                case 2:
-                    _b.trys.push([2, 4, , 5]);
-                    return [4 /*yield*/, window.MajdLocalDataAPI.deletePayment(id)];
-                case 3:
-                    result = _b.sent();
-                    if (!(result === null || result === void 0 ? void 0 : result.deleted))
-                        throw new Error('لم يتم تأكيد حذف الدفعة');
-                    removeLocalPayment_(id);
-                    showMessage('payment-report-msg', 'تم حذف الدفعة من قاعدة البيانات ✅', 'success');
-                    return [3 /*break*/, 5];
-                case 4:
-                    e_22 = _b.sent();
-                    console.error('localdata payment delete error:', e_22);
-                    showMessage('payment-report-msg', 'تعذر المسح من localdata: ' + String((e_22 === null || e_22 === void 0 ? void 0 : e_22.message) || e_22), 'error');
-                    return [3 /*break*/, 5];
-                case 5: return [4 /*yield*/, renderPaymentReportTable()];
-                case 6:
-                    _b.sent();
-                    updatePaymentsStudentPaidMonths();
-                    return [2 /*return*/];
-            }
-        });
-    });
+    return (async function () {
+        var id = String(recordId || '').trim();
+        if (!id) return showMessage('payment-report-msg', 'معرف الدفعة غير موجود.', 'error');
+        var row = null;
+        if (window.showLoadingCard) window.showLoadingCard('جارٍ تحميل بيانات المصروف...');
+        try { row = await getPaymentByRecordId_(id); }
+        catch (err) { console.error('payment delete lookup error:', err); }
+        finally { if (window.hideLoadingCard) window.hideLoadingCard(); }
+        if (!row) return showMessage('payment-report-msg', 'تعذر العثور على الدفعة.', 'error');
+        var confirmText = 'هل تريد مسح دفعة شهر ' + String(row.month || '') + ' بمبلغ ' + String(row.amount == null ? '' : row.amount) + '؟\nسيتم حذفها نهائيًا من قاعدة البيانات.';
+        if (!confirm(confirmText)) return;
+        if (window.showLoadingCard) window.showLoadingCard('جارٍ حذف المصروف...');
+        try {
+            var result = await window.MajdLocalDataAPI.deletePayment(id);
+            if (!result || !result.deleted) throw new Error('لم يتم تأكيد حذف الدفعة.');
+            removeLocalPayment_(id);
+            showMessage('payment-report-msg', 'تم حذف الدفعة من قاعدة البيانات ✅', 'success');
+        } catch (err) {
+            console.error('payment delete error:', err);
+            showMessage('payment-report-msg', 'تعذر حذف الدفعة: ' + String((err && err.message) || err), 'error');
+        } finally {
+            if (window.hideLoadingCard) window.hideLoadingCard();
+        }
+        await renderPaymentReportTable();
+        updatePaymentsStudentPaidMonths();
+    })();
 }
 // حماية الواجهة من أخطاء JavaScript غير المتوقعة: لا تمنع حفظ البيانات المحلية.
 window.addEventListener('error', function (e) { return console.error('Global JS error:', e.error || e.message); });
@@ -15243,6 +15223,8 @@ function refreshWafdeenLogAfterSave_(){
     }
   }
 
+  window.showLoadingCard = showLoadingCard;
+  window.hideLoadingCard = hideLoadingCard;
   function localMatches(record, filters) {
     return (filters || []).every(function (f) {
       var value = String(f.field || '').split('.').reduce(function (v, k) { return v == null ? undefined : v[k]; }, record);
