@@ -3041,7 +3041,14 @@ function handleImgError(el, isWatermark) {
 <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ لوحة الإدارة</button>
 
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
-<button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصاريف</button>
+<div class="reports-menu-wrap hidden" id="expenses-menu-wrap">
+<button class="tab-btn reports-toggle" id="payments-tab-btn" onclick="toggleExpensesMenu(event)" type="button" style="background-color:#0d9488;color:white;">💰 المصاريف <span class="reports-chevron">⌄</span></button>
+<div class="reports-submenu" id="expenses-submenu">
+<button class="tab-btn" id="payments-entry-tab-btn" onclick="switchTab('payments-tab', event)" type="button">💰 تسجيل المصاريف</button>
+<button class="tab-btn" id="payment-report-tab-btn" onclick="switchTab('payment-report-tab', event)" type="button">🧾 مقرر المصاريف</button>
+<button class="tab-btn" id="total-expenses-tab-btn" onclick="switchTab('total-expenses-tab', event)" type="button">📊 إجمالي المصاريف</button>
+</div>
+</div>
 <button class="tab-btn hidden" id="analysis-tab-btn" onclick="openStudentDataAnalysis(); closeMainMenu()" type="button">📈 تحليل البيانات</button>
 <button class="tab-btn install-app-btn" id="installAppBtn" onclick="installSiteApp()" type="button">📲 تثبيت الموقع كتطبيق</button>
 <button class="tab-btn hidden" id="backup-tab-btn" onclick="switchTab('backup-tab', event)" style="background-color: var(--primary-dark); color: white;" type="button">💾 النسخة الاحتياطية</button>
@@ -3663,9 +3670,10 @@ function handleImgError(el, isWatermark) {
 </div>
 <div class="toast-msg" id="payments-msg"></div>
 </div>
+</div>
 
 <!-- قسم إجمالي المصاريف (قراءة فقط) -->
-<div class="expense-subsection hidden" id="total-expenses-tab">
+<div class="tab-content" id="total-expenses-tab">
   <div class="card-view">
     <h3 class="card-title">💰 إجمالي المصاريف</h3>
     <p style="font-size:.9em;color:#666;margin-top:-6px;">إجمالي الدفعات المسجلة لكل طالب من سجلات قاعدة البيانات، مع استبعاد فصل الوافدين.</p>
@@ -3683,7 +3691,7 @@ function handleImgError(el, isWatermark) {
   </div>
 </div>
 <!-- قسم مقرر المصاريف -->
-<div class="expense-subsection" id="payment-report-tab">
+<div class="tab-content" id="payment-report-tab">
 <div class="card-view">
 <h3 class="card-title">🧾 مقرر المصاريف</h3>
 <p style="font-size:.9em;color:#666;margin-top:-6px;">
@@ -3709,7 +3717,6 @@ function handleImgError(el, isWatermark) {
 </thead>
 <tbody></tbody>
 </table>
-</div>
 </div>
 </div>
 </div>
@@ -5472,6 +5479,7 @@ function showAppScreen() {
         (_c = document.getElementById('notes-tab-btn')) === null || _c === void 0 ? void 0 : _c.classList.remove('hidden');
         (_d = document.getElementById('top-students-tab-btn')) === null || _d === void 0 ? void 0 : _d.classList.remove('hidden');
         (_e = document.getElementById('payments-tab-btn')) === null || _e === void 0 ? void 0 : _e.classList.remove('hidden');
+        document.getElementById('payments-entry-tab-btn')?.classList.remove('hidden');
         (_f = document.getElementById('payment-report-tab-btn')) === null || _f === void 0 ? void 0 : _f.classList.remove('hidden');
         document.getElementById('total-expenses-tab-btn')?.classList.remove('hidden');
         reportsMenuWrap.classList.add('hidden');
@@ -5523,6 +5531,7 @@ function showAppScreen() {
     if (isManager) {
         adminBtn.classList.remove('hidden');
         (_m = document.getElementById('payments-tab-btn')) === null || _m === void 0 ? void 0 : _m.classList.remove('hidden');
+        document.getElementById('payments-entry-tab-btn')?.classList.remove('hidden');
         (_o = document.getElementById('payment-report-tab-btn')) === null || _o === void 0 ? void 0 : _o.classList.remove('hidden');
         document.getElementById('total-expenses-tab-btn')?.classList.toggle('hidden', !isAdminUser);
         (_p = document.getElementById('analysis-tab-btn')) === null || _p === void 0 ? void 0 : _p.classList.remove('hidden');
@@ -5559,6 +5568,7 @@ function showAppScreen() {
             visibleDailyClass_2.disabled = !teacherCanAccessWafdeen_(currentTeacher);
         adminBtn.classList.add('hidden');
         (_q = document.getElementById('payments-tab-btn')) === null || _q === void 0 ? void 0 : _q.classList.add('hidden');
+        document.getElementById('payments-entry-tab-btn')?.classList.add('hidden');
         (_r = document.getElementById('payment-report-tab-btn')) === null || _r === void 0 ? void 0 : _r.classList.add('hidden');
         document.getElementById('total-expenses-tab-btn')?.classList.add('hidden');
         backupBtn.classList.add('hidden');
@@ -5605,6 +5615,12 @@ function toggleReportsMenu(event) {
     event.stopPropagation();
     var wrap = document.getElementById('reports-menu-wrap');
     wrap.classList.toggle('open');
+}
+function toggleExpensesMenu(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    var wrap = document.getElementById('expenses-menu-wrap');
+    if (wrap) wrap.classList.toggle('open');
 }
 function relocateMainMenuToBody() {
     var ids = ['menu-overlay', 'main-menu-handle', 'main-menu-drawer'];
@@ -6097,6 +6113,10 @@ function switchTab(tabId, event) {
         document.getElementById('reports-menu-wrap').classList.add('open');
         document.getElementById('reports-main-btn').classList.add('active');
     }
+    if (tabId === 'payments-tab' || tabId === 'payment-report-tab' || tabId === 'total-expenses-tab') {
+        document.getElementById('expenses-menu-wrap')?.classList.add('open');
+        document.getElementById('payments-tab-btn')?.classList.add('active');
+    }
     closeMainMenu();
     if (tabId === 'attendance-tab')
         renderAttendanceTable();
@@ -6130,9 +6150,6 @@ function switchTab(tabId, event) {
     else if (tabId === 'payments-tab') {
         populatePaymentsClasses();
         updatePaymentsStudentList();
-        populatePaymentReportClasses();
-        updatePaymentReportStudentList();
-        renderTotalExpenses_();
     }
     else if (tabId === 'payment-report-tab') {
         populatePaymentReportClasses();
