@@ -613,6 +613,13 @@ body.supervisor-mode #notes-tab .notes-supervisor-readonly{display:block!importa
 body.supervisor-mode #notes-tab #notesExportBtn{display:none!important}
 
 /* ================= قوائم جانبية وتبويب التقارير ================= */
+/* ترتيب القائمة الجانبية: الرصد، التسجيل السريع، الحالة، التسجيلات، التقارير، المصاريف، الإدارة */
+#main-menu-drawer .tabs > #quick-registration-tab-btn{order:1}
+#main-menu-drawer .tabs > #status-tab-btn{order:2}
+#main-menu-drawer .tabs > #sheikh-recordings-menu-wrap{order:3}
+#main-menu-drawer .tabs > #reports-menu-wrap{order:4}
+#main-menu-drawer .tabs > #expenses-menu-wrap{order:5}
+#main-menu-drawer .tabs > #admin-tab-btn{order:6}
 .reports-menu-wrap { width:100%; }
 .reports-toggle { position:relative; }
 .reports-toggle .reports-chevron { margin-right:auto; transition:transform .25s ease; }
@@ -3019,10 +3026,10 @@ function handleImgError(el, isWatermark) {
 <div class="menu-drawer-line"></div>
 <div class="tabs">
 <button class="tab-btn active" onclick="switchTab('daily-tab', event)" type="button">📝 الرصد اليومي</button>
-<button class="tab-btn hidden" id="status-tab-btn" onclick="switchTab('status-tab', event)" type="button">🔍 حالة إنجاز الرصد</button>
+<button class="tab-btn hidden" id="status-tab-btn" onclick="switchTab('status-tab', event)" type="button">🔍 حالة الرصد</button>
 <div class="reports-menu-wrap hidden" id="reports-menu-wrap">
 <button class="tab-btn reports-toggle" id="reports-main-btn" onclick="toggleReportsMenu(event)" type="button">
-            📊 التقريرات <span class="reports-chevron">⌄</span>
+            📊 التقارير <span class="reports-chevron">⌄</span>
 </button>
 <div class="reports-submenu" id="reports-submenu">
 <button class="tab-btn" id="weekly-tab-btn" onclick="switchTab('weekly-tab', event)" type="button">📊 التقرير الأسبوعي</button>
