@@ -599,7 +599,7 @@ tr:hover { background-color: rgba(212, 175, 55, 0.10) !important; }
 .sidebar-nav .tabs{display:flex;flex-direction:column;gap:8px}.sidebar-nav .tab-btn{position:relative;overflow:hidden;min-height:48px;padding:12px 14px;border-radius:14px;background:rgba(18,30,26,.78);border-color:rgba(212,175,55,.16);box-shadow:0 4px 12px rgba(0,0,0,.16);transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}.sidebar-nav .tab-btn::after{content:"";position:absolute;top:0;bottom:0;right:0;width:3px;background:var(--accent-gold);transform:scaleY(0);transition:transform .2s ease}.sidebar-nav .tab-btn:hover{transform:translateX(-3px);background:rgba(27,50,42,.94);border-color:rgba(212,175,55,.42)}.sidebar-nav .tab-btn.active{background:linear-gradient(120deg,rgba(18,144,120,.96),rgba(6,61,51,.98));border-color:var(--accent-gold);box-shadow:0 8px 18px rgba(0,0,0,.24)}.sidebar-nav .tab-btn.active::after{transform:scaleY(1)}
 /* المشرف يرى زر حالة الإنجاز فقط */
 body.supervisor-mode .sidebar-nav .tab-btn{display:none!important}
-body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #reports-main-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payments-entry-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn,body.supervisor-mode .sidebar-nav #total-expenses-tab-btn{display:flex!important}
+body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #wafdeen-time-tab-btn,body.supervisor-mode .sidebar-nav #reports-main-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #sheikh-recordings-menu-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payments-entry-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn,body.supervisor-mode .sidebar-nav #total-expenses-tab-btn{display:flex!important}
 @media(max-width:850px){.main-menu-handle{top:10px!important;right:10px!important;height:48px;min-width:48px;padding:0 13px;border-radius:16px}.menu-handle-text{font-size:.78em}.sidebar-nav{top:8px;right:8px;height:calc(100dvh - 16px);width:min(340px,calc(100vw - 16px));border-radius:24px}.main-menu-handle.open{right:10px!important}}
 @media(max-width:430px){.menu-handle-text{display:none}.main-menu-handle{width:48px;padding:0}.sidebar-nav{width:calc(100vw - 12px);right:6px;top:6px;height:calc(100dvh - 12px);border-radius:22px}}
 
@@ -2812,7 +2812,8 @@ body.sharia-teacher #attendance-tab-btn,
 body.sharia-teacher #reports-menu-wrap,
 body.sharia-teacher #top-students-tab-btn,
 body.sharia-teacher #notes-tab-btn,
-body.sharia-teacher #wafdeen-time-tab-btn { display:none!important; }
+body.sharia-teacher #wafdeen-time-tab-btn,
+body.sharia-teacher #sheikh-recordings-menu-wrap { display:none!important; }
 
 </style>
 <style data-inlined-from="./css/24-sharia-simple-daily-style.css" id="sharia-simple-daily-style">
@@ -3032,11 +3033,16 @@ function handleImgError(el, isWatermark) {
 <button class="tab-btn hidden" id="analysis-tab-btn" onclick="openStudentDataAnalysis(); closeMainMenu()" type="button">📈 تحليل البيانات</button>
 </div>
 </div>
-<button class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)" type="button">🗒️ الملاحظات</button>
+<div class="reports-menu-wrap hidden" id="sheikh-recordings-menu-wrap">
+<button class="tab-btn reports-toggle" id="sheikh-recordings-menu-btn" onclick="toggleSheikhRecordingsMenu(event)" type="button">📋 تسجيلات الشيوخ <span class="reports-chevron">⌄</span></button>
+<div class="reports-submenu" id="sheikh-recordings-submenu">
+<button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" type="button">📋 تسجيل الشيوخ</button>
 <button class="tab-btn" id="wafdeen-time-tab-btn" onclick="switchTab('wafdeen-time-tab', event)" type="button">⏱️ وقت الوافدين</button>
+<button class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)" type="button">🗒️ الملاحظات</button>
+</div>
+</div>
 <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ لوحة الإدارة</button>
 
-<button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
 <div class="reports-menu-wrap hidden" id="expenses-menu-wrap">
 <button class="tab-btn reports-toggle" id="payments-tab-btn" onclick="toggleExpensesMenu(event)" type="button" style="background-color:#0d9488;color:white;">💰 المصاريف <span class="reports-chevron">⌄</span></button>
 <div class="reports-submenu" id="expenses-submenu">
@@ -5454,6 +5460,7 @@ function showAppScreen() {
     var notesExportBtn = document.getElementById('notesExportBtn');
     var notesClassSelect = document.getElementById('notesClassSelect');
     var reportsMenuWrap = document.getElementById('reports-menu-wrap');
+    var sheikhRecordingsMenuWrap = document.getElementById('sheikh-recordings-menu-wrap');
     var isSupervisor = currentTeacher.center === 'مشرف';
     var isManager = !isSupervisor && (currentTeacher.username === 'admin' || (currentTeacher.assignedClass === 'الكل' && currentTeacher.center === 'الكل'));
     var isAdminUser = !isSupervisor && currentTeacher.username === 'admin';
@@ -5469,6 +5476,9 @@ function showAppScreen() {
         document.querySelectorAll('.sidebar-nav .tab-btn').forEach(function (btn) { return btn.classList.add('hidden'); });
         statusBtn.classList.remove('hidden');
         (_c = document.getElementById('notes-tab-btn')) === null || _c === void 0 ? void 0 : _c.classList.remove('hidden');
+        document.getElementById('wafdeen-time-tab-btn')?.classList.remove('hidden');
+        document.getElementById('sheikh-recordings-menu-btn')?.classList.remove('hidden');
+        sheikhRecordingsMenuWrap?.classList.remove('hidden');
         (_d = document.getElementById('top-students-tab-btn')) === null || _d === void 0 ? void 0 : _d.classList.remove('hidden');
         (_e = document.getElementById('payments-tab-btn')) === null || _e === void 0 ? void 0 : _e.classList.remove('hidden');
         document.getElementById('payments-entry-tab-btn')?.classList.remove('hidden');
@@ -5503,6 +5513,8 @@ function showAppScreen() {
     statusBtn.classList.add('hidden');
     if (sheikhRegBtn)
         sheikhRegBtn.classList.toggle('hidden', !isAdminUser);
+    sheikhRecordingsMenuWrap?.classList.remove('hidden');
+    document.getElementById('sheikh-recordings-menu-btn')?.classList.remove('hidden');
     if (localdataUsageBtn) localdataUsageBtn.classList.add('hidden');
     if (!isManager) {
         classSelect.value = currentTeacher.assignedClass;
@@ -5569,6 +5581,7 @@ function showAppScreen() {
         weeklyBtn.classList.add('hidden');
         reportsBtn.classList.add('hidden');
         reportsMenuWrap.classList.add('hidden');
+        sheikhRecordingsMenuWrap?.classList.remove('hidden');
         document.getElementById('expenses-menu-wrap')?.classList.add('hidden');
         attendanceBtn.classList.add('hidden');
         statusBtn.classList.add('hidden');
@@ -5609,6 +5622,12 @@ function toggleReportsMenu(event) {
     event.stopPropagation();
     var wrap = document.getElementById('reports-menu-wrap');
     wrap.classList.toggle('open');
+}
+function toggleSheikhRecordingsMenu(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    var wrap = document.getElementById('sheikh-recordings-menu-wrap');
+    if (wrap) wrap.classList.toggle('open');
 }
 function toggleExpensesMenu(event) {
     event.preventDefault();
@@ -6110,6 +6129,10 @@ function switchTab(tabId, event) {
     if (tabId === 'payments-tab' || tabId === 'payment-report-tab' || tabId === 'total-expenses-tab') {
         document.getElementById('expenses-menu-wrap')?.classList.add('open');
         document.getElementById('payments-tab-btn')?.classList.add('active');
+    }
+    if (tabId === 'sheikh-registration-tab' || tabId === 'wafdeen-time-tab' || tabId === 'notes-tab') {
+        document.getElementById('sheikh-recordings-menu-wrap')?.classList.add('open');
+        document.getElementById('sheikh-recordings-menu-btn')?.classList.add('active');
     }
     closeMainMenu();
     if (tabId === 'attendance-tab')
