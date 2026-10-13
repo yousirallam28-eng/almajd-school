@@ -1,0 +1,11 @@
+/* ===== ./css/10-wafdeen-buttons-click-fix.css ===== */
+
+/* إصلاح نهائي لمشكلة عدم استجابة أزرار جلسة الوافدين */
+#wafdeen-app-screen{position:relative;z-index:1;pointer-events:auto!important;}
+#wafdeen-app-screen *{pointer-events:auto;}
+#wafdeen-menu-overlay{pointer-events:none!important;display:none;}
+#wafdeen-menu-overlay.open{display:block;pointer-events:auto!important;}
+#wafdeen-drawer{pointer-events:auto!important;}
+#wafdeen-drawer button{pointer-events:auto!important;cursor:pointer!important;}
+#wafdeen-app-screen button{pointer-events:auto!important;cursor:pointer;}
+#wafdeen-app-screen button:disabled{pointer-events:auto;cursor:not-allowed;}

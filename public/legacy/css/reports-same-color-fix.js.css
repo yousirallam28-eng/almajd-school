@@ -1,0 +1,25 @@
+/* ===== ./css/06-reports-same-color-fix.css ===== */
+
+/* توحيد لون أزرار التقارير مع باقي أزرار قائمة القوائم */
+#main-menu-drawer .reports-menu-wrap > .reports-toggle,
+#main-menu-drawer .reports-submenu .tab-btn {
+  background: rgba(18,30,26,.78) !important;
+  color: #ffffff !important;
+  border-color: rgba(212,175,55,.16) !important;
+}
+#main-menu-drawer .reports-menu-wrap > .reports-toggle:hover,
+#main-menu-drawer .reports-submenu .tab-btn:hover {
+  background: rgba(27,50,42,.94) !important;
+  color: #ffffff !important;
+  border-color: rgba(212,175,55,.42) !important;
+}
+#main-menu-drawer .reports-menu-wrap > .reports-toggle *,
+#main-menu-drawer .reports-submenu .tab-btn * {
+  color: #ffffff !important;
+}
+#main-menu-drawer .reports-menu-wrap > .reports-toggle.active,
+#main-menu-drawer .reports-submenu .tab-btn.active {
+  background: linear-gradient(120deg,rgba(18,144,120,.96),rgba(6,61,51,.98)) !important;
+  color: #ffffff !important;
+  border-color: var(--accent-gold) !important;
+}

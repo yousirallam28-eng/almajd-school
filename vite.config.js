@@ -1,0 +1,25 @@
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  base: './',
+  build: {
+    sourcemap: true,
+    assetsInlineLimit: 4096,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          app: ['./src/main.js']
+        }
+      }
+    }
+  },
+  server: {
+    host: '0.0.0.0',
+    port: 4173
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 4173,
+    allowedHosts: true
+  }
+});
