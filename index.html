@@ -3041,9 +3041,7 @@ function handleImgError(el, isWatermark) {
 <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ لوحة الإدارة</button>
 
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
-<button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصروفات</button>
-<button class="tab-btn hidden" id="payment-report-tab-btn" onclick="switchTab('payment-report-tab', event)" style="background-color:#0d9488;color:white;" type="button">🧾 مقرر الدفع</button>
-<button class="tab-btn hidden" id="total-expenses-tab-btn" onclick="switchTab('total-expenses-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 إجمالي المصروفات</button>
+<button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصاريف</button>
 <button class="tab-btn hidden" id="analysis-tab-btn" onclick="openStudentDataAnalysis(); closeMainMenu()" type="button">📈 تحليل البيانات</button>
 <button class="tab-btn install-app-btn" id="installAppBtn" onclick="installSiteApp()" type="button">📲 تثبيت الموقع كتطبيق</button>
 <button class="tab-btn hidden" id="backup-tab-btn" onclick="switchTab('backup-tab', event)" style="background-color: var(--primary-dark); color: white;" type="button">💾 النسخة الاحتياطية</button>
@@ -3637,7 +3635,7 @@ function handleImgError(el, isWatermark) {
 <!-- تبويب المصروفات -->
 <div class="tab-content" id="payments-tab">
 <div class="card-view">
-<h3 class="card-title">💰 تسجيل مصروفات الطلاب</h3>
+<h3 class="card-title">💰 تسجيل المصاريف</h3>
 <p style="font-size:.9em;color:#666;margin-top:-6px;">
             اختر الفصل ثم الطالب، وحدد الشهر المدفوع والمبلغ، ثم اضغط «تم الدفع» ليُحفظ في قاعدة البيانات ويظهر في سجل الطالب.
           </p>
@@ -3665,11 +3663,11 @@ function handleImgError(el, isWatermark) {
 </div>
 <div class="toast-msg" id="payments-msg"></div>
 </div>
-</div>
-<!-- تبويب إجمالي المصروفات (قراءة فقط) -->
-<div class="tab-content" id="total-expenses-tab">
+
+<!-- قسم إجمالي المصاريف (قراءة فقط) -->
+<div class="expense-subsection hidden" id="total-expenses-tab">
   <div class="card-view">
-    <h3 class="card-title">💰 إجمالي المصروفات</h3>
+    <h3 class="card-title">💰 إجمالي المصاريف</h3>
     <p style="font-size:.9em;color:#666;margin-top:-6px;">إجمالي الدفعات المسجلة لكل طالب من سجلات قاعدة البيانات، مع استبعاد فصل الوافدين.</p>
     <div id="total-expenses-status" role="status" aria-live="polite" style="margin:10px 0;color:var(--text-muted);">افتح التقرير لتحميل البيانات.</div>
     <div class="table-responsive notes-table" style="overflow-x:auto;">
@@ -3680,14 +3678,14 @@ function handleImgError(el, isWatermark) {
     </div>
   </div>
   <div class="card-view" style="border-top:4px solid var(--accent-gold);">
-    <h3 class="card-title">💰 إجمالي المصروفات المدفوعة لجميع الطلاب</h3>
+    <h3 class="card-title">💰 إجمالي المصاريف المدفوعة لجميع الطلاب</h3>
     <div id="total-expenses-grand-total" style="font-size:1.45em;font-weight:800;color:var(--primary-dark);" aria-live="polite">—</div>
   </div>
 </div>
-<!-- تبويب مقرر الدفع -->
-<div class="tab-content" id="payment-report-tab">
+<!-- قسم مقرر المصاريف -->
+<div class="expense-subsection" id="payment-report-tab">
 <div class="card-view">
-<h3 class="card-title">🧾 مقرر الدفع</h3>
+<h3 class="card-title">🧾 مقرر المصاريف</h3>
 <p style="font-size:.9em;color:#666;margin-top:-6px;">
             اختر الفصل ثم الطالب لعرض كل ما تم دفعه من شهور وتواريخ.
           </p>
@@ -3711,6 +3709,7 @@ function handleImgError(el, isWatermark) {
 </thead>
 <tbody></tbody>
 </table>
+</div>
 </div>
 </div>
 </div>
@@ -5459,6 +5458,8 @@ function showAppScreen() {
     var isSupervisor = currentTeacher.center === 'مشرف';
     var isManager = !isSupervisor && (currentTeacher.username === 'admin' || (currentTeacher.assignedClass === 'الكل' && currentTeacher.center === 'الكل'));
     var isAdminUser = !isSupervisor && currentTeacher.username === 'admin';
+    var totalExpensesSection = document.getElementById('total-expenses-tab');
+    if (totalExpensesSection) totalExpensesSection.classList.toggle('hidden', !(isSupervisor || isAdminUser));
     var fullBackupSection = document.getElementById('full-backup-recovery');
     if (fullBackupSection) fullBackupSection.style.display = isAdminUser ? 'block' : 'none';
     var sheikhRegBtn = document.getElementById('sheikh-registration-tab-btn');
@@ -6129,6 +6130,9 @@ function switchTab(tabId, event) {
     else if (tabId === 'payments-tab') {
         populatePaymentsClasses();
         updatePaymentsStudentList();
+        populatePaymentReportClasses();
+        updatePaymentReportStudentList();
+        renderTotalExpenses_();
     }
     else if (tabId === 'payment-report-tab') {
         populatePaymentReportClasses();
