@@ -599,7 +599,7 @@ tr:hover { background-color: rgba(212, 175, 55, 0.10) !important; }
 .sidebar-nav .tabs{display:flex;flex-direction:column;gap:8px}.sidebar-nav .tab-btn{position:relative;overflow:hidden;min-height:48px;padding:12px 14px;border-radius:14px;background:rgba(18,30,26,.78);border-color:rgba(212,175,55,.16);box-shadow:0 4px 12px rgba(0,0,0,.16);transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}.sidebar-nav .tab-btn::after{content:"";position:absolute;top:0;bottom:0;right:0;width:3px;background:var(--accent-gold);transform:scaleY(0);transition:transform .2s ease}.sidebar-nav .tab-btn:hover{transform:translateX(-3px);background:rgba(27,50,42,.94);border-color:rgba(212,175,55,.42)}.sidebar-nav .tab-btn.active{background:linear-gradient(120deg,rgba(18,144,120,.96),rgba(6,61,51,.98));border-color:var(--accent-gold);box-shadow:0 8px 18px rgba(0,0,0,.24)}.sidebar-nav .tab-btn.active::after{transform:scaleY(1)}
 /* المشرف يرى زر حالة الإنجاز فقط */
 body.supervisor-mode .sidebar-nav .tab-btn{display:none!important}
-body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn,body.supervisor-mode .sidebar-nav #total-expenses-tab-btn{display:flex!important}
+body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payments-entry-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn,body.supervisor-mode .sidebar-nav #total-expenses-tab-btn{display:flex!important}
 @media(max-width:850px){.main-menu-handle{top:10px!important;right:10px!important;height:48px;min-width:48px;padding:0 13px;border-radius:16px}.menu-handle-text{font-size:.78em}.sidebar-nav{top:8px;right:8px;height:calc(100dvh - 16px);width:min(340px,calc(100vw - 16px));border-radius:24px}.main-menu-handle.open{right:10px!important}}
 @media(max-width:430px){.menu-handle-text{display:none}.main-menu-handle{width:48px;padding:0}.sidebar-nav{width:calc(100vw - 12px);right:6px;top:6px;height:calc(100dvh - 12px);border-radius:22px}}
 
@@ -2812,9 +2812,7 @@ body.sharia-teacher #attendance-tab-btn,
 body.sharia-teacher #reports-menu-wrap,
 body.sharia-teacher #top-students-tab-btn,
 body.sharia-teacher #notes-tab-btn,
-body.sharia-teacher #wafdeen-time-tab-btn,
-body.sharia-teacher #payments-tab-btn,
-body.sharia-teacher #payment-report-tab-btn { display:none!important; }
+body.sharia-teacher #wafdeen-time-tab-btn { display:none!important; }
 
 </style>
 <style data-inlined-from="./css/24-sharia-simple-daily-style.css" id="sharia-simple-daily-style">
@@ -5482,6 +5480,7 @@ function showAppScreen() {
         document.getElementById('payments-entry-tab-btn')?.classList.remove('hidden');
         (_f = document.getElementById('payment-report-tab-btn')) === null || _f === void 0 ? void 0 : _f.classList.remove('hidden');
         document.getElementById('total-expenses-tab-btn')?.classList.remove('hidden');
+        document.getElementById('expenses-menu-wrap')?.classList.remove('hidden');
         reportsMenuWrap.classList.add('hidden');
         dailyExportBtn.classList.add('hidden');
         notesExportBtn.classList.add('hidden');
@@ -5567,15 +5566,16 @@ function showAppScreen() {
         if (visibleDailyClass_2)
             visibleDailyClass_2.disabled = !teacherCanAccessWafdeen_(currentTeacher);
         adminBtn.classList.add('hidden');
-        (_q = document.getElementById('payments-tab-btn')) === null || _q === void 0 ? void 0 : _q.classList.add('hidden');
-        document.getElementById('payments-entry-tab-btn')?.classList.add('hidden');
-        (_r = document.getElementById('payment-report-tab-btn')) === null || _r === void 0 ? void 0 : _r.classList.add('hidden');
+        (_q = document.getElementById('payments-tab-btn')) === null || _q === void 0 ? void 0 : _q.classList.remove('hidden');
+        document.getElementById('payments-entry-tab-btn')?.classList.remove('hidden');
+        document.getElementById('payment-report-tab-btn')?.classList.remove('hidden');
         document.getElementById('total-expenses-tab-btn')?.classList.add('hidden');
         backupBtn.classList.add('hidden');
         managerBtn.classList.add('hidden');
         weeklyBtn.classList.add('hidden');
         reportsBtn.classList.add('hidden');
         reportsMenuWrap.classList.add('hidden');
+        document.getElementById('expenses-menu-wrap')?.classList.remove('hidden');
         attendanceBtn.classList.add('hidden');
         statusBtn.classList.add('hidden');
         dailyExportBtn.classList.add('hidden');
