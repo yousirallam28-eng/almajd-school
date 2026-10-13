@@ -3185,17 +3185,17 @@ function handleImgError(el, isWatermark) {
 <div class="form-group sharia-only-field" id="shariaExamField"><label>درجة الامتحان (من 100):</label><input id="shariaNormalExam" max="100" min="0" placeholder="0-100" type="number"/></div>
 <div class="form-group fifth-hide-on-class"><label>الجديد (10):<span class="daily-score-time" id="newLessonTimeLabel"></span></label><input class="daily-grade-input daily-auto-grade" disabled="" id="newLesson" max="10" min="0" oninput="enforceDailyRecitationGrade('new')" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" readonly="" required="" type="number"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الجديد اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="newTopicToday" placeholder="اكتب مقرر الجديد اليوم..." required="" type="text"/></div>
-<div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الجديد):</label><input id="newPagesCount" placeholder="اكتب عدد الصفحات" required="" type="text"/></div>
+<div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الجديد):</label><input id="newPagesCount" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="اكتب عدد الصفحات بالأرقام فقط" required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الجديد الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="newTopicRecited" placeholder="اكتب مقرر الجديد الذي تم تسميعه..." required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class wafdeen-hide-count"><label>عدد التسميع (الجديد):</label><select id="newRecitationCount" onchange="updateDailyRecitationGrade('new')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 <div class="form-group fifth-hide-on-class"><label>الماضي (10):<span class="daily-score-time" id="oldRevisionTimeLabel"></span></label><input class="daily-grade-input daily-auto-grade" disabled="" id="oldRevision" max="10" min="0" oninput="enforceDailyRecitationGrade('old')" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" readonly="" required="" type="number"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الماضي اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="oldTopicToday" placeholder="اكتب مقرر الماضي اليوم..." required="" type="text"/></div>
-<div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الماضي):</label><input id="oldPagesCount" placeholder="اكتب عدد الصفحات" required="" type="text"/></div>
+<div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الماضي):</label><input id="oldPagesCount" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="اكتب عدد الصفحات بالأرقام فقط" required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الماضي الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="oldTopicRecited" placeholder="اكتب مقرر الماضي الذي تم تسميعه..." required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class wafdeen-hide-count"><label>عدد التسميع (الماضي):</label><select id="oldRecitationCount" onchange="updateDailyRecitationGrade('old')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 <div class="form-group"><label>التلاوة (10):<span class="daily-score-time" id="recitationTimeLabel"></span></label><input class="daily-grade-input daily-auto-grade" disabled="" id="recitation" max="10" min="0" oninput="enforceDailyRecitationGrade('recitation')" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" readonly="" required="" type="number"/></div>
 <div class="form-group"><label>مقرر التلاوة اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="recitationTopicToday" placeholder="اكتب مقرر التلاوة اليوم..." required="" type="text"/></div>
-<div class="form-group"><label>عدد الصفحات/الأجزاء (التلاوة):</label><input id="recitationPagesCount" placeholder="اكتب عدد الصفحات أو الأجزاء" required="" type="text"/></div>
+<div class="form-group"><label>عدد الصفحات/الأجزاء (التلاوة):</label><input id="recitationPagesCount" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="اكتب عدد الصفحات أو الأجزاء بالأرقام فقط" required="" type="text"/></div>
 <div class="form-group"><label>مقرر التلاوة الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="recitationTopicRecited" placeholder="اكتب مقرر التلاوة الذي تم تسميعه..." required="" type="text"/></div>
 <div class="form-group wafdeen-hide-count"><label>عدد التسميع (التلاوة):</label><select id="recitationRecitationCount" onchange="updateDailyRecitationGrade('recitation')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 <div class="form-group"><label>الواجب (10):</label><input id="homework" max="10" min="0" placeholder="0-10" required="" type="number"/></div>
@@ -15609,5 +15609,34 @@ function refreshWafdeenLogAfterSave_(){
     }
   }
   window.renderTotalExpenses_=renderTotalExpenses_;
+})();
+</script>
+
+<script id="numeric-pages-only">
+/* Restrict every page-count field, including dynamically created variants, to digits. */
+(function(){
+  'use strict';
+  function isPageCountField_(field){return !!field&&field.tagName==='INPUT'&&/PagesCount$/i.test(String(field.id||''));}
+  function normalizePageCountField_(field){
+    if(!isPageCountField_(field))return;
+    field.setAttribute('inputmode','numeric');
+    field.setAttribute('pattern','[0-9]*');
+    field.setAttribute('autocomplete','off');
+    var value=String(field.value||'');
+    value=value.replace(/[٠-٩]/g,function(d){return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d));});
+    value=value.replace(/[۰-۹]/g,function(d){return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d));});
+    var digits=value.replace(/[^0-9]/g,'');
+    if(field.value!==digits)field.value=digits;
+  }
+  function preparePageCountFields_(root){
+    if(!root||!root.querySelectorAll)return;
+    root.querySelectorAll('input[id$="PagesCount"]').forEach(normalizePageCountField_);
+  }
+  preparePageCountFields_(document);
+  document.addEventListener('input',function(event){normalizePageCountField_(event.target);});
+  document.addEventListener('change',function(event){normalizePageCountField_(event.target);});
+  if(typeof MutationObserver==='function'&&document.body){
+    new MutationObserver(function(records){records.forEach(function(record){record.addedNodes.forEach(function(node){if(node.nodeType===1){if(isPageCountField_(node))normalizePageCountField_(node);preparePageCountFields_(node);}});});}).observe(document.body,{childList:true,subtree:true});
+  }
 })();
 </script>
