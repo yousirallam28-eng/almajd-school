@@ -599,7 +599,7 @@ tr:hover { background-color: rgba(212, 175, 55, 0.10) !important; }
 .sidebar-nav .tabs{display:flex;flex-direction:column;gap:8px}.sidebar-nav .tab-btn{position:relative;overflow:hidden;min-height:48px;padding:12px 14px;border-radius:14px;background:rgba(18,30,26,.78);border-color:rgba(212,175,55,.16);box-shadow:0 4px 12px rgba(0,0,0,.16);transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}.sidebar-nav .tab-btn::after{content:"";position:absolute;top:0;bottom:0;right:0;width:3px;background:var(--accent-gold);transform:scaleY(0);transition:transform .2s ease}.sidebar-nav .tab-btn:hover{transform:translateX(-3px);background:rgba(27,50,42,.94);border-color:rgba(212,175,55,.42)}.sidebar-nav .tab-btn.active{background:linear-gradient(120deg,rgba(18,144,120,.96),rgba(6,61,51,.98));border-color:var(--accent-gold);box-shadow:0 8px 18px rgba(0,0,0,.24)}.sidebar-nav .tab-btn.active::after{transform:scaleY(1)}
 /* المشرف يرى زر حالة الإنجاز فقط */
 body.supervisor-mode .sidebar-nav .tab-btn{display:none!important}
-body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn{display:flex!important}
+body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn,body.supervisor-mode .sidebar-nav #total-expenses-tab-btn{display:flex!important}
 @media(max-width:850px){.main-menu-handle{top:10px!important;right:10px!important;height:48px;min-width:48px;padding:0 13px;border-radius:16px}.menu-handle-text{font-size:.78em}.sidebar-nav{top:8px;right:8px;height:calc(100dvh - 16px);width:min(340px,calc(100vw - 16px));border-radius:24px}.main-menu-handle.open{right:10px!important}}
 @media(max-width:430px){.menu-handle-text{display:none}.main-menu-handle{width:48px;padding:0}.sidebar-nav{width:calc(100vw - 12px);right:6px;top:6px;height:calc(100dvh - 12px);border-radius:22px}}
 
@@ -3043,6 +3043,7 @@ function handleImgError(el, isWatermark) {
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" style="background-color:#6d4c8f;color:white;" type="button">📋 تسجيل الشيوخ</button>
 <button class="tab-btn hidden" id="payments-tab-btn" onclick="switchTab('payments-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 المصروفات</button>
 <button class="tab-btn hidden" id="payment-report-tab-btn" onclick="switchTab('payment-report-tab', event)" style="background-color:#0d9488;color:white;" type="button">🧾 مقرر الدفع</button>
+<button class="tab-btn hidden" id="total-expenses-tab-btn" onclick="switchTab('total-expenses-tab', event)" style="background-color:#0d9488;color:white;" type="button">💰 إجمالي المصروفات</button>
 <button class="tab-btn hidden" id="analysis-tab-btn" onclick="openStudentDataAnalysis(); closeMainMenu()" type="button">📈 تحليل البيانات</button>
 <button class="tab-btn install-app-btn" id="installAppBtn" onclick="installSiteApp()" type="button">📲 تثبيت الموقع كتطبيق</button>
 <button class="tab-btn hidden" id="backup-tab-btn" onclick="switchTab('backup-tab', event)" style="background-color: var(--primary-dark); color: white;" type="button">💾 النسخة الاحتياطية</button>
@@ -3638,7 +3639,7 @@ function handleImgError(el, isWatermark) {
 <div class="card-view">
 <h3 class="card-title">💰 تسجيل مصروفات الطلاب</h3>
 <p style="font-size:.9em;color:#666;margin-top:-6px;">
-            اختر الفصل ثم الطالب، وحدد الشهر المدفوع والمبلغ، ثم اضغط «تم الدفع» ليُحفظ محليًا في الصفحة الحالية.
+            اختر الفصل ثم الطالب، وحدد الشهر المدفوع والمبلغ، ثم اضغط «تم الدفع» ليُحفظ في قاعدة البيانات ويظهر في سجل الطالب.
           </p>
 <div class="form-grid">
 <div class="form-group">
@@ -3664,6 +3665,24 @@ function handleImgError(el, isWatermark) {
 </div>
 <div class="toast-msg" id="payments-msg"></div>
 </div>
+</div>
+<!-- تبويب إجمالي المصروفات (قراءة فقط) -->
+<div class="tab-content" id="total-expenses-tab">
+  <div class="card-view">
+    <h3 class="card-title">💰 إجمالي المصروفات</h3>
+    <p style="font-size:.9em;color:#666;margin-top:-6px;">إجمالي الدفعات المسجلة لكل طالب من سجلات قاعدة البيانات، مع استبعاد فصل الوافدين.</p>
+    <div id="total-expenses-status" role="status" aria-live="polite" style="margin:10px 0;color:var(--text-muted);">افتح التقرير لتحميل البيانات.</div>
+    <div class="table-responsive notes-table" style="overflow-x:auto;">
+      <table id="totalExpensesTable" style="min-width:680px;width:100%;">
+        <thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>الشيخ</th><th>إجمالي المبلغ المدفوع</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-view" style="border-top:4px solid var(--accent-gold);">
+    <h3 class="card-title">💰 إجمالي المصروفات المدفوعة لجميع الطلاب</h3>
+    <div id="total-expenses-grand-total" style="font-size:1.45em;font-weight:800;color:var(--primary-dark);" aria-live="polite">—</div>
+  </div>
 </div>
 <!-- تبويب مقرر الدفع -->
 <div class="tab-content" id="payment-report-tab">
@@ -4162,33 +4181,21 @@ function upsertLocalPayment_(record) { var rows = getLocalPayments_(); var rid =
 else
     rows.push(record); setLocalPayments_(rows); }
 function removeLocalPayment_(recordId) { setLocalPayments_(getLocalPayments_().filter(function (x) { return String(x.recordId || x.id) !== String(recordId); })); }
-function mergePaymentRows_(localRows) {
-    var e_16, _a;
-    var local = Array.isArray(localRows) ? localRows : [], local = getLocalPayments_(), out = local.slice();
-    var _loop_1 = function (row) {
-        var rid = String(row.recordId || row.id || '');
-        var i = out.findIndex(function (x) { return String(x.recordId || x.id || '') === rid; });
-        if (i >= 0)
-            out[i] = __assign(__assign({}, out[i]), row);
-        else
-            out.push(row);
-    };
-    try {
-        for (var local_1 = __values(local), local_1_1 = local_1.next(); !local_1_1.done; local_1_1 = local_1.next()) {
-            var row = local_1_1.value;
-            _loop_1(row);
-        }
-    }
-    catch (e_16_1) { e_16 = { error: e_16_1 }; }
-    finally {
-        try {
-            if (local_1_1 && !local_1_1.done && (_a = local_1.return)) _a.call(local_1);
-        }
-        finally { if (e_16) throw e_16.error; }
-    }
+function mergePaymentRows_(remoteRows) {
+    var out = [];
+    var sources = [getLocalPayments_(), Array.isArray(remoteRows) ? remoteRows : []];
+    sources.forEach(function (source) {
+        source.forEach(function (row) {
+            if (!row || typeof row !== 'object') return;
+            var rid = String(row.recordId || row.id || paymentRecordId_(row.studentId || '', row.studentName || '', row.month || ''));
+            var normalized = Object.assign({}, row, { id: String(row.id || rid), recordId: rid });
+            var i = out.findIndex(function (x) { return String(x.recordId || x.id || '') === rid; });
+            if (i >= 0) out[i] = Object.assign({}, out[i], normalized);
+            else out.push(normalized);
+        });
+    });
     return out;
 }
-
 
 
 
@@ -4336,54 +4343,54 @@ function updatePaymentsStudentPaidMonths() {
 }
 function savePaymentRecord() {
     return __awaiter(this, void 0, void 0, function () {
-        var classSel, studentSel, monthSel, amountInput, className, studentName, studentId, month, amountRaw, id, localRows, existing, _a, data, ok;
-        var _b, _c, _d;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+        var classSel, studentSel, monthSel, amountInput, saveBtn, oldButtonText;
+        var className, studentName, studentId, month, amountRaw, id, allRows, existing, data, result, err;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
                     classSel = document.getElementById('paymentsClassSelect');
                     studentSel = document.getElementById('paymentsStudentSelect');
                     monthSel = document.getElementById('paymentsMonthSelect');
                     amountInput = document.getElementById('paymentsAmountInput');
-                    className = (classSel === null || classSel === void 0 ? void 0 : classSel.value) || '';
-                    studentName = (studentSel === null || studentSel === void 0 ? void 0 : studentSel.value) || '';
-                    studentId = ((_d = (_c = (_b = studentSel === null || studentSel === void 0 ? void 0 : studentSel.selectedOptions) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.dataset) === null || _d === void 0 ? void 0 : _d.id) || '';
-                    month = (monthSel === null || monthSel === void 0 ? void 0 : monthSel.value) || '';
-                    amountRaw = String((amountInput === null || amountInput === void 0 ? void 0 : amountInput.value) || '').trim();
-                    if (!className || !studentName)
-                        return [2 /*return*/, showMessage('payments-msg', 'يرجى اختيار الصف والطالب.', 'error')];
-                    if (!month)
-                        return [2 /*return*/, showMessage('payments-msg', 'يرجى اختيار الشهر المدفوع.', 'error')];
-                    if (!amountRaw || !/^\d+$/.test(amountRaw))
-                        return [2 /*return*/, showMessage('payments-msg', 'يرجى كتابة المبلغ بالأرقام فقط.', 'error')];
+                    saveBtn = document.querySelector('#payments-tab button[onclick="savePaymentRecord()"]');
+                    className = (classSel && classSel.value) || '';
+                    studentName = (studentSel && studentSel.value) || '';
+                    studentId = (studentSel && studentSel.selectedOptions && studentSel.selectedOptions[0] && studentSel.selectedOptions[0].dataset && studentSel.selectedOptions[0].dataset.id) || '';
+                    month = (monthSel && monthSel.value) || '';
+                    amountRaw = String((amountInput && amountInput.value) || '').trim();
+                    if (!className || !studentName) return [2 /*return*/, showMessage('payments-msg', 'يرجى اختيار الصف والطالب.', 'error')];
+                    if (!month) return [2 /*return*/, showMessage('payments-msg', 'يرجى اختيار الشهر المدفوع.', 'error')];
+                    if (!amountRaw || !/^\d+$/.test(amountRaw)) return [2 /*return*/, showMessage('payments-msg', 'يرجى كتابة المبلغ بالأرقام فقط.', 'error')];
+                    if (saveBtn && saveBtn.disabled) return [2 /*return*/];
+                    oldButtonText = saveBtn ? saveBtn.textContent : '';
+                    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ جارٍ حفظ المصروف...'; }
                     id = paymentRecordId_(studentId, studentName, month);
-                    localRows = getLocalPayments_();
-                    _a = localRows.some(function (row) { return row.className === className && row.studentName === studentName && row.month === month; });
-                    if (_a) return [3 /*break*/, 2];
-                    return [4 /*yield*/, window.MajdLocalDataAPI.getPayments()];
+                    _a.label = 1;
                 case 1:
-                    _a = (_e.sent()).some(function (row) { return row.className === className && row.studentName === studentName && row.month === month; });
-                    _e.label = 2;
+                    _a.trys.push([1, 4, 5, 6]);
+                    return [4 /*yield*/, window.MajdLocalDataAPI.getPayments()];
                 case 2:
-                    existing = _a;
-                    data = {
-                        studentName: studentName,
-                        studentId: studentId,
-                        className: className,
-                        month: month,
-                        amount: Number(amountRaw),
-                        paidDate: new Date().toISOString().slice(0, 10),
-                        recordedBy: (currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.username) || '',
-                        recordId: id
-                    };
-                    upsertLocalPayment_(data);
+                    allRows = mergePaymentRows_(_a.sent());
+                    existing = allRows.some(function (row) { return row.className === className && row.studentName === studentName && row.month === month; });
+                    data = { id: id, recordId: id, studentName: studentName, studentId: studentId, className: className, month: month, amount: Number(amountRaw), paidDate: new Date().toISOString().slice(0, 10), recordedBy: (currentTeacher && currentTeacher.username) || '' };
                     return [4 /*yield*/, window.MajdLocalDataAPI.savePaymentAction(existing ? 'updatePayment' : 'savePayment', id, data)];
                 case 3:
-                    ok = _e.sent();
-                    showMessage('payments-msg', ok ? 'تمت معالجة الدفعة محليًا.' : 'تمت معالجة الدفعة محليًا فقط.', ok ? 'success' : 'info');
+                    result = _a.sent();
+                    if (!result) throw new Error('لم يؤكد الخادم حفظ المصروف.');
+                    upsertLocalPayment_(data);
+                    showMessage('payments-msg', existing ? 'تم تحديث المصروف في قاعدة البيانات ✅' : 'تم حفظ المصروف في قاعدة البيانات ✅', 'success');
                     amountInput.value = '';
                     updatePaymentsStudentPaidMonths();
-                    return [2 /*return*/];
+                    return [3 /*break*/, 6];
+                case 4:
+                    err = _a.sent();
+                    console.error('payment save error:', err);
+                    showMessage('payments-msg', 'تعذر حفظ المصروف: ' + String((err && err.message) || err), 'error');
+                    return [3 /*break*/, 6];
+                case 5:
+                    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = oldButtonText || '💾 تسجيل المصروف'; }
+                    return [7 /*endfinally*/];
+                case 6: return [2 /*return*/];
             }
         });
     });
@@ -4563,7 +4570,8 @@ function deletePaymentRecord(recordId) {
                     result = _b.sent();
                     if (!(result === null || result === void 0 ? void 0 : result.deleted))
                         throw new Error('لم يتم تأكيد حذف الدفعة');
-                    showMessage('payment-report-msg', 'تم مسح الدفعة نهائيًا من localdata ✅', 'success');
+                    removeLocalPayment_(id);
+                    showMessage('payment-report-msg', 'تم حذف الدفعة من قاعدة البيانات ✅', 'success');
                     return [3 /*break*/, 5];
                 case 4:
                     e_22 = _b.sent();
@@ -5484,6 +5492,7 @@ function showAppScreen() {
         (_d = document.getElementById('top-students-tab-btn')) === null || _d === void 0 ? void 0 : _d.classList.remove('hidden');
         (_e = document.getElementById('payments-tab-btn')) === null || _e === void 0 ? void 0 : _e.classList.remove('hidden');
         (_f = document.getElementById('payment-report-tab-btn')) === null || _f === void 0 ? void 0 : _f.classList.remove('hidden');
+        document.getElementById('total-expenses-tab-btn')?.classList.remove('hidden');
         reportsMenuWrap.classList.add('hidden');
         dailyExportBtn.classList.add('hidden');
         notesExportBtn.classList.add('hidden');
@@ -5534,6 +5543,7 @@ function showAppScreen() {
         adminBtn.classList.remove('hidden');
         (_m = document.getElementById('payments-tab-btn')) === null || _m === void 0 ? void 0 : _m.classList.remove('hidden');
         (_o = document.getElementById('payment-report-tab-btn')) === null || _o === void 0 ? void 0 : _o.classList.remove('hidden');
+        document.getElementById('total-expenses-tab-btn')?.classList.toggle('hidden', !isAdminUser);
         (_p = document.getElementById('analysis-tab-btn')) === null || _p === void 0 ? void 0 : _p.classList.remove('hidden');
         backupBtn.classList.remove('hidden');
         managerBtn.classList.remove('hidden');
@@ -5569,6 +5579,7 @@ function showAppScreen() {
         adminBtn.classList.add('hidden');
         (_q = document.getElementById('payments-tab-btn')) === null || _q === void 0 ? void 0 : _q.classList.add('hidden');
         (_r = document.getElementById('payment-report-tab-btn')) === null || _r === void 0 ? void 0 : _r.classList.add('hidden');
+        document.getElementById('total-expenses-tab-btn')?.classList.add('hidden');
         backupBtn.classList.add('hidden');
         managerBtn.classList.add('hidden');
         weeklyBtn.classList.add('hidden');
@@ -6083,7 +6094,7 @@ function exportWafdeenTimeReportExcel(){
 function switchTab(tabId, event) {
     if (tabId === 'localdata-usage-tab') return;
     // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، الأوائل، المصروفات، ومقرر الدفع.
-    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab', 'wafdeen-time-tab'].includes(tabId)) {
+    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab', 'total-expenses-tab', 'wafdeen-time-tab'].includes(tabId)) {
         tabId = 'status-tab';
     }
     if (tabId !== 'admin-tab') {
@@ -6142,6 +6153,9 @@ function switchTab(tabId, event) {
     else if (tabId === 'payment-report-tab') {
         populatePaymentReportClasses();
         updatePaymentReportStudentList();
+    }
+    else if (tabId === 'total-expenses-tab') {
+        renderTotalExpenses_();
     }
     else if (tabId === 'sheikh-registration-tab') {
         renderSheikhRegistrationView();
@@ -15490,4 +15504,79 @@ function refreshWafdeenLogAfterSave_(){
   w.MajdLocalDataAPI.flushLocalRenderQueue = function () { return Promise.resolve(true); };
   w.MajdLocalDataAPI.isConnected = function () { return !!sessionToken; };
 })(window);
+</script>
+
+<script id="total-expenses-report">
+/* إجمالي المصروفات: تقرير قراءة فقط من سجلات Supabase المسموح بها للحساب الحالي. */
+(function(){
+  'use strict';
+  function teEsc_(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
+  function teMoney_(amount){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}).format(amount)+' جنيه';}
+  async function renderTotalExpenses_(){
+    var tbody=document.querySelector('#totalExpensesTable tbody');
+    var status=document.getElementById('total-expenses-status');
+    var grand=document.getElementById('total-expenses-grand-total');
+    if(!tbody||!status||!grand)return;
+    var run=(window.__totalExpensesRenderRun__||0)+1;
+    window.__totalExpensesRenderRun__=run;
+    status.textContent='⏳ جاري تحميل الطلاب والدفعات من قاعدة البيانات…';
+    grand.textContent='—';
+    tbody.innerHTML='<tr><td colspan="5">جاري تحميل البيانات…</td></tr>';
+    try{
+      if(!window.MajdLocalDataAPI||typeof window.MajdLocalDataAPI.getPayments!=='function')throw new Error('واجهة قراءة المصروفات غير متاحة.');
+      var payments=await window.MajdLocalDataAPI.getPayments();
+      if(!Array.isArray(payments))throw new Error('لم تصل سجلات المصروفات بصيغة صحيحة.');
+      payments=payments.filter(function(row){return row&&!row._deleted;});
+      var allClasses=(Array.isArray(window.ALL_CLASSES)?window.ALL_CLASSES:[]).filter(function(c){return String(c).trim()&&String(c).trim()!=='الوافدين';});
+      var classRank=new Map(allClasses.map(function(c,i){return [String(c),i];}));
+      var students=(Array.isArray(window.studentsData)?window.studentsData:[]).filter(function(st){return st&&!st._deleted&&String(st.name||'').trim()&&String(st.className||'').trim()!=='الوافدين'&&classRank.has(String(st.className||''));});
+      students.sort(function(a,b){return classRank.get(String(a.className))-classRank.get(String(b.className))||String(a.name||'').localeCompare(String(b.name||''),'ar');});
+      var byId=new Map(),byNameClass=new Map(),nameClassCounts=new Map();
+      students.forEach(function(st){var id=String(st.id||st.studentId||'');if(id)byId.set(id,st);var key=String(st.className||'')+'\u0000'+String(st.name||'').trim();nameClassCounts.set(key,(nameClassCounts.get(key)||0)+1);byNameClass.set(key,st);});
+      var totals=new Map(),seenPayments=new Set(),unmatched=0,skippedAmbiguous=0;
+      students.forEach(function(st){totals.set(st,0);});
+      payments.forEach(function(row){
+        var identity=String(row.recordId||row.id||'');
+        if(identity&&seenPayments.has(identity))return;
+        if(identity)seenPayments.add(identity);
+        var student=null,paymentStudentId=String(row.studentId||'');
+        if(paymentStudentId){student=byId.get(paymentStudentId)||null;if(!student)unmatched++;}
+        else{
+          var key=String(row.className||'')+'\u0000'+String(row.studentName||'').trim();
+          if(nameClassCounts.get(key)===1)student=byNameClass.get(key)||null;
+          else if(nameClassCounts.get(key)>1)skippedAmbiguous++;
+          else unmatched++;
+        }
+        if(!student||String(student.className||'')==='الوافدين')return;
+        var raw=row.amount;
+        if(raw===null||raw===undefined||String(raw).trim()==='')throw new Error('توجد دفعة بلا مبلغ صالح؛ لم أعرض إجماليًا قد يكون مضللًا.');
+        var amount=Number(raw);
+        if(!Number.isFinite(amount)||amount<0)throw new Error('توجد دفعة بمبلغ غير صالح؛ لم أعرض إجماليًا قد يكون مضللًا.');
+        totals.set(student,(totals.get(student)||0)+amount);
+      });
+      if(run!==window.__totalExpensesRenderRun__)return;
+      var teachers=Array.isArray(window.teachersData)?window.teachersData:[];
+      var serial=0,generalTotal=0,rows=[],activeClass='';
+      students.forEach(function(st){
+        var cls=String(st.className||''),amount=totals.get(st)||0;
+        if(cls!==activeClass){activeClass=cls;rows.push('<tr class="total-expenses-class-row"><th colspan="5" style="text-align:right;background:var(--surface-alt);color:var(--primary-dark);border-top:2px solid var(--border-soft-strong);">'+teEsc_(cls)+'</th></tr>');}
+        var assigned=teachers.filter(function(t){return t&&!t._deleted&&String(t.assignedClass||'')===cls&&String(t.username||'').trim().toLowerCase()!=='admin'&&String(t.assignedClass||'')!=='الكل';});
+        var names=Array.from(new Set(assigned.map(function(t){return String(t.name||t.teacherName||t.fullName||t.username||'').trim();}).filter(Boolean)));
+        var sheikh=names.length?names.join('، '):'—';
+        serial++;generalTotal+=amount;
+        rows.push('<tr><td>'+serial+'</td><td style="font-weight:700;">'+teEsc_(st.name)+'</td><td>'+teEsc_(cls)+'</td><td>'+teEsc_(sheikh)+'</td><td style="text-align:right;font-weight:700;white-space:nowrap;">'+teMoney_(amount)+'</td></tr>');
+      });
+      tbody.innerHTML=rows.length?rows.join(''):'<tr><td colspan="5" style="padding:20px;">لا يوجد طلاب عاديون مسجلون في الصفوف المعتمدة.</td></tr>';
+      grand.textContent=teMoney_(generalTotal);
+      status.textContent='تم تحميل '+serial+' طالبًا. مصدر الدفعات: Supabase.'+(unmatched?' تعذر ربط '+unmatched+' دفعة بسجل طالب متاح؛ لم تُحتسب حتى لا تُنسب خطأً.':'')+(skippedAmbiguous?' تم تخطي '+skippedAmbiguous+' دفعة بسبب تشابه الاسم والفصل.':'');
+    }catch(error){
+      if(run!==window.__totalExpensesRenderRun__)return;
+      console.error('Total expenses report load failed:',error);
+      tbody.innerHTML='<tr><td colspan="5" style="padding:20px;color:var(--danger-color);">تعذر تحميل التقرير. '+teEsc_(error&&error.message||'تحقق من اتصال قاعدة البيانات ثم أعد المحاولة.')+'</td></tr>';
+      status.textContent='لم تُعرض أرقام تقديرية؛ أعد فتح التقرير بعد استعادة الاتصال.';
+      grand.textContent='غير متاح';
+    }
+  }
+  window.renderTotalExpenses_=renderTotalExpenses_;
+})();
 </script>
