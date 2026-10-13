@@ -5058,14 +5058,25 @@ function addTeacher() {
                     canWafdeen = !!document.getElementById('newTeacherWafdeen') && document.getElementById('newTeacherWafdeen').checked;
                     if (!u || !p)
                         return [2 /*return*/, showMessage('app-msg', 'يرجى إدخال البيانات كاملة', 'error')];
-                    if (teachersData.some(function (t) { return t.username === u; }))
+                    if (p.length < 10)
+                        return [2 /*return*/, showMessage('app-msg', 'كلمة المرور يجب ألا تقل عن 10 أحرف حسب إعدادات Supabase.', 'error')];
+                    if (teachersData.some(function (t) { return String(t.username || '').trim().toLocaleLowerCase() === u.toLocaleLowerCase(); }))
                         return [2 /*return*/, showMessage('app-msg', 'اسم المستخدم موجود مسبقاً', 'error')];
                     newTeacher = { id: Date.now().toString(), username: u, password: p, assignedClass: c, center: cn, canWafdeen: canWafdeen, updatedAt: new Date().toISOString() };
                     if (!localIsAvailable() || !window.MajdLocalDataAPI || typeof window.MajdLocalDataAPI.writeRecord !== 'function' || (typeof window.MajdLocalDataAPI.isAvailable === 'function' && !window.MajdLocalDataAPI.isAvailable()))
                         return [2 /*return*/, showMessage('app-msg', 'اتصال السحابة غير متاح. أعد تسجيل الدخول وحاول مرة أخرى.', 'error')];
-                    return [4 /*yield*/, window.MajdLocalDataAPI.writeRecord('teachers', newTeacher.id, newTeacher, { merge: true }).catch(function (e) { console.error('teacher cloud save error:', e); return null; })];
+                    return [4 /*yield*/, window.MajdLocalDataAPI.writeRecord('teachers', newTeacher.id, newTeacher, { merge: true }).catch(function (e) { console.error('teacher cloud save error:', e); return { __error: e }; })];
                 case 1:
                     saveResult = _a.sent();
+                    if (saveResult && saveResult.__error) {
+                        if (saveResult.__error.message === 'PASSWORD_TOO_SHORT')
+                            return [2 /*return*/, showMessage('app-msg', 'Supabase رفض الحفظ: كلمة المرور يجب ألا تقل عن 10 أحرف.', 'error')];
+                        if (saveResult.__error.message === 'UNAUTHORIZED' || saveResult.__error.message === 'AUTH_EXPIRED')
+                            return [2 /*return*/, showMessage('app-msg', 'انتهت جلسة Supabase. سجّل الخروج ثم ادخل بحساب المدير مرة أخرى.', 'error')];
+                        if (saveResult.__error.message === 'ACCOUNT_SAVE_FAILED')
+                            return [2 /*return*/, showMessage('app-msg', 'Supabase رفض إنشاء الحساب. تحقق من عدم تكرار اسم المستخدم.', 'error')];
+                        return [2 /*return*/, showMessage('app-msg', 'تعذر الحفظ في Supabase: ' + (saveResult.__error.message || 'خطأ غير معروف'), 'error')];
+                    }
                     if (!saveResult)
                         return [2 /*return*/, showMessage('app-msg', 'تعذر رفع المعلم إلى السحابة. أعد تسجيل الدخول وحاول مرة أخرى.', 'error')];
                     teachersData.push(newTeacher);
