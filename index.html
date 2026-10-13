@@ -14199,7 +14199,8 @@ function renderShariaDailyLog_(){
   if(!thead || !tbody) return;
   if(!shariaDailyTableOriginalHead_) shariaDailyTableOriginalHead_=thead.innerHTML;
   thead.innerHTML='<tr><th>التاريخ</th><th>الطالب</th><th>الحضور</th><th>المقرر</th><th>السلوك</th><th>درجة الامتحان</th><th>إجراء</th></tr>';
-  var date=(document.getElementById('filterDateDaily')||{}).value || shariaDate_();
+  // عند ترك فلتر التاريخ فارغًا اعرض جميع سجلات الشرعي، لا تاريخ اليوم فقط.
+  var date=String((document.getElementById('filterDateDaily')||{}).value||'').slice(0,10);
   var search=String((document.getElementById('searchDaily')||{}).value||'').trim();
   var rows=(shariaGradesData||[]).filter(function(r){
     return String(r.className||'').trim()==='أولى شرعي' &&
@@ -14277,6 +14278,8 @@ async function saveShariaGrade(forceAbsent){
     var idx=shariaGradesData.findIndex(function(r){return String(r.id)===id;});
     if(idx>=0) shariaGradesData[idx]=Object.assign({},shariaGradesData[idx],rec); else shariaGradesData.push(rec);
     memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
+    var shariaFilterDate=document.getElementById('filterDateDaily');
+    if(shariaFilterDate) shariaFilterDate.value=date;
     showMessage('app-msg',forceAbsent?'تم تسجيل الغياب':'تم الحفظ','success');
     renderShariaGradesReport();
     renderShariaDailyLog_();
@@ -14300,6 +14303,8 @@ async function markShariaAbsent(){
     var idx=shariaGradesData.findIndex(function(r){return String(r.id)===id;});
     if(idx>=0) shariaGradesData[idx]=Object.assign({},shariaGradesData[idx],rec); else shariaGradesData.push(rec);
     memoryStorage.setItem('shariaGradesData',JSON.stringify(shariaGradesData));
+    var shariaFilterDate=document.getElementById('filterDateDaily');
+    if(shariaFilterDate) shariaFilterDate.value=date;
     showMessage('app-msg','تم تسجيل الغياب والتحقق من حفظه ✅','success');
     renderShariaGradesReport();
     renderShariaDailyLog_();
