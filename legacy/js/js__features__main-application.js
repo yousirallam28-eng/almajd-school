@@ -3438,6 +3438,11 @@ function validateDailyRequiredFields_(type){
         missing.unshift('وقت التسميع (التايمر)');
     }
     if(missing.length){
+        // احتفظ بنسخة قبل إظهار الرسالة، ثم أعدها بعد أي تحديث متأخر للواجهة.
+        try { wafdeenSaveDailyDraft_(); } catch (_) { }
+        [0, 50, 200].forEach(function (delay) {
+            setTimeout(function () { try { wafdeenRestoreDailyDraft_(); } catch (_) { } }, delay);
+        });
         var first=document.querySelector('#daily-workspace .field-missing, #daily-workspace .daily-field-missing');
         if(first) setTimeout(function(){try{first.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}},0);
         var safeItems=missing.map(function(item){return String(item).replace(/[&<>"']/g,function(ch){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);});});
@@ -3479,6 +3484,8 @@ function addGrade() {
                     }
                     if (dailyTimerRunning)
                         pauseDailyTimer();
+                    // لقطة قبل أي حساب تلقائي قد يغير قيمة خانة مكتوبة.
+                    try { wafdeenSaveDailyDraft_(); } catch (_) { }
                     updateDailyRecitationGrade(type);
                     dailyCalculateGrade(type);
                     // احفظ المسودة قبل التحقق حتى لا تضيع كتابات المدرس إذا كانت خانة ناقصة.
