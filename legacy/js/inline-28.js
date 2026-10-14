@@ -232,7 +232,7 @@
     if (w.currentTeacher && (w.currentTeacher.role === 'admin' || w.currentTeacher.isAdmin || w.currentTeacher.username === 'admin')) names.push('teachers');
     var pairs = await Promise.all(names.map(async function (name) { return [name, await readAll(name)]; }));
     var map = Object.fromEntries(pairs);
-    w.studentsData = map.students || [];
+    w.studentsData = (map.students || []).map(function (student) { return typeof w.applyDataMapping === 'function' ? w.applyDataMapping(student) : student; });
     w.dailyRecords = map.dailyRecords || [];
     w.shariaGradesData = map.shariaGrades || [];
     w.notesData = map.notes || [];
@@ -306,7 +306,7 @@
     sessionToken = result.token;
     try { sessionStorage.setItem('majdSessionToken', sessionToken); } catch (_) {}
     if (result.mustChangePassword) await changeInitialPassword(password);
-    return result.user;
+    return typeof w.applyDataMapping === 'function' ? w.applyDataMapping(result.user) : result.user;
   }
 
   w.__MAJD_SUPABASE__ = {
