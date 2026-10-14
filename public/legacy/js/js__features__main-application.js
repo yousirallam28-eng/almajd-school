@@ -2804,8 +2804,13 @@ function wafdeenSaveDailyDraft_() {
             recitationTashkeel: Number(((_l = dailyErrorCounters === null || dailyErrorCounters === void 0 ? void 0 : dailyErrorCounters.recitation) === null || _l === void 0 ? void 0 : _l.tashkeel) || 0),
             recitationRepetition: Number(((_m = dailyErrorCounters === null || dailyErrorCounters === void 0 ? void 0 : dailyErrorCounters.recitation) === null || _m === void 0 ? void 0 : _m.repetition) || 0),
             counterType: dailyCounterType || dailyTimerType || '',
-            behaviorCounts: __assign({}, (wafdeenBehaviorState.daily || {}))
+            behaviorCounts: __assign({}, (wafdeenBehaviorState.daily || {})),
+            fields: {}
         };
+        ['attendance', 'behavior', 'tajweed', 'homework', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount', 'oldTopicToday', 'oldPagesCount', 'oldTopicRecited', 'oldRecitationCount', 'recitationTopicToday', 'recitationPagesCount', 'recitationTopicRecited', 'recitationRecitationCount'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) draft.fields[id] = el.value;
+        });
         memoryStorage.setItem(wafdeenDailyDraftKey_(), JSON.stringify(draft));
     }
     catch (_) { }
@@ -2820,6 +2825,10 @@ function wafdeenRestoreDailyDraft_() {
             if (el && draft_1[id] !== undefined && draft_1[id] !== '')
                 el.value = draft_1[id];
         });
+        Object.keys(draft_1.fields || {}).forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el && draft_1.fields[id] !== undefined) el.value = draft_1.fields[id];
+        });
         dailyErrorCounters = {
             new: { errors: Number(draft_1.newErrors || 0), tashkeel: Number(draft_1.newTashkeel || 0), repetition: Number(draft_1.newRepetition || 0) },
             old: { errors: Number(draft_1.oldErrors || 0), tashkeel: Number(draft_1.oldTashkeel || 0), repetition: Number(draft_1.oldRepetition || 0) },
@@ -2831,6 +2840,18 @@ function wafdeenRestoreDailyDraft_() {
         wafdeenResetBehaviorState('daily', draft_1.behaviorCounts || {});
     }
     catch (_) { }
+}
+// Save every daily-entry field while editing so an incomplete save cannot erase work.
+if (!window.__dailyEntryDraftAutosaveBound) {
+    window.__dailyEntryDraftAutosaveBound = true;
+    ['input', 'change'].forEach(function (eventName) {
+        document.addEventListener(eventName, function (event) {
+            if (event.target && event.target.closest && event.target.closest('#daily-tab')) {
+                try { wafdeenSaveDailyDraft_(); }
+                catch (_) { }
+            }
+        }, true);
+    });
 }
 function dailyCounterSet() {
     var type = dailyCounterType || dailyTimerType;
