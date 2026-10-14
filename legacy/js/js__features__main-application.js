@@ -2806,18 +2806,38 @@ function wafdeenSaveDailyDraft_() {
             counterType: dailyCounterType || dailyTimerType || '',
             behaviorCounts: __assign({}, (wafdeenBehaviorState.daily || {}))
         };
+        ['attendance', 'behavior', 'tajweed', 'homework', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount',
+            'oldTopicToday', 'oldPagesCount', 'oldTopicRecited', 'oldRecitationCount', 'recitationTopicToday',
+            'recitationPagesCount', 'recitationTopicRecited', 'recitationRecitationCount'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el)
+                draft[id] = el.value;
+        });
         memoryStorage.setItem(wafdeenDailyDraftKey_(), JSON.stringify(draft));
     }
     catch (_) { }
+}
+function wafdeenBindDailyDraftInputs_() {
+    ['attendance', 'behavior', 'tajweed', 'homework', 'newLesson', 'oldRevision', 'recitation', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount',
+        'oldTopicToday', 'oldPagesCount', 'oldTopicRecited', 'oldRecitationCount', 'recitationTopicToday', 'recitationPagesCount',
+        'recitationTopicRecited', 'recitationRecitationCount'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el || el.dataset.dailyDraftBound === '1') return;
+        el.addEventListener('input', wafdeenSaveDailyDraft_);
+        el.addEventListener('change', wafdeenSaveDailyDraft_);
+        el.dataset.dailyDraftBound = '1';
+    });
 }
 function wafdeenRestoreDailyDraft_() {
     try {
         var draft_1 = JSON.parse(memoryStorage.getItem(wafdeenDailyDraftKey_()) || 'null');
         if (!draft_1)
             return;
-        ['newLesson', 'oldRevision', 'recitation'].forEach(function (id) {
+        ['newLesson', 'oldRevision', 'recitation', 'attendance', 'behavior', 'tajweed', 'homework', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount',
+            'oldTopicToday', 'oldPagesCount', 'oldTopicRecited', 'oldRecitationCount', 'recitationTopicToday', 'recitationPagesCount',
+            'recitationTopicRecited', 'recitationRecitationCount'].forEach(function (id) {
             var el = document.getElementById(id);
-            if (el && draft_1[id] !== undefined && draft_1[id] !== '')
+            if (el && draft_1[id] !== undefined)
                 el.value = draft_1[id];
         });
         dailyErrorCounters = {
@@ -2984,10 +3004,7 @@ function dailyPauseForStudentSwitch_() {
 }
 function showDailyStudentWorkspace() {
     var _a;
-    try {
-        wafdeenRestoreDailyDraft_();
-    }
-    catch (_) { }
+    wafdeenBindDailyDraftInputs_();
     var student = (_a = document.getElementById('studentNameSelect')) === null || _a === void 0 ? void 0 : _a.value;
     var nextKey = dailyTimerStudentKey_();
     // عند الانتقال لطالب آخر: أوقف المؤقت تلقائيًا كـ«استراحة» واحفظ زمن الطالب السابق.
@@ -3033,6 +3050,11 @@ function showDailyStudentWorkspace() {
     dailyLoadCountersFromRecord(existing || {});
     dailyRenderCounters();
     wafdeenResetBehaviorState('daily', (existing === null || existing === void 0 ? void 0 : existing.behaviorReasons) || {});
+    try {
+        wafdeenRestoreDailyDraft_();
+    }
+    catch (_) { }
+    dailyRenderCounters();
     updateDailyTypeTimes();
     renderDailyTimer();
 }
@@ -3459,6 +3481,8 @@ function addGrade() {
                         pauseDailyTimer();
                     updateDailyRecitationGrade(type);
                     dailyCalculateGrade(type);
+                    // احفظ المسودة قبل التحقق حتى لا تضيع كتابات المدرس إذا كانت خانة ناقصة.
+                    try { wafdeenSaveDailyDraft_(); } catch (_) { }
                     if (!validateDailyRequiredFields_(type))
                         return [2 /*return*/];
                     timerBox = document.getElementById('dailySelectedTimerBox');
@@ -3571,7 +3595,8 @@ function addGrade() {
                     dailyTimerBaseSeconds = seconds;
                     updateDailyTypeTimes();
                     renderDailyTimer();
-                    dailyErrorCounters[type] = { errors: 0, tashkeel: 0, repetition: 0 };
+                    // لا تصفّر العداد بعد الحفظ؛ يظل ثابتًا حتى يمسحه المدرس يدويًا.
+                    wafdeenSaveDailyDraft_();
                     dailyRenderCounters();
                     renderDailyTable();
                     renderAttendanceTable();
