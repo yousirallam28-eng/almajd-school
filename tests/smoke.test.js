@@ -51,3 +51,11 @@ test('quick student registration has behavior reason list and full-screen record
   assert.match(quickCode, /qtoggleListFullscreen/);
   assert.match(quickStyles, /quick-list-fullscreen/);
 });
+
+test('student code portal shows the same full grades for week and month', () => {
+  const portalCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  assert.match(portalCode, /درجات الأسبوع الحالي/);
+  assert.match(portalCode, /درجات الشهر الحالي/);
+  assert.match(portalCode, /stats\.weekRecords/);
+  assert.match(portalCode, /stats\.monthRecords/);
+});

@@ -6326,35 +6326,38 @@ function showStudentBehaviorReason_(dateValue, scoreValue, encodedReason) {
 }
 function renderStudentPortalGradeTable_(area, stats) {
     if (!area || !stats) return;
-    var records = (stats.monthRecords || []).slice().sort(function(a, b) { return String(a.dateISO || '').localeCompare(String(b.dateISO || '')); });
-    var rows = records.map(function(record) {
-        var reason = studentBehaviorReasonText_(record);
-        var behavior = Number(record.behavior != null ? record.behavior : 0);
-        var reasonButton = (reason || behavior < 10) ?
-          '<button type="button" class="student-behavior-reason-btn" title="عرض سبب خصم السلوك" onclick="showStudentBehaviorReason_(' +
-          "'" + String(record.dateISO || '').replace(/'/g, '') + "'," + behavior + ",'" + encodeURIComponent(reason || '') + "')">ⓘ</button>" : '';
-        return '<tr>' +
-          '<td>' + studentEscapeHtml_(formatStudentDate(record.dateISO || '')) + '</td>' +
-          '<td>' + Number(record.attendance || 0) + ' / 10</td>' +
-          '<td><span class="student-behavior-grade">' + behavior + ' / 10</span>' + reasonButton + '</td>' +
-          '<td>' + Number(record.homework || 0) + ' / 10</td>' +
-          '<td>' + Number(record.newLesson || 0) + ' / 10</td>' +
-          '<td>' + Number(record.oldRevision || 0) + ' / 10</td>' +
-          '<td>' + Number(record.recitation || 0) + ' / 10</td>' +
-          '<td>' + Number(record.tajweed || 0) + ' / 10</td>' +
-          '<td><strong>' + getDailyTotal(record) + ' / ' + stats.dailyMax + '</strong></td>' +
-          '</tr>';
-    }).join('');
-    if (!rows) rows = '<tr><td colspan="9" class="student-empty-grade-row">لا توجد درجات مسجلة خلال الشهر الحالي.</td></tr>';
-    var table = '<section class="student-portal-section student-full-grade-section">' +
-      '<h4>📊 قائمة درجات الطالب اليومية</h4>' +
-      '<div class="table-responsive student-full-grade-table"><table><thead><tr>' +
-      '<th>التاريخ</th><th>الحضور</th><th>السلوك</th><th>الواجب</th><th>الجديد</th><th>الماضي</th><th>التلاوة</th><th>التجويد</th><th>المجموع</th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table></div></section>';
-    area.insertAdjacentHTML('afterbegin', '<div class="student-portal-fullscreen-toolbar"><strong>كشف درجات الطالب</strong><button type="button" class="action-btn btn-danger" onclick="closeStudentPortalFullscreen_()">✕ إغلاق العرض الكامل</button></div>' + table);
+    function tableMarkup(records, title, emptyText) {
+        records = (records || []).slice().sort(function(a, b) { return String(a.dateISO || '').localeCompare(String(b.dateISO || '')); });
+        var rows = records.map(function(record) {
+            var reason = studentBehaviorReasonText_(record);
+            var behavior = Number(record.behavior != null ? record.behavior : 0);
+            var reasonButton = (reason || behavior < 10) ?
+              '<button type="button" class="student-behavior-reason-btn" title="عرض سبب خصم السلوك" onclick="showStudentBehaviorReason_(' +
+              "'" + String(record.dateISO || '').replace(/'/g, '') + "'," + behavior + ",'" + encodeURIComponent(reason || '') + "')">ⓘ</button>" : '';
+            return '<tr>' +
+              '<td>' + studentEscapeHtml_(formatStudentDate(record.dateISO || '')) + '</td>' +
+              '<td>' + Number(record.attendance || 0) + ' / 10</td>' +
+              '<td><span class="student-behavior-grade">' + behavior + ' / 10</span>' + reasonButton + '</td>' +
+              '<td>' + Number(record.homework || 0) + ' / 10</td>' +
+              '<td>' + Number(record.newLesson || 0) + ' / 10</td>' +
+              '<td>' + Number(record.oldRevision || 0) + ' / 10</td>' +
+              '<td>' + Number(record.recitation || 0) + ' / 10</td>' +
+              '<td>' + Number(record.tajweed || 0) + ' / 10</td>' +
+              '<td><strong>' + getDailyTotal(record) + ' / ' + stats.dailyMax + '</strong></td>' +
+              '</tr>';
+        }).join('');
+        if (!rows) rows = '<tr><td colspan="9" class="student-empty-grade-row">' + emptyText + '</td></tr>';
+        return '<section class="student-portal-section student-full-grade-section">' +
+          '<h4>' + title + '</h4>' +
+          '<div class="table-responsive student-full-grade-table"><table><thead><tr>' +
+          '<th>التاريخ</th><th>الحضور</th><th>السلوك</th><th>الواجب</th><th>الجديد</th><th>الماضي</th><th>التلاوة</th><th>التجويد</th><th>المجموع</th>' +
+          '</tr></thead><tbody>' + rows + '</tbody></table></div></section>';
+    }
+    var weekTable = tableMarkup(stats.weekRecords, '📅 درجات الأسبوع الحالي', 'لا توجد درجات مسجلة خلال الأسبوع الحالي.');
+    var monthTable = tableMarkup(stats.monthRecords, '📊 درجات الشهر الحالي', 'لا توجد درجات مسجلة خلال الشهر الحالي.');
+    area.insertAdjacentHTML('afterbegin', '<div class="student-portal-fullscreen-toolbar"><strong>كشف درجات الطالب</strong><button type="button" class="action-btn btn-danger" onclick="closeStudentPortalFullscreen_()">✕ إغلاق العرض الكامل</button></div>' + weekTable + monthTable);
     area.classList.add('student-portal-fullscreen');
 }
-
 function studentLogin() {
     var input = document.getElementById('studentLoginCode');
     var code = input ? input.value.trim().toUpperCase() : '';
