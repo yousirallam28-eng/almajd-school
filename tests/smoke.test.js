@@ -27,3 +27,8 @@ test('sheikh registration supports exporting a selected date range', () => {
   assert.match(sheikhCode, /function exportSheikhRegistrationDateRangeExcel\(\)/);
   assert.match(sheikhCode, /تسجيل_الشيوخ_من_/);
 });
+
+test('selected sheikh date range skips Friday and Saturday', () => {
+  const sheikhCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  assert.match(sheikhCode, /dayOfWeek !== 5 && dayOfWeek !== 6/);
+});
