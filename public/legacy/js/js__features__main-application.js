@@ -2237,11 +2237,12 @@ function sheikhRegistrationDate_(className, record) {
    - التاريخ قبل اسم الطالب.
    - تم التسجيل باللون الأخضر، ولم يتم التسجيل باللون الأحمر.
    ============================================================ */
+function isSheikhRegistrationExportClass_(className) {
+    var normalized = String(className || '').trim();
+    return normalized !== 'تمهيدي' && normalized !== 'الوافدين';
+}
 function getSheikhRegistrationClassOrder_() {
-    return GENERAL_CLASSES.filter(function (className) {
-        var normalized = String(className || '').trim();
-        return normalized !== 'تمهيدي' && normalized !== 'الوافدين';
-    });
+    return GENERAL_CLASSES.filter(isSheikhRegistrationExportClass_);
 }
 
 function sheikhRegistrationRowsForClass_(className, dateVal) {
@@ -2569,6 +2570,9 @@ function exportCurrentSheikhClassExcel() {
         var dateVal = (dateEl && dateEl.value) || new Date().toISOString().slice(0, 10);
         if (!className) return showMessage('app-msg', 'اختر الفصل أولاً.', 'error');
 
+        if (!isSheikhRegistrationExportClass_(className)) {
+            return showMessage('app-msg', 'لا يمكن تصدير التمهيدي أو الوافدين من تسجيل الشيوخ.', 'error');
+        }
         var rows = sheikhRegistrationRowsForClass_(className, dateVal);
         var wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, makeSheikhExcelSheet_(rows), sheikhExcelSafeSheetName_(className, 'فصل'));

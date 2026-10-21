@@ -15,5 +15,6 @@ test('sheikh registration excludes preparatory and wafdeen classes', () => {
   assert.doesNotMatch(html, /<select id="sheikhRegClassSelect"[\s\S]*?<option value="تمهيدي">/);
   assert.doesNotMatch(html, /<select id="sheikhRegClassSelect"[\s\S]*?<option value="الوافدين">/);
   const sheikhCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
-  assert.match(sheikhCode, /normalized !== 'تمهيدي' && normalized !== 'الوافدين'/);
+  assert.match(sheikhCode, /function isSheikhRegistrationExportClass_\(className\)/);
+  assert.match(sheikhCode, /لا يمكن تصدير التمهيدي أو الوافدين/);
 });
