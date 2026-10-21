@@ -32,3 +32,13 @@ test('selected sheikh date range skips Friday and Saturday', () => {
   const sheikhCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
   assert.match(sheikhCode, /dayOfWeek !== 5 && dayOfWeek !== 6/);
 });
+
+test('student code portal shows full-screen daily grades and behavior reason action', () => {
+  const portalCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  const styles = readFileSync(new URL('../public/legacy/css/style-1.css', import.meta.url), 'utf8');
+  assert.match(portalCode, /function renderStudentPortalGradeTable_\(area, stats\)/);
+  assert.match(portalCode, /showStudentBehaviorReason_/);
+  assert.match(portalCode, /التاريخ.*الحضور.*السلوك.*الواجب.*الجديد.*الماضي.*التلاوة.*التجويد/);
+  assert.match(styles, /\.student-portal-fullscreen/);
+  assert.match(styles, /\.student-behavior-reason-btn/);
+});
