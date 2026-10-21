@@ -5,7 +5,7 @@
   function guard(){
     try{
       if(!Array.isArray(window.ALL_CLASSES)||!window.ALL_CLASSES.length) window.ALL_CLASSES=CANONICAL_CLASSES.slice();
-      if(!Array.isArray(window.GENERAL_CLASSES)||!window.GENERAL_CLASSES.length) window.GENERAL_CLASSES=window.ALL_CLASSES;
+      window.GENERAL_CLASSES=window.ALL_CLASSES.filter(function(c){return String(c).trim()!=='الوافدين';});
       if(typeof window.renderClassCards==='function') window.renderClassCards();
     }catch(e){console.warn('class guard:',e);}
     try{

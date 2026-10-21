@@ -136,3 +136,57 @@
 #wafdeen-login-screen>.btn-save{height:58px!important;margin-top:3px;background:linear-gradient(135deg,#0b6e5c,#075442)!important;box-shadow:0 12px 24px rgba(7,84,66,.22)}
 #wafdeen-login-screen>.action-btn:not(.btn-save){height:52px!important;border:1px solid rgba(11,110,92,.12)!important;background:#f3f8f6!important;color:#0b6e5c!important;box-shadow:none!important}
 @media(max-width:600px){#wafdeen-login-screen{width:calc(100vw - 24px)!important;margin:16px auto 20px!important;padding:27px 20px 24px!important;border-radius:28px!important}#wafdeen-login-screen .login-logo-img{width:92px!important;height:92px!important}}
+
+
+/* بطاقات تقييم الوافدين: الجديد والماضي والتلاوة مع عرض متجاوب */
+#wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-error-counters,
+#wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-score-summary{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+#wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-error-counter,
+#wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-auto-score{
+  min-width:0;
+  padding:15px;
+  border:1px solid rgba(27,138,107,.16);
+  border-radius:18px;
+  background:linear-gradient(180deg,#fff,#f5faf7);
+  box-shadow:0 6px 18px rgba(15,61,51,.06);
+  text-align:center;
+}
+#wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-auto-score .score-value{
+  color:#0b6e5c;
+  font-size:clamp(1.7rem,4vw,2.4rem);
+  font-weight:900;
+}
+#wafdeen-app-screen #wafdeen-daily-scores-panel .form-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+#wafdeen-app-screen #wafdeen-daily-scores-panel .form-group{
+  min-width:0;
+  padding:12px;
+  border:1px solid rgba(27,138,107,.12);
+  border-radius:15px;
+  background:#fbfdfc;
+}
+#wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-score-total{
+  margin:14px auto;
+  width:max-content;
+  max-width:100%;
+  padding:10px 20px;
+  border-radius:999px;
+  background:#eaf5ef;
+  color:#0b6e5c;
+  font-size:1.15rem;
+  font-weight:900;
+}
+@media(max-width:700px){
+  #wafdeen-app-screen #wafdeen-daily-scores-panel .form-grid{grid-template-columns:1fr}
+  #wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-error-counters,
+  #wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-score-summary{gap:7px}
+  #wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-error-counter,
+  #wafdeen-app-screen #wafdeen-daily-scores-panel .wafdeen-auto-score{padding:10px 6px}
+}

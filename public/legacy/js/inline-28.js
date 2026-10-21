@@ -26,9 +26,12 @@
       if (t) headers.Authorization = 'Bearer ' + t;
       var controller = typeof AbortController === 'function' ? new AbortController() : null;
       var timeout = controller ? setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS) : null;
-      var response;
+      var response, payload = {};
       try {
         response = await fetch(EDGE_URL, { method: 'POST', headers: headers, body: JSON.stringify(Object.assign({ op: op }, fields || {})), signal: controller ? controller.signal : undefined });
+        try { payload = await response.json(); } catch (bodyError) {
+          if (controller && controller.signal.aborted) throw bodyError;
+        }
       } catch (networkError) {
         var networkMessage = networkError && networkError.name === 'AbortError' ? 'انتهت مهلة الاتصال بقاعدة البيانات.' : 'تعذر الاتصال بقاعدة البيانات. تحقق من الإنترنت وحاول مرة أخرى.';
         var connectionError = new Error(networkMessage);
@@ -36,8 +39,6 @@
         lastConnectionError = connectionError;
         throw connectionError;
       } finally { if (timeout) clearTimeout(timeout); }
-      var payload = {};
-      try { payload = await response.json(); } catch (_) {}
       if (!response.ok) {
         var err = new Error(payload.error || ('HTTP_' + response.status));
         err.status = response.status;
@@ -242,7 +243,7 @@
   }
   async function hydrateWafdeen() {
     var names = ['wafdeenTeachers', 'wafdeenStudents', 'wafdeenDailyRecords', 'wafdeenExams', 'wafdeenUsage', 'wafdeenSettings', 'wafdeenMonthlyReports'];
-    var pairs = await Promise.all(names.map(async function (name) { try { return [name, await readAll(name)]; } catch (_) { return [name, []]; } }));
+    var pairs = await Promise.all(names.map(async function (name) { return [name, await readAll(name)]; }));
     var map = Object.fromEntries(pairs);
     w.wafdeenTeachersData = map.wafdeenTeachers || [];
     w.wafdeenStudentsData = map.wafdeenStudents || [];
@@ -362,7 +363,9 @@
         return done.book;
       } finally { endLoadingOperation(); }
     }, deleteBookFromDrive: async function (id) { await booksRequest('delete', { id: String(id) }); return true; },
-    getWafdeenMonthlyReports: async function () { return readAll('wafdeenMonthlyReports'); }
+    getWafdeenMonthlyReports: async function () { return readAll('wafdeenMonthlyReports'); },
+    getWafdeenUsage: async function () { return readAll('wafdeenUsage'); },
+    getWafdeenDailyRecords: async function () { return readAll('wafdeenDailyRecords'); }
   };
   w.localdataWriteRecord_ = async function (c, id, data, options) { return w.MajdLocalDataAPI.writeRecord(c, id, data, options); };
   w.deletelocaldataRecord = async function (c, id) { return w.MajdLocalDataAPI.deleteRecord(c, id); };
@@ -439,11 +442,11 @@
 
 
   w.wafdeenLogout = async function () {
-    var message = (w.wafdeenTimerRunning || w.wafdeenElapsedSeconds > 0) ? 'يوجد وقت غير محفوظ. هل تريد تسجيل الخروج دون حفظه؟' : 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
+    var message = (w.wafdeenQuranTimerRunning || w.wafdeenQuranElapsedSeconds > 0) ? 'توجد جلسة تسميع غير مكتملة. هل تريد تسجيل الخروج دون حفظها؟' : 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
     var ok = await w.siteConfirm('تأكيد تسجيل الخروج', message, 'تسجيل الخروج', true);
     if (!ok) return;
     loadGeneration++;
-    if (typeof w.wafdeenStopInterval === 'function') w.wafdeenStopInterval();
+    if (typeof w.wafdeenQuranStopTimer === 'function' && w.wafdeenQuranTimerRunning) await w.wafdeenQuranStopTimer();
     sessionToken = ''; w.currentWafdeenTeacher = null;
     memoryStorage.removeItem('currentWafdeenTeacher');
     if (typeof w.wafdeenResetTimer === 'function') w.wafdeenResetTimer();

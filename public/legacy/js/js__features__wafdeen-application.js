@@ -94,33 +94,23 @@ var currentWafdeenTeacher = (function(){
     try { return JSON.parse(persistentAuthStorage.getItem('currentWafdeenTeacher') || 'null'); }
     catch (_) { return null; }
 })();
-var wafdeenSelectedType = '';
 var wafdeenSelectedSubject = '';
-var wafdeenElapsedSeconds = 0;
-var wafdeenTimerStartedAt = null;
-var wafdeenTimerInterval = null;
-var wafdeenTimerRunning = false;
 var wafdeenQuranSelectedType = '';
 var wafdeenQuranElapsedSeconds = 0;
 var wafdeenQuranTimerStartedAt = null;
 var wafdeenQuranTimerInterval = null;
 var wafdeenQuranTimerRunning = false;
-var wafdeenQuranElapsedByType = { الجديد: 0, الماضي: 0, التلاوة: 0 };
 var wafdeenQuranSessionSavedByType = { الجديد: false, الماضي: false, التلاوة: false };
 var WAFDEEN_QURAN_SESSION_MAX_SECONDS = 2 * 60 * 60;
 var wafdeenQuranSessionSaved = false;
+var wafdeenQuranSessionId = null;
+var wafdeenQuranStudentId = null;
 var wafdeenQuranHeardTypes = { الجديد: false, الماضي: false, التلاوة: false };
 var wafdeenQuranErrorCounters = {
     الجديد: { errors: 0, tashkeel: 0, repetition: 0 },
     الماضي: { errors: 0, tashkeel: 0, repetition: 0 },
     التلاوة: { errors: 0, tashkeel: 0, repetition: 0 }
 };
-var wafdeenEduSelectedSubject = '';
-var wafdeenEduSelectedType = 'المواد التعليمية';
-var wafdeenEduElapsedSeconds = 0;
-var wafdeenEduTimerStartedAt = null;
-var wafdeenEduTimerInterval = null;
-var wafdeenEduTimerRunning = false;
 var WAFDEEN_SUBJECTS = {
     fiqh: { name: 'فقه', icon: '⚖️' },
     hadith: { name: 'حديث', icon: '📜' },
@@ -359,26 +349,19 @@ function showWafdeenAppScreen() {
     var roleLabel = (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin) ? 'المدير' : (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.role) === 'student' ? 'الطالب' : 'المعلم';
     document.getElementById('wafdeen-teacher-name').innerText = ((currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.username) || '') + ' — ' + roleLabel;
     document.getElementById('wafdeen-menu-handle').classList.remove('hidden');
-    document.getElementById('wafdeen-admin-area').classList.toggle('show', !!(currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin));
-    document.getElementById('wafdeen-admin-menu-items').style.display = (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin) ? 'block' : 'none';
-    wafdeenShowPanel((currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.role) === 'student' ? 'materials' : 'daily');
+    wafdeenShowPanel('daily');
     wafdeenRenderStudentSelect();
     wafdeenResetTimer();
     wafdeenRenderQuranCounters();
-    if (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin) {
-        wafdeenRenderTeachersTable();
-        wafdeenRenderStudentsTable();
-        wafdeenReportPanelInit();
-    }
 }
 async function wafdeenLogout() {
-    var logoutMessage = (wafdeenTimerRunning || wafdeenElapsedSeconds > 0)
-        ? 'يوجد وقت غير محفوظ. هل تريد تسجيل الخروج دون حفظه؟'
+    var logoutMessage = (wafdeenQuranTimerRunning || wafdeenQuranElapsedSeconds > 0)
+        ? 'توجد جلسة تسميع غير مكتملة. هل تريد تسجيل الخروج دون حفظها؟'
         : 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
     var ok = await siteConfirm('تأكيد تسجيل الخروج', logoutMessage, 'تسجيل الخروج', true);
     if (!ok)
         return;
-    wafdeenStopInterval();
+    if (wafdeenQuranTimerRunning) await wafdeenQuranStopTimer();
     currentWafdeenTeacher = null;
     persistentAuthStorage.removeItem('currentWafdeenTeacher');
     wafdeenResetTimer();
@@ -386,40 +369,35 @@ async function wafdeenLogout() {
     showLoginScreen();
 }
 
+function wafdeenTeacherCanSeeStudent_(student) {
+    var teacher = currentWafdeenTeacher;
+    if (!teacher || !student) return false;
+    var teacherIds = [teacher.id, teacher.username].filter(Boolean).map(String);
+    var owner = student.teacherUsername || student.assignedTeacher || student.teacher || student.teacherId || '';
+    if (owner && !teacherIds.includes(String(owner))) return false;
+    var allowed = teacher.allowedStudentIds || teacher.studentIds || teacher.assignedStudentIds;
+    if (Array.isArray(allowed) && !allowed.map(String).includes(String(student.id || student.studentId || ''))) return false;
+    return true;
+}
 function wafdeenRenderStudentSelect() {
     var sel = document.getElementById('wafdeenStudentSelect');
     if (!sel)
         return;
     var current = sel.value;
-    sel.innerHTML = '';
-    if (!wafdeenStudentsData.length) {
+    sel.innerHTML = '<option value="">اختر الطالب</option>';
+    var visibleStudents = (wafdeenStudentsData || []).filter(wafdeenTeacherCanSeeStudent_);
+    if (!visibleStudents.length) {
         sel.innerHTML = '<option value="">لا يوجد طلاب مسجلون من الإدارة</option>';
         return;
     }
-    __spreadArray([], __read(wafdeenStudentsData), false).sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'ar'); }).forEach(function (s) { var o = document.createElement('option'); o.value = s.id; o.textContent = s.name; sel.appendChild(o); });
+    __spreadArray([], __read(visibleStudents), false).sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'ar'); }).forEach(function (s) { var o = document.createElement('option'); o.value = s.id; o.textContent = s.name; sel.appendChild(o); });
     if (__spreadArray([], __read(sel.options), false).some(function (o) { return o.value === current; }))
         sel.value = current;
 }
-function selectWafdeenType(type, btn) {
-    wafdeenSelectedType = type;
-    document.querySelectorAll('.wafdeen-type-btn').forEach(function (b) { return b.classList.remove('active'); });
-    btn.classList.add('active');
-    document.getElementById('wafdeen-timer-status').innerText = 'نوع التسميع: ' + type + ' — جاهز للبدء';
-}
 function wafdeenFormat(sec) { sec = Math.max(0, Math.floor(sec)); var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60; return [h, m, s].map(function (v) { return String(v).padStart(2, '0'); }).join(':'); }
 function wafdeenFormatTimer(elapsed) { var sec = Math.max(0, Math.floor(elapsed || 0)); var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s2 = sec % 60; return [h, m, s2].map(function (v) { return String(v).padStart(2, '0'); }).join(':'); }
-function wafdeenUpdateTimerDisplay() { var el = document.getElementById('wafdeen-timer'); if (el)
-    el.innerText = wafdeenFormatTimer(wafdeenElapsedSeconds); }
-function wafdeenStopInterval() { if (wafdeenTimerInterval) {
-    clearInterval(wafdeenTimerInterval);
-    wafdeenTimerInterval = null;
-} wafdeenTimerRunning = false; wafdeenTimerStartedAt = null; }
-function wafdeenTick() { if (!wafdeenTimerRunning || !wafdeenTimerStartedAt)
-    return; wafdeenElapsedSeconds = Math.floor((Date.now() - wafdeenTimerStartedAt) / 1000); wafdeenUpdateTimerDisplay(); }
 function wafdeenUpdateQuranTimer() { var el = document.getElementById('wafdeen-quran-timer'); if (el)
     el.innerText = wafdeenFormatTimer(wafdeenQuranElapsedSeconds); }
-function wafdeenUpdateEduTimer() { var el = document.getElementById('wafdeen-edu-timer'); if (el)
-    el.innerText = wafdeenFormatTimer(wafdeenEduElapsedSeconds); }
 function wafdeenQuranTick() {
     if (!wafdeenQuranTimerRunning || !wafdeenQuranTimerStartedAt) return;
     // مؤقت واحد مستقل لجلسة التسميع بالكامل، ولا يرتبط بنوع الدرجة.
@@ -435,13 +413,12 @@ function wafdeenQuranTick() {
         wafdeenQuranUpdateQuranTimer();
         var maxSt = document.getElementById('wafdeen-quran-timer-status');
         if (maxSt) maxSt.innerText = '⏱️ اكتمل الحد الأقصى لجلسة التسميع: ساعتان';
+        wafdeenQuranStopTimer(true).catch(function (e) { console.error('تعذر حفظ جلسة التسميع بعد انتهاء ساعتين:', e); });
         return;
     }
     wafdeenQuranElapsedSeconds = elapsed;
     wafdeenQuranUpdateQuranTimer();
 }
-function wafdeenEduTick() { if (!wafdeenEduTimerRunning || !wafdeenEduTimerStartedAt)
-    return; wafdeenEduElapsedSeconds = Math.floor((Date.now() - wafdeenEduTimerStartedAt) / 1000); wafdeenUpdateEduTimer(); }
 function selectWafdeenQuranType(type, btn) { wafdeenSelectGradeType(type, btn); }
 function wafdeenCalculateQuranScore(c) { var deduction = (Number(c.errors) || 0) + (Number(c.tashkeel) || 0) * 0.5 + (Number(c.repetition) || 0) * 0.25; return Math.max(0, Math.min(10, 10 - deduction)); }
 function wafdeenGetCounterSet() {
@@ -502,6 +479,17 @@ function __wafdeenSetQuranTimerIntervalSafe() {
 function __wafdeenStartSessionTimerSafe() {
     try {
         // مؤقت جلسة التسميع مستقل تمامًا عن اختيار النوع أو الطالب.
+        if (!currentWafdeenTeacher || currentWafdeenTeacher.isAdmin || ['admin', 'student'].includes(String(currentWafdeenTeacher.role || '').toLowerCase())) return false;
+        var selectedStudentId = String((document.getElementById('wafdeenStudentSelect') || {}).value || '');
+        var selectedStudent = (wafdeenStudentsData || []).find(function (student) { return String(student.id) === selectedStudentId; });
+        if (!selectedStudent || !wafdeenTeacherCanSeeStudent_(selectedStudent)) {
+            showMessage('wafdeen-save-msg', 'الطالب غير متاح لهذا الحساب.', 'error');
+            return false;
+        }
+        if (!selectedStudentId) {
+            showMessage('wafdeen-save-msg', 'اختر الطالب قبل بدء جلسة التسميع.', 'error');
+            return false;
+        }
         if (wafdeenQuranTimerRunning) return;
         var maxSeconds = Number(WAFDEEN_QURAN_SESSION_MAX_SECONDS || 7200);
         var current = Math.max(0, Math.min(Number(wafdeenQuranElapsedSeconds || 0), maxSeconds));
@@ -513,6 +501,7 @@ function __wafdeenStartSessionTimerSafe() {
             return false;
         }
         wafdeenQuranTimerStartedAt = Date.now() - (current * 1000);
+        if (!wafdeenQuranSessionId) { wafdeenQuranStudentId = selectedStudentId; wafdeenQuranSessionId = 'wafdeen_session_' + encodeURIComponent(String(currentWafdeenTeacher.id || currentWafdeenTeacher.username || 'teacher')) + '_' + encodeURIComponent(selectedStudentId) + '_' + Date.now(); }
         wafdeenQuranElapsedSeconds = current;
         wafdeenQuranTimerRunning = true;
         __wafdeenSetQuranTimerIntervalSafe();
@@ -566,6 +555,13 @@ function wafdeenQuranStartPause(forcePause) {
         if (st) st.innerText = '⏸️ استراحة — جلسة التسميع متوقفة مؤقتًا عند ' + wafdeenFormatTimer(wafdeenQuranElapsedSeconds);
         return;
     }
+    var selectedStudentId = String((document.getElementById('wafdeenStudentSelect') || {}).value || '').trim();
+    var selectedStudent = (wafdeenStudentsData || []).find(function (student) { return String(student.id) === selectedStudentId; });
+    if (!selectedStudent || !wafdeenTeacherCanSeeStudent_(selectedStudent)) {
+        showMessage('wafdeen-save-msg', 'اختر طالبًا مسموحًا لهذا المدرس قبل بدء الجلسة.', 'error');
+        return;
+    }
+    if (wafdeenQuranSessionSaved) { showMessage('wafdeen-save-msg', 'تم حفظ هذه الجلسة. استخدم إعادة الضبط لبدء جلسة جديدة.', 'error'); return; }
     if (wafdeenQuranTimerRunning) return;
     var current = Math.min(Number(wafdeenQuranElapsedSeconds || 0), Number(WAFDEEN_QURAN_SESSION_MAX_SECONDS || 7200));
     if (current >= Number(WAFDEEN_QURAN_SESSION_MAX_SECONDS || 7200)) {
@@ -574,6 +570,7 @@ function wafdeenQuranStartPause(forcePause) {
         return;
     }
     wafdeenQuranTimerStartedAt = Date.now() - current * 1000;
+    if (!wafdeenQuranSessionId) { wafdeenQuranStudentId = String((document.getElementById('wafdeenStudentSelect') || {}).value || ''); wafdeenQuranSessionId = 'wafdeen_session_' + encodeURIComponent(String((currentWafdeenTeacher && (currentWafdeenTeacher.id || currentWafdeenTeacher.username)) || 'teacher')) + '_' + encodeURIComponent(wafdeenQuranStudentId) + '_' + Date.now(); }
     wafdeenQuranElapsedSeconds = current;
     wafdeenQuranTimerRunning = true;
     wafdeenQuranSessionSaved = false;
@@ -583,128 +580,73 @@ function wafdeenQuranStartPause(forcePause) {
     var st = document.getElementById('wafdeen-quran-timer-status');
     if (st) st.innerText = '⏱️ جلسة التسميع — جارٍ احتساب الوقت';
 }
-function wafdeenQuranStopTimer() {
-    return __awaiter(this, arguments, void 0, function (auto) {
-        var seconds;
-        if (auto === void 0) { auto = false; }
-        return __generator(this, function (_a) {
-            if ((currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.role) === 'student') return [2 /*return*/, false];
-            if (wafdeenQuranTimerRunning) wafdeenQuranTick();
-            if (wafdeenQuranTimerInterval) clearInterval(wafdeenQuranTimerInterval);
-            wafdeenQuranTimerInterval = null;
-            wafdeenQuranTimerRunning = false;
-            wafdeenQuranTimerStartedAt = null;
-            try { window.MajdLocalDataAPI.flushLocalRenderQueue(); } catch (_) {}
-            seconds = Math.floor(Number(wafdeenQuranElapsedSeconds || 0));
-            wafdeenQuranElapsedSeconds = seconds;
-            wafdeenUpdateQuranTimer();
-            if (seconds <= 0) {
-                if (!auto) showMessage('wafdeen-save-msg', 'اضغط «بدء» أولاً لاحتساب وقت جلسة التسميع.', 'error');
-                return [2 /*return*/, false];
-            }
-            var st = document.getElementById('wafdeen-quran-timer-status');
-            if (st) st.innerText = '⏸️ جلسة التسميع متوقفة عند ' + wafdeenFormatTimer(seconds);
-            return [2 /*return*/, true];
-        });
-    });
+async function wafdeenPersistQuranSession_(seconds) {
+    var select = document.getElementById('wafdeenStudentSelect');
+    var studentId = String(wafdeenQuranStudentId || (select && select.value) || '');
+    var student = (wafdeenStudentsData || []).find(function (x) { return String(x.id) === studentId && wafdeenTeacherCanSeeStudent_(x); });
+    if (!student) throw new Error('اختر الطالب الصحيح قبل حفظ مدة جلسة التسميع.');
+    if (!currentWafdeenTeacher || currentWafdeenTeacher.isAdmin || ['admin', 'student'].includes(String(currentWafdeenTeacher.role || '').toLowerCase())) {
+        throw new Error('هذا الحساب غير مخوّل بحفظ جلسات الوافدين.');
+    }
+    var teacherId = String(currentWafdeenTeacher.id || currentWafdeenTeacher.username || '');
+    var dateISO = wafdeenSelectedDailyDateStr();
+    var id = wafdeenQuranSessionId || ('wafdeen_session_' + encodeURIComponent(teacherId) + '_' + encodeURIComponent(studentId) + '_' + Date.now());
+    var record = {
+        id: id, sessionId: id, sessionType: 'جلسة التسميع', category: 'quran_session',
+        teacherId: teacherId, teacherUsername: String(currentWafdeenTeacher.username || ''),
+        studentId: student.id, studentName: student.name, dateISO: dateISO,
+        seconds: Math.min(7200, Math.max(0, Math.floor(Number(seconds) || 0))),
+        sessionSeconds: Math.min(7200, Math.max(0, Math.floor(Number(seconds) || 0))),
+        sessionMaxSeconds: 7200, updatedAt: new Date().toISOString()
+    };
+        await window.MajdLocalDataAPI.writeRecord('wafdeenUsage', id, record, { merge: true });
+        wafdeenUsageData = (wafdeenUsageData || []).filter(function (x) { return String(x.id) !== id; });
+        wafdeenUsageData.push(record);
+        wafdeenQuranSessionId = null;
+        return record;
+}
+async function wafdeenQuranStopTimer(auto) {
+    auto = Boolean(auto);
+    if (!currentWafdeenTeacher || currentWafdeenTeacher.isAdmin || ['admin', 'student'].includes(String(currentWafdeenTeacher.role || '').toLowerCase())) return false;
+    if (wafdeenQuranTimerRunning) wafdeenQuranTick();
+    if (wafdeenQuranTimerInterval) clearInterval(wafdeenQuranTimerInterval);
+    wafdeenQuranTimerInterval = null;
+    wafdeenQuranTimerRunning = false;
+    wafdeenQuranTimerStartedAt = null;
+    var seconds = Math.min(7200, Math.floor(Number(wafdeenQuranElapsedSeconds || 0)));
+    wafdeenQuranElapsedSeconds = seconds;
+    wafdeenQuranUpdateQuranTimer();
+    if (seconds <= 0) {
+        if (!auto) showMessage('wafdeen-save-msg', 'اضغط «بدء» أولاً لاحتساب وقت جلسة التسميع.', 'error');
+        return false;
+    }
+    var status = document.getElementById('wafdeen-quran-timer-status');
+    if (status) status.innerText = 'جارٍ حفظ مدة جلسة التسميع في السحابة...';
+    try {
+        await wafdeenPersistQuranSession_(seconds);
+        wafdeenQuranSessionSaved = true;
+        if (status) status.innerText = 'تم حفظ جلسة التسميع: ' + wafdeenFormatTimer(seconds);
+        showMessage('wafdeen-save-msg', 'تم حفظ مدة جلسة التسميع في السحابة: ' + wafdeenFormatTimer(seconds), 'success');
+        return true;
+    } catch (error) {
+        if (status) status.innerText = 'توقفت الجلسة لكن لم يُؤكد حفظها سحابيًا. أعد المحاولة.';
+        showMessage('wafdeen-save-msg', 'تعذر حفظ مدة الجلسة في السحابة: ' + (error.message || error), 'error');
+        return false;
+    }
 }
 function wafdeenQuranReset() {
     if (wafdeenQuranTimerRunning)
         return;
-    wafdeenQuranElapsedByType = { الجديد: 0, الماضي: 0, التلاوة: 0 };
     wafdeenQuranElapsedSeconds = 0;
     wafdeenQuranSessionSaved = false;
+    wafdeenQuranSessionId = null;
+    wafdeenQuranStudentId = null;
     wafdeenQuranSessionSavedByType = { الجديد: false, الماضي: false, التلاوة: false };
     wafdeenQuranUpdateQuranTimer();
     var st = document.getElementById('wafdeen-quran-timer-status');
     if (st)
-        st.innerText = 'اضغط بدء لبدء جلسة التسميع — الوقت يستمر في العد حتى تضغط استراحة';
+        st.innerText = 'جلسة تسميع واحدة — اضغط «بدء الجلسة»، ثم «إنهاء الجلسة وحفظ الوقت»';
 }
-function selectWafdeenEduSubject(subject, btn) { if (wafdeenEduTimerRunning)
-    return showMessage('wafdeen-save-msg', 'أوقف مؤقت المواد التعليمية أولاً قبل تغيير المادة', 'error'); wafdeenEduSelectedSubject = subject; document.querySelectorAll('[data-edu-subject]').forEach(function (b) { return b.classList.remove('active'); }); btn.classList.add('active'); document.getElementById('wafdeen-edu-timer-status').innerText = subject + ' — جاهز للبدء'; }
-function selectWafdeenEduType(type, btn) { if (wafdeenEduTimerRunning)
-    return showMessage('wafdeen-save-msg', 'أوقف مؤقت المواد التعليمية أولاً قبل تغيير النوع', 'error'); if (!wafdeenEduSelectedSubject)
-    return showMessage('wafdeen-save-msg', 'اختر المادة أولاً: فقه أو منطق أو حديث أو اللغة العربية', 'error'); wafdeenEduSelectedType = type; document.querySelectorAll('[data-edu-type]').forEach(function (b) { return b.classList.remove('active'); }); btn.classList.add('active'); document.getElementById('wafdeen-edu-timer-status').innerText = wafdeenEduSelectedSubject + ' — ' + type + ' — جاهز للبدء'; }
-function wafdeenEduStartPause(forcePause) {
-    if (forcePause === void 0) { forcePause = false; }
-    if ((currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.role) === 'student')
-        return;
-    if (!wafdeenEduSelectedSubject)
-        return showMessage('wafdeen-save-msg', 'اختر المادة أولاً: فقه أو منطق أو حديث أو اللغة العربية', 'error');
-    if (!document.getElementById('wafdeenStudentSelect').value)
-        return showMessage('wafdeen-save-msg', 'اختر الطالب أولاً', 'error');
-    if (forcePause) {
-        if (!wafdeenEduTimerRunning)
-            return;
-        wafdeenEduTick();
-        clearInterval(wafdeenEduTimerInterval);
-        wafdeenEduTimerInterval = null;
-        wafdeenEduTimerRunning = false;
-        wafdeenEduTimerStartedAt = null;
-        document.getElementById('wafdeen-edu-timer-status').innerText = 'استراحة — اضغط بدء لاستكمال الوقت';
-        return;
-    }
-    if (wafdeenEduTimerRunning)
-        return;
-    wafdeenEduTimerStartedAt = Date.now() - wafdeenEduElapsedSeconds * 1000;
-    wafdeenEduTimerRunning = true;
-    wafdeenEduTimerInterval = setInterval(wafdeenEduTick, 1000);
-    document.getElementById('wafdeen-edu-timer-status').innerText = 'جارٍ احتساب الوقت — ' + wafdeenEduSelectedSubject + ' — ' + wafdeenEduSelectedType;
-}
-function wafdeenEduStopTimer() {
-    return __awaiter(this, void 0, void 0, function () { var seconds, student, rec, sheetOk, e_2; return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                if ((currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.role) === 'student')
-                    return [2 /*return*/];
-                if (!wafdeenEduSelectedSubject)
-                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'اختر المادة أولاً', 'error')];
-                if (!document.getElementById('wafdeenStudentSelect').value)
-                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'اختر الطالب أولاً', 'error')];
-                if (wafdeenEduTimerRunning)
-                    wafdeenEduTick();
-                if (wafdeenEduTimerInterval)
-                    clearInterval(wafdeenEduTimerInterval);
-                wafdeenEduTimerInterval = null;
-                wafdeenEduTimerRunning = false;
-                wafdeenEduTimerStartedAt = null;
-                seconds = Math.floor(wafdeenEduElapsedSeconds);
-                if (seconds <= 0)
-                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'لم يتم احتساب وقت في مؤقت المواد التعليمية حتى الآن', 'error')];
-                student = wafdeenStudentsData.find(function (s) { return String(s.id) === String(document.getElementById('wafdeenStudentSelect').value); });
-                if (!student)
-                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'الطالب غير موجود', 'error')];
-                rec = { id: (Date.now() + 1).toString(), teacherUsername: currentWafdeenTeacher.username, studentId: student.id, studentName: student.name, category: 'educational', subject: wafdeenEduSelectedSubject, seconds: seconds, dateISO: new Date().toISOString(), month: wafdeenTodayMonth() };
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 5, , 6]);
-                wafdeenUsageData.push(rec);
-                wafdeenPersistLocal();
-                if (!localIsAvailable()) return [3 /*break*/, 3];
-                return [4 /*yield*/, window.MajdLocalDataAPI.collection('wafdeenUsage').doc(rec.id).set(rec, { merge: true })];
-            case 2:
-                _a.sent();
-                _a.label = 3;
-            case 3: return [4 /*yield*/, window.MajdLocalDataAPI.saveWafdeenUsage(rec)];
-            case 4:
-                sheetOk = _a.sent();
-                showMessage('wafdeen-save-msg', sheetOk ? "\u062A\u0645 \u062D\u0641\u0638 ".concat(wafdeenFormat(seconds), " \u0644\u0644\u0637\u0627\u0644\u0628 ").concat(student.name, " \u0641\u064A ").concat(wafdeenEduSelectedSubject, " \u0648\u0645\u0632\u0627\u0645\u0646\u062A\u0647\u0627 \u0645\u0639 localdata \u2705") : "\u062A\u0645 \u062D\u0641\u0638 ".concat(wafdeenFormat(seconds), " \u0644\u0644\u0637\u0627\u0644\u0628 ").concat(student.name, " \u0645\u062D\u0644\u064A\u064B\u0627/\u0641\u064A localdata\u060C \u0648\u0633\u062A\u062A\u0645 \u0645\u0632\u0627\u0645\u0646\u062A\u0647\u0627 \u062A\u0644\u0642\u0627\u0626\u064A\u064B\u0627 \u0645\u0639 localdata."), sheetOk ? 'success' : 'info');
-                wafdeenEduReset();
-                if (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin)
-                    wafdeenRefreshAllReports();
-                return [3 /*break*/, 6];
-            case 5:
-                e_2 = _a.sent();
-                console.error(e_2);
-                showMessage('wafdeen-save-msg', 'تعذر حفظ وقت المواد التعليمية', 'error');
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
-        }
-    }); });
-}
-function wafdeenEduReset() { if (wafdeenEduTimerRunning)
-    return; wafdeenEduElapsedSeconds = 0; wafdeenUpdateEduTimer(); wafdeenEduSelectedSubject = ''; wafdeenEduSelectedType = ''; document.querySelectorAll('[data-edu-subject],[data-edu-type]').forEach(function (b) { return b.classList.remove('active'); }); var st = document.getElementById('wafdeen-edu-timer-status'); if (st)
-    st.innerText = 'اختر المادة ثم اضغط بدء'; }
 function wafdeenHasTodayRecordForSelectedStudent() {
     var sel = document.getElementById('wafdeenStudentSelect');
     var studentId = String((sel === null || sel === void 0 ? void 0 : sel.value) || '');
@@ -754,7 +696,6 @@ function wafdeenLoadSelectedStudentGradeData() {
         el.value = (v === undefined || v === null || v === '') ? '' : String(v); };
     wafdeenQuranErrorCounters = { الجديد: { errors: 0, tashkeel: 0, repetition: 0 }, الماضي: { errors: 0, tashkeel: 0, repetition: 0 }, التلاوة: { errors: 0, tashkeel: 0, repetition: 0 } };
     wafdeenQuranHeardTypes = { الجديد: false, الماضي: false, التلاوة: false };
-    wafdeenQuranElapsedByType = { الجديد: 0, الماضي: 0, التلاوة: 0 };
     if (r) {
         set('wafdeenNewLesson', r.newLesson);
         set('wafdeenNewPagesCount', r.newPagesCount);
@@ -769,13 +710,7 @@ function wafdeenLoadSelectedStudentGradeData() {
         var legacyTimes = [Number(r.newLessonTimeSeconds || 0), Number(r.oldRevisionTimeSeconds || 0), Number(r.recitationTimeSeconds || 0)];
         var commonSessionTime = Number(r.quranSessionTimeSeconds || 0);
         if (commonSessionTime <= 0) commonSessionTime = Math.max.apply(Math, legacyTimes);
-        var savedTimesByType = Object.assign({ الجديد: 0, الماضي: 0, التلاوة: 0 }, r.quranSessionTimeByType || {});
         wafdeenQuranElapsedSeconds = Math.max(0, commonSessionTime);
-        wafdeenQuranElapsedByType = {
-            الجديد: Number(savedTimesByType.الجديد || r.newLessonTimeSeconds || 0),
-            الماضي: Number(savedTimesByType.الماضي || r.oldRevisionTimeSeconds || 0),
-            التلاوة: Number(savedTimesByType.التلاوة || r.recitationTimeSeconds || 0)
-        };
         (wafdeenUsageData || []).filter(function (x) { return !x._deleted && String(x.studentId || '') === String(studentId || '') && x.category === 'quran' && String(x.dateISO || '').slice(0, 10) === wafdeenSelectedDailyDateStr(); }).forEach(function (x) {
             if (wafdeenQuranElapsedSeconds <= 0) wafdeenQuranElapsedSeconds = Number(x.sessionSeconds || x.seconds || 0);
         });
@@ -787,7 +722,7 @@ function wafdeenLoadSelectedStudentGradeData() {
     }
     wafdeenQuranSelectedType = wafdeenQuranSelectedType || 'الجديد';
     wafdeenQuranSessionSavedByType = { الجديد: false, الماضي: false, التلاوة: false };
-    wafdeenQuranElapsedSeconds = Number(wafdeenQuranElapsedSeconds || wafdeenQuranElapsedByType[wafdeenQuranSelectedType] || 0);
+    wafdeenQuranElapsedSeconds = Number(wafdeenQuranElapsedSeconds || 0);
     wafdeenUpdateQuranTimer();
     wafdeenRenderQuranCounters();
     document.querySelectorAll('#wafdeen-daily-scores-panel .wafdeen-grade-type-fields').forEach(function (box) { var b = box.querySelector('.wafdeen-save-type-btn'); if (b) {
@@ -803,8 +738,8 @@ function wafdeenQuranMarkMissing_(id, missing) { var el = document.getElementByI
 function wafdeenSaveGradeType(type) {
     wafdeenKeepDailyScroll_();
     return __awaiter(this, void 0, void 0, function () {
-        var studentId, seconds, pagesId, topicId, missing, student, dateISO, record, hadRecord, val, c, score, timeKey, idx, localCommon, localType, usage, e_3, resetMap;
-        var _a, _b, _c, _d;
+        var studentId, seconds, pagesId, topicId, missing, student, dateISO, record, val, c, score, idx, e_3, resetMap;
+        var _a, _b, _c;
         var _e, _f, _g, _h;
         return __generator(this, function (_j) {
             switch (_j.label) {
@@ -838,73 +773,48 @@ function wafdeenSaveGradeType(type) {
                     }
                     if (missing.length)
                         return [2 /*return*/, showMessage('wafdeen-save-msg', "\u0623\u0643\u0645\u0644 \u0628\u064A\u0627\u0646\u0627\u062A ".concat(type, ": ").concat(missing.join('، ')), 'error')];
-                    student = wafdeenStudentsData.find(function (s) { return String(s.id) === String(studentId); });
+                    student = wafdeenStudentsData.find(function (s) { return String(s.id) === String(studentId) && wafdeenTeacherCanSeeStudent_(s); });
                     if (!student)
                         return [2 /*return*/, showMessage('wafdeen-save-msg', 'الطالب غير موجود', 'error')];
                     dateISO = wafdeenSelectedDailyDateStr();
                     record = wafdeenGetTodayGradeRecord(studentId);
-                    hadRecord = !!record;
+                    if (record) record = Object.assign({}, record);
                     if (!record) {
                         record = { id: "wafdeen_".concat(student.id, "_").concat(dateISO), teacherUsername: currentWafdeenTeacher.username, studentId: student.id, studentName: student.name, dateISO: dateISO, attendanceStatus: 'present', isAbsent: false, status: 'present', dayName: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][wafdeenSelectedDailyDateObj().getDay()], newLesson: '', newPagesCount: '', newTopicRecited: '', oldRevision: '', oldPagesCount: '', oldTopicRecited: '', recitation: '', recitationPagesCount: '', recitationTopicRecited: '', newLessonTimeSeconds: 0, oldRevisionTimeSeconds: 0, recitationTimeSeconds: 0, quranSessionTimeSeconds: 0, quranSessionTimeByType: { الجديد: 0, الماضي: 0, التلاوة: 0 }, savedAt: new Date().toISOString() };
-                        wafdeenDailyRecords.push(record);
                     }
                     val = function (id) { var _a, _b; return (_b = (_a = document.getElementById(id)) === null || _a === void 0 ? void 0 : _a.value) !== null && _b !== void 0 ? _b : ''; };
                     c = wafdeenQuranErrorCounters[type] || { errors: 0, tashkeel: 0, repetition: 0 };
                     score = Number(wafdeenCalculateQuranScore(c).toFixed(2));
-                    timeKey = type === 'الجديد' ? 'newLessonTimeSeconds' : type === 'الماضي' ? 'oldRevisionTimeSeconds' : 'recitationTimeSeconds';
-                    record.quranSessionTimeSeconds = seconds;
-                    record.quranSessionTimeByType = Object.assign({ الجديد: 0, الماضي: 0, التلاوة: 0 }, record.quranSessionTimeByType || {});
-                    record.quranSessionTimeByType[type] = seconds;
                     if (type === 'الجديد')
-                        Object.assign(record, (_a = { newLesson: score, newPagesCount: val(pagesId), newTopicRecited: val(topicId), newErrors: Number(c.errors) || 0, newTashkeel: Number(c.tashkeel) || 0, newRepetition: Number(c.repetition) || 0 }, _a[timeKey] = seconds, _a));
+                        Object.assign(record, (_a = { newLesson: score, newPagesCount: val(pagesId), newTopicRecited: val(topicId), newErrors: Number(c.errors) || 0, newTashkeel: Number(c.tashkeel) || 0, newRepetition: Number(c.repetition) || 0 }, _a));
                     else if (type === 'الماضي')
-                        Object.assign(record, (_b = { oldRevision: score, oldPagesCount: val(pagesId), oldTopicRecited: val(topicId), oldErrors: Number(c.errors) || 0, oldTashkeel: Number(c.tashkeel) || 0, oldRepetition: Number(c.repetition) || 0 }, _b[timeKey] = seconds, _b));
+                        Object.assign(record, (_b = { oldRevision: score, oldPagesCount: val(pagesId), oldTopicRecited: val(topicId), oldErrors: Number(c.errors) || 0, oldTashkeel: Number(c.tashkeel) || 0, oldRepetition: Number(c.repetition) || 0 }, _b));
                     else
-                        Object.assign(record, (_c = { recitation: score, recitationPagesCount: val(pagesId), recitationTopicRecited: val(topicId), recitationErrors: Number(c.errors) || 0, recitationTashkeel: Number(c.tashkeel) || 0, recitationRepetition: Number(c.repetition) || 0 }, _c[timeKey] = seconds, _c));
+                        Object.assign(record, (_c = { recitation: score, recitationPagesCount: val(pagesId), recitationTopicRecited: val(topicId), recitationErrors: Number(c.errors) || 0, recitationTashkeel: Number(c.tashkeel) || 0, recitationRepetition: Number(c.repetition) || 0 }, _c));
                     record.total = ['newLesson', 'oldRevision', 'recitation'].reduce(function (sum, k) { return sum + (record[k] === '' ? 0 : Number(record[k]) || 0); }, 0);
                     record.updatedAt = new Date().toISOString();
-                    idx = wafdeenDailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
-                    if (idx > -1)
-                        wafdeenDailyRecords[idx] = record;
-                    else
-                        wafdeenDailyRecords.push(record);
-                    wafdeenQuranHeardTypes[type] = true;
-                    wafdeenQuranSessionSavedByType[type] = true;
-                    wafdeenPersistLocal();
-                    refreshWafdeenMainLog_();
-                    if (!localIsAvailable())
-                        return [3 /*break*/, 5];
-                    localCommon = { id: String(record.id), recordId: String(record.id), teacherUsername: record.teacherUsername, studentId: record.studentId, studentName: record.studentName, dateISO: record.dateISO, attendanceStatus: record.attendanceStatus, isAbsent: record.isAbsent, status: record.status, dayName: record.dayName, quranSessionTimeSeconds: Number(record.quranSessionTimeSeconds || seconds || 0), quranSessionTimeByType: Object.assign({ الجديد: 0, الماضي: 0, التلاوة: 0 }, record.quranSessionTimeByType || {}), updatedAt: new Date().toISOString() };
-                    localType = type === 'الجديد'
-                        ? { newLesson: record.newLesson, newPagesCount: record.newPagesCount, newTopicRecited: record.newTopicRecited, newErrors: record.newErrors, newTashkeel: record.newTashkeel, newRepetition: record.newRepetition, newLessonTimeSeconds: record.newLessonTimeSeconds }
-                        : type === 'الماضي'
-                            ? { oldRevision: record.oldRevision, oldPagesCount: record.oldPagesCount, oldTopicRecited: record.oldTopicRecited, oldErrors: record.oldErrors, oldTashkeel: record.oldTashkeel, oldRepetition: record.oldRepetition, oldRevisionTimeSeconds: record.oldRevisionTimeSeconds }
-                            : { recitation: record.recitation, recitationPagesCount: record.recitationPagesCount, recitationTopicRecited: record.recitationTopicRecited, recitationErrors: record.recitationErrors, recitationTashkeel: record.recitationTashkeel, recitationRepetition: record.recitationRepetition, recitationTimeSeconds: record.recitationTimeSeconds };
                     _j.label = 1;
                 case 1:
                     _j.trys.push([1, 4, , 5]);
-                    usage = { id: String(student.id) + '_' + String(dateISO) + '_' + String(type), teacherUsername: currentWafdeenTeacher.username, studentId: student.id, studentName: student.name, category: 'quran', subject: 'القرآن الكريم', type: type, seconds: seconds, sessionSeconds: seconds, dateISO: wafdeenSelectedDailyDateStr(), month: wafdeenPeriodKeyForDate(wafdeenSelectedDailyDateObj()), sessionMaxSeconds: Number(WAFDEEN_QURAN_SESSION_MAX_SECONDS || 7200), completedInTwoHours: seconds >= Number(WAFDEEN_QURAN_SESSION_MAX_SECONDS || 7200), updatedAt: new Date().toISOString() };
-                    return [4 /*yield*/, Promise.all([
-                            window.MajdLocalDataAPI.writeRecord('wafdeenDailyRecords', record.id, __assign(__assign(__assign({}, localCommon), localType), { total: record.total, _dailyTypeSaved: (_d = {}, _d[type] = true, _d) }), { merge: true }),
-                            window.MajdLocalDataAPI.writeRecord('wafdeenUsage', usage.id, usage, { merge: true })
-                        ])];
+                    return [4 /*yield*/, window.MajdLocalDataAPI.writeRecord('wafdeenDailyRecords', record.id, record, { merge: true })];
                 case 2:
                     _j.sent();
-                    wafdeenUsageData = wafdeenUsageData.filter(function (u) { return String(u.id) !== String(usage.id); });
-                    wafdeenUsageData.push(usage);
-                    wafdeenPersistLocal();
+                    idx = wafdeenDailyRecords.findIndex(function (r) { return String(r.id) === String(record.id); });
+                    if (idx > -1) wafdeenDailyRecords[idx] = record; else wafdeenDailyRecords.push(record);
+                    wafdeenQuranHeardTypes[type] = true;
+                    wafdeenQuranSessionSavedByType[type] = true;
+                    refreshWafdeenMainLog_();
                     return [3 /*break*/, 5];
                 case 4:
                     e_3 = _j.sent();
-                    console.error('Wafdeen localdata save error:', e_3);
-                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ ' + type + ' على localdata — لم يتم اعتماد الحفظ.', 'error')];
+                    console.error('Wafdeen cloud save error:', e_3);
+                    return [2 /*return*/, showMessage('wafdeen-save-msg', 'تعذر حفظ ' + type + ' في السحابة. لم يتم اعتماد الحفظ.', 'error')];
                 case 5:
                     resetMap = { 'الجديد': ['wafdeenNewLesson', 'wafdeenNewPagesCount', 'wafdeenNewTopicRecited'], 'الماضي': ['wafdeenOldRevision', 'wafdeenOldPagesCount', 'wafdeenOldTopicRecited'], 'التلاوة': ['wafdeenRecitation', 'wafdeenRecitationPagesCount', 'wafdeenRecitationTopicRecited'] };
                     (resetMap[type] || []).forEach(function (id) { var el = document.getElementById(id); if (el)
                         el.value = (id === 'wafdeenNewLesson' || id === 'wafdeenOldRevision' || id === 'wafdeenRecitation') ? '10' : ''; });
                     wafdeenQuranErrorCounters[type] = { errors: 0, tashkeel: 0, repetition: 0 };
                     // مؤقت جلسة التسميع مستقل: لا يُصفّر عند حفظ الجديد أو الماضي أو التلاوة.
-                    wafdeenQuranElapsedByType[type] = wafdeenQuranElapsedSeconds;
                     wafdeenUpdateQuranTimer();
                     wafdeenRenderQuranCounters();
                     // تحديث زر النوع المحفوظ حتى يظهر «تم الحفظ» ويمنع التكرار.
@@ -913,7 +823,7 @@ function wafdeenSaveGradeType(type) {
                         b.textContent = "\u2705 \u062A\u0645 \u062D\u0641\u0638 ".concat(type);
                         b.title = "\u062A\u0645 \u062D\u0641\u0638 ".concat(type, " \u0627\u0644\u064A\u0648\u0645 \u0628\u0627\u0644\u0641\u0639\u0644");
                     } });
-                    showMessage('wafdeen-save-msg', "\u062A\u0645 \u062D\u0641\u0638 ".concat(type, " \u0644\u0644\u0637\u0627\u0644\u0628 ").concat(student.name, " \u0628\u062A\u0627\u0631\u064A\u062E ").concat(wafdeenSelectedDailyDateStr(), " \u0648\u0627\u0644\u0648\u0642\u062A ").concat(wafdeenFormatTimer(seconds), " \u0628\u0646\u062C\u0627\u062D \u2705"), 'success');
+                    showMessage('wafdeen-save-msg', "تم حفظ ".concat(type, " للطالب " , student.name, " سحابيًا بنجاح ✅"), 'success');
                     return [2 /*return*/];
             }
         });
@@ -1032,7 +942,6 @@ function saveWafdeenDailyRecord() {
                     if (existingIndex >= 0)
                         wafdeenDailyRecords[existingIndex] = record;
                     else
-                        wafdeenDailyRecords.push(record);
                     wafdeenPersistLocal();
                     refreshWafdeenMainLog_();
                     wafdeenRenderGrades();
@@ -1441,55 +1350,6 @@ async function wafdeenDeleteGrade(recordId) {
 }
 window.wafdeenDeleteGrade = wafdeenDeleteGrade;
 
-function wafdeenToggleEducationTimeStudents() {
-    var list = document.getElementById('wafdeen-education-time-students-list'), icon = document.getElementById('wafdeen-education-time-students-icon');
-    if (!list)
-        return;
-    var open = list.classList.toggle('hidden') === false;
-    if (icon)
-        icon.textContent = open ? '▲' : '▼';
-    if (open)
-        wafdeenRenderEducationTime();
-}
-function wafdeenEducationTimeTable(records, title) {
-    var sorted = __spreadArray([], __read(records), false).sort(function (a, b) { return String(b.dateISO || '').localeCompare(String(a.dateISO || '')); });
-    if (!sorted.length)
-        return "<div class=\"wafdeen-note\">\u0644\u0627 \u064A\u0648\u062C\u062F \u0648\u0642\u062A \u062A\u0639\u0644\u064A\u0645 \u0645\u0633\u062C\u0644 \u0641\u064A ".concat(title, ".</div>");
-    var esc = function (v) { return String(v !== null && v !== void 0 ? v : '').replace(/[&<>"']/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]); }); };
-    var total = sorted.reduce(function (a, r) { return a + Number(r.seconds || 0); }, 0);
-    return "<div class=\"card-view\" style=\"margin-bottom:0\"><h4 class=\"card-title\">\u23F1\uFE0F \u0648\u0642\u062A \u0627\u0644\u062A\u0639\u0644\u064A\u0645 ".concat(title, " \u2014 \u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A ").concat(wafdeenFormat(total), "</h4><div class=\"table-responsive\"><table><thead><tr><th>\u0627\u0644\u062A\u0627\u0631\u064A\u062E</th><th>\u0627\u0644\u0645\u0627\u062F\u0629</th><th>\u0648\u0642\u062A \u0627\u0644\u062A\u0639\u0644\u064A\u0645</th></tr></thead><tbody>").concat(sorted.map(function (r) { return "<tr><td>".concat(esc(String(r.dateISO || '').slice(0, 10)), "</td><td>").concat(esc(r.subject), "</td><td>").concat(wafdeenFormat(Number(r.seconds || 0)), "</td></tr>"); }).join(''), "</tbody></table></div></div>");
-}
-function wafdeenShowEducationTimePeriod(period, btn) {
-    var root = document.getElementById('wafdeen-panel-educationTime');
-    root === null || root === void 0 ? void 0 : root.querySelectorAll('.wafdeen-grade-period-btn').forEach(function (b) { return b.classList.remove('active'); });
-    if (btn)
-        btn.classList.add('active');
-    ['today', 'week', 'month'].forEach(function (p) { var _a; return (_a = document.getElementById('wafdeen-education-time-' + p)) === null || _a === void 0 ? void 0 : _a.classList.toggle('hidden', p !== period); });
-}
-function wafdeenRenderEducationTime() {
-    var list = document.getElementById('wafdeen-education-time-students-list');
-    if (!list)
-        return;
-    var students = __spreadArray([], __read(wafdeenStudentsData), false).sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'ar'); });
-    list.innerHTML = '';
-    students.forEach(function (st) { var b = document.createElement('button'); b.type = 'button'; b.className = 'wafdeen-grade-student-btn'; b.dataset.studentId = st.id; b.textContent = st.name; b.onclick = function () { return wafdeenShowStudentEducationTime(st.id); }; list.appendChild(b); });
-    if (!students.length)
-        list.innerHTML = '<div class="wafdeen-note">لا يوجد طلاب مسجلون.</div>';
-}
-function wafdeenShowStudentEducationTime(studentId) {
-    var st = wafdeenStudentsData.find(function (x) { return String(x.id) === String(studentId); });
-    if (!st)
-        return;
-    document.getElementById('wafdeen-education-time-details').classList.remove('hidden');
-    document.getElementById('wafdeen-education-time-student-name').textContent = st.name;
-    var now = new Date(), today = wafdeenDateKeyLocal(now), weekStartKey = wafdeenDateKeyLocal(wafdeenStartOfWeek(now)), monthPrefix = "".concat(now.getFullYear(), "-").concat(String(now.getMonth() + 1).padStart(2, '0'));
-    var recs = wafdeenUsageData.filter(function (r) { return r.category === 'educational' && String(r.studentId) === String(studentId); });
-    var todayRecs = recs.filter(function (r) { return String(r.dateISO || '').slice(0, 10) === today; }), weekRecs = recs.filter(function (r) { var k = String(r.dateISO || '').slice(0, 10); return k >= weekStartKey && k <= today; }), monthRecs = recs.filter(function (r) { return String(r.dateISO || '').slice(0, 7) === monthPrefix; });
-    document.getElementById('wafdeen-education-time-today').innerHTML = wafdeenEducationTimeTable(todayRecs, 'اليوم');
-    document.getElementById('wafdeen-education-time-week').innerHTML = wafdeenEducationTimeTable(weekRecs, 'الأسبوع');
-    document.getElementById('wafdeen-education-time-month').innerHTML = wafdeenEducationTimeTable(monthRecs, 'الشهر');
-    wafdeenShowEducationTimePeriod('today', document.querySelector('#wafdeen-panel-educationTime .wafdeen-grade-period-btn'));
-}
 function markWafdeenAbsent() {
     if (wafdeenHasTodayRecordForSelectedStudent()) {
         var sel_1 = document.getElementById('wafdeenStudentSelect');
@@ -1501,7 +1361,7 @@ function markWafdeenAbsent() {
     saveWafdeenDailyRecord(true);
 }
 // توافق مع أي استدعاءات قديمة
-function wafdeenResetTimer() { wafdeenQuranReset(); wafdeenEduReset(); }
+function wafdeenResetTimer() { wafdeenQuranReset(); }
 function toggleWafdeenMenu() { document.getElementById('wafdeen-drawer').classList.toggle('open'); document.getElementById('wafdeen-menu-overlay').classList.toggle('open'); }
 function closeWafdeenMenu() { document.getElementById('wafdeen-drawer').classList.remove('open'); document.getElementById('wafdeen-menu-overlay').classList.remove('open'); }
 function toggleWafdeenQuranMonitor() {
@@ -1532,28 +1392,16 @@ function toggleWafdeenEducationalMonitor() {
 
 
 function wafdeenShowPanel(name) {
-    var allowed = ['daily', 'materials', 'grades', 'educationTime', 'localReview'];
-    if (!allowed.includes(name) && !(currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin))
-        return;
-    ['daily', 'materials', 'grades', 'educationTime', 'localReview', 'teachers', 'students', 'report'].forEach(function (n) { var el = document.getElementById('wafdeen-panel-' + n); if (el)
+    var allowed = ['daily', 'grades'];
+    if (!allowed.includes(name) || !currentWafdeenTeacher || currentWafdeenTeacher.isAdmin || ['admin', 'student'].includes(String(currentWafdeenTeacher.role || '').toLowerCase()))
+        return false;
+    ['daily', 'grades'].forEach(function (n) { var el = document.getElementById('wafdeen-panel-' + n); if (el)
         el.classList.toggle('hidden', n !== name); });
     closeWafdeenMenu();
     if (name === 'grades') {
         wafdeenRenderGrades();
     }
-    if (name === 'educationTime') {
-        wafdeenRenderEducationTime();
-    }
-    if (name === 'report')
-        wafdeenReportPanelInit();
-    if (name === 'localReview')
-        wafdeenRenderLocalReview();
-    if (name === 'teachers')
-        wafdeenRenderTeachersTable();
-    if (name === 'students')
-        wafdeenRenderStudentsTable();
-    if (name === 'materials')
-        wafdeenRenderMaterials();
+    return true;
 }
 /* -------- إدارة المعلمين والطلاب -------- */
 function addWafdeenTeacher() {
@@ -1835,7 +1683,7 @@ function wafdeenAdminBookForm(subject) {
 function wafdeenAddBook(subject) {
     return __awaiter(this, void 0, void 0, function () {
         var title, level, file, progressBox, progressBar, progressText, books, found, refreshError_1, e_15;
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
