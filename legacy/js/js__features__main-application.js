@@ -2238,7 +2238,10 @@ function sheikhRegistrationDate_(className, record) {
    - تم التسجيل باللون الأخضر، ولم يتم التسجيل باللون الأحمر.
    ============================================================ */
 function getSheikhRegistrationClassOrder_() {
-    return GENERAL_CLASSES.slice();
+    return GENERAL_CLASSES.filter(function (className) {
+        var normalized = String(className || '').trim();
+        return normalized !== 'تمهيدي' && normalized !== 'الوافدين';
+    });
 }
 
 function sheikhRegistrationRowsForClass_(className, dateVal) {

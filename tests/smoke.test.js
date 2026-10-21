@@ -10,3 +10,10 @@ test('legacy assets are externalized and modular entry is present', () => {
   assert.match(html, /src="src\/main\.js"/);
   assert.ok(!html.includes('function addTeacher()'));
 });
+
+test('sheikh registration excludes preparatory and wafdeen classes', () => {
+  assert.doesNotMatch(html, /<select id="sheikhRegClassSelect"[\s\S]*?<option value="تمهيدي">/);
+  assert.doesNotMatch(html, /<select id="sheikhRegClassSelect"[\s\S]*?<option value="الوافدين">/);
+  const sheikhCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  assert.match(sheikhCode, /normalized !== 'تمهيدي' && normalized !== 'الوافدين'/);
+});
