@@ -59,3 +59,8 @@ test('student code portal shows the same full grades for week and month', () => 
   assert.match(portalCode, /stats\.weekRecords/);
   assert.match(portalCode, /stats\.monthRecords/);
 });
+
+test('student code screen is labeled for parent follow-up', () => {
+  assert.match(html, /متابعة ولي الأمر/);
+  assert.doesNotMatch(html, /<h2 class="login-header-text"[^>]*>تسجيل دخول الطالب<\/h2>/);
+});
