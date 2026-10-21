@@ -380,7 +380,8 @@
       var ticket = ++loadGeneration;
       w.showAppScreen();
       showLoadingCard('تم الدخول؛ جارٍ تحميل بيانات الطلاب...');
-      setLoadStatus('app-screen', 'تم تسجيل الدخول؛ جارٍ تحميل البيانات. انتظر لحظات قبل إجراء التعديلات.', false);
+      setLoadStatus('app-screen', 'تم تسجيل الدخول؛ جارٍ تحميل البيانات في الخلفية.', false);
+      hideLoadingCard();
       hydrateMain().then(function () {
         if (ticket !== loadGeneration || !w.currentTeacher) return;
         refreshMainViews();
