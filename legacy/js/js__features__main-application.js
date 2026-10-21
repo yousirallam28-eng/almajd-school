@@ -906,7 +906,7 @@ function syncStamp_(obj) {
     }
     return 0;
 }
-function syncMergeLocalWithLocal_(local, local) {
+function syncMergeLocalWithLocal_(local, _ignored) {
     // Local-only: تجاهل أي بيانات من ذاكرة الجهاز وإرجاع بيانات localRecords فقط.
     var localArr = Array.isArray(local) ? local : [];
     var byId = new Map();
@@ -1099,7 +1099,7 @@ function localSyncRead_(collectionName){
 function localSyncWrite_(collectionName, arr){
   try{memoryStorage.setItem(localSyncKey_(collectionName),JSON.stringify(Array.isArray(arr)?arr:[]));}catch(e){console.warn('Local sync storage error ['+collectionName+']',e);}
 }
-function localSyncMerge_(localArr, localArr){
+function localSyncMerge_(localArr, _ignored){
   var map=new Map();
   (Array.isArray(localArr)?localArr:[]).forEach(function(x){
     if(!x||x.id==null||x._deleted||x._legacyMigrated)return;
@@ -6332,8 +6332,9 @@ function renderStudentPortalGradeTable_(area, stats) {
             var reason = studentBehaviorReasonText_(record);
             var behavior = Number(record.behavior != null ? record.behavior : 0);
             var reasonButton = (reason || behavior < 10) ?
-              '<button type="button" class="student-behavior-reason-btn" title="عرض سبب خصم السلوك" onclick="showStudentBehaviorReason_(' +
-              "'" + String(record.dateISO || '').replace(/'/g, '') + "'," + behavior + ",'" + encodeURIComponent(reason || '') + "')">ⓘ</button>" : '';
+              '<button type="button" class="student-behavior-reason-btn" title="عرض سبب خصم السلوك" onclick="showStudentBehaviorReason_(\'' +
+              String(record.dateISO || '').replace(/'/g, '') + '\',' + behavior + ',\'' +
+              encodeURIComponent(reason || '').replace(/'/g, '%27') + '\')">ⓘ</button>' : '';
             return '<tr>' +
               '<td>' + studentEscapeHtml_(formatStudentDate(record.dateISO || '')) + '</td>' +
               '<td>' + Number(record.attendance || 0) + ' / 10</td>' +
