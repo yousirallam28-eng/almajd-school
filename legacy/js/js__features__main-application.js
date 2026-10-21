@@ -2559,6 +2559,58 @@ function exportAllSheikhRegistrationDatesExcel() {
     }
 }
 
+function toggleSheikhDateRangeExport_() {
+    var panel = document.getElementById('sheikhDateRangeExportPanel');
+    if (!panel) return;
+    var isHidden = panel.style.display === 'none' || !panel.style.display;
+    panel.style.display = isHidden ? 'flex' : 'none';
+    if (isHidden) {
+        var current = (document.getElementById('sheikhRegDate') || {}).value || new Date().toISOString().slice(0, 10);
+        var start = document.getElementById('sheikhExportStartDate');
+        var end = document.getElementById('sheikhExportEndDate');
+        if (start && !start.value) start.value = current;
+        if (end && !end.value) end.value = current;
+    }
+}
+function sheikhExportDateRange_(startDate, endDate) {
+    var dates = [];
+    var cursor = new Date(startDate + 'T00:00:00Z');
+    var end = new Date(endDate + 'T00:00:00Z');
+    while (cursor <= end) {
+        dates.push(cursor.toISOString().slice(0, 10));
+        cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    return dates;
+}
+function exportSheikhRegistrationDateRangeExcel() {
+    try {
+        if (typeof XLSX === 'undefined' || !XLSX.utils || !XLSX.writeFile) {
+            return showMessage('app-msg', 'مكتبة Excel غير محملة. تأكد من الاتصال بالإنترنت ثم أعد فتح الصفحة.', 'error');
+        }
+        var start = String((document.getElementById('sheikhExportStartDate') || {}).value || '').slice(0, 10);
+        var end = String((document.getElementById('sheikhExportEndDate') || {}).value || '').slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) {
+            return showMessage('app-msg', 'اختر تاريخ البداية والنهاية أولاً.', 'error');
+        }
+        if (start > end) return showMessage('app-msg', 'تاريخ البداية يجب أن يسبق تاريخ النهاية.', 'error');
+        var dates = sheikhExportDateRange_(start, end);
+        var wb = XLSX.utils.book_new();
+        var allRows = [];
+        dates.forEach(function (dateVal) {
+            var rows = sheikhDetailedExcelRowsForDate_(dateVal);
+            allRows = allRows.concat(rows);
+            XLSX.utils.book_append_sheet(wb, makeSheikhDetailedExcelSheet_(rows), sheikhExcelSafeSheetName_(dateVal, 'تاريخ'));
+        });
+        wb.SheetNames.unshift('المجمع');
+        wb.Sheets['المجمع'] = makeSheikhDetailedExcelSheet_(allRows);
+        XLSX.writeFile(wb, 'تسجيل_الشيوخ_من_' + start.replace(/-/g, '_') + '_إلى_' + end.replace(/-/g, '_') + '.xlsx');
+        showMessage('app-msg', 'تم تصدير تسجيل الشيوخ للنطاق المحدد فقط ✅', 'success');
+    }
+    catch (e) {
+        console.error('Sheikh registration date range Excel export error:', e);
+        showMessage('app-msg', 'تعذر تصدير نطاق الأيام المحدد إلى Excel.', 'error');
+    }
+}
 function exportCurrentSheikhClassExcel() {
     try {
         if (typeof XLSX === 'undefined' || !XLSX.utils || !XLSX.writeFile) {

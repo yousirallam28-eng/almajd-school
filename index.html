@@ -1403,6 +1403,12 @@
 <button class="action-btn btn-export" onclick="exportSheikhRegistrationExcel()" type="button">📊 تصدير Excel للتاريخ — كل الفصول</button>
 <button class="action-btn btn-save" onclick="exportCurrentSheikhClassExcel()" type="button">📄 تصدير Excel للفصل الحالي</button>
 <button class="action-btn btn-export" onclick="exportAllSheikhRegistrationDatesExcel()" type="button">📚 تصدير Excel شامل — كل الأيام والتواريخ</button>
+<button class="action-btn btn-export" onclick="toggleSheikhDateRangeExport_()" type="button">📅 تصدير الأيام المحددة</button>
+<div id="sheikhDateRangeExportPanel" class="form-grid" style="display:none;align-items:end;margin-top:10px;padding:12px;border:1px solid var(--accent-gold);border-radius:10px;background:#fffaf0;">
+<div class="form-group"><label for="sheikhExportStartDate">من يوم:</label><input id="sheikhExportStartDate" type="date"></div>
+<div class="form-group"><label for="sheikhExportEndDate">إلى يوم:</label><input id="sheikhExportEndDate" type="date"></div>
+<div class="form-group"><button class="action-btn btn-save" onclick="exportSheikhRegistrationDateRangeExcel()" type="button">⬇️ تصدير النطاق المحدد</button></div>
+</div>
 </div>
 <div id="sheikhRegSummary" style="margin:14px 0;"></div>
 <h4 style="color:var(--primary-dark); font-family:'Amiri', serif; margin-top:10px;">✅ الطلاب الذين تم تسجيلهم</h4>

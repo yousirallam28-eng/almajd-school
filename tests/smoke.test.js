@@ -18,3 +18,12 @@ test('sheikh registration excludes preparatory and wafdeen classes', () => {
   assert.match(sheikhCode, /function isSheikhRegistrationExportClass_\(className\)/);
   assert.match(sheikhCode, /لا يمكن تصدير التمهيدي أو الوافدين/);
 });
+
+test('sheikh registration supports exporting a selected date range', () => {
+  assert.match(html, /تصدير الأيام المحددة/);
+  assert.match(html, /id="sheikhExportStartDate"/);
+  assert.match(html, /id="sheikhExportEndDate"/);
+  const sheikhCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  assert.match(sheikhCode, /function exportSheikhRegistrationDateRangeExcel\(\)/);
+  assert.match(sheikhCode, /تسجيل_الشيوخ_من_/);
+});
