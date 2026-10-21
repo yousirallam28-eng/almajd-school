@@ -42,3 +42,12 @@ test('student code portal shows full-screen daily grades and behavior reason act
   assert.match(styles, /\.student-portal-fullscreen/);
   assert.match(styles, /\.student-behavior-reason-btn/);
 });
+
+test('quick student registration has behavior reason list and full-screen records list', () => {
+  const quickCode = readFileSync(new URL('../public/legacy/js/js__features__quick-registration.js', import.meta.url), 'utf8');
+  const quickStyles = readFileSync(new URL('../public/legacy/css/quick-registration-style.js.css', import.meta.url), 'utf8');
+  assert.match(quickCode, /quick-behavior-reason/);
+  assert.match(quickCode, /behaviorReasonsText/);
+  assert.match(quickCode, /qtoggleListFullscreen/);
+  assert.match(quickStyles, /quick-list-fullscreen/);
+});
