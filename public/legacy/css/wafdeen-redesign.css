@@ -202,3 +202,86 @@
 @media (prefers-reduced-motion: reduce) {
   #wafdeen-app-screen *, #wafdeen-login-screen * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+/* الشاشة الأولى العامة: نفس الهوية الحديثة حتى يظهر التغيير قبل فتح جلسة الوافدين */
+body {
+  background:
+    radial-gradient(circle at 8% 10%, rgba(8,127,104,.10), transparent 28%),
+    radial-gradient(circle at 92% 88%, rgba(197,155,67,.12), transparent 30%),
+    #f2f7f4 !important;
+}
+#login-screen,
+#results-screen {
+  width: min(92vw, 520px) !important;
+  max-width: 520px !important;
+  margin: clamp(24px, 9vh, 82px) auto !important;
+  padding: 42px clamp(22px, 5vw, 48px) 34px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fcfa 100%) !important;
+  border: 1px solid rgba(8,127,104,.14) !important;
+  border-radius: 30px !important;
+  box-shadow: 0 28px 80px rgba(16,70,55,.16) !important;
+  color: var(--wafdeen-ink) !important;
+  position: relative;
+  overflow: hidden;
+}
+#login-screen::before,
+#results-screen::before {
+  content: ""; position: absolute; width: 220px; height: 220px; top: -135px; right: -85px;
+  border-radius: 50%; background: rgba(8,127,104,.08); pointer-events: none;
+}
+#login-screen::after,
+#results-screen::after {
+  content: ""; position: absolute; width: 170px; height: 170px; bottom: -110px; left: -85px;
+  border-radius: 50%; background: rgba(197,155,67,.10); pointer-events: none;
+}
+#login-screen .login-logo-img,
+#results-screen .login-logo-img {
+  position: relative; z-index: 1; width: 108px !important; height: 108px !important;
+  margin: 0 auto 18px !important; border: 5px solid var(--wafdeen-gold) !important;
+  border-radius: 50% !important; padding: 6px !important;
+  box-shadow: 0 12px 28px rgba(8,127,104,.16) !important;
+}
+#login-screen .login-header-text,
+#results-screen .login-header-text {
+  position: relative; z-index: 1; color: var(--wafdeen-brand-dark) !important;
+  font-family: "Amiri", serif !important; font-size: clamp(2rem, 6vw, 2.65rem) !important;
+  margin: 0 0 6px !important; line-height: 1.2;
+}
+#login-screen .login-subtitle,
+#results-screen .login-subtitle {
+  position: relative; z-index: 1; color: #8a6b29 !important; line-height: 1.8;
+}
+#login-screen .modern-login-welcome,
+#results-screen .modern-login-welcome {
+  position: relative; z-index: 1; margin: 12px 0 22px !important; padding: 14px 16px !important;
+  border: 1px solid var(--wafdeen-line) !important; border-radius: 14px !important;
+  background: var(--wafdeen-brand-soft) !important; color: var(--wafdeen-brand-dark) !important;
+}
+#login-screen .form-group,
+#results-screen .form-group { position: relative; z-index: 1; }
+#login-screen .form-group label,
+#results-screen .form-group label { color: var(--wafdeen-ink) !important; font-weight: 800 !important; }
+#login-screen input,
+#results-screen input {
+  min-height: 54px !important; border: 1px solid var(--wafdeen-line) !important;
+  border-radius: 14px !important; background: #fbfdfc !important; color: var(--wafdeen-ink) !important;
+}
+#login-screen input:focus,
+#results-screen input:focus { border-color: var(--wafdeen-brand) !important; box-shadow: 0 0 0 4px rgba(8,127,104,.11) !important; }
+#login-screen > .action-btn,
+#results-screen > .action-btn { position: relative; z-index: 1; border-radius: 14px !important; font-weight: 800 !important; }
+#login-screen > .btn-save,
+#results-screen > .btn-save { background: linear-gradient(135deg, #0b8d72, #064e43) !important; box-shadow: 0 12px 24px rgba(6,78,67,.20) !important; }
+#login-screen .modern-quick-btn,
+#login-screen .result-link-btn,
+#login-screen .student-login-link-btn {
+  background: #edf6f2 !important; color: var(--wafdeen-brand-dark) !important;
+  border: 1px solid rgba(8,127,104,.12) !important; box-shadow: none !important;
+}
+#login-screen #open-wafdeen-login-btn {
+  background: linear-gradient(135deg, #f8f0dc, #efe0b8) !important;
+  color: #765a1d !important; border: 1px solid rgba(197,155,67,.35) !important;
+}
+@media (max-width: 700px) {
+  #login-screen, #results-screen { width: calc(100vw - 24px) !important; margin: 16px auto 22px !important; padding: 30px 20px 25px !important; border-radius: 24px !important; }
+}
