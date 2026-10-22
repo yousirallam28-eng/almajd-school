@@ -285,3 +285,101 @@ body {
 @media (max-width: 700px) {
   #login-screen, #results-screen { width: calc(100vw - 24px) !important; margin: 16px auto 22px !important; padding: 30px 20px 25px !important; border-radius: 24px !important; }
 }
+
+
+/* إعادة تصميم التطبيق العام بالكامل — يحافظ على كل الـ IDs والأحداث الحالية */
+body:not(.login-screen-active) {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(8,127,104,.08), transparent 25%),
+    radial-gradient(circle at 94% 100%, rgba(197,155,67,.10), transparent 27%),
+    #f2f7f4 !important;
+}
+#app-screen.container {
+  width: min(1440px, calc(100vw - 28px)) !important; max-width: 1440px !important;
+  margin: 18px auto !important; padding: 22px !important;
+  background: rgba(255,255,255,.88) !important; border: 1px solid #dce9e3 !important;
+  border-radius: 26px !important; box-shadow: 0 22px 65px rgba(21,70,56,.12) !important;
+}
+#app-screen .institute-header {
+  min-height: 92px; margin-bottom: 22px !important; padding: 17px 24px !important;
+  border-radius: 20px !important; background: linear-gradient(135deg,#063f37 0%,#087f68 72%,#0b9275 100%) !important;
+  box-shadow: 0 13px 30px rgba(6,78,67,.18) !important;
+}
+#app-screen .header-logo { width: 68px !important; height: 68px !important; border: 3px solid #c59b43 !important; }
+#app-screen .header-titles h1 { font-size: clamp(1.45rem, 3vw, 2rem) !important; color: #f8edcf !important; }
+#app-screen .header-titles span { color: #dff2eb !important; letter-spacing: 1px !important; }
+#app-screen .user-bar {
+  background: #ffffff !important; color: #18352d !important; border: 1px solid #dce9e3 !important;
+  border-right: 5px solid #c59b43 !important; border-radius: 16px !important;
+  box-shadow: 0 8px 22px rgba(21,70,56,.07) !important;
+}
+#app-screen .user-bar strong, #app-screen .user-bar span { color: #18352d !important; }
+#app-screen .app-main-layout { gap: 22px !important; }
+#app-screen .tabs {
+  padding: 10px !important; background: #f3f8f5 !important; border: 1px solid #dce9e3 !important;
+  border-radius: 18px !important;
+}
+#app-screen .tab-btn {
+  min-height: 46px !important; padding: 12px 15px !important; background: #ffffff !important;
+  color: #31574b !important; border: 1px solid #dce9e3 !important; border-radius: 12px !important;
+  box-shadow: none !important; font-weight: 800 !important;
+}
+#app-screen .tab-btn:hover { background: #e8f5f0 !important; color: #064e43 !important; border-color: #9ecdbd !important; transform: translateX(-3px); }
+#app-screen .tab-btn.active,
+#app-screen .tab-btn.manager-active {
+  background: linear-gradient(135deg,#087f68,#064e43) !important; color: #fff !important;
+  border-color: #c59b43 !important; box-shadow: 0 8px 18px rgba(6,78,67,.18) !important;
+}
+#app-screen .content-area { min-width: 0; }
+#app-screen .tab-content > .card-view,
+#app-screen .tab-content > .wafdeen-panel,
+#app-screen .card-view {
+  background: #ffffff !important; border: 1px solid #dce9e3 !important;
+  border-top: 4px solid #087f68 !important; border-radius: 18px !important;
+  box-shadow: 0 10px 28px rgba(21,70,56,.07) !important; padding: 22px !important;
+}
+#app-screen .card-title,
+#app-screen .card-view h3,
+#app-screen .card-view h4 {
+  color: #064e43 !important; border-bottom-color: #c59b43 !important;
+}
+#app-screen input, #app-screen select, #app-screen textarea {
+  min-height: 43px; background: #fbfdfc !important; border: 1px solid #dce9e3 !important;
+  border-radius: 11px !important; color: #18352d !important;
+}
+#app-screen input:focus, #app-screen select:focus, #app-screen textarea:focus {
+  border-color: #087f68 !important; box-shadow: 0 0 0 4px rgba(8,127,104,.10) !important;
+}
+#app-screen label { color: #607970 !important; font-weight: 800 !important; }
+#app-screen button.action-btn {
+  min-height: 43px !important; border-radius: 11px !important; font-weight: 800 !important;
+}
+#app-screen .table-responsive {
+  background: #fff !important; border: 1px solid #dce9e3 !important; border-radius: 14px !important;
+  box-shadow: 0 7px 20px rgba(21,70,56,.06) !important;
+}
+#app-screen table th {
+  background: linear-gradient(135deg,#087f68,#064e43) !important; color: #f8edcf !important;
+  border-bottom: 2px solid #c59b43 !important;
+}
+#app-screen table td { border-color: #dce9e3 !important; color: #18352d !important; }
+#app-screen tbody tr:nth-child(even) { background: #f4faf7 !important; }
+#app-screen tbody tr:hover { background: #e8f5f0 !important; }
+#app-screen .toast-msg { border-radius: 12px !important; box-shadow: 0 8px 20px rgba(21,70,56,.08) !important; }
+#main-menu-handle {
+  background: linear-gradient(135deg,#064e43,#087f68) !important; border: 1px solid rgba(197,155,67,.65) !important;
+  border-radius: 14px !important; box-shadow: 0 10px 25px rgba(6,78,67,.22) !important;
+}
+#main-menu-drawer {
+  background: linear-gradient(180deg,#063f37,#052d28) !important; border: 1px solid rgba(197,155,67,.36) !important;
+  box-shadow: -18px 24px 60px rgba(4,42,34,.32) !important;
+}
+#main-menu-drawer .tab-btn { background: rgba(255,255,255,.07) !important; color: #e5f3ee !important; border-color: rgba(197,155,67,.18) !important; }
+#main-menu-drawer .tab-btn.active { background: linear-gradient(135deg,#0b9275,#064e43) !important; color: #fff !important; border-color: #c59b43 !important; }
+@media (max-width: 850px) {
+  #app-screen.container { width: 100% !important; margin: 0 !important; padding: 12px !important; border-radius: 0 !important; }
+  #app-screen .institute-header { padding: 14px !important; }
+  #app-screen .header-logo { width: 54px !important; height: 54px !important; }
+  #app-screen .app-main-layout { display: block !important; }
+  #app-screen .content-area { margin-top: 14px; }
+}
