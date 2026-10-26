@@ -208,6 +208,12 @@ body.login-screen-active #login-screen {
   color: #ffffff !important;
 }
 
+#login-screen.login-card#login-screen #open-wafdeen-login-btn {
+  background: linear-gradient(135deg, rgba(39,199,164,.72), rgba(13,88,101,.76)) !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,.40) !important;
+}
+
 /* Use the material on functional surfaces rather than flattening every content block. */
 .container,
 .card-view,
