@@ -799,3 +799,9 @@ body::after {
 #wafdeen-login-screen div {
   background-color: rgba(255,255,255,.10) !important;
 }
+
+body,
+body.login-screen-active,
+body:not(.login-screen-active) {
+  background-attachment: scroll !important;
+}
