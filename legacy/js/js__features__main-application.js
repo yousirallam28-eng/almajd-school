@@ -93,11 +93,11 @@ var ALL_CLASSES = [
     "خامسة - أولاد", "خامسة - بنات",
     "أولى شرعي"
 ];
-var GENERAL_CLASSES = ALL_CLASSES;
+var GENERAL_CLASSES = ALL_CLASSES.filter(function (className) { return String(className).trim() !== 'الوافدين'; });
 // حماية قائمة الفصول: لا تسمح لأي مزامنة أو فلتر مؤقت بمسح الفصول من الواجهة.
 function restoreCanonicalClasses_(){
   if(!Array.isArray(window.ALL_CLASSES)||window.ALL_CLASSES.length===0) window.ALL_CLASSES = ["تمهيدي","الوافدين","أولى - أولاد","أولى - بنات","ثانية - أولاد","ثانية - بنات","ثالثة - أولاد","ثالثة - بنات","رابعة - أولاد","رابعة - بنات","خامسة - أولاد","خامسة - بنات","أولى شرعي"];
-  window.GENERAL_CLASSES = window.ALL_CLASSES;
+  window.GENERAL_CLASSES = window.ALL_CLASSES.filter(function (className) { return String(className).trim() !== 'الوافدين'; });
   try{ if(typeof renderClassCards==='function') renderClassCards(); }catch(e){}
   try{ if(typeof ensureAllClassSelects_==='function') ensureAllClassSelects_(); }catch(e){}
 }
@@ -2021,32 +2021,60 @@ function getWafdeenTimeReportRange_(){
   if(wafdeenTimeReportPeriod==='month'){ var v=document.getElementById('wafdeenTimeMonth')?.value||wafdeenTimeMonth_(); return [v+'-01',v+'-31']; }
   var d=document.getElementById('wafdeenTimeDay')?.value||wafdeenTimeToday_(); return [d,d];
 }
-function renderWafdeenTimeReport(){
+async function renderWafdeenTimeReport(){
+  var body=document.getElementById('wafdeenTimeReportBody'), empty=document.getElementById('wafdeenTimeReportEmpty');
+  if(!body)return;
+  var manager=window.currentTeacher;
+  if(!manager || !(manager.username==='admin' || manager.role==='admin' || manager.isAdmin===true || String(manager.assignedClass||'')==='الكل')){
+    body.innerHTML='<tr><td colspan="7">غير مصرح بعرض تقرير الوافدين.</td></tr>';
+    return;
+  }
   var range=getWafdeenTimeReportRange_(), start=range[0], end=range[1];
   var label=document.getElementById('wafdeenTimePeriodLabel');
   if(label){ label.textContent=wafdeenTimeReportPeriod==='day'?'تقرير يوم '+start:wafdeenTimeReportPeriod==='week'?'تقرير الأسبوع من '+start+' إلى '+end:'تقرير شهر '+start.slice(0,7); }
-  var map={};
-  (Array.isArray(wafdeenDailyRecords)?wafdeenDailyRecords:[]).filter(function(r){
-    if(r && r._deleted) return false; var d=String(r.dateISO||'').slice(0,10); return d>=start && d<=end && (Number(r.newLessonTimeSeconds)||0)+(Number(r.oldRevisionTimeSeconds)||0)+(Number(r.recitationTimeSeconds)||0)>0;
-  }).forEach(function(r){
-    // التقرير مجمّع على مستوى الشيخ: يجمع أوقات جميع الطلاب الذين سمعهم الشيخ خلال الفترة.
-    var teacher=String(r.teacherName||r.teacherUsername||'غير محدد');
-    var key=teacher;
-    if(!map[key]) map[key]={teacherName:teacher,newTime:0,oldTime:0,recitationTime:0,studentCount:0};
-    map[key].newTime+=Number(r.newLessonTimeSeconds)||0;
-    map[key].oldTime+=Number(r.oldRevisionTimeSeconds)||0;
-    map[key].recitationTime+=Number(r.recitationTimeSeconds)||0;
-    map[key].studentCount+=1;
-  });
-  wafdeenTimeReportRows=Object.keys(map).map(function(k){var x=map[k]; x.total=x.newTime+x.oldTime+x.recitationTime; return x;}).sort(function(a,b){return a.teacherName.localeCompare(b.teacherName,'ar');});
-  var body=document.getElementById('wafdeenTimeReportBody'), empty=document.getElementById('wafdeenTimeReportEmpty'); if(!body)return;
-  body.innerHTML=wafdeenTimeReportRows.map(function(x){return '<tr><td><strong>'+escapeHtml(x.teacherName)+'</strong></td><td>'+wafdeenTimeFormatSeconds_(x.newTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.oldTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.recitationTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.total)+'</td></tr>';}).join('');
-  if(empty) empty.style.display=wafdeenTimeReportRows.length?'none':'block';
+  body.innerHTML='<tr><td colspan="7">جارٍ تحميل بيانات الوافدين من السحابة...</td></tr>';
+  try {
+    var api=window.MajdLocalDataAPI;
+    if(!api || typeof api.getWafdeenDailyRecords!=='function' || typeof api.getWafdeenUsage!=='function') throw new Error('واجهة بيانات الوافدين غير متاحة.');
+    var loaded=await Promise.all([api.getWafdeenDailyRecords(),api.getWafdeenUsage()]);
+    var daily=loaded[0]||[], usage=loaded[1]||[], map={};
+    window.wafdeenDailyRecords=daily;
+    window.wafdeenUsageData=usage;
+    (Array.isArray(daily)?daily:[]).filter(function(r){
+      if(r && r._deleted) return false; var d=String(r.dateISO||'').slice(0,10); return d>=start && d<=end;
+    }).forEach(function(r){
+      var teacher=String(r.teacherName||r.teacherUsername||'غير محدد');
+      if(!map[teacher]) map[teacher]={teacherName:teacher,newTime:0,oldTime:0,recitationTime:0,sessionTime:0,educationTime:0,total:0,studentCount:0};
+      map[teacher].newTime+=Number(r.newLessonTimeSeconds)||0;
+      map[teacher].oldTime+=Number(r.oldRevisionTimeSeconds)||0;
+      map[teacher].recitationTime+=Number(r.recitationTimeSeconds)||0;
+      map[teacher].studentCount+=1;
+    });
+    (Array.isArray(usage)?usage:[]).filter(function(u){
+      if(!u || u._deleted) return false; var d=String(u.dateISO||'').slice(0,10); return d>=start && d<=end && (u.category==='quran_session' || u.category==='educational');
+    }).forEach(function(u){
+      var teacher=String(u.teacherName||u.teacherUsername||'غير محدد');
+      if(!map[teacher]) map[teacher]={teacherName:teacher,newTime:0,oldTime:0,recitationTime:0,sessionTime:0,educationTime:0,total:0,studentCount:0};
+      if(u.category==='quran_session') map[teacher].sessionTime+=Number(u.sessionSeconds||u.seconds)||0;
+      if(u.category==='educational') map[teacher].educationTime+=Number(u.seconds)||0;
+    });
+    wafdeenTimeReportRows=Object.keys(map).map(function(k){var x=map[k]; x.total=x.newTime+x.oldTime+x.recitationTime; return x;}).sort(function(a,b){return a.teacherName.localeCompare(b.teacherName,'ar');});
+    body.innerHTML=wafdeenTimeReportRows.map(function(x){return '<tr><td><strong>'+escapeHtml(x.teacherName)+'</strong></td><td>'+wafdeenTimeFormatSeconds_(x.newTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.oldTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.recitationTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.sessionTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.educationTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.total)+'</td></tr>';}).join('');
+    if(empty) empty.style.display=wafdeenTimeReportRows.length?'none':'block';
+    renderWafdeenManagerGradesReport_(daily,usage,start,end);
+    renderWafdeenManagerEducationRecords_(usage,start,end);
+  } catch(error) {
+    console.error('تعذر تحميل تقرير وقت الوافدين من السحابة:',error);
+    wafdeenTimeReportRows=[];
+    body.innerHTML='<tr><td colspan="7">تعذر تحميل تقرير الوافدين من السحابة: '+escapeHtml(error.message||error)+'</td></tr>';
+    if(empty) empty.style.display='none';
+    ['wafdeenGradesReportBody','wafdeenEducationRecordsBody'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML='<tr><td colspan="13">تعذر تحميل البيانات السحابية؛ أعد المحاولة.</td></tr>';});
+  }
 }
 function exportWafdeenTimeReportExcel(){
   if(!wafdeenTimeReportRows.length){renderWafdeenTimeReport();}
   if(!wafdeenTimeReportRows.length) return showMessage('wafdeen-save-msg','لا توجد بيانات وقت لتصديرها','error');
-  var data=wafdeenTimeReportRows.map(function(x){return {'الشيخ':x.teacherName,'وقت الجديد الكامل':wafdeenTimeFormatSeconds_(x.newTime),'وقت الماضي الكامل':wafdeenTimeFormatSeconds_(x.oldTime),'وقت التلاوة الكامل':wafdeenTimeFormatSeconds_(x.recitationTime),'المجموع الكامل':wafdeenTimeFormatSeconds_(x.total)};});
+  var data=wafdeenTimeReportRows.map(function(x){return {'الشيخ':x.teacherName,'وقت الجديد الكامل':wafdeenTimeFormatSeconds_(x.newTime),'وقت الماضي الكامل':wafdeenTimeFormatSeconds_(x.oldTime),'وقت التلاوة الكامل':wafdeenTimeFormatSeconds_(x.recitationTime),'مدة جلسة التسميع':wafdeenTimeFormatSeconds_(x.sessionTime),'وقت التعليم':wafdeenTimeFormatSeconds_(x.educationTime),'المجموع الكامل':wafdeenTimeFormatSeconds_(x.total)};});
   try{var ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'وقت الوافدين'); var range=getWafdeenTimeReportRange_(); var suffix=wafdeenTimeReportPeriod==='day'?range[0]:wafdeenTimeReportPeriod==='week'?range[0]+'_الى_'+range[1]:range[0].slice(0,7); XLSX.writeFile(wb,'تقرير_وقت_الوافدين_'+suffix+'.xlsx');}catch(e){showMessage('wafdeen-save-msg','تعذر تصدير تقرير وقت الوافدين: '+(e.message||e),'error');}
 }
 
@@ -5675,17 +5703,69 @@ function launchResultFireworks_() {
     document.body.appendChild(box);
     setTimeout(function(){ if(box.parentNode) box.remove(); }, 3200);
 }
+function renderNormalExcelResultCards_(result, displayArea) {
+    if (!displayArea || !result) return;
+    var fields = result.fields || {};
+    var rawFields = fields.__excelRawFields && typeof fields.__excelRawFields === 'object' ? fields.__excelRawFields : {};
+    var headers = Array.isArray(result.sourceHeaders) && result.sourceHeaders.length
+        ? result.sourceHeaders.slice()
+        : Object.keys(rawFields).filter(function(h){ return String(h || '').trim(); });
+    if (!headers.length) {
+        headers = Object.keys(fields).filter(function(h){
+            return String(h || '').trim() && h !== '__excelRawFields' && normalizeExcelHeaderKey_(h) !== 'نوعالطالب';
+        });
+    }
+    headers = headers.filter(function(h){
+        return String(h || '').trim() && normalizeExcelHeaderKey_(h) !== 'م' &&
+            (Object.prototype.hasOwnProperty.call(rawFields, h) ||
+             Object.prototype.hasOwnProperty.call(fields, h) ||
+             Object.prototype.hasOwnProperty.call(fields, normalizeResultHeaderName(h)));
+    });
+    var box = document.createElement('div');
+    box.className = 'result-display-v17-wrap student-result-whitelist';
+    var title = document.createElement('div');
+    title.className = 'result-display-v17-title';
+    title.textContent = 'نتيجة الطالب';
+    box.appendChild(title);
+    var grid = document.createElement('div');
+    grid.className = 'result-display-v17-grid';
+    headers.forEach(function(header){
+        var card = document.createElement('div');
+        card.className = 'result-display-v17-row';
+        var label = document.createElement('div');
+        label.className = 'result-display-v17-label';
+        label.textContent = String(header);
+        var value = document.createElement('div');
+        value.className = 'result-display-v17-value';
+        var normalizedHeader = normalizeResultHeaderName(header);
+        var raw = Object.prototype.hasOwnProperty.call(rawFields, header) ? rawFields[header] :
+            (Object.prototype.hasOwnProperty.call(fields, header) ? fields[header] : fields[normalizedHeader]);
+        value.textContent = raw === null || raw === undefined || raw === '' ? '—' : String(raw);
+        card.appendChild(label);
+        card.appendChild(value);
+        grid.appendChild(card);
+    });
+    box.appendChild(grid);
+    displayArea.innerHTML = '';
+    displayArea.appendChild(box);
+    setTimeout(function(){ try { box.scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){} }, 50);
+}
 function renderMonthlyResultCards(result, preparatoryOnly) {
     var requestedPrep = typeof preparatoryOnly === 'boolean' ? preparatoryOnly : isPreparatoryResult_(result);
     var displayId = requestedPrep ? 'preparatoryResultDisplayArea' : 'studentResultDisplayArea';
     var displayArea = document.getElementById(displayId) || getVisibleResultElement_('resultDisplayArea') || document.getElementById('studentPortalArea');
     if (!displayArea || !result) return;
-    stopResultEffects_();
-    displayArea.innerHTML = '';
     if (isPreparatoryResult_(result) !== !!requestedPrep) {
         showMessage('results-msg', requestedPrep ? 'هذا الكود يخص طالبًا عاديًا، استخدم شاشة الطلاب.' : 'هذا الكود يخص طالبًا تمهيديًا، استخدم شاشة التمهيدي.', 'error');
         return;
     }
+    if (!requestedPrep) {
+        stopResultEffects_();
+        renderNormalExcelResultCards_(result, displayArea);
+        return;
+    }
+    stopResultEffects_();
+    displayArea.innerHTML = '';
     var fields = result.fields || {};
     if (monthlyResultIsAbsent_(fields)) {
         displayArea.innerHTML = '<p style="text-align:center;color:#a33;padding:15px;">لا توجد نتيجة مسجلة لهذا الطالب.</p>';
@@ -5884,14 +5964,14 @@ function generateStudentResultCodes(preparatoryOnly) {
         return Promise.all(targets.map(function(r) {
             return window.MajdLocalDataAPI.collection('results').doc(String(r.code)).set({
                 code: r.code, studentCode: r.studentCode, studentType: r.studentType || (preparatoryOnly ? 'تمهيدي' : 'طالب'),
-                fields: r.fields, monthKey: r.monthKey || ''
+                fields: r.fields, sourceHeaders: r.sourceHeaders || Object.keys(r.fields || {}), monthKey: r.monthKey || ''
             }, { merge: true });
         })).then(function(){
             return Promise.all(targets.map(function(r){ return attachResultCodeToStudent_(r).catch(function(){}); }));
         }).catch(function(e){ console.error('localdata save result codes:', e); });
     }
 }
-function readResultsExcelFilePreserveShape(file) {
+function readResultsExcelFilePreserveShape(file, preparatoryOnly) {
     return new Promise(function(resolve, reject) {
         if (!file) return reject(new Error('لم يتم اختيار ملف Excel'));
         if (typeof XLSX === 'undefined' || !XLSX.read || !XLSX.utils) {
@@ -5903,7 +5983,10 @@ function readResultsExcelFilePreserveShape(file) {
                 var data = new Uint8Array(e.target.result);
                 var wb = XLSX.read(data, {type:'array', cellDates:false, raw:true});
                 if (!wb.SheetNames || !wb.SheetNames.length) throw new Error('ملف Excel لا يحتوي على أي ورقة');
-                var sheetName = wb.SheetNames[0];
+                var requestedPrep = !!preparatoryOnly;
+                var sheetName = wb.SheetNames.find(function(name){
+                    return requestedPrep ? /تمهيد|تمهيدي|تمهيدى|prepar/i.test(String(name)) : !/تمهيد|تمهيدي|تمهيدى|prepar/i.test(String(name));
+                }) || wb.SheetNames[0];
                 var ws = wb.Sheets[sheetName];
                 if (!ws || !ws['!ref']) throw new Error('ورقة Excel فارغة');
 
@@ -5998,7 +6081,7 @@ function handleTypedResultsExcelUpload(event, preparatoryOnly) {
     var monthEl = document.getElementById('resultMonthKey');
     var monthKey = monthEl && monthEl.value ? monthEl.value : getCurrentResultMonthKey();
     var targetType = preparatoryOnly ? 'تمهيدي' : 'طالب';
-    readResultsExcelFilePreserveShape(file).then(function(parsed) {
+    readResultsExcelFilePreserveShape(file, preparatoryOnly).then(function(parsed) {
         var rows = parsed.rows || [];
         if (!rows.length) {
             showMessage('results-admin-msg', 'ملف ' + targetType + ' فارغ أو غير صالح', 'error');
@@ -6018,7 +6101,8 @@ function handleTypedResultsExcelUpload(event, preparatoryOnly) {
                 code: generateStudentLoginCode(existingCodes),
                 id: '', monthKey: monthKey, fields: fields,
                 studentCode: getResultStudentCode_({ fields: fields }) || '',
-                studentType: targetType
+                studentType: targetType,
+                sourceHeaders: (parsed.headers || []).filter(function(h){ return String(h || '').trim(); })
             };
             result.id = result.code;
             return result;
@@ -6039,7 +6123,7 @@ function handleTypedResultsExcelUpload(event, preparatoryOnly) {
                     return Promise.all(newResults.map(function(r) {
                         return window.MajdLocalDataAPI.collection('results').doc(r.id).set({
                             code: r.code, studentCode: r.studentCode || '', studentType: targetType,
-                            monthKey: r.monthKey, fields: r.fields, createdAt: new Date().toISOString()
+                            monthKey: r.monthKey, fields: r.fields, sourceHeaders: r.sourceHeaders || Object.keys(r.fields || {}), createdAt: new Date().toISOString()
                         });
                     }));
                 });
@@ -6963,4 +7047,109 @@ function tajweedStar(type, tajweed, totalDays) {
     if (total <= 0)
         return '';
     return (score / (total * 10)) >= 0.70 ? ' ⭐' : '';
+}
+
+
+function wafdeenManagerAuthorized_() {
+  var manager = window.currentTeacher;
+  return !!manager && (manager.username === 'admin' || manager.role === 'admin' || manager.isAdmin === true || String(manager.assignedClass || '') === 'الكل');
+}
+function renderWafdeenManagerGradesReport_(records, usage, start, end) {
+  var body = document.getElementById('wafdeenGradesReportBody');
+  if (!body) return;
+  var rows = (Array.isArray(records) ? records : []).filter(function (r) {
+    var date = String(r.dateISO || '').slice(0, 10);
+    return r && !r._deleted && date >= start && date <= end;
+  }).sort(function (a, b) { return String(b.dateISO || '').localeCompare(String(a.dateISO || '')); });
+  var sessionSecondsByKey = {};
+  (Array.isArray(usage) ? usage : []).filter(function (u) { return u && !u._deleted && u.category === 'quran_session'; }).forEach(function (u) { var key = String(u.dateISO || '').slice(0,10) + '_' + String(u.studentId || ''); sessionSecondsByKey[key] = (sessionSecondsByKey[key] || 0) + (Number(u.sessionSeconds || u.seconds) || 0); });
+  var value = function (x) { return x == null || x === '' ? '—' : escapeHtml(String(x)); };
+  body.innerHTML = rows.map(function (r) {
+    return '<tr><td>' + value(String(r.dateISO || '').slice(0, 10)) + '</td><td>' + value(r.teacherName || r.teacherUsername) + '</td><td>' + value(r.studentName) + '</td>' +
+      '<td>' + value(r.newLesson) + '</td><td>' + value(r.newErrors) + '</td><td>' + value(r.newTopicRecited) + '</td>' +
+      '<td>' + value(r.oldRevision) + '</td><td>' + value(r.oldErrors) + '</td><td>' + value(r.oldTopicRecited) + '</td>' +
+      '<td>' + value(r.recitation) + '</td><td>' + value(r.recitationErrors) + '</td><td>' + value(r.recitationTopicRecited) + '</td>' +
+      '<td>' + (Number(sessionSecondsByKey[String(r.dateISO || '').slice(0,10) + '_' + String(r.studentId || '')] || 0) > 0 ? wafdeenTimeFormatSeconds_(sessionSecondsByKey[String(r.dateISO || '').slice(0,10) + '_' + String(r.studentId || '')]) : '—') + '</td></tr>';
+  }).join('');
+}
+function renderWafdeenManagerEducationRecords_(records, start, end) {
+  var body = document.getElementById('wafdeenEducationRecordsBody');
+  var teacherSelect = document.getElementById('wafdeenEduTeacher');
+  if (!body) return;
+  var rows = (Array.isArray(records) ? records : []).filter(function (r) {
+    var date = String(r.dateISO || '').slice(0, 10);
+    return r && !r._deleted && r.category === 'educational' && date >= start && date <= end;
+  }).sort(function (a, b) { return String(b.dateISO || '').localeCompare(String(a.dateISO || '')); });
+  window.wafdeenEducationReportRows = rows;
+  if (teacherSelect && teacherSelect.options.length <= 1) {
+    var teachers = (window.teachersData || []).filter(function (t) { return t && !t._deleted && (t.canWafdeen === true || String(t.assignedClass || '') === 'الوافدين'); });
+    teacherSelect.innerHTML = '<option value="">اختر المدرس</option>' + teachers.map(function (t) {
+      var name = String(t.username || t.name || t.id || '');
+      return '<option value="' + escapeHtml(String(t.username || t.id || '')) + '">' + escapeHtml(name) + '</option>';
+    }).join('');
+  }
+  body.innerHTML = rows.map(function (r, i) {
+    var mins = Math.round((Number(r.seconds) || 0) / 60);
+    return '<tr><td>' + escapeHtml(String(r.dateISO || '').slice(0, 10)) + '</td><td>' + escapeHtml(String(r.teacherName || r.teacherUsername || 'غير محدد')) + '</td><td>' + escapeHtml(String(r.studentName || '')) + '</td><td>' + escapeHtml(String(r.subject || '')) + '</td><td>' + escapeHtml(wafdeenTimeFormatSeconds_(Number(r.seconds) || 0)) + '</td><td><button class="action-btn btn-save" type="button" onclick="editWafdeenEducationRecordByIndex(' + i + ')">تعديل</button></td></tr>';
+  }).join('');
+  renderWafdeenEduStudents();
+  var dateInput = document.getElementById('wafdeenEduDate');
+  if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+}
+function renderWafdeenEduStudents() {
+  var teacherSelect = document.getElementById('wafdeenEduTeacher');
+  var studentSelect = document.getElementById('wafdeenEduStudent');
+  if (!studentSelect) return;
+  var teacherUsername = String((teacherSelect && teacherSelect.value) || '');
+  var students = (window.studentsData || []).filter(function (s) {
+    if (!s || s._deleted || String(s.className || s.class || s.assignedClass || s.grade || '') !== 'الوافدين') return false;
+    var owner = String(s.teacherUsername || s.assignedTeacher || s.teacher || '');
+    return !owner || !teacherUsername || owner === teacherUsername;
+  }).sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
+  studentSelect.innerHTML = '<option value="">اختر الطالب</option>' + students.map(function (s) {
+    return '<option value="' + escapeHtml(String(s.studentId || s.id || '')) + '">' + escapeHtml(String(s.name || '')) + '</option>';
+  }).join('');
+}
+async function saveWafdeenEducationTimeAsManager() {
+  if (!wafdeenManagerAuthorized_()) return showMessage('wafdeen-manager-msg', 'هذه الوظيفة للمدير فقط.', 'error');
+  var teacherSelect = document.getElementById('wafdeenEduTeacher');
+  var studentSelect = document.getElementById('wafdeenEduStudent');
+  var teacherUsername = String((teacherSelect && teacherSelect.value) || '');
+  var studentId = String((studentSelect && studentSelect.value) || '');
+  var dateISO = String((document.getElementById('wafdeenEduDate') || {}).value || '');
+  var subject = String((document.getElementById('wafdeenEduSubject') || {}).value || '');
+  var minutes = Number((document.getElementById('wafdeenEduMinutes') || {}).value);
+  if (!teacherUsername || !studentId || !/^\d{4}-\d{2}-\d{2}$/.test(dateISO) || !subject || !Number.isFinite(minutes) || minutes <= 0 || minutes > 1440)
+    return showMessage('wafdeen-manager-msg', 'أكمل المدرس والطالب والمادة والتاريخ والمدة (من 1 إلى 1440 دقيقة).', 'error');
+  var teacher = (window.teachersData || []).find(function (t) { return String(t.username || t.id || '') === teacherUsername; });
+  var student = (window.studentsData || []).find(function (s) { return String(s.studentId || s.id || '') === studentId; });
+  if (!teacher || !(teacher.canWafdeen === true || String(teacher.assignedClass || '') === 'الوافدين') || !student || String(student.className || student.class || student.assignedClass || student.grade || '') !== 'الوافدين')
+    return showMessage('wafdeen-manager-msg', 'المدرس أو الطالب غير مخوّل في فصل الوافدين.', 'error');
+  var id = 'wafdeen_edu_' + encodeURIComponent(teacherUsername) + '_' + encodeURIComponent(studentId) + '_' + dateISO + '_' + encodeURIComponent(subject);
+  var record = { id: id, teacherId: String(teacher.id || teacherUsername), teacherUsername: teacherUsername, teacherName: String(teacher.name || teacher.username || teacherUsername), studentId: studentId, studentName: String(student.name || ''), category: 'educational', subject: subject, seconds: Math.round(minutes * 60), dateISO: dateISO, month: dateISO.slice(0, 7), updatedAt: new Date().toISOString(), updatedBy: String((window.currentTeacher || {}).username || 'admin') };
+  try {
+    await window.MajdLocalDataAPI.writeRecord('wafdeenUsage', id, record, { merge: true });
+    showMessage('wafdeen-manager-msg', 'تم حفظ وقت التعليم في السحابة.', 'success');
+    await renderWafdeenTimeReport();
+  } catch (error) {
+    showMessage('wafdeen-manager-msg', 'تعذر حفظ وقت التعليم في السحابة: ' + (error.message || error), 'error');
+  }
+}
+async function editWafdeenEducationRecordByIndex(index) {
+  if (!wafdeenManagerAuthorized_()) return showMessage('wafdeen-manager-msg', 'هذه الوظيفة للمدير فقط.', 'error');
+  var record = (window.wafdeenEducationReportRows || [])[Number(index)];
+  if (!record) return showMessage('wafdeen-manager-msg', 'سجل وقت التعليم غير موجود.', 'error');
+  var previous = (Number(record.seconds) || 0) / 60;
+  var input = window.prompt('أدخل المدة الجديدة بالدقائق:', String(Math.round(previous)));
+  if (input === null) return;
+  var minutes = Number(input);
+  if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 1440) return showMessage('wafdeen-manager-msg', 'أدخل مدة صحيحة من 1 إلى 1440 دقيقة.', 'error');
+  try {
+    var updated = Object.assign({}, record, { seconds: Math.round(minutes * 60), updatedAt: new Date().toISOString(), updatedBy: String((window.currentTeacher || {}).username || 'admin') });
+    await window.MajdLocalDataAPI.writeRecord('wafdeenUsage', String(record.id), updated, { merge: true });
+    showMessage('wafdeen-manager-msg', 'تم تعديل وقت التعليم في السحابة.', 'success');
+    await renderWafdeenTimeReport();
+  } catch (error) {
+    showMessage('wafdeen-manager-msg', 'تعذر تعديل وقت التعليم في السحابة: ' + (error.message || error), 'error');
+  }
 }

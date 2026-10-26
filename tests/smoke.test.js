@@ -67,6 +67,7 @@ test('student code screen is labeled for parent follow-up', () => {
 
 test('ordinary student Excel results choose the normal sheet and show only imported columns', () => {
   const main = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  const liveMain = readFileSync(new URL('../legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
   assert.match(main, /function readResultsExcelFilePreserveShape\(file, preparatoryOnly\)/);
   assert.match(main, /requestedPrep \? \/تمهيد\|تمهيدي\|تمهيدى\|prepar\/i/);
   assert.match(main, /sourceHeaders: \(parsed\.headers \|\| \[\]\)/);
@@ -76,4 +77,6 @@ test('ordinary student Excel results choose the normal sheet and show only impor
   assert.match(main, /fields\.__excelRawFields/);
   assert.match(main, /normalizeResultHeaderName\(header\)/);
   assert.match(main, /normalizeExcelHeaderKey_\(h\) !== 'م'/);
+  assert.match(liveMain, /function renderNormalExcelResultCards_\(result, displayArea\)/);
+  assert.match(liveMain, /normalizeExcelHeaderKey_\(h\) !== 'م'/);
 });
