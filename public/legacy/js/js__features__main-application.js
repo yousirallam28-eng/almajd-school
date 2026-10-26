@@ -5561,6 +5561,13 @@ function formatMonthlyPercentage_(value) {
     if (Math.abs(n) > 1) n = n / 100;
     return (n * 100).toFixed(2) + '%';
 }
+function isExcelDisplayedPercentageField_(field) {
+    var f = normalizeExcelHeaderKey_(field);
+    if (!f) return false;
+    if (f.includes('نسبه') || f.includes('سرد') || f.includes('شفوي') || f.includes('تحريري')) return true;
+    if (f.includes('قران') && f.includes('كلي')) return true;
+    return f.includes('مجموع') && f.includes('عربي') && f.includes('حساب');
+}
 function normalizeResultFields(row) {
     var fields = {};
     var rawFields = {};
@@ -5740,7 +5747,8 @@ function renderNormalExcelResultCards_(result, displayArea) {
         var normalizedHeader = normalizeResultHeaderName(header);
         var raw = Object.prototype.hasOwnProperty.call(rawFields, header) ? rawFields[header] :
             (Object.prototype.hasOwnProperty.call(fields, header) ? fields[header] : fields[normalizedHeader]);
-        value.textContent = raw === null || raw === undefined || raw === '' ? '—' : String(raw);
+        value.textContent = raw === null || raw === undefined || raw === '' ? '—' :
+            (isExcelDisplayedPercentageField_(header) ? formatMonthlyPercentage_(raw) : String(raw));
         card.appendChild(label);
         card.appendChild(value);
         grid.appendChild(card);
