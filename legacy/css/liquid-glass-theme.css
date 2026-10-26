@@ -582,3 +582,220 @@ body .tab-btn[aria-selected="true"] {
   body .action-btn:hover,
   body .tab-btn:hover { transform: none; }
 }
+
+/* Match the login screen's palette, atmosphere, and glass material everywhere. */
+:root {
+  --lg-app-ink: #fff;
+  --lg-app-surface: linear-gradient(145deg, rgba(255,255,255,.20), rgba(255,255,255,.055));
+  --lg-app-border: rgba(255,255,255,.60);
+  --lg-app-shadow: 0 30px 80px rgba(0,14,31,.30), inset 0 1px 0 rgba(255,255,255,.62);
+}
+
+body,
+body.login-screen-active,
+body:not(.login-screen-active) {
+  color: #fff !important;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(72,224,178,.72), transparent 25%),
+    radial-gradient(circle at 88% 10%, rgba(255,199,92,.62), transparent 24%),
+    radial-gradient(circle at 78% 88%, rgba(39,133,255,.44), transparent 30%),
+    radial-gradient(circle at 18% 92%, rgba(214,78,176,.38), transparent 27%),
+    linear-gradient(145deg, #062f35 0%, #0b514a 42%, #123a54 100%) !important;
+  background-attachment: fixed !important;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: .42;
+  filter: blur(8px);
+  z-index: 0;
+}
+
+body::before {
+  top: 2%;
+  right: 3%;
+  background: radial-gradient(circle, rgba(255,203,91,.66), rgba(238,113,157,.16) 40%, transparent 72%);
+}
+
+body::after {
+  bottom: -5%;
+  left: 1%;
+  background: radial-gradient(circle, rgba(47,198,202,.62), rgba(38,91,228,.20) 44%, transparent 74%);
+}
+
+#login-screen,
+#results-screen,
+#student-login-screen,
+#wafdeen-login-screen,
+#wafdeen-app-screen,
+#app-screen {
+  position: relative;
+  z-index: 1;
+}
+
+#app-screen,
+#app-screen.container,
+#app-screen .container,
+#app-screen .tab-content,
+#wafdeen-app-screen,
+#wafdeen-app-screen .tab-content {
+  color: #fff !important;
+  background: transparent !important;
+}
+
+#app-screen.container {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+#app-screen :is(.section-card, .panel, .card-view, .admin-card, .quick-entry-panel,
+  .analysis-chart-card, .analysis-time-card, .analysis-week-comparison,
+  .student-portal-section, .table-responsive, .site-modal-box, .wafdeen-panel,
+  .wafdeen-monitor-card, fieldset, .report-card, .summary-card, .stat-card,
+  .data-card, .form-card, .table-container),
+#wafdeen-app-screen :is(.wafdeen-panel, .wafdeen-monitor-card, .wafdeen-drawer,
+  .card-view, .section-card, .panel, .table-responsive, .table-container) {
+  color: #fff !important;
+  background: var(--lg-app-surface) !important;
+  border: 1px solid var(--lg-app-border) !important;
+  border-radius: 18px;
+  box-shadow: var(--lg-app-shadow) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(165%);
+  backdrop-filter: blur(28px) saturate(165%);
+}
+
+#app-screen :is(h1, h2, h3, h4, h5, p, label, legend, th, td, small, strong,
+  .section-title, .card-title, .form-label, .text-muted, .text-secondary),
+#wafdeen-app-screen :is(h1, h2, h3, h4, h5, p, label, legend, th, td, small,
+  strong, .section-title, .card-title, .form-label, .text-muted, .text-secondary) {
+  color: rgba(255,255,255,.94) !important;
+  text-shadow: 0 1px 10px rgba(0,20,32,.20);
+}
+
+#app-screen :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+#wafdeen-app-screen :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  color: #fff !important;
+  background: rgba(255,255,255,.14) !important;
+  border: 1px solid rgba(255,255,255,.44) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 8px 24px rgba(0,0,0,.10) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+
+#app-screen :is(input, textarea)::placeholder,
+#wafdeen-app-screen :is(input, textarea)::placeholder {
+  color: rgba(255,255,255,.68) !important;
+}
+
+#app-screen select option,
+#wafdeen-app-screen select option {
+  color: #123b34;
+  background: #eef8f4;
+}
+
+#app-screen table,
+#wafdeen-app-screen table {
+  color: #fff !important;
+  background: transparent !important;
+  border-color: rgba(255,255,255,.22) !important;
+}
+
+#app-screen table :is(th, td),
+#wafdeen-app-screen table :is(th, td) {
+  color: rgba(255,255,255,.94) !important;
+  background: rgba(255,255,255,.07) !important;
+  border-color: rgba(255,255,255,.20) !important;
+}
+
+#app-screen table thead :is(th, td),
+#wafdeen-app-screen table thead :is(th, td) {
+  background: rgba(5,61,61,.62) !important;
+}
+
+#app-screen :is(.institute-header, .sidebar-nav, .user-bar, .main-menu-handle),
+#wafdeen-app-screen :is(.wafdeen-topbar, .wafdeen-drawer) {
+  background: linear-gradient(135deg, rgba(6,47,53,.72), rgba(11,81,74,.62)) !important;
+  border-color: rgba(255,255,255,.38) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(155%);
+  backdrop-filter: blur(26px) saturate(155%);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  #app-screen :is(.section-card, .panel, .card-view, .admin-card, .quick-entry-panel,
+    .analysis-chart-card, .analysis-time-card, .student-portal-section, .table-responsive,
+    fieldset, .report-card, .summary-card, .stat-card),
+  #wafdeen-app-screen :is(.wafdeen-panel, .wafdeen-monitor-card, .card-view, .panel) {
+    background: rgba(7,63,61,.94) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Legacy inline panels and secondary entry screens use the same glass surface too. */
+#app-screen .class-box,
+#app-screen div[style*="background"],
+#wafdeen-app-screen div[style*="background"],
+#results-screen div[style*="background"],
+#student-login-screen div[style*="background"],
+#wafdeen-login-screen div[style*="background"] {
+  color: #fff !important;
+  background: var(--lg-app-surface) !important;
+  border-color: rgba(255,255,255,.44) !important;
+  box-shadow: 0 18px 42px rgba(0,14,31,.22), inset 0 1px 0 rgba(255,255,255,.46) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+
+#results-screen,
+#student-login-screen,
+#wafdeen-login-screen {
+  color: #fff !important;
+  background: var(--lg-app-surface) !important;
+  border: 1px solid var(--lg-app-border) !important;
+  box-shadow: var(--lg-app-shadow) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(165%);
+  backdrop-filter: blur(28px) saturate(165%);
+}
+
+#app-screen *:not(button):not(input):not(select):not(textarea):not(option):not(script):not(style):not(svg):not(path),
+#wafdeen-app-screen *:not(button):not(input):not(select):not(textarea):not(option):not(script):not(style):not(svg):not(path) {
+  color: rgba(255,255,255,.94) !important;
+}
+
+#results-screen :is(h1, h2, h3, h4, p, label, small, strong),
+#student-login-screen :is(h1, h2, h3, h4, p, label, small, strong),
+#wafdeen-login-screen :is(h1, h2, h3, h4, p, label, small, strong) {
+  color: rgba(255,255,255,.94) !important;
+}
+
+#results-screen :is(input, select, textarea),
+#student-login-screen :is(input, select, textarea),
+#wafdeen-login-screen :is(input, select, textarea) {
+  color: #fff !important;
+  background: rgba(255,255,255,.14) !important;
+  border-color: rgba(255,255,255,.44) !important;
+}
+
+#app-screen .tab-content :is(.card-view, .class-box, .section-card, .panel,
+  .admin-card, .quick-entry-panel, .table-responsive, .analysis-time-card,
+  .analysis-week-comparison, .report-card, .summary-card, .stat-card),
+#app-screen .tab-content div[style*="background"],
+#wafdeen-app-screen div[style*="background"] {
+  background-color: rgba(255,255,255,.10) !important;
+  background-image: var(--lg-app-surface) !important;
+  color: rgba(255,255,255,.94) !important;
+}
+
+#results-screen div,
+#student-login-screen div,
+#wafdeen-login-screen div {
+  background-color: rgba(255,255,255,.10) !important;
+}
