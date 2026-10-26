@@ -5710,7 +5710,7 @@ function launchResultFireworks_() {
     document.body.appendChild(box);
     setTimeout(function(){ if(box.parentNode) box.remove(); }, 3200);
 }
-function renderNormalExcelResultCards_(result, displayArea) {
+function renderNormalExcelResultCards_(result, displayArea, titleText) {
     if (!displayArea || !result) return;
     var fields = result.fields || {};
     var rawFields = fields.__excelRawFields && typeof fields.__excelRawFields === 'object' ? fields.__excelRawFields : {};
@@ -5732,7 +5732,7 @@ function renderNormalExcelResultCards_(result, displayArea) {
     box.className = 'result-display-v17-wrap student-result-whitelist';
     var title = document.createElement('div');
     title.className = 'result-display-v17-title';
-    title.textContent = 'نتيجة الطالب';
+    title.textContent = titleText || 'نتيجة الطالب';
     box.appendChild(title);
     var grid = document.createElement('div');
     grid.className = 'result-display-v17-grid';
@@ -5767,11 +5767,9 @@ function renderMonthlyResultCards(result, preparatoryOnly) {
         showMessage('results-msg', requestedPrep ? 'هذا الكود يخص طالبًا عاديًا، استخدم شاشة الطلاب.' : 'هذا الكود يخص طالبًا تمهيديًا، استخدم شاشة التمهيدي.', 'error');
         return;
     }
-    if (!requestedPrep) {
-        stopResultEffects_();
-        renderNormalExcelResultCards_(result, displayArea);
-        return;
-    }
+    stopResultEffects_();
+    renderNormalExcelResultCards_(result, displayArea, requestedPrep ? 'نتيجة الطالب التمهيدي' : 'نتيجة الطالب');
+    return;
     stopResultEffects_();
     displayArea.innerHTML = '';
     var fields = result.fields || {};

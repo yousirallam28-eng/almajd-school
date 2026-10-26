@@ -71,14 +71,14 @@ test('ordinary student Excel results choose the normal sheet and show only impor
   assert.match(main, /function readResultsExcelFilePreserveShape\(file, preparatoryOnly\)/);
   assert.match(main, /requestedPrep \? \/تمهيد\|تمهيدي\|تمهيدى\|prepar\/i/);
   assert.match(main, /sourceHeaders: \(parsed\.headers \|\| \[\]\)/);
-  assert.match(main, /function renderNormalExcelResultCards_\(result, displayArea\)/);
-  assert.match(main, /if \(!requestedPrep\) \{[\s\S]*renderNormalExcelResultCards_/);
+  assert.match(main, /function renderNormalExcelResultCards_\(result, displayArea, titleText\)/);
+  assert.match(main, /renderNormalExcelResultCards_\(result, displayArea, requestedPrep \? 'نتيجة الطالب التمهيدي' : 'نتيجة الطالب'\)/);
   assert.match(main, /headers\.forEach\(function\(header\)/);
   assert.match(main, /fields\.__excelRawFields/);
   assert.match(main, /normalizeResultHeaderName\(header\)/);
   assert.match(main, /function isExcelDisplayedPercentageField_\(field\)/);
   assert.match(main, /isExcelDisplayedPercentageField_\(header\) \? formatMonthlyPercentage_\(raw\)/);
   assert.match(main, /normalizeExcelHeaderKey_\(h\) !== 'م'/);
-  assert.match(liveMain, /function renderNormalExcelResultCards_\(result, displayArea\)/);
+  assert.match(liveMain, /function renderNormalExcelResultCards_\(result, displayArea, titleText\)/);
   assert.match(liveMain, /normalizeExcelHeaderKey_\(h\) !== 'م'/);
 });
