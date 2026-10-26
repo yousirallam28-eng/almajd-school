@@ -64,3 +64,13 @@ test('student code screen is labeled for parent follow-up', () => {
   assert.match(html, /متابعة ولي الأمر/);
   assert.doesNotMatch(html, /<h2 class="login-header-text"[^>]*>تسجيل دخول الطالب<\/h2>/);
 });
+
+test('ordinary student Excel results choose the normal sheet and show only imported columns', () => {
+  const main = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  assert.match(main, /function readResultsExcelFilePreserveShape\(file, preparatoryOnly\)/);
+  assert.match(main, /requestedPrep \? \/تمهيد\|تمهيدي\|تمهيدى\|prepar\/i/);
+  assert.match(main, /sourceHeaders: \(parsed\.headers \|\| \[\]\)/);
+  assert.match(main, /function renderNormalExcelResultCards_\(result, displayArea\)/);
+  assert.match(main, /if \(!requestedPrep\) \{[\s\S]*renderNormalExcelResultCards_/);
+  assert.match(main, /headers\.forEach\(function\(header\)/);
+});

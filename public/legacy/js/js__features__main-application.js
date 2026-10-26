@@ -5703,17 +5703,57 @@ function launchResultFireworks_() {
     document.body.appendChild(box);
     setTimeout(function(){ if(box.parentNode) box.remove(); }, 3200);
 }
+function renderNormalExcelResultCards_(result, displayArea) {
+    if (!displayArea || !result) return;
+    var fields = result.fields || {};
+    var headers = Array.isArray(result.sourceHeaders) && result.sourceHeaders.length
+        ? result.sourceHeaders.slice()
+        : Object.keys(fields).filter(function(h){ return String(h || '').trim() && normalizeExcelHeaderKey_(h) !== 'نوعالطالب'; });
+    headers = headers.filter(function(h){ return Object.prototype.hasOwnProperty.call(fields, h) && String(h || '').trim(); });
+    if (!headers.length) headers = Object.keys(fields).filter(function(h){ return normalizeExcelHeaderKey_(h) !== 'نوعالطالب'; });
+    var box = document.createElement('div');
+    box.className = 'result-display-v17-wrap student-result-whitelist';
+    var title = document.createElement('div');
+    title.className = 'result-display-v17-title';
+    title.textContent = 'نتيجة الطالب';
+    box.appendChild(title);
+    var grid = document.createElement('div');
+    grid.className = 'result-display-v17-grid';
+    headers.forEach(function(header){
+        var card = document.createElement('div');
+        card.className = 'result-display-v17-row';
+        var label = document.createElement('div');
+        label.className = 'result-display-v17-label';
+        label.textContent = String(header);
+        var value = document.createElement('div');
+        value.className = 'result-display-v17-value';
+        var raw = fields[header];
+        value.textContent = raw === null || raw === undefined || raw === '' ? '—' : String(raw);
+        card.appendChild(label);
+        card.appendChild(value);
+        grid.appendChild(card);
+    });
+    box.appendChild(grid);
+    displayArea.innerHTML = '';
+    displayArea.appendChild(box);
+    setTimeout(function(){ try { box.scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){} }, 50);
+}
 function renderMonthlyResultCards(result, preparatoryOnly) {
     var requestedPrep = typeof preparatoryOnly === 'boolean' ? preparatoryOnly : isPreparatoryResult_(result);
     var displayId = requestedPrep ? 'preparatoryResultDisplayArea' : 'studentResultDisplayArea';
     var displayArea = document.getElementById(displayId) || getVisibleResultElement_('resultDisplayArea') || document.getElementById('studentPortalArea');
     if (!displayArea || !result) return;
-    stopResultEffects_();
-    displayArea.innerHTML = '';
     if (isPreparatoryResult_(result) !== !!requestedPrep) {
         showMessage('results-msg', requestedPrep ? 'هذا الكود يخص طالبًا عاديًا، استخدم شاشة الطلاب.' : 'هذا الكود يخص طالبًا تمهيديًا، استخدم شاشة التمهيدي.', 'error');
         return;
     }
+    if (!requestedPrep) {
+        stopResultEffects_();
+        renderNormalExcelResultCards_(result, displayArea);
+        return;
+    }
+    stopResultEffects_();
+    displayArea.innerHTML = '';
     var fields = result.fields || {};
     if (monthlyResultIsAbsent_(fields)) {
         displayArea.innerHTML = '<p style="text-align:center;color:#a33;padding:15px;">لا توجد نتيجة مسجلة لهذا الطالب.</p>';
@@ -5912,14 +5952,14 @@ function generateStudentResultCodes(preparatoryOnly) {
         return Promise.all(targets.map(function(r) {
             return window.MajdLocalDataAPI.collection('results').doc(String(r.code)).set({
                 code: r.code, studentCode: r.studentCode, studentType: r.studentType || (preparatoryOnly ? 'تمهيدي' : 'طالب'),
-                fields: r.fields, monthKey: r.monthKey || ''
+                fields: r.fields, sourceHeaders: r.sourceHeaders || Object.keys(r.fields || {}), monthKey: r.monthKey || ''
             }, { merge: true });
         })).then(function(){
             return Promise.all(targets.map(function(r){ return attachResultCodeToStudent_(r).catch(function(){}); }));
         }).catch(function(e){ console.error('localdata save result codes:', e); });
     }
 }
-function readResultsExcelFilePreserveShape(file) {
+function readResultsExcelFilePreserveShape(file, preparatoryOnly) {
     return new Promise(function(resolve, reject) {
         if (!file) return reject(new Error('لم يتم اختيار ملف Excel'));
         if (typeof XLSX === 'undefined' || !XLSX.read || !XLSX.utils) {
@@ -5931,7 +5971,10 @@ function readResultsExcelFilePreserveShape(file) {
                 var data = new Uint8Array(e.target.result);
                 var wb = XLSX.read(data, {type:'array', cellDates:false, raw:true});
                 if (!wb.SheetNames || !wb.SheetNames.length) throw new Error('ملف Excel لا يحتوي على أي ورقة');
-                var sheetName = wb.SheetNames[0];
+                var requestedPrep = !!preparatoryOnly;
+                var sheetName = wb.SheetNames.find(function(name){
+                    return requestedPrep ? /تمهيد|تمهيدي|تمهيدى|prepar/i.test(String(name)) : !/تمهيد|تمهيدي|تمهيدى|prepar/i.test(String(name));
+                }) || wb.SheetNames[0];
                 var ws = wb.Sheets[sheetName];
                 if (!ws || !ws['!ref']) throw new Error('ورقة Excel فارغة');
 
@@ -6026,7 +6069,7 @@ function handleTypedResultsExcelUpload(event, preparatoryOnly) {
     var monthEl = document.getElementById('resultMonthKey');
     var monthKey = monthEl && monthEl.value ? monthEl.value : getCurrentResultMonthKey();
     var targetType = preparatoryOnly ? 'تمهيدي' : 'طالب';
-    readResultsExcelFilePreserveShape(file).then(function(parsed) {
+    readResultsExcelFilePreserveShape(file, preparatoryOnly).then(function(parsed) {
         var rows = parsed.rows || [];
         if (!rows.length) {
             showMessage('results-admin-msg', 'ملف ' + targetType + ' فارغ أو غير صالح', 'error');
@@ -6046,7 +6089,8 @@ function handleTypedResultsExcelUpload(event, preparatoryOnly) {
                 code: generateStudentLoginCode(existingCodes),
                 id: '', monthKey: monthKey, fields: fields,
                 studentCode: getResultStudentCode_({ fields: fields }) || '',
-                studentType: targetType
+                studentType: targetType,
+                sourceHeaders: (parsed.headers || []).filter(function(h){ return String(h || '').trim(); })
             };
             result.id = result.code;
             return result;
@@ -6067,7 +6111,7 @@ function handleTypedResultsExcelUpload(event, preparatoryOnly) {
                     return Promise.all(newResults.map(function(r) {
                         return window.MajdLocalDataAPI.collection('results').doc(r.id).set({
                             code: r.code, studentCode: r.studentCode || '', studentType: targetType,
-                            monthKey: r.monthKey, fields: r.fields, createdAt: new Date().toISOString()
+                            monthKey: r.monthKey, fields: r.fields, sourceHeaders: r.sourceHeaders || Object.keys(r.fields || {}), createdAt: new Date().toISOString()
                         });
                     }));
                 });
