@@ -203,6 +203,11 @@ body.login-screen-active #login-screen {
   background: linear-gradient(135deg, rgba(59,220,183,.82), rgba(18,116,132,.86)) !important;
 }
 
+#login-screen.login-card .modern-quick-btn[onclick="showWafdeenLoginScreen(event)"] {
+  background: linear-gradient(135deg, rgba(39,199,164,.72), rgba(13,88,101,.76)) !important;
+  color: #ffffff !important;
+}
+
 /* Use the material on functional surfaces rather than flattening every content block. */
 .container,
 .card-view,
