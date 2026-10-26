@@ -52,15 +52,21 @@ body.login-screen-active::after {
   background: radial-gradient(circle, rgba(199,162,74,.28), transparent 70%);
 }
 
+body.login-screen-active .login-screen,
+body.login-screen-active #login-screen {
+  position: relative;
+  z-index: 1;
+}
+
 .login-card,
 #wafdeen-login-screen {
   position: relative;
   z-index: 1;
-  background: rgba(255,255,255,.48) !important;
-  border: 1px solid rgba(255,255,255,.74) !important;
-  box-shadow: 0 28px 80px rgba(15,61,51,.18), inset 0 1px 0 rgba(255,255,255,.78) !important;
-  -webkit-backdrop-filter: blur(26px) saturate(155%);
-  backdrop-filter: blur(26px) saturate(155%);
+  background: linear-gradient(145deg, rgba(255,255,255,.30), rgba(255,255,255,.12)) !important;
+  border: 1px solid rgba(255,255,255,.82) !important;
+  box-shadow: 0 30px 90px rgba(15,61,51,.22), inset 0 1px 0 rgba(255,255,255,.92), inset 0 -1px 0 rgba(255,255,255,.20) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(175%);
+  backdrop-filter: blur(34px) saturate(175%);
 }
 
 .login-card::before,
@@ -70,21 +76,49 @@ body.login-screen-active::after {
   inset: 1px;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(135deg, rgba(255,255,255,.45), transparent 42%, rgba(27,138,107,.08));
+  background: linear-gradient(135deg, rgba(255,255,255,.62), transparent 36%, rgba(27,138,107,.14));
+  box-shadow: inset 0 0 28px rgba(255,255,255,.16);
+}
+
+.login-card::after,
+#wafdeen-login-screen::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  left: -90px;
+  bottom: -95px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(55,181,139,.28), transparent 68%);
+  filter: blur(6px);
 }
 
 .login-card input,
 #wafdeen-login-screen input {
-  background: rgba(255,255,255,.60) !important;
-  border: 1px solid rgba(255,255,255,.72) !important;
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,.26) !important;
+  border: 1px solid rgba(255,255,255,.70) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.54), 0 8px 24px rgba(15,61,51,.06) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
 }
+
+.login-card input::placeholder,
+#wafdeen-login-screen input::placeholder { color: rgba(24,59,48,.62) !important; }
 
 .login-card .action-btn,
 #wafdeen-login-screen .action-btn {
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(135deg, rgba(27,138,107,.68), rgba(15,61,51,.72)) !important;
+  border: 1px solid rgba(255,255,255,.55) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 12px 28px rgba(15,61,51,.18) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+}
+
+.login-card .action-btn:not(:first-of-type),
+#wafdeen-login-screen .action-btn:not(.btn-save) {
+  background: rgba(255,255,255,.22) !important;
+  color: #124c3c !important;
 }
 
 /* Use the material on functional surfaces rather than flattening every content block. */
