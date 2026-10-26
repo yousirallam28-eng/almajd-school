@@ -20,6 +20,73 @@ body:not(.login-screen-active) {
     #eef6f2;
 }
 
+body.login-screen-active {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(55, 181, 139, .28), transparent 30%),
+    radial-gradient(circle at 88% 14%, rgba(199, 162, 74, .22), transparent 26%),
+    linear-gradient(145deg, #e9f5ef 0%, #f8fbf9 48%, #f3ead4 100%) !important;
+}
+
+body.login-screen-active::before,
+body.login-screen-active::after {
+  content: "";
+  position: fixed;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(4px);
+  opacity: .55;
+  z-index: 0;
+}
+
+body.login-screen-active::before {
+  top: 8%;
+  right: 8%;
+  background: radial-gradient(circle, rgba(55,181,139,.34), transparent 70%);
+}
+
+body.login-screen-active::after {
+  bottom: 6%;
+  left: 7%;
+  background: radial-gradient(circle, rgba(199,162,74,.28), transparent 70%);
+}
+
+.login-card,
+#wafdeen-login-screen {
+  position: relative;
+  z-index: 1;
+  background: rgba(255,255,255,.48) !important;
+  border: 1px solid rgba(255,255,255,.74) !important;
+  box-shadow: 0 28px 80px rgba(15,61,51,.18), inset 0 1px 0 rgba(255,255,255,.78) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(155%);
+  backdrop-filter: blur(26px) saturate(155%);
+}
+
+.login-card::before,
+#wafdeen-login-screen::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.45), transparent 42%, rgba(27,138,107,.08));
+}
+
+.login-card input,
+#wafdeen-login-screen input {
+  background: rgba(255,255,255,.60) !important;
+  border: 1px solid rgba(255,255,255,.72) !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.login-card .action-btn,
+#wafdeen-login-screen .action-btn {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
 /* Use the material on functional surfaces rather than flattening every content block. */
 .container,
 .card-view,
