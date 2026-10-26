@@ -5566,7 +5566,7 @@ function isExcelDisplayedPercentageField_(field) {
     if (!f) return false;
     if (f.includes('نسبه') || f.includes('سرد') || f.includes('شفوي') || f.includes('تحريري')) return true;
     if (f.includes('قران') && f.includes('كلي')) return true;
-    return f.includes('مجموع') && f.includes('عربي') && f.includes('حساب');
+    return f.includes('مجموع') && f.includes('كلي') && f.includes('عربي') && f.includes('حساب');
 }
 function normalizeResultFields(row) {
     var fields = {};

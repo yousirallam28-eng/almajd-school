@@ -78,6 +78,7 @@ test('ordinary student Excel results choose the normal sheet and show only impor
   assert.match(main, /normalizeResultHeaderName\(header\)/);
   assert.match(main, /function isExcelDisplayedPercentageField_\(field\)/);
   assert.match(main, /isExcelDisplayedPercentageField_\(header\) \? formatMonthlyPercentage_\(raw\)/);
+  assert.match(main, /f\.includes\('مجموع'\) && f\.includes\('كلي'\) && f\.includes\('عربي'\) && f\.includes\('حساب'\)/);
   assert.match(main, /normalizeExcelHeaderKey_\(h\) !== 'م'/);
   assert.match(liveMain, /function renderNormalExcelResultCards_\(result, displayArea, titleText\)/);
   assert.match(liveMain, /normalizeExcelHeaderKey_\(h\) !== 'م'/);
