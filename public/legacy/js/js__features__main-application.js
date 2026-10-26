@@ -5706,14 +5706,21 @@ function launchResultFireworks_() {
 function renderNormalExcelResultCards_(result, displayArea) {
     if (!displayArea || !result) return;
     var fields = result.fields || {};
+    var rawFields = fields.__excelRawFields && typeof fields.__excelRawFields === 'object' ? fields.__excelRawFields : {};
     var headers = Array.isArray(result.sourceHeaders) && result.sourceHeaders.length
         ? result.sourceHeaders.slice()
-        : Object.keys(fields).filter(function(h){ return String(h || '').trim() && normalizeExcelHeaderKey_(h) !== 'نوعالطالب'; });
+        : Object.keys(rawFields).filter(function(h){ return String(h || '').trim(); });
+    if (!headers.length) {
+        headers = Object.keys(fields).filter(function(h){
+            return String(h || '').trim() && h !== '__excelRawFields' && normalizeExcelHeaderKey_(h) !== 'نوعالطالب';
+        });
+    }
     headers = headers.filter(function(h){
-        return Object.prototype.hasOwnProperty.call(fields, h) &&
-            String(h || '').trim() && normalizeExcelHeaderKey_(h) !== 'م';
+        return String(h || '').trim() && normalizeExcelHeaderKey_(h) !== 'م' &&
+            (Object.prototype.hasOwnProperty.call(rawFields, h) ||
+             Object.prototype.hasOwnProperty.call(fields, h) ||
+             Object.prototype.hasOwnProperty.call(fields, normalizeResultHeaderName(h)));
     });
-    if (!headers.length) headers = Object.keys(fields).filter(function(h){ return normalizeExcelHeaderKey_(h) !== 'نوعالطالب'; });
     var box = document.createElement('div');
     box.className = 'result-display-v17-wrap student-result-whitelist';
     var title = document.createElement('div');
@@ -5730,7 +5737,9 @@ function renderNormalExcelResultCards_(result, displayArea) {
         label.textContent = String(header);
         var value = document.createElement('div');
         value.className = 'result-display-v17-value';
-        var raw = fields[header];
+        var normalizedHeader = normalizeResultHeaderName(header);
+        var raw = Object.prototype.hasOwnProperty.call(rawFields, header) ? rawFields[header] :
+            (Object.prototype.hasOwnProperty.call(fields, header) ? fields[header] : fields[normalizedHeader]);
         value.textContent = raw === null || raw === undefined || raw === '' ? '—' : String(raw);
         card.appendChild(label);
         card.appendChild(value);
