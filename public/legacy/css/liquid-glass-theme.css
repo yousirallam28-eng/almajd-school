@@ -1,0 +1,189 @@
+/* Almajd Liquid Glass theme
+ * CSS-first glass material with graceful fallbacks for older browsers.
+ */
+:root {
+  --lg-surface: rgba(255, 255, 255, .58);
+  --lg-surface-strong: rgba(255, 255, 255, .76);
+  --lg-surface-dark: rgba(15, 61, 51, .74);
+  --lg-border: rgba(255, 255, 255, .58);
+  --lg-border-dark: rgba(199, 162, 74, .38);
+  --lg-blur: 18px;
+  --lg-shadow: 0 18px 50px rgba(15, 61, 51, .14), 0 2px 10px rgba(15, 61, 51, .06);
+  --lg-shadow-hover: 0 24px 64px rgba(15, 61, 51, .20), 0 4px 14px rgba(15, 61, 51, .08);
+}
+
+body:not(.login-screen-active) {
+  background:
+    radial-gradient(circle at 8% 6%, rgba(55, 181, 139, .18), transparent 28%),
+    radial-gradient(circle at 92% 12%, rgba(199, 162, 74, .15), transparent 24%),
+    radial-gradient(circle at 50% 100%, rgba(27, 138, 107, .10), transparent 34%),
+    #eef6f2;
+}
+
+/* Use the material on functional surfaces rather than flattening every content block. */
+.container,
+.card-view,
+.top-student-card,
+.analysis-chart-card,
+.analysis-time-card,
+.analysis-week-comparison,
+.student-portal-section,
+.site-modal-box,
+.table-responsive,
+.quick-entry-panel,
+.section-card,
+.panel,
+.admin-card,
+.wafdeen-panel,
+.wafdeen-monitor-card {
+  background: var(--lg-surface) !important;
+  border: 1px solid var(--lg-border) !important;
+  box-shadow: var(--lg-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(145%);
+  backdrop-filter: blur(var(--lg-blur)) saturate(145%);
+  isolation: isolate;
+}
+
+.container::after,
+.card-view::after,
+.panel::after,
+.section-card::after,
+.wafdeen-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,.42), transparent 38%, rgba(255,255,255,.08));
+  opacity: .7;
+  z-index: -1;
+}
+
+.card-view:hover,
+.top-student-card:hover,
+.analysis-chart-card:hover,
+.panel:hover,
+.section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lg-shadow-hover) !important;
+}
+
+.institute-header,
+.user-bar,
+.main-menu-handle,
+.sidebar-nav,
+#wafdeen-app-screen .wafdeen-topbar,
+#wafdeen-app-screen .wafdeen-drawer {
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(20px) saturate(145%);
+}
+
+.institute-header {
+  background: linear-gradient(135deg, rgba(15,61,51,.90), rgba(27,138,107,.76)) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  box-shadow: 0 18px 42px rgba(15,61,51,.24) !important;
+}
+
+button.action-btn,
+.top-period-btn,
+.tab-btn,
+.student-login-link-btn,
+.result-link-btn,
+#wafdeen-app-screen .wafdeen-type-btn,
+#wafdeen-app-screen .wafdeen-grade-period-btn {
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+  backdrop-filter: blur(14px) saturate(135%);
+  transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+}
+
+button.action-btn:hover,
+.top-period-btn:hover,
+.tab-btn:hover,
+.student-login-link-btn:hover,
+.result-link-btn:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 14px 28px rgba(15,61,51,.18) !important;
+}
+
+.tab-btn:not(.active) {
+  background: rgba(255,255,255,.46) !important;
+  border-color: rgba(27,138,107,.18) !important;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, rgba(27,138,107,.94), rgba(15,61,51,.92)) !important;
+  border-color: rgba(242,230,197,.72) !important;
+}
+
+input,
+select,
+textarea {
+  background: rgba(255,255,255,.64) !important;
+  border-color: rgba(27,138,107,.22) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background: rgba(255,255,255,.88) !important;
+  box-shadow: 0 0 0 4px rgba(55,181,139,.16), 0 10px 24px rgba(15,61,51,.10) !important;
+}
+
+.site-modal-box {
+  background: var(--lg-surface-strong) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
+}
+
+.menu-overlay {
+  background: rgba(7,35,29,.32) !important;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
+.sidebar-nav {
+  background: linear-gradient(180deg, rgba(15,61,51,.86), rgba(7,35,29,.93)) !important;
+  border: 1px solid var(--lg-border-dark) !important;
+  box-shadow: 0 24px 70px rgba(7,35,29,.30) !important;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .container,
+  .card-view,
+  .top-student-card,
+  .analysis-chart-card,
+  .analysis-time-card,
+  .analysis-week-comparison,
+  .student-portal-section,
+  .site-modal-box,
+  .table-responsive,
+  .quick-entry-panel,
+  .section-card,
+  .panel,
+  .admin-card,
+  .wafdeen-panel,
+  .wafdeen-monitor-card {
+    background: #f8fbf9 !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 650px) {
+  :root { --lg-blur: 12px; }
+  .card-view:hover,
+  .top-student-card:hover,
+  .analysis-chart-card:hover,
+  .panel:hover,
+  .section-card:hover { transform: none; }
+}
