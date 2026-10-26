@@ -73,4 +73,5 @@ test('ordinary student Excel results choose the normal sheet and show only impor
   assert.match(main, /function renderNormalExcelResultCards_\(result, displayArea\)/);
   assert.match(main, /if \(!requestedPrep\) \{[\s\S]*renderNormalExcelResultCards_/);
   assert.match(main, /headers\.forEach\(function\(header\)/);
+  assert.match(main, /normalizeExcelHeaderKey_\(h\) !== 'م'/);
 });

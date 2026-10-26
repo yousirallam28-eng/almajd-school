@@ -5709,7 +5709,10 @@ function renderNormalExcelResultCards_(result, displayArea) {
     var headers = Array.isArray(result.sourceHeaders) && result.sourceHeaders.length
         ? result.sourceHeaders.slice()
         : Object.keys(fields).filter(function(h){ return String(h || '').trim() && normalizeExcelHeaderKey_(h) !== 'نوعالطالب'; });
-    headers = headers.filter(function(h){ return Object.prototype.hasOwnProperty.call(fields, h) && String(h || '').trim(); });
+    headers = headers.filter(function(h){
+        return Object.prototype.hasOwnProperty.call(fields, h) &&
+            String(h || '').trim() && normalizeExcelHeaderKey_(h) !== 'م';
+    });
     if (!headers.length) headers = Object.keys(fields).filter(function(h){ return normalizeExcelHeaderKey_(h) !== 'نوعالطالب'; });
     var box = document.createElement('div');
     box.className = 'result-display-v17-wrap student-result-whitelist';
