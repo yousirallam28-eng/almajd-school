@@ -221,3 +221,39 @@ html { scrollbar-color: var(--ref-unified-accent) var(--ref-unified-track) !impo
 #wafdeen-app-screen progress::-webkit-progress-value {
   background: linear-gradient(90deg,#0b8f75,#f0a04a) !important;
 }
+
+
+/* The daily date bar is injected by the V10 script, so target its real selectors. */
+#app-screen .v10-daily-date-bar,
+#wafdeen-app-screen .v10-daily-date-bar {
+  background: var(--ref-unified-surface) !important;
+  color: var(--ref-unified-text) !important;
+  border: 2px solid var(--ref-unified-accent) !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,.22) !important;
+}
+#app-screen .v10-daily-date-bar .v10-date-label,
+#wafdeen-app-screen .v10-daily-date-bar .v10-date-label,
+#app-screen .v10-daily-date-status,
+#wafdeen-app-screen .v10-daily-date-status {
+  color: var(--ref-unified-text) !important;
+  text-shadow: none !important;
+}
+#app-screen .v10-daily-date-bar input[type="date"],
+#wafdeen-app-screen .v10-daily-date-bar input[type="date"] {
+  background: var(--ref-unified-surface-deep) !important;
+  color: var(--ref-unified-text) !important;
+  border: 1px solid var(--ref-unified-line) !important;
+  color-scheme: dark;
+}
+#app-screen .v10-daily-date-bar input[type="date"]::-webkit-calendar-picker-indicator,
+#wafdeen-app-screen .v10-daily-date-bar input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.5);
+}
+#app-screen .v10-daily-date-bar .btn-warning,
+#app-screen .v10-daily-date-bar .btn-export,
+#wafdeen-app-screen .v10-daily-date-bar .btn-warning,
+#wafdeen-app-screen .v10-daily-date-bar .btn-export {
+  background: linear-gradient(180deg,#0b8f75,#066b62) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
