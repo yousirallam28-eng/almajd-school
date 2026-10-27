@@ -585,3 +585,24 @@ input[type="checkbox"],input[type="radio"] {
   border-color: var(--ref-unified-line) !important;
   opacity: 1 !important;
 }
+
+/* Higher-priority selectors beat later legacy rules and inline color declarations. */
+#app-screen#app-screen [style*="background" i]:not(input):not(select):not(textarea):not(button),
+#wafdeen-app-screen#wafdeen-app-screen [style*="background" i]:not(input):not(select):not(textarea):not(button),
+#siteModal#siteModal .site-modal-box [style*="background" i]:not(input):not(select):not(textarea):not(button),
+#app-screen#app-screen [class*="badge"],#app-screen#app-screen [class*="status-card"],
+#wafdeen-app-screen#wafdeen-app-screen [class*="badge"],#wafdeen-app-screen#wafdeen-app-screen [class*="status-card"] {
+  background: var(--ref-unified-panel) !important;
+  background-image: none !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
+#app-screen#app-screen button,#wafdeen-app-screen#wafdeen-app-screen button,
+#siteModal#siteModal .site-modal-box button,#login-screen#login-screen button,
+#wafdeen-login-screen#wafdeen-login-screen button,#results-screen#results-screen button,
+#student-login-screen#student-login-screen button,#studentPortalArea#studentPortalArea button,
+#studentResultDisplayArea#studentResultDisplayArea button,#preparatoryResultDisplayArea#preparatoryResultDisplayArea button {
+  background: linear-gradient(135deg,var(--ref-unified-button),var(--ref-unified-button-dark)) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
