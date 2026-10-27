@@ -450,3 +450,32 @@ input[type="checkbox"],input[type="radio"] {
   opacity: 1 !important;
   text-shadow: none !important;
 }
+
+/* Final cascade layer: remove remaining per-component glass tints. */
+#app-screen .tab-content [class*="card"][class*="card"],
+#app-screen .tab-content [class*="panel"][class*="panel"],
+#app-screen .tab-content [class*="box"][class*="box"],
+#app-screen .tab-content [class*="tile"][class*="tile"],
+#app-screen .tab-content fieldset,
+#wafdeen-app-screen [class*="card"][class*="card"],
+#wafdeen-app-screen [class*="panel"][class*="panel"],
+#wafdeen-app-screen [class*="box"][class*="box"],
+#wafdeen-app-screen [class*="tile"][class*="tile"],
+#siteModal .site-modal-box {
+  background: var(--ref-unified-panel) !important;
+  background-image: none !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
+#app-screen .tab-content [class*="card"][class*="card"] *,
+#app-screen .tab-content [class*="panel"][class*="panel"] *,
+#app-screen .tab-content [class*="box"][class*="box"] *,
+#app-screen .tab-content [class*="tile"][class*="tile"] *,
+#wafdeen-app-screen [class*="card"][class*="card"] *,
+#wafdeen-app-screen [class*="panel"][class*="panel"] *,
+#wafdeen-app-screen [class*="box"][class*="box"] *,
+#wafdeen-app-screen [class*="tile"][class*="tile"] * {
+  color: var(--ref-unified-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
