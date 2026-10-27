@@ -364,3 +364,63 @@ input[type="checkbox"],input[type="radio"] {
   color: var(--ref-unified-text) !important;
   border-color: var(--ref-unified-line) !important;
 }
+
+
+/* Consistent colors for admin dialogs, settings cards and form controls. */
+:root {
+  --ref-unified-panel: #1b6561;
+  --ref-unified-field: #f5faf8;
+  --ref-unified-field-ink: #164b45;
+  --ref-unified-button: #0b7567;
+  --ref-unified-button-dark: #07584f;
+}
+#app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,li,dt,dd,legend,caption,td,th),
+#wafdeen-app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,li,dt,dd,legend,caption,td,th),
+.site-modal-box :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,li,dt,dd,legend,caption,td,th) {
+  color: var(--ref-unified-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+#app-screen :is(.card-view,.panel,.section-card,.admin-card,.site-modal-box,.modal-card,.modal-content,
+  .form-grid,.form-group,fieldset,.class-card,.class-box,.class-visibility-card,.visibility-card,
+  .analysis-chart-card,.analysis-time-card,.analysis-week-comparison,.summary-card,.stat-card),
+#wafdeen-app-screen :is(.wafdeen-panel,.wafdeen-monitor-card,.wafdeen-daily-panel,.site-modal-box,.modal-card,.modal-content),
+.site-modal-box {
+  background: var(--ref-unified-panel) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
+#app-screen label:has(input[type="checkbox"]),
+#app-screen div:has(> input[type="checkbox"]),
+#app-screen .class-visibility-card,
+#app-screen .visibility-card {
+  background: var(--ref-unified-panel) !important;
+  color: var(--ref-unified-text) !important;
+  border: 1px solid var(--ref-unified-line) !important;
+  border-radius: 14px !important;
+}
+#app-screen :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+#wafdeen-app-screen :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+.site-modal-box :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
+  background: var(--ref-unified-field) !important;
+  color: var(--ref-unified-field-ink) !important;
+  border: 1px solid var(--ref-unified-line) !important;
+  opacity: 1 !important;
+}
+#app-screen :is(input,select,textarea)::placeholder,
+#wafdeen-app-screen :is(input,select,textarea)::placeholder,
+.site-modal-box :is(input,select,textarea)::placeholder {
+  color: #557a74 !important;
+  opacity: 1 !important;
+}
+#app-screen :is(button,.action-btn):not(.btn-danger):not(.delete-btn),
+#wafdeen-app-screen :is(button,.action-btn):not(.btn-danger):not(.delete-btn),
+.site-modal-box :is(button,.action-btn):not(.btn-danger):not(.delete-btn) {
+  background: linear-gradient(135deg,var(--ref-unified-button),var(--ref-unified-button-dark)) !important;
+  color: #f2f6f6 !important;
+  border-color: var(--ref-unified-line) !important;
+}
+#app-screen input[type="checkbox"],#app-screen input[type="radio"],
+#wafdeen-app-screen input[type="checkbox"],#wafdeen-app-screen input[type="radio"] {
+  accent-color: var(--ref-unified-accent) !important;
+}
