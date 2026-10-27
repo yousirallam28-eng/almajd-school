@@ -402,3 +402,57 @@ html { scrollbar-color: var(--ref-thumb) var(--ref-track); scrollbar-width: auto
   background: #ffffff !important;
   color: var(--ref-text) !important;
 }
+
+
+/* Final specificity overrides: legacy liquid-glass selectors are more specific than the
+   shared rules above, so these exact selectors intentionally win. */
+#login-screen.login-card .form-group input,
+#wafdeen-login-screen.wafdeen-login-card input {
+  background: #f5fffc !important;
+  color: #063f3d !important;
+  border: 1px solid #5fbfae !important;
+  box-shadow: inset 0 1px 3px rgba(0, 60, 52, .12) !important;
+}
+#login-screen.login-card .form-group input::placeholder,
+#wafdeen-login-screen.wafdeen-login-card input::placeholder {
+  color: #4b7771 !important;
+  opacity: 1 !important;
+}
+#login-screen.login-card .modern-login-welcome {
+  background: #d8f5ee !important;
+  color: #063f3d !important;
+  border: 1px solid #65c5b3 !important;
+  box-shadow: 0 3px 10px rgba(0, 50, 45, .12) !important;
+}
+#login-screen.login-card .modern-login-welcome * { color: #063f3d !important; }
+#login-screen.login-card .login-subtitle,
+#login-screen.login-card .form-group label,
+#wafdeen-login-screen.wafdeen-login-card .wafdeen-subtitle,
+#wafdeen-login-screen.wafdeen-login-card .form-group label {
+  color: #eafff9 !important;
+  text-shadow: 0 1px 2px rgba(0, 35, 32, .55) !important;
+}
+#login-screen.login-card > .action-btn,
+#login-screen.login-card .modern-quick-btn,
+#wafdeen-login-screen.wafdeen-login-card .action-btn {
+  background: linear-gradient(180deg, #0b8f75, #066b62) !important;
+  color: #ffffff !important;
+  border-color: #8cebd3 !important;
+}
+
+/* Inline white backgrounds in generated result sections must also be overridden. */
+#results-screen.login-card > div[style*="grid"] > section,
+#results-screen.login-card > div[style*="grid"] > section[style] {
+  background: #ecfffb !important;
+  color: #063f3d !important;
+  border-color: #55bda9 !important;
+}
+#results-screen.login-card > div[style*="grid"] > section :is(h3,.login-subtitle,p,span,label,div) {
+  color: #063f3d !important;
+  text-shadow: none !important;
+}
+#results-screen.login-card > div[style*="grid"] > section :is(input,select,textarea) {
+  background: #ffffff !important;
+  color: #063f3d !important;
+  border-color: #55bda9 !important;
+}
