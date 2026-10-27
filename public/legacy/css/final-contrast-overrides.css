@@ -512,3 +512,35 @@ input[type="checkbox"],input[type="radio"] {
   color: var(--ref-unified-text) !important;
   border-color: var(--ref-unified-line) !important;
 }
+
+/* Final consistency pass: forms and welcome cards use the same dark surfaces. */
+#login-screen.login-card .modern-login-welcome,#wafdeen-login-screen.wafdeen-login-card .modern-login-welcome,
+#login-screen.login-card .modern-login-welcome *,#wafdeen-login-screen.wafdeen-login-card .modern-login-welcome * {
+  background: var(--ref-unified-panel) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+  opacity: 1 !important;
+}
+#app-screen :is(input,select,textarea),#wafdeen-app-screen :is(input,select,textarea),
+#siteModal .site-modal-box :is(input,select,textarea),#login-screen :is(input,select,textarea),
+#wafdeen-login-screen :is(input,select,textarea),#results-screen :is(input,select,textarea),
+#student-login-screen :is(input,select,textarea),#studentPortalArea :is(input,select,textarea),
+#studentResultDisplayArea :is(input,select,textarea),#preparatoryResultDisplayArea :is(input,select,textarea) {
+  background: var(--ref-unified-surface-deep) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+  opacity: 1 !important;
+}
+#app-screen :is(input,select,textarea)::placeholder,#wafdeen-app-screen :is(input,select,textarea)::placeholder,
+#siteModal .site-modal-box :is(input,select,textarea)::placeholder,#login-screen :is(input,select,textarea)::placeholder,
+#wafdeen-login-screen :is(input,select,textarea)::placeholder,#results-screen :is(input,select,textarea)::placeholder,
+#student-login-screen :is(input,select,textarea)::placeholder,#studentPortalArea :is(input,select,textarea)::placeholder,
+#studentResultDisplayArea :is(input,select,textarea)::placeholder,#preparatoryResultDisplayArea :is(input,select,textarea)::placeholder {
+  color: #c7e5df !important;
+  opacity: 1 !important;
+}
+#app-screen select option,#wafdeen-app-screen select option,#siteModal .site-modal-box select option,
+#login-screen select option,#wafdeen-login-screen select option,#results-screen select option,#student-login-screen select option {
+  background: var(--ref-unified-surface-deep) !important;
+  color: var(--ref-unified-text) !important;
+}
