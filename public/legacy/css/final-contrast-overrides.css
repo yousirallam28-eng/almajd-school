@@ -606,3 +606,23 @@ input[type="checkbox"],input[type="radio"] {
   color: var(--ref-unified-text) !important;
   border-color: var(--ref-unified-line) !important;
 }
+
+/* One text color and one field surface on every user-facing screen. */
+#app-screen#app-screen *,#wafdeen-app-screen#wafdeen-app-screen *,
+#siteModal#siteModal .site-modal-box *,#login-screen#login-screen *,
+#wafdeen-login-screen#wafdeen-login-screen *,#results-screen#results-screen *,
+#student-login-screen#student-login-screen *,#studentPortalArea#studentPortalArea *,
+#studentResultDisplayArea#studentResultDisplayArea *,#preparatoryResultDisplayArea#preparatoryResultDisplayArea * {
+  color: var(--ref-unified-text) !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+#app-screen#app-screen :is(input,select,textarea),#wafdeen-app-screen#wafdeen-app-screen :is(input,select,textarea),
+#siteModal#siteModal .site-modal-box :is(input,select,textarea),#login-screen#login-screen :is(input,select,textarea),
+#wafdeen-login-screen#wafdeen-login-screen :is(input,select,textarea),#results-screen#results-screen :is(input,select,textarea),
+#student-login-screen#student-login-screen :is(input,select,textarea),#studentPortalArea#studentPortalArea :is(input,select,textarea),
+#studentResultDisplayArea#studentResultDisplayArea :is(input,select,textarea),#preparatoryResultDisplayArea#preparatoryResultDisplayArea :is(input,select,textarea) {
+  background: var(--ref-unified-surface-deep) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
