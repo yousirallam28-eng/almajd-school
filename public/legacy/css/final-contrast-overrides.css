@@ -544,3 +544,15 @@ input[type="checkbox"],input[type="radio"] {
   background: var(--ref-unified-surface-deep) !important;
   color: var(--ref-unified-text) !important;
 }
+
+/* Explicitly override older, more specific placeholder colors. */
+#login-screen.login-card .form-group input::placeholder,#wafdeen-login-screen.wafdeen-login-card input::placeholder,
+#app-screen .tab-content :is(input,select,textarea)::placeholder,
+#wafdeen-app-screen .wafdeen-panel :is(input,select,textarea)::placeholder,
+#siteModal .site-modal-box :is(input,select,textarea)::placeholder,
+#results-screen.login-card :is(input,select,textarea)::placeholder,#student-login-screen.login-card :is(input,select,textarea)::placeholder,
+#studentPortalArea :is(input,select,textarea)::placeholder,#studentResultDisplayArea :is(input,select,textarea)::placeholder,
+#preparatoryResultDisplayArea :is(input,select,textarea)::placeholder {
+  color: #c7e5df !important;
+  opacity: 1 !important;
+}
