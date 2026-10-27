@@ -1153,3 +1153,1029 @@ body::before, body::after,
   color: #ffe9ed !important;
   border-color: #ff9eae !important;
 }
+
+/* Almajd Liquid Glass theme
+ * CSS-first glass material with graceful fallbacks for older browsers.
+ */
+:root {
+  --lg-surface: rgba(255, 255, 255, .58);
+  --lg-surface-strong: rgba(255, 255, 255, .76);
+  --lg-surface-dark: rgba(15, 61, 51, .74);
+  --lg-border: rgba(255, 255, 255, .58);
+  --lg-border-dark: rgba(199, 162, 74, .38);
+  --lg-blur: 18px;
+  --lg-shadow: 0 18px 50px rgba(15, 61, 51, .14), 0 2px 10px rgba(15, 61, 51, .06);
+  --lg-shadow-hover: 0 24px 64px rgba(15, 61, 51, .20), 0 4px 14px rgba(15, 61, 51, .08);
+}
+
+body:not(.login-screen-active) {
+  background:
+    radial-gradient(circle at 8% 6%, rgba(55, 181, 139, .18), transparent 28%),
+    radial-gradient(circle at 92% 12%, rgba(199, 162, 74, .15), transparent 24%),
+    radial-gradient(circle at 50% 100%, rgba(27, 138, 107, .10), transparent 34%),
+    #eef6f2;
+}
+
+body.login-screen-active {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(72,224,178,.72), transparent 25%),
+    radial-gradient(circle at 88% 10%, rgba(255,199,92,.62), transparent 24%),
+    radial-gradient(circle at 78% 88%, rgba(39,133,255,.44), transparent 30%),
+    radial-gradient(circle at 18% 92%, rgba(214,78,176,.38), transparent 27%),
+    linear-gradient(145deg, #062f35 0%, #0b514a 42%, #123a54 100%) !important;
+}
+
+body.login-screen-active::before,
+body.login-screen-active::after {
+  content: "";
+  position: fixed;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(4px);
+  opacity: .55;
+  z-index: 0;
+}
+
+body.login-screen-active::before {
+  top: 4%;
+  right: 4%;
+  width: 330px;
+  height: 330px;
+  background: radial-gradient(circle, rgba(255,203,91,.76), rgba(238,113,157,.20) 38%, transparent 72%);
+  filter: blur(2px);
+}
+
+body.login-screen-active::after {
+  bottom: 0;
+  left: 2%;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(47,198,202,.70), rgba(38,91,228,.22) 42%, transparent 72%);
+  filter: blur(2px);
+}
+
+body.login-screen-active .login-screen,
+body.login-screen-active #login-screen {
+  position: relative;
+  z-index: 1;
+}
+
+.login-card,
+#login-screen,
+#wafdeen-login-screen {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(145deg, rgba(255,255,255,.24), rgba(255,255,255,.08)) !important;
+  border: 1px solid rgba(255,255,255,.82) !important;
+  box-shadow: 0 30px 90px rgba(15,61,51,.22), inset 0 1px 0 rgba(255,255,255,.92), inset 0 -1px 0 rgba(255,255,255,.20) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(175%) !important;
+  backdrop-filter: blur(34px) saturate(175%) !important;
+}
+
+#login-screen.login-card {
+  background: linear-gradient(145deg, rgba(255,255,255,.20), rgba(255,255,255,.055)) !important;
+  border: 1px solid rgba(255,255,255,.60) !important;
+  box-shadow: 0 34px 100px rgba(0,14,31,.42), inset 0 1px 0 rgba(255,255,255,.76), inset 0 -1px 0 rgba(255,255,255,.12) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+}
+
+#login-screen.login-card::before {
+  background: linear-gradient(135deg, rgba(255,255,255,.42), transparent 34%, rgba(94,236,207,.16)) !important;
+  box-shadow: inset 0 0 34px rgba(255,255,255,.13);
+}
+
+#login-screen.login-card::after {
+  background: radial-gradient(circle, rgba(255,199,92,.34), transparent 68%) !important;
+  filter: blur(6px);
+}
+
+#login-screen.login-card .login-header-text {
+  color: #ffffff !important;
+  text-shadow: 0 2px 18px rgba(0,0,0,.30);
+}
+
+#login-screen.login-card .login-logo-img {
+  width: 136px !important;
+  height: 136px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  padding: 3px !important;
+  border: 2px solid rgba(255,255,255,.82) !important;
+  border-radius: 50% !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.48), rgba(255,255,255,.12)) !important;
+  box-shadow: 0 12px 30px rgba(0,18,32,.28), inset 0 1px 0 rgba(255,255,255,.82), inset 0 0 20px rgba(255,255,255,.18) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(155%);
+  backdrop-filter: blur(14px) saturate(155%);
+}
+
+#login-screen.login-card .login-subtitle,
+#login-screen.login-card .form-group label { color: rgba(255,255,255,.88) !important; }
+
+#login-screen.login-card .islamic-divider { color: #ffe08a !important; }
+
+#login-screen.login-card .modern-login-welcome {
+  background: rgba(255,255,255,.12) !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+  color: rgba(255,255,255,.86) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.26), 0 10px 26px rgba(0,0,0,.10) !important;
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+
+.login-card::before,
+#login-screen::before,
+#wafdeen-login-screen::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.62), transparent 36%, rgba(27,138,107,.14));
+  box-shadow: inset 0 0 28px rgba(255,255,255,.16);
+}
+
+.login-card::after,
+#login-screen::after,
+#wafdeen-login-screen::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  left: -90px;
+  bottom: -95px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(55,181,139,.28), transparent 68%);
+  filter: blur(6px);
+}
+
+.login-card input,
+#wafdeen-login-screen input {
+  background: rgba(255,255,255,.26) !important;
+  border: 1px solid rgba(255,255,255,.70) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.54), 0 8px 24px rgba(15,61,51,.06) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+.login-card input::placeholder,
+#wafdeen-login-screen input::placeholder { color: rgba(24,59,48,.62) !important; }
+
+#login-screen.login-card .form-group input {
+  background: rgba(255,255,255,.14) !important;
+  border: 1px solid rgba(255,255,255,.44) !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 8px 24px rgba(0,0,0,.12) !important;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+#login-screen.login-card .form-group input::placeholder { color: rgba(255,255,255,.68) !important; }
+
+.login-card .action-btn,
+#wafdeen-login-screen .action-btn {
+  background: linear-gradient(135deg, rgba(27,138,107,.68), rgba(15,61,51,.72)) !important;
+  border: 1px solid rgba(255,255,255,.55) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 12px 28px rgba(15,61,51,.18) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+}
+
+.login-card .action-btn:not(:first-of-type),
+#wafdeen-login-screen .action-btn:not(.btn-save) {
+  background: rgba(255,255,255,.22) !important;
+  color: #124c3c !important;
+}
+
+#login-screen.login-card > .action-btn {
+  background: linear-gradient(135deg, rgba(39,199,164,.72), rgba(13,88,101,.76)) !important;
+  border: 1px solid rgba(255,255,255,.48) !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.30), 0 14px 30px rgba(0,20,32,.24) !important;
+  backdrop-filter: blur(16px) saturate(170%);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+}
+
+#login-screen.login-card .modern-quick-btn {
+  background: linear-gradient(135deg, rgba(39,199,164,.72), rgba(13,88,101,.76)) !important;
+  border: 1px solid rgba(255,255,255,.40) !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.30), 0 10px 24px rgba(0,20,32,.18) !important;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+#login-screen.login-card > .action-btn:hover,
+#login-screen.login-card .modern-quick-btn:hover {
+  background: linear-gradient(135deg, rgba(59,220,183,.82), rgba(18,116,132,.86)) !important;
+}
+
+#login-screen.login-card .modern-quick-btn[onclick="showWafdeenLoginScreen(event)"] {
+  background: linear-gradient(135deg, rgba(39,199,164,.72), rgba(13,88,101,.76)) !important;
+  color: #ffffff !important;
+}
+
+#login-screen.login-card#login-screen #open-wafdeen-login-btn {
+  background: linear-gradient(135deg, rgba(39,199,164,.72), rgba(13,88,101,.76)) !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,.40) !important;
+}
+
+/* Use the material on functional surfaces rather than flattening every content block. */
+.container,
+.card-view,
+.top-student-card,
+.analysis-chart-card,
+.analysis-time-card,
+.analysis-week-comparison,
+.student-portal-section,
+.site-modal-box,
+.table-responsive,
+.quick-entry-panel,
+.section-card,
+.panel,
+.admin-card,
+.wafdeen-panel,
+.wafdeen-monitor-card {
+  background: var(--lg-surface) !important;
+  border: 1px solid var(--lg-border) !important;
+  box-shadow: var(--lg-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(145%);
+  backdrop-filter: blur(var(--lg-blur)) saturate(145%);
+  isolation: isolate;
+}
+
+.container::after,
+.card-view::after,
+.panel::after,
+.section-card::after,
+.wafdeen-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,.42), transparent 38%, rgba(255,255,255,.08));
+  opacity: .7;
+  z-index: -1;
+}
+
+.card-view:hover,
+.top-student-card:hover,
+.analysis-chart-card:hover,
+.panel:hover,
+.section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lg-shadow-hover) !important;
+}
+
+.institute-header,
+.user-bar,
+.main-menu-handle,
+.sidebar-nav,
+#wafdeen-app-screen .wafdeen-topbar,
+#wafdeen-app-screen .wafdeen-drawer {
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(20px) saturate(145%);
+}
+
+.institute-header {
+  background: linear-gradient(135deg, rgba(15,61,51,.90), rgba(27,138,107,.76)) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  box-shadow: 0 18px 42px rgba(15,61,51,.24) !important;
+}
+
+button.action-btn,
+.top-period-btn,
+.tab-btn,
+.student-login-link-btn,
+.result-link-btn,
+#wafdeen-app-screen .wafdeen-type-btn,
+#wafdeen-app-screen .wafdeen-grade-period-btn {
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+  backdrop-filter: blur(14px) saturate(135%);
+  transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+}
+
+button.action-btn:hover,
+.top-period-btn:hover,
+.tab-btn:hover,
+.student-login-link-btn:hover,
+.result-link-btn:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 14px 28px rgba(15,61,51,.18) !important;
+}
+
+.tab-btn:not(.active) {
+  background: rgba(255,255,255,.46) !important;
+  border-color: rgba(27,138,107,.18) !important;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, rgba(27,138,107,.94), rgba(15,61,51,.92)) !important;
+  border-color: rgba(242,230,197,.72) !important;
+}
+
+input,
+select,
+textarea {
+  background: rgba(255,255,255,.64) !important;
+  border-color: rgba(27,138,107,.22) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background: rgba(255,255,255,.88) !important;
+  box-shadow: 0 0 0 4px rgba(55,181,139,.16), 0 10px 24px rgba(15,61,51,.10) !important;
+}
+
+.site-modal-box {
+  background: var(--lg-surface-strong) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
+}
+
+.menu-overlay {
+  background: rgba(7,35,29,.32) !important;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
+.sidebar-nav {
+  background: linear-gradient(180deg, rgba(15,61,51,.86), rgba(7,35,29,.93)) !important;
+  border: 1px solid var(--lg-border-dark) !important;
+  box-shadow: 0 24px 70px rgba(7,35,29,.30) !important;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .container,
+  .card-view,
+  .top-student-card,
+  .analysis-chart-card,
+  .analysis-time-card,
+  .analysis-week-comparison,
+  .student-portal-section,
+  .site-modal-box,
+  .table-responsive,
+  .quick-entry-panel,
+  .section-card,
+  .panel,
+  .admin-card,
+  .wafdeen-panel,
+  .wafdeen-monitor-card {
+    background: #f8fbf9 !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 650px) {
+  :root { --lg-blur: 12px; }
+  .card-view:hover,
+  .top-student-card:hover,
+  .analysis-chart-card:hover,
+  .panel:hover,
+  .section-card:hover { transform: none; }
+}
+
+/* One shared Liquid Glass system for every signed-in screen. */
+:root {
+  --lg-action: linear-gradient(135deg, rgba(39,199,164,.92), rgba(13,88,101,.94));
+  --lg-action-hover: linear-gradient(135deg, rgba(59,220,183,.98), rgba(18,116,132,.98));
+  --lg-app-ink: #123b34;
+}
+
+body:not(.login-screen-active) {
+  color: var(--lg-app-ink);
+  background:
+    radial-gradient(circle at 8% 6%, rgba(55,181,139,.18), transparent 28%),
+    radial-gradient(circle at 92% 12%, rgba(199,162,74,.15), transparent 24%),
+    linear-gradient(145deg, #edf7f2 0%, #e8f2f4 55%, #e9f0f8 100%) !important;
+  background-attachment: fixed !important;
+}
+
+#app-screen .container,
+#wafdeen-app-screen,
+#app-screen .tab-content,
+#wafdeen-app-screen .tab-content {
+  background: transparent !important;
+}
+
+#app-screen .section-card,
+#app-screen .panel,
+#app-screen .card-view,
+#app-screen .admin-card,
+#app-screen .quick-entry-panel,
+#app-screen .analysis-chart-card,
+#app-screen .analysis-time-card,
+#app-screen .analysis-week-comparison,
+#app-screen .student-portal-section,
+#app-screen .table-responsive,
+#app-screen .site-modal-box,
+#app-screen .wafdeen-panel,
+#app-screen .wafdeen-monitor-card,
+#wafdeen-app-screen .wafdeen-panel,
+#wafdeen-app-screen .wafdeen-monitor-card,
+#wafdeen-app-screen .wafdeen-drawer,
+#app-screen fieldset,
+#app-screen .report-card,
+#app-screen .summary-card,
+#app-screen .stat-card {
+  background: linear-gradient(145deg, rgba(255,255,255,.75), rgba(255,255,255,.48)) !important;
+  border: 1px solid rgba(255,255,255,.84) !important;
+  border-radius: 18px;
+  box-shadow: 0 14px 38px rgba(15,61,51,.10), inset 0 1px 0 rgba(255,255,255,.9) !important;
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(145%);
+  backdrop-filter: blur(var(--lg-blur)) saturate(145%);
+}
+
+#app-screen .institute-header,
+#wafdeen-app-screen .wafdeen-topbar {
+  background: linear-gradient(135deg, rgba(15,61,51,.94), rgba(27,138,107,.86)) !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+  border-radius: 20px;
+  box-shadow: 0 18px 42px rgba(15,61,51,.20) !important;
+}
+
+/* All interactive buttons share one brand color; state is shown by elevation/ring. */
+body button,
+body input[type="button"],
+body input[type="submit"],
+body input[type="reset"],
+body label.action-btn,
+body .action-btn,
+body .tab-btn,
+body .top-period-btn,
+body .wafdeen-type-btn,
+body .wafdeen-edu-box,
+body .result-link-btn,
+body .student-login-link-btn,
+body .sidebar-close-btn,
+body .main-menu-handle {
+  color: #fff !important;
+  background: var(--lg-action) !important;
+  border: 1px solid rgba(255,255,255,.58) !important;
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 9px 22px rgba(15,61,51,.14) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(145%);
+  backdrop-filter: blur(14px) saturate(145%);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+}
+
+body button:hover,
+body input[type="button"]:hover,
+body input[type="submit"]:hover,
+body input[type="reset"]:hover,
+body label.action-btn:hover,
+body .action-btn:hover,
+body .tab-btn:hover,
+body .top-period-btn:hover,
+body .wafdeen-type-btn:hover,
+body .wafdeen-edu-box:hover,
+body .result-link-btn:hover,
+body .student-login-link-btn:hover,
+body .sidebar-close-btn:hover,
+body .main-menu-handle:hover {
+  color: #fff !important;
+  background: var(--lg-action-hover) !important;
+  border-color: rgba(255,255,255,.76) !important;
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.42), 0 13px 28px rgba(15,61,51,.20) !important;
+}
+
+body button:active,
+body .action-btn:active,
+body .tab-btn:active,
+body .top-period-btn:active,
+body .wafdeen-type-btn:active {
+  transform: translateY(0) scale(.99);
+}
+
+body button:disabled,
+body input[type="button"]:disabled,
+body input[type="submit"]:disabled,
+body .action-btn:disabled {
+  opacity: .56;
+  filter: saturate(.65);
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+body .tab-btn.active,
+body .tab-btn.manager-active,
+body .tab-btn[aria-selected="true"] {
+  outline: 2px solid rgba(199,162,74,.76);
+  outline-offset: 2px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.54), 0 0 0 4px rgba(199,162,74,.13), 0 12px 26px rgba(15,61,51,.20) !important;
+}
+
+#app-screen input:not([type="checkbox"]):not([type="radio"]),
+#app-screen select,
+#app-screen textarea,
+#wafdeen-app-screen input:not([type="checkbox"]):not([type="radio"]),
+#wafdeen-app-screen select,
+#wafdeen-app-screen textarea {
+  color: #173e36;
+  background: rgba(255,255,255,.72) !important;
+  border: 1px solid rgba(27,138,107,.24) !important;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+#app-screen input:focus,
+#app-screen select:focus,
+#app-screen textarea:focus,
+#wafdeen-app-screen input:focus,
+#wafdeen-app-screen select:focus,
+#wafdeen-app-screen textarea:focus {
+  outline: none;
+  border-color: rgba(27,138,107,.62) !important;
+  box-shadow: 0 0 0 4px rgba(55,181,139,.15), 0 8px 22px rgba(15,61,51,.08) !important;
+}
+
+#app-screen .table-responsive,
+#wafdeen-app-screen .table-responsive {
+  overflow: auto;
+  border-radius: 16px;
+}
+
+#app-screen table thead,
+#wafdeen-app-screen table thead {
+  background: linear-gradient(135deg, rgba(15,61,51,.94), rgba(27,138,107,.86)) !important;
+  color: #fff !important;
+}
+
+#app-screen table th,
+#wafdeen-app-screen table th {
+  color: inherit;
+}
+
+@media (max-width: 650px) {
+  #app-screen .section-card,
+  #app-screen .panel,
+  #app-screen .card-view,
+  #app-screen .admin-card,
+  #app-screen .quick-entry-panel,
+  #app-screen .table-responsive,
+  #app-screen fieldset,
+  #wafdeen-app-screen .wafdeen-panel,
+  #wafdeen-app-screen .wafdeen-monitor-card { border-radius: 14px; }
+  body button:hover,
+  body .action-btn:hover,
+  body .tab-btn:hover { transform: none; }
+}
+
+/* Match the login screen's palette, atmosphere, and glass material everywhere. */
+:root {
+  --lg-app-ink: #fff;
+  --lg-app-surface: linear-gradient(145deg, rgba(255,255,255,.20), rgba(255,255,255,.055));
+  --lg-app-border: rgba(255,255,255,.60);
+  --lg-app-shadow: 0 30px 80px rgba(0,14,31,.30), inset 0 1px 0 rgba(255,255,255,.62);
+}
+
+body,
+body.login-screen-active,
+body:not(.login-screen-active) {
+  color: #fff !important;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(72,224,178,.72), transparent 25%),
+    radial-gradient(circle at 88% 10%, rgba(255,199,92,.62), transparent 24%),
+    radial-gradient(circle at 78% 88%, rgba(39,133,255,.44), transparent 30%),
+    radial-gradient(circle at 18% 92%, rgba(214,78,176,.38), transparent 27%),
+    linear-gradient(145deg, #062f35 0%, #0b514a 42%, #123a54 100%) !important;
+  background-attachment: fixed !important;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: .42;
+  filter: blur(8px);
+  z-index: 0;
+}
+
+body::before {
+  top: 2%;
+  right: 3%;
+  background: radial-gradient(circle, rgba(255,203,91,.66), rgba(238,113,157,.16) 40%, transparent 72%);
+}
+
+body::after {
+  bottom: -5%;
+  left: 1%;
+  background: radial-gradient(circle, rgba(47,198,202,.62), rgba(38,91,228,.20) 44%, transparent 74%);
+}
+
+#login-screen,
+#results-screen,
+#student-login-screen,
+#wafdeen-login-screen,
+#wafdeen-app-screen,
+#app-screen {
+  position: relative;
+  z-index: 1;
+}
+
+#app-screen,
+#app-screen.container,
+#app-screen .container,
+#app-screen .tab-content,
+#wafdeen-app-screen,
+#wafdeen-app-screen .tab-content {
+  color: #fff !important;
+  background: transparent !important;
+}
+
+#app-screen.container {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+#app-screen :is(.section-card, .panel, .card-view, .admin-card, .quick-entry-panel,
+  .analysis-chart-card, .analysis-time-card, .analysis-week-comparison,
+  .student-portal-section, .table-responsive, .site-modal-box, .wafdeen-panel,
+  .wafdeen-monitor-card, fieldset, .report-card, .summary-card, .stat-card,
+  .data-card, .form-card, .table-container),
+#wafdeen-app-screen :is(.wafdeen-panel, .wafdeen-monitor-card, .wafdeen-drawer,
+  .card-view, .section-card, .panel, .table-responsive, .table-container) {
+  color: #fff !important;
+  background: var(--lg-app-surface) !important;
+  border: 1px solid var(--lg-app-border) !important;
+  border-radius: 18px;
+  box-shadow: var(--lg-app-shadow) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(165%);
+  backdrop-filter: blur(28px) saturate(165%);
+}
+
+#app-screen :is(h1, h2, h3, h4, h5, p, label, legend, th, td, small, strong,
+  .section-title, .card-title, .form-label, .text-muted, .text-secondary),
+#wafdeen-app-screen :is(h1, h2, h3, h4, h5, p, label, legend, th, td, small,
+  strong, .section-title, .card-title, .form-label, .text-muted, .text-secondary) {
+  color: rgba(255,255,255,.94) !important;
+  text-shadow: 0 1px 10px rgba(0,20,32,.20);
+}
+
+#app-screen :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+#wafdeen-app-screen :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  color: #fff !important;
+  background: rgba(255,255,255,.14) !important;
+  border: 1px solid rgba(255,255,255,.44) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 8px 24px rgba(0,0,0,.10) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+
+#app-screen :is(input, textarea)::placeholder,
+#wafdeen-app-screen :is(input, textarea)::placeholder {
+  color: rgba(255,255,255,.68) !important;
+}
+
+#app-screen select option,
+#wafdeen-app-screen select option {
+  color: #123b34;
+  background: #eef8f4;
+}
+
+#app-screen table,
+#wafdeen-app-screen table {
+  color: #fff !important;
+  background: transparent !important;
+  border-color: rgba(255,255,255,.22) !important;
+}
+
+#app-screen table :is(th, td),
+#wafdeen-app-screen table :is(th, td) {
+  color: rgba(255,255,255,.94) !important;
+  background: rgba(255,255,255,.07) !important;
+  border-color: rgba(255,255,255,.20) !important;
+}
+
+#app-screen table thead :is(th, td),
+#wafdeen-app-screen table thead :is(th, td) {
+  background: rgba(5,61,61,.62) !important;
+}
+
+#app-screen :is(.institute-header, .sidebar-nav, .user-bar, .main-menu-handle),
+#wafdeen-app-screen :is(.wafdeen-topbar, .wafdeen-drawer) {
+  background: linear-gradient(135deg, rgba(6,47,53,.72), rgba(11,81,74,.62)) !important;
+  border-color: rgba(255,255,255,.38) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(155%);
+  backdrop-filter: blur(26px) saturate(155%);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  #app-screen :is(.section-card, .panel, .card-view, .admin-card, .quick-entry-panel,
+    .analysis-chart-card, .analysis-time-card, .student-portal-section, .table-responsive,
+    fieldset, .report-card, .summary-card, .stat-card),
+  #wafdeen-app-screen :is(.wafdeen-panel, .wafdeen-monitor-card, .card-view, .panel) {
+    background: rgba(7,63,61,.94) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Legacy inline panels and secondary entry screens use the same glass surface too. */
+#app-screen .class-box,
+#app-screen div[style*="background"],
+#wafdeen-app-screen div[style*="background"],
+#results-screen div[style*="background"],
+#student-login-screen div[style*="background"],
+#wafdeen-login-screen div[style*="background"] {
+  color: #fff !important;
+  background: var(--lg-app-surface) !important;
+  border-color: rgba(255,255,255,.44) !important;
+  box-shadow: 0 18px 42px rgba(0,14,31,.22), inset 0 1px 0 rgba(255,255,255,.46) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+
+#results-screen,
+#student-login-screen,
+#wafdeen-login-screen {
+  color: #fff !important;
+  background: var(--lg-app-surface) !important;
+  border: 1px solid var(--lg-app-border) !important;
+  box-shadow: var(--lg-app-shadow) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(165%);
+  backdrop-filter: blur(28px) saturate(165%);
+}
+
+#app-screen *:not(button):not(input):not(select):not(textarea):not(option):not(script):not(style):not(svg):not(path),
+#wafdeen-app-screen *:not(button):not(input):not(select):not(textarea):not(option):not(script):not(style):not(svg):not(path) {
+  color: rgba(255,255,255,.94) !important;
+}
+
+#results-screen :is(h1, h2, h3, h4, p, label, small, strong),
+#student-login-screen :is(h1, h2, h3, h4, p, label, small, strong),
+#wafdeen-login-screen :is(h1, h2, h3, h4, p, label, small, strong) {
+  color: rgba(255,255,255,.94) !important;
+}
+
+#results-screen :is(input, select, textarea),
+#student-login-screen :is(input, select, textarea),
+#wafdeen-login-screen :is(input, select, textarea) {
+  color: #fff !important;
+  background: rgba(255,255,255,.14) !important;
+  border-color: rgba(255,255,255,.44) !important;
+}
+
+#app-screen .tab-content :is(.card-view, .class-box, .section-card, .panel,
+  .admin-card, .quick-entry-panel, .table-responsive, .analysis-time-card,
+  .analysis-week-comparison, .report-card, .summary-card, .stat-card),
+#app-screen .tab-content div[style*="background"],
+#wafdeen-app-screen div[style*="background"] {
+  background-color: rgba(255,255,255,.10) !important;
+  background-image: var(--lg-app-surface) !important;
+  color: rgba(255,255,255,.94) !important;
+}
+
+#results-screen div,
+#student-login-screen div,
+#wafdeen-login-screen div {
+  background-color: rgba(255,255,255,.10) !important;
+}
+
+body,
+body.login-screen-active,
+body:not(.login-screen-active) {
+  background-attachment: scroll !important;
+}
+
+/* Final unified surface pass: dynamic panels, inline legacy blocks, and every secondary screen. */
+:root {
+  --lg-glass-deep: rgba(4, 38, 44, .78);
+  --lg-glass-mid: rgba(12, 81, 75, .58);
+  --lg-glass-light: rgba(255, 255, 255, .14);
+  --lg-glass-line: rgba(255, 255, 255, .42);
+  --lg-glass-highlight: rgba(255, 255, 255, .54);
+  --lg-glass-shadow-soft: 0 16px 38px rgba(0, 12, 28, .22), inset 0 1px 0 rgba(255,255,255,.36);
+}
+.watermark-bg,
+.header-logo,
+.login-logo-img,
+.menu-brand-icon img,
+.menu-brand-icon {
+  border-radius: 50% !important;
+  object-fit: contain !important;
+  background: rgba(255,255,255,.92) !important;
+  border: 2px solid rgba(255, 218, 132, .86) !important;
+  box-shadow: 0 10px 28px rgba(0, 17, 27, .28), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+.watermark-bg { opacity: .055 !important; filter: saturate(1.08) contrast(1.05) !important; }
+.header-logo { width: 66px !important; height: 66px !important; padding: 4px !important; }
+.login-logo-img { padding: 6px !important; }
+.menu-brand-icon { padding: 4px !important; overflow: hidden !important; }
+.menu-brand-icon img { width: 100% !important; height: 100% !important; border: 0 !important; box-shadow: none !important; }
+#app-screen :is(.btn-group, .form-grid, .classes-cards-grid, .modal-grid,
+  .behavior-reason-grid, .summary-grid, .stats-grid, .analysis-summary-grid,
+  .top-period-panel, .quick-registration-toolbar, .quick-entry-gate,
+  .quick-registration-note, .daily-score-note, .student-portal-fullscreen-toolbar,
+  .report-summary, .filters-row, .toolbar, .pagination, .empty-state),
+#wafdeen-app-screen :is(.btn-group, .form-grid, .classes-cards-grid, .modal-grid,
+  .behavior-reason-grid, .summary-grid, .stats-grid, .top-period-panel,
+  .toolbar, .filters-row, .empty-state) {
+  background: linear-gradient(145deg, rgba(255,255,255,.17), rgba(255,255,255,.055)) !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--lg-glass-shadow-soft) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(155%);
+  backdrop-filter: blur(20px) saturate(155%);
+}
+#app-screen :is(.form-group, .class-card, .class-box, .student-card,
+  .top-student-card, .summary-card, .stat-card, .analysis-summary-card,
+  .result-field-card, .report-card, .note-card, .payment-card),
+#wafdeen-app-screen :is(.form-group, .class-card, .class-box, .student-card,
+  .summary-card, .stat-card, .report-card, .note-card) {
+  background: rgba(255,255,255,.105) !important;
+  border-color: rgba(255,255,255,.30) !important;
+  box-shadow: 0 10px 26px rgba(0,12,28,.16), inset 0 1px 0 rgba(255,255,255,.24) !important;
+}
+#app-screen :is(.form-group, .class-card, .class-box, .student-card, .top-student-card),
+#wafdeen-app-screen :is(.form-group, .class-card, .class-box, .student-card) {
+  border-radius: 14px !important;
+}
+#app-screen :is(.badge, .status-badge, .chip, .tag, .pill),
+#wafdeen-app-screen :is(.badge, .status-badge, .chip, .tag, .pill) {
+  border: 1px solid rgba(255,255,255,.38) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 5px 14px rgba(0,0,0,.12) !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+#app-screen :is(button, .action-btn, .tab-btn, .result-link-btn, .student-login-link-btn),
+#wafdeen-app-screen :is(button, .action-btn, .tab-btn) {
+  border-radius: 14px !important;
+  text-shadow: 0 1px 5px rgba(0,20,28,.22);
+  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease !important;
+}
+#app-screen :is(button, .action-btn, .tab-btn, .result-link-btn, .student-login-link-btn):hover,
+#wafdeen-app-screen :is(button, .action-btn, .tab-btn):hover {
+  filter: brightness(1.08) saturate(1.08) !important;
+  box-shadow: 0 12px 26px rgba(0,12,28,.24), inset 0 1px 0 rgba(255,255,255,.45) !important;
+}
+#app-screen :is(.toast-msg, .message, .alert, .notice, .error-message, .success-message,
+  .info-message, .site-modal-overlay, .site-modal-box, .modal-content, .modal-card),
+#wafdeen-app-screen :is(.toast-msg, .message, .alert, .notice, .site-modal-overlay,
+  .site-modal-box, .modal-content, .modal-card),
+#results-screen :is(.toast-msg, .message, .alert, .notice, .site-modal-box, .modal-content),
+#student-login-screen :is(.toast-msg, .message, .alert, .notice, .site-modal-box, .modal-content),
+#wafdeen-login-screen :is(.toast-msg, .message, .alert, .notice, .site-modal-box, .modal-content) {
+  background: linear-gradient(145deg, rgba(255,255,255,.22), rgba(255,255,255,.08)) !important;
+  border: 1px solid var(--lg-glass-line) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 20px 52px rgba(0,12,28,.28), inset 0 1px 0 var(--lg-glass-highlight) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(165%);
+  backdrop-filter: blur(26px) saturate(165%);
+}
+#results-screen :is(.result-field-card, .student-portal-section, .monthly-result-card),
+#student-login-screen :is(.result-field-card, .student-portal-section, .monthly-result-card),
+#wafdeen-login-screen :is(.result-field-card, .student-portal-section, .monthly-result-card) {
+  background: linear-gradient(145deg, rgba(255,255,255,.22), rgba(255,255,255,.075)) !important;
+  border: 1px solid rgba(255,255,255,.44) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--lg-glass-shadow-soft) !important;
+}
+#app-screen :is(.toast-error, .alert-danger, .monthly-result-fail-card),
+#results-screen :is(.toast-error, .alert-danger, .monthly-result-fail-card),
+#student-login-screen :is(.toast-error, .alert-danger, .monthly-result-fail-card) {
+  background: linear-gradient(145deg, rgba(145, 34, 54, .72), rgba(74, 16, 37, .56)) !important;
+  border-color: rgba(255, 157, 174, .72) !important;
+}
+#app-screen :is(.toast-success, .alert-success),
+#results-screen :is(.toast-success, .alert-success),
+#student-login-screen :is(.toast-success, .alert-success) {
+  background: linear-gradient(145deg, rgba(20, 143, 111, .68), rgba(6, 78, 72, .58)) !important;
+  border-color: rgba(146, 255, 220, .60) !important;
+}
+@media (max-width: 650px) {
+  .header-logo { width: 54px !important; height: 54px !important; }
+  #app-screen :is(.table-responsive, .table-container),
+  #wafdeen-app-screen :is(.table-responsive, .table-container) {
+    border-radius: 16px !important;
+    overflow-x: auto !important;
+  }
+  #app-screen :is(.card-view, .panel, .section-card, .admin-card),
+  #wafdeen-app-screen :is(.card-view, .panel, .section-card, .admin-card) {
+    border-radius: 16px !important;
+  }
+}
+
+
+/* Complete final pass for every report, chart, menu, and generated panel. */
+#app-screen .tab-content > .card-view,
+#app-screen .tab-content > .panel,
+#app-screen .tab-content > .section-card,
+#app-screen .tab-content .chart-wrap,
+#app-screen .tab-content .table-responsive,
+#app-screen .tab-content .report-card,
+#app-screen .tab-content .summary-card,
+#app-screen .tab-content .admin-card,
+#app-screen .tab-content .quick-entry-panel,
+#app-screen .tab-content .analysis-chart-card,
+#app-screen .tab-content .analysis-time-card,
+#app-screen .tab-content .analysis-week-comparison {
+  background: linear-gradient(145deg, rgba(8, 84, 80, .96), rgba(3, 50, 60, .98)) !important;
+  background-color: #075852 !important;
+  background-image: linear-gradient(145deg, rgba(8, 84, 80, .96), rgba(3, 50, 60, .98)) !important;
+  color: #f7fffc !important;
+  border-color: rgba(124, 239, 215, .52) !important;
+}
+#app-screen .tab-content canvas,
+#wafdeen-app-screen canvas {
+  background: #075852 !important;
+  border-radius: 14px !important;
+}
+#app-screen .tab-content .chart-wrap *,
+#app-screen .tab-content .table-responsive *,
+#app-screen .tab-content .card-view *,
+#app-screen .tab-content .panel *,
+#app-screen .tab-content .section-card * {
+  text-shadow: none !important;
+}
+
+/* Every sidebar item is an explicit colored control, including report toggles. */
+#main-menu-drawer.sidebar-nav button,
+#main-menu-drawer.sidebar-nav .tab-btn,
+#main-menu-drawer.sidebar-nav .reports-toggle,
+#main-menu-drawer.sidebar-nav .sidebar-close-btn,
+#main-menu-drawer.sidebar-nav .sidebar-section button,
+#main-menu-drawer.sidebar-nav [role="button"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 42px !important;
+  margin: 5px 0 !important;
+  padding: 10px 13px !important;
+  background: linear-gradient(135deg, rgba(8, 118, 103, .98), rgba(3, 67, 70, .98)) !important;
+  background-color: #075f5a !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(139, 246, 220, .58) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 7px 16px rgba(0, 16, 28, .28), inset 0 1px 0 rgba(255,255,255,.20) !important;
+}
+#main-menu-drawer.sidebar-nav button:hover,
+#main-menu-drawer.sidebar-nav button:focus,
+#main-menu-drawer.sidebar-nav button.active {
+  background: linear-gradient(135deg, #d39b39, #9b522d) !important;
+  color: #ffffff !important;
+  border-color: #ffe19b !important;
+}
+#main-menu-drawer.sidebar-nav .sidebar-close-btn {
+  min-width: 42px !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #a74d36, #773342) !important;
+}
+#main-menu-drawer.sidebar-nav .hidden { display: none !important; }
+
+/* Restore dark contrast for legacy generated controls and status pills. */
+#app-screen .tab-content button,
+#app-screen .tab-content .action-btn,
+#app-screen .tab-content .btn-save,
+#app-screen .tab-content .btn-warning,
+#app-screen .tab-content .btn-danger,
+#app-screen .tab-content .btn-export,
+#wafdeen-app-screen button,
+#wafdeen-app-screen .action-btn {
+  color: #ffffff !important;
+  border-color: rgba(139, 246, 220, .56) !important;
+  text-shadow: none !important;
+}
+#app-screen .tab-content .btn-save,
+#wafdeen-app-screen .btn-save { background: linear-gradient(135deg, #087d70, #07535b) !important; }
+#app-screen .tab-content .btn-warning,
+#wafdeen-app-screen .btn-warning { background: linear-gradient(135deg, #bf872c, #8d4d2f) !important; }
+#app-screen .tab-content .btn-danger,
+#wafdeen-app-screen .btn-danger { background: linear-gradient(135deg, #a84745, #702f3f) !important; }
+#app-screen .tab-content .btn-export,
+#wafdeen-app-screen .btn-export { background: linear-gradient(135deg, #337f8a, #285778) !important; }
+
+/* Dialogs, overlays, dropdowns and empty states must use the same material. */
+#app-screen :is(.modal, .modal-content, .modal-box, .dropdown-menu, .popover, .toast-msg, .empty-state, .no-data, .message-box),
+#wafdeen-app-screen :is(.modal, .modal-content, .modal-box, .dropdown-menu, .popover, .toast-msg, .empty-state, .no-data, .message-box) {
+  background: linear-gradient(145deg, rgba(4, 54, 61, .98), rgba(8, 101, 91, .96)) !important;
+  background-color: #064f50 !important;
+  color: #f7fffc !important;
+  border-color: rgba(127, 239, 216, .52) !important;
+}
+#app-screen :is(.modal, .modal-content, .modal-box, .dropdown-menu, .popover, .toast-msg, .empty-state, .no-data, .message-box) *,
+#wafdeen-app-screen :is(.modal, .modal-content, .modal-box, .dropdown-menu, .popover, .toast-msg, .empty-state, .no-data, .message-box) * { color: #f7fffc !important; }
