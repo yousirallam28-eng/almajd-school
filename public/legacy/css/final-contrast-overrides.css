@@ -92,3 +92,132 @@ body,#app-screen,#wafdeen-app-screen,#results-screen,#student-login-screen{color
 #app-screen table tbody tr:nth-child(even),#wafdeen-app-screen table tbody tr:nth-child(even){background:#226f6a!important}
 #results-screen.login-card>div[style*="grid"]>section{background:var(--ref-unified-surface)!important;color:var(--ref-unified-text)!important}
 #results-screen.login-card>div[style*="grid"]>section *{color:var(--ref-unified-text)!important}
+
+/* Screenshot follow-up: unify site typography and remove washed-out white surfaces. */
+:root {
+  --ref-unified-text: #f2f6f6;
+  --ref-unified-surface: #1b6561;
+  --ref-unified-surface-deep: #15514f;
+  --ref-unified-line: #62b8aa;
+  --ref-unified-track: #0b6f68;
+  --ref-unified-accent: #f0a04a;
+}
+
+/* All visible copy uses the same light ink on the site's teal surfaces. */
+#app-screen,
+#wafdeen-app-screen,
+#results-screen,
+#student-login-screen,
+#login-screen,
+#wafdeen-login-screen {
+  color: var(--ref-unified-text) !important;
+}
+#app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#wafdeen-app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#results-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#student-login-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#login-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#wafdeen-login-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption) {
+  color: var(--ref-unified-text) !important;
+  text-shadow: none !important;
+}
+
+/* Turn the white cards, toolbars and generated result panels into readable teal surfaces. */
+#app-screen :is(.card-view,.panel,.section-card,.admin-card,.quick-entry-panel,
+  .analysis-chart-card,.analysis-time-card,.analysis-week-comparison,
+  .student-portal-section,.table-responsive,.report-card,.summary-card,.stat-card,
+  .class-card,.class-box,.student-card,.top-student-card,.note-card,.payment-card,
+  .form-group,.form-grid,.search-box,.quick-registration-toolbar,.daily-timer-card,
+  .daily-scores-card,.daily-selected-timer-box,.daily-workspace,.result-field-card,
+  .monthly-result-card,.chart-wrap,.empty-state,.no-data,.analysis-summary-card,
+  .analysis-card,fieldset,[id*="DateNav"],[id*="dateNav"]),
+#wafdeen-app-screen :is(.wafdeen-panel,.wafdeen-monitor-card,.wafdeen-daily-panel,
+  .wafdeen-note,.wafdeen-timer-box,.wafdeen-type-grid,.wafdeen-grade-period-panel,
+  .empty-state,.no-data),
+#results-screen section,
+#studentPortalArea > *:not(.hidden),
+#studentResultDisplayArea > *:not(.hidden),
+#preparatoryResultDisplayArea > *:not(.hidden) {
+  background: var(--ref-unified-surface) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
+#app-screen :is(.card-view,.panel,.section-card,.admin-card,.quick-entry-panel,
+  .analysis-chart-card,.analysis-time-card,.analysis-week-comparison,
+  .student-portal-section,.table-responsive,.report-card,.summary-card,.stat-card,
+  .class-card,.class-box,.student-card,.top-student-card,.note-card,.payment-card,
+  .form-group,.form-grid,.search-box,.quick-registration-toolbar,.daily-timer-card,
+  .daily-scores-card,.daily-selected-timer-box,.daily-workspace,.result-field-card,
+  .monthly-result-card,.chart-wrap,.empty-state,.no-data,.analysis-summary-card,
+  .analysis-card,fieldset,[id*="DateNav"],[id*="dateNav"]) *,
+#wafdeen-app-screen :is(.wafdeen-panel,.wafdeen-monitor-card,.wafdeen-daily-panel,
+  .wafdeen-note,.wafdeen-timer-box,.wafdeen-type-grid,.wafdeen-grade-period-panel,
+  .empty-state,.no-data) *,
+#results-screen section *,
+#studentPortalArea > *:not(.hidden) *,
+#studentResultDisplayArea > *:not(.hidden) *,
+#preparatoryResultDisplayArea > *:not(.hidden) {
+  color: var(--ref-unified-text) !important;
+  text-shadow: none !important;
+}
+
+/* Inputs remain visually distinct while keeping readable text and placeholders. */
+#app-screen :is(input,select,textarea),
+#wafdeen-app-screen :is(input,select,textarea),
+#results-screen :is(input,select,textarea),
+#student-login-screen :is(input,select,textarea),
+#login-screen :is(input,select,textarea),
+#wafdeen-login-screen :is(input,select,textarea) {
+  background: var(--ref-unified-surface-deep) !important;
+  color: var(--ref-unified-text) !important;
+  border: 1px solid var(--ref-unified-line) !important;
+}
+#app-screen :is(input,select,textarea)::placeholder,
+#wafdeen-app-screen :is(input,select,textarea)::placeholder,
+#results-screen :is(input,select,textarea)::placeholder,
+#student-login-screen :is(input,select,textarea)::placeholder,
+#login-screen :is(input,select,textarea)::placeholder,
+#wafdeen-login-screen :is(input,select,textarea)::placeholder {
+  color: #c8e4df !important;
+  opacity: 1 !important;
+}
+#app-screen select option,
+#wafdeen-app-screen select option {
+  background: var(--ref-unified-surface-deep) !important;
+  color: var(--ref-unified-text) !important;
+}
+
+/* Keep table text, including warnings and values, consistent with the rest of the site. */
+#app-screen table,
+#wafdeen-app-screen table,
+#app-screen table :is(th,td,span,small,strong,div),
+#wafdeen-app-screen table :is(th,td,span,small,strong,div) {
+  color: var(--ref-unified-text) !important;
+  text-shadow: none !important;
+}
+#app-screen table tbody tr,
+#wafdeen-app-screen table tbody tr { background: var(--ref-unified-surface) !important; }
+#app-screen table tbody tr:nth-child(even),
+#wafdeen-app-screen table tbody tr:nth-child(even) { background: #226f6a !important; }
+#app-screen table tbody tr:hover,
+#wafdeen-app-screen table tbody tr:hover { background: #287b74 !important; }
+
+/* Match the progress ruler and page scrollbars to the teal and amber palette. */
+html { scrollbar-color: var(--ref-unified-accent) var(--ref-unified-track) !important; }
+::-webkit-scrollbar-track { background: var(--ref-unified-track) !important; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg,#f7b660,#d77d31) !important;
+  border: 2px solid var(--ref-unified-track) !important;
+}
+#app-screen progress,#wafdeen-app-screen progress,
+#app-screen meter,#wafdeen-app-screen meter {
+  background: var(--ref-unified-track) !important;
+  border: 1px solid var(--ref-unified-line) !important;
+  accent-color: var(--ref-unified-accent) !important;
+}
+#app-screen progress::-webkit-progress-bar,
+#wafdeen-app-screen progress::-webkit-progress-bar { background: var(--ref-unified-track) !important; }
+#app-screen progress::-webkit-progress-value,
+#wafdeen-app-screen progress::-webkit-progress-value {
+  background: linear-gradient(90deg,#0b8f75,#f0a04a) !important;
+}
