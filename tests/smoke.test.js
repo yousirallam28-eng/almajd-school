@@ -83,3 +83,14 @@ test('ordinary student Excel results choose the normal sheet and show only impor
   assert.match(liveMain, /function renderNormalExcelResultCards_\(result, displayArea, titleText\)/);
   assert.match(liveMain, /normalizeExcelHeaderKey_\(h\) !== 'م'/);
 });
+
+test('liquid glass branch uses one round logo across all HTML image slots', () => {
+  const themedHtml = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const theme = readFileSync(new URL('../legacy/css/liquid-glass-theme.css', import.meta.url), 'utf8');
+  assert.ok(!themedHtml.includes('data:image/'), 'old inline logo images should not remain');
+  assert.ok((themedHtml.match(/<img\b[^>]*src="public\/almajd-logo-round\.png"/g) || []).length >= 6);
+  assert.match(themedHtml, /liquid-glass-theme\.css/);
+  assert.match(theme, /\.watermark-bg[\s\S]*\.header-logo[\s\S]*\.menu-brand-icon/);
+  assert.match(theme, /Final unified surface pass/);
+  assert.match(theme, /\.student-portal-fullscreen-toolbar/);
+});
