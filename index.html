@@ -333,6 +333,11 @@
 <span class="menu-handle-text">القوائم</span>
 <span aria-hidden="true" class="menu-handle-dot"></span>
 </button>
+<button aria-label="تغيير المظهر: الشكل الجديد" aria-pressed="true" class="theme-switcher" id="theme-switcher" onclick="toggleSiteAppearance()" type="button">
+<span aria-hidden="true" class="theme-switcher-icon">◐</span>
+<span>تغيير المظهر</span>
+<span class="theme-switcher-current" id="theme-switcher-current">الشكل الجديد</span>
+</button>
 <div class="app-main-layout">
 <aside aria-hidden="true" class="sidebar-nav" id="main-menu-drawer">
 <div class="menu-drawer-head">
@@ -1455,5 +1460,7 @@
 
 <script id="numeric-pages-only" src="legacy/js/numeric-pages-only.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 
+<link rel="stylesheet" href="legacy/css/theme-switcher.css?v=1" id="theme-switcher-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
+<script src="legacy/js/theme-switcher.js?v=1" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script id="majd-button-sounds" src="legacy/js/button-sounds.js" onerror="this.onerror=null;this.src='public/legacy/js/button-sounds.js'"></script>
 <script type="module" src="src/main.js"></script>
