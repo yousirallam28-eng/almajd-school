@@ -1919,6 +1919,9 @@ function renderAnalysisCharts(studentName, className, selectedWeekKey) {
     var grid = document.getElementById('analysis-charts-grid');
     if (!grid)
         return;
+    var useNewAppearance = document.documentElement.getAttribute('data-site-appearance') !== 'old';
+    var currentChartColor = useNewAppearance ? '#f0a04a' : undefined;
+    var currentTextColor = useNewAppearance ? '#f2f6f6' : undefined;
     Object.values(analysisChartInstances).forEach(function (c) { try {
         c.destroy();
     }
@@ -1957,6 +1960,10 @@ function renderAnalysisCharts(studentName, className, selectedWeekKey) {
                         data: data,
                         fill: false,
                         tension: .28,
+                        borderColor: currentChartColor,
+                        backgroundColor: currentChartColor,
+                        pointBackgroundColor: currentChartColor,
+                        pointBorderColor: currentTextColor,
                         pointRadius: 4
                     }]
             },
@@ -1964,11 +1971,27 @@ function renderAnalysisCharts(studentName, className, selectedWeekKey) {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: true },
-                    tooltip: { rtl: true }
+                    legend: { display: true, labels: useNewAppearance ? { color: currentTextColor } : {} },
+                    tooltip: {
+                        rtl: true,
+                        backgroundColor: useNewAppearance ? '#063f3d' : undefined,
+                        titleColor: currentTextColor,
+                        bodyColor: currentTextColor,
+                        borderColor: useNewAppearance ? '#62b8aa' : undefined,
+                        borderWidth: useNewAppearance ? 1 : undefined
+                    }
                 },
                 scales: {
-                    y: { min: 0, max: 10, ticks: { stepSize: 1 } }
+                    x: {
+                        ticks: { color: currentTextColor },
+                        grid: { color: useNewAppearance ? 'rgba(242,246,246,.14)' : undefined }
+                    },
+                    y: {
+                        min: 0,
+                        max: 10,
+                        ticks: { stepSize: 1, color: '#f2f6f6' },
+                        grid: { color: useNewAppearance ? 'rgba(242,246,246,.14)' : undefined }
+                    }
                 }
             }
         });
