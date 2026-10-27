@@ -311,3 +311,94 @@ html { scrollbar-color: var(--ref-thumb) var(--ref-track); scrollbar-width: auto
   background: var(--ref-surface) !important;
   border: 1px solid rgba(119, 225, 204, .78) !important;
 }
+
+
+/* Targeted fixes for result cards and generated portal content seen in the supplied screenshots. */
+#results-screen > div[style*="grid"],
+#results-screen section,
+#studentPortalArea,
+#studentResultDisplayArea,
+#preparatoryResultDisplayArea {
+  color: var(--ref-text) !important;
+}
+
+#results-screen section,
+#studentPortalArea > *,
+#studentResultDisplayArea > *,
+#preparatoryResultDisplayArea > * {
+  background: var(--ref-surface) !important;
+  color: var(--ref-text) !important;
+  border-color: #55bda9 !important;
+}
+
+#results-screen section :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,li,td,th,div),
+#studentPortalArea :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,li,td,th,div),
+#studentResultDisplayArea :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,li,td,th,div),
+#preparatoryResultDisplayArea :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,li,td,th,div) {
+  color: var(--ref-text) !important;
+  text-shadow: none !important;
+}
+
+#results-screen section .login-subtitle,
+#results-screen section h3 { color: var(--ref-text) !important; }
+#results-screen section :is(input,select,textarea) {
+  background: #ffffff !important;
+  color: var(--ref-text) !important;
+}
+#results-screen section :is(input,select,textarea)::placeholder { color: #4b7771 !important; }
+
+/* Result summaries use dark readable labels with teal values instead of white-on-white. */
+#studentPortalArea :is(.result-field-card,.student-portal-section,.monthly-result-card,
+  .result-card,.summary-card,.stat-card,.result-display-v16-row),
+#studentResultDisplayArea :is(.result-field-card,.student-portal-section,.monthly-result-card,
+  .result-card,.summary-card,.stat-card,.result-display-v16-row),
+#preparatoryResultDisplayArea :is(.result-field-card,.student-portal-section,.monthly-result-card,
+  .result-card,.summary-card,.stat-card,.result-display-v16-row) {
+  background: #f5fffc !important;
+  color: var(--ref-text) !important;
+  border-color: #72cdbb !important;
+}
+
+/* The data table is intentionally dark; all cell content therefore uses one light color. */
+#app-screen table,
+#wafdeen-app-screen table { color: #eafff9 !important; }
+#app-screen table :is(td,th),
+#wafdeen-app-screen table :is(td,th) {
+  color: #eafff9 !important;
+  text-shadow: none !important;
+}
+#app-screen table td :is(span,small,strong,div),
+#wafdeen-app-screen table td :is(span,small,strong,div) { color: #eafff9 !important; }
+#app-screen table td:empty,
+#wafdeen-app-screen table td:empty { background: rgba(0, 63, 61, .55) !important; }
+#app-screen table tbody tr,
+#wafdeen-app-screen table tbody tr { background: #0a625e !important; }
+#app-screen table tbody tr:nth-child(even),
+#wafdeen-app-screen table tbody tr:nth-child(even) { background: #0b7069 !important; }
+#app-screen table tbody tr:hover,
+#wafdeen-app-screen table tbody tr:hover { background: #168d7e !important; }
+
+/* Action pills inside dark tables retain their light text and a consistent red warning color. */
+#app-screen table :is(button,.action-btn,.btn-danger,.btn-warning),
+#wafdeen-app-screen table :is(button,.action-btn,.btn-danger,.btn-warning) {
+  color: #ffffff !important;
+  background: linear-gradient(180deg, #c4665d, #9d403e) !important;
+  border-color: #f3b2a4 !important;
+}
+
+/* Search/date toolbars from the screenshots: white fields with dark text and teal framing. */
+#app-screen .search-box,
+#app-screen .quick-registration-toolbar,
+#app-screen [id*="DateNav"],
+#app-screen [id*="dateNav"] {
+  background: var(--ref-surface) !important;
+  color: var(--ref-text) !important;
+  border-color: #65c5b3 !important;
+}
+#app-screen .search-box :is(input,select),
+#app-screen .quick-registration-toolbar :is(input,select),
+#app-screen [id*="DateNav"] :is(input,select),
+#app-screen [id*="dateNav"] :is(input,select) {
+  background: #ffffff !important;
+  color: var(--ref-text) !important;
+}
