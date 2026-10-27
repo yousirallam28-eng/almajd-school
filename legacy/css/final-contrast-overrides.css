@@ -320,3 +320,47 @@ input[type="checkbox"],input[type="radio"] {
   background: var(--ref-unified-surface) !important;
   border-color: var(--ref-unified-line) !important;
 }
+
+
+/* Keep later feature styles from restoring dark headings over teal cards. */
+#app-screen .card-view :is(h1,h2,h3,h4,h5,h6,.card-title,.section-title,.panel-title),
+#app-screen :is(.analysis-time-card,.analysis-chart-card,.analysis-week-comparison) :is(h3,h4,h5,h6),
+#app-screen .analysis-diagnosis :is(h1,h2,h3,h4,h5,h6,p,span,strong),
+#app-screen :is(#teacher-name-display,#teacher-class-display,#teacher-center-display),
+#app-screen .user-info {
+  color: var(--ref-unified-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Keep recitation status text plain, without a badge box. */
+#app-screen .daily-type-time {
+  display: block !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--ref-unified-text) !important;
+  opacity: 1 !important;
+}
+
+/* Empty slots and empty status placeholders should not render as dark squares. */
+#app-screen table td:has(> br:only-child),
+#app-screen table td:has(> span:empty:only-child),
+#wafdeen-app-screen table td:has(> br:only-child),
+#wafdeen-app-screen table td:has(> span:empty:only-child) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+#app-screen .analysis-diagnosis,
+#app-screen .analysis-summary-cards,
+#app-screen .analysis-time-card,
+#app-screen .analysis-chart-card,
+#app-screen .analysis-week-comparison {
+  background: var(--ref-unified-surface) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
