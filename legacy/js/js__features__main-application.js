@@ -4353,7 +4353,10 @@ function renderBarChart(canvasId, instanceSetter, instanceGetter, labels, data, 
     var existing = instanceGetter();
     if (existing)
         existing.destroy();
-    var lineColor = color || 'rgba(19, 104, 77, 1)';
+    var useNewAppearance = document.documentElement.getAttribute('data-site-appearance') !== 'old';
+    var lineColor = useNewAppearance ? '#f0a04a' : (color || 'rgba(19, 104, 77, 1)');
+    var chartTextColor = useNewAppearance ? '#f2f6f6' : undefined;
+    var chartGridColor = useNewAppearance ? 'rgba(242,246,246,.18)' : undefined;
     var chart = new Chart(canvas.getContext('2d'), {
         type: 'line',
         data: {
@@ -4368,8 +4371,14 @@ function renderBarChart(canvasId, instanceSetter, instanceGetter, labels, data, 
         },
         options: {
             responsive: true, interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { display: false }, tooltip: { enabled: true } },
-            scales: { x: { ticks: { font: { size: 10 } } }, y: { beginAtZero: true, min: 0, max: 60, ticks: { stepSize: 10 } } }
+            plugins: {
+                legend: { display: false, labels: { color: chartTextColor } },
+                tooltip: { enabled: true, backgroundColor: useNewAppearance ? '#063f3d' : undefined, titleColor: chartTextColor, bodyColor: chartTextColor, borderColor: useNewAppearance ? '#62b8aa' : undefined, borderWidth: useNewAppearance ? 1 : undefined }
+            },
+            scales: {
+                x: { ticks: { font: { size: 10 }, color: chartTextColor }, grid: { color: chartGridColor } },
+                y: { beginAtZero: true, min: 0, max: 60, ticks: { stepSize: 10, color: chartTextColor }, grid: { color: chartGridColor } }
+            }
         }
     });
     instanceSetter(chart);
