@@ -1957,6 +1957,10 @@ function renderAnalysisCharts(studentName, className, selectedWeekKey) {
                         data: data,
                         fill: false,
                         tension: .28,
+                        borderColor: '#f0a04a',
+                        backgroundColor: '#f0a04a',
+                        pointBackgroundColor: '#f0a04a',
+                        pointBorderColor: '#f2f6f6',
                         pointRadius: 4
                     }]
             },
@@ -1964,11 +1968,27 @@ function renderAnalysisCharts(studentName, className, selectedWeekKey) {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: true },
-                    tooltip: { rtl: true }
+                    legend: { display: true, labels: { color: '#f2f6f6' } },
+                    tooltip: {
+                        rtl: true,
+                        backgroundColor: '#063f3d',
+                        titleColor: '#f2f6f6',
+                        bodyColor: '#f2f6f6',
+                        borderColor: '#62b8aa',
+                        borderWidth: 1
+                    }
                 },
                 scales: {
-                    y: { min: 0, max: 10, ticks: { stepSize: 1 } }
+                    x: {
+                        ticks: { color: '#f2f6f6' },
+                        grid: { color: 'rgba(242,246,246,.14)' }
+                    },
+                    y: {
+                        min: 0,
+                        max: 10,
+                        ticks: { stepSize: 1, color: '#f2f6f6' },
+                        grid: { color: 'rgba(242,246,246,.14)' }
+                    }
                 }
             }
         });
