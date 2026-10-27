@@ -31,3 +31,43 @@
 html{scrollbar-color:#f0a04a #0b6f68}
 ::-webkit-scrollbar-track{background:#0b6f68!important}
 ::-webkit-scrollbar-thumb{background:#f0a04a!important;border:2px solid #0b6f68!important}
+
+/* Result portal classes visible in the supplied mobile screenshot. */
+#studentPortalArea .result-student-title,
+#studentResultDisplayArea .result-student-title,
+#preparatoryResultDisplayArea .result-student-title,
+#studentPortalArea .student-readonly-note,
+#studentResultDisplayArea .student-readonly-note,
+#preparatoryResultDisplayArea .student-readonly-note{color:#063f3d!important;text-shadow:none!important}
+#studentPortalArea .student-portal-summary,
+#studentPortalArea .student-portal-stat,
+#studentPortalArea .student-portal-section,
+#studentResultDisplayArea .student-portal-summary,
+#studentResultDisplayArea .student-portal-stat,
+#studentResultDisplayArea .student-portal-section,
+#preparatoryResultDisplayArea .student-portal-summary,
+#preparatoryResultDisplayArea .student-portal-stat,
+#preparatoryResultDisplayArea .student-portal-section{background:#ecfffb!important;color:#063f3d!important;border:1px solid #72cdbb!important;border-radius:12px!important}
+#studentPortalArea .student-portal-summary *,
+#studentPortalArea .student-portal-stat *,
+#studentPortalArea .student-portal-section *,
+#studentResultDisplayArea .student-portal-summary *,
+#studentResultDisplayArea .student-portal-stat *,
+#studentResultDisplayArea .student-portal-section *,
+#preparatoryResultDisplayArea .student-portal-summary *,
+#preparatoryResultDisplayArea .student-portal-stat *,
+#preparatoryResultDisplayArea .student-portal-section *{color:#063f3d!important;text-shadow:none!important}
+#studentPortalArea .result-field-card,
+#studentPortalArea .result-field-label,
+#studentPortalArea .result-field-value,
+#studentResultDisplayArea .result-field-card,
+#studentResultDisplayArea .result-field-label,
+#studentResultDisplayArea .result-field-value,
+#preparatoryResultDisplayArea .result-field-card,
+#preparatoryResultDisplayArea .result-field-label,
+#preparatoryResultDisplayArea .result-field-value{background:#f5fffc!important;color:#063f3d!important;border-color:#72cdbb!important}
+#studentPortalArea canvas,#studentResultDisplayArea canvas,#preparatoryResultDisplayArea canvas{background:#ecfffb!important}
+#app-screen table td[style*="background: white"],
+#app-screen table td[style*="background:white"],
+#wafdeen-app-screen table td[style*="background: white"],
+#wafdeen-app-screen table td[style*="background:white"]{background:#0a625e!important;color:#eafff9!important}
