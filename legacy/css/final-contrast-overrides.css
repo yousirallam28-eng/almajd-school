@@ -257,3 +257,66 @@ html { scrollbar-color: var(--ref-unified-accent) var(--ref-unified-track) !impo
   color: var(--ref-unified-text) !important;
   border-color: var(--ref-unified-line) !important;
 }
+
+
+/* Apply one legible text color across every app section and its overlays. */
+#app-screen *,
+#wafdeen-app-screen *,
+#results-screen *,
+#student-login-screen * {
+  color: var(--ref-unified-text) !important;
+  text-shadow: none !important;
+}
+
+/* Keep all common cards, dialogs and form surfaces on the same dark teal base. */
+#app-screen :is(.card-view,.panel,.section-card,.admin-card,.quick-entry-panel,
+  .analysis-chart-card,.analysis-time-card,.analysis-week-comparison,
+  .student-portal-section,.table-responsive,.report-card,.summary-card,.stat-card,
+  .class-card,.class-box,.student-card,.top-student-card,.note-card,.payment-card,
+  .site-modal-box,.form-group,.form-grid,.search-box,.quick-registration-toolbar,
+  .daily-timer-card,.daily-scores-card,.daily-selected-timer-box,.daily-workspace,
+  .result-field-card,.monthly-result-card,.chart-wrap,.empty-state,.no-data,
+  .analysis-summary-card,.analysis-card,.analysis-chart-wrap,fieldset),
+#wafdeen-app-screen :is(.card-view,.panel,.section-card,.form-group,.site-modal-box,
+  .wafdeen-panel,.wafdeen-monitor-card,.wafdeen-daily-panel,.wafdeen-note,
+  .wafdeen-timer-box,.wafdeen-type-grid,.wafdeen-grade-period-panel),
+.site-modal-box {
+  background: var(--ref-unified-surface) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
+.site-modal-box * {
+  color: var(--ref-unified-text) !important;
+  text-shadow: none !important;
+}
+#app-screen :is(.tab-btn:not(.active),.top-period-btn:not(.active)) {
+  background: var(--ref-unified-surface-deep) !important;
+  color: var(--ref-unified-text) !important;
+}
+#app-screen :is(input,select,textarea),
+#wafdeen-app-screen :is(input,select,textarea),
+#results-screen :is(input,select,textarea),
+#student-login-screen :is(input,select,textarea) {
+  background: var(--ref-unified-surface-deep) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
+input[type="checkbox"],input[type="radio"] {
+  accent-color: var(--ref-unified-accent) !important;
+}
+
+/* Empty time/score cells should blend into their table row instead of forming boxes. */
+#app-screen table td:empty,
+#wafdeen-app-screen table td:empty {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Match the canvas background to the surrounding chart cards. */
+#app-screen .analysis-chart-card,
+#app-screen .analysis-chart-wrap,
+#app-screen .analysis-chart-wrap canvas {
+  background: var(--ref-unified-surface) !important;
+  border-color: var(--ref-unified-line) !important;
+}
