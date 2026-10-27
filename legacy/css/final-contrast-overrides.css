@@ -565,3 +565,23 @@ input[type="checkbox"],input[type="radio"] {
   color: var(--ref-unified-text) !important;
   border-color: var(--ref-unified-line) !important;
 }
+
+/* Normalize inline-colored status cards and badges across every application tab. */
+#app-screen [style*="background" i]:not(input):not(select):not(textarea):not(button),
+#wafdeen-app-screen [style*="background" i]:not(input):not(select):not(textarea):not(button),
+#siteModal .site-modal-box [style*="background" i]:not(input):not(select):not(textarea):not(button),
+#app-screen [class*="badge"],#app-screen [class*="status-card"],
+#wafdeen-app-screen [class*="badge"],#wafdeen-app-screen [class*="status-card"] {
+  background: var(--ref-unified-panel) !important;
+  background-image: none !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
+#app-screen button,#wafdeen-app-screen button,#siteModal .site-modal-box button,
+#login-screen.login-card button,#wafdeen-login-screen.wafdeen-login-card button,
+#results-screen button,#student-login-screen button,#studentPortalArea button,#studentResultDisplayArea button,#preparatoryResultDisplayArea button {
+  background: linear-gradient(135deg,var(--ref-unified-button),var(--ref-unified-button-dark)) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+  opacity: 1 !important;
+}
