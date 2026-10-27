@@ -187,3 +187,127 @@ body.login-screen-active::after {
   #app-screen :is(.card-view, .panel, .section-card, .admin-card),
   #wafdeen-app-screen :is(.wafdeen-panel, .wafdeen-monitor-card) { border-radius: 10px !important; }
 }
+
+
+/* Readability pass from the latest screenshots. Keep text dark on light surfaces and
+   white only on intentionally dark chrome/buttons; remove legacy multicolor text. */
+:root {
+  --ref-text: #063f3d;
+  --ref-text-muted: #2d625d;
+  --ref-track: #0b6f68;
+  --ref-thumb: #f0a04a;
+}
+
+/* The page scrollbar/ruler uses the same teal + accent palette. */
+html { scrollbar-color: var(--ref-thumb) var(--ref-track); scrollbar-width: auto; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: var(--ref-track) !important; border-radius: 10px; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f7b660, #d77d31) !important;
+  border: 2px solid var(--ref-track) !important;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: #ffc978 !important; }
+
+/* Neutralize legacy bright/multicolor text inside the application. */
+#app-screen,
+#wafdeen-app-screen,
+#results-screen,
+#student-login-screen {
+  color: var(--ref-text) !important;
+}
+#app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#wafdeen-app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#results-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#student-login-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption) {
+  color: var(--ref-text) !important;
+  text-shadow: none !important;
+}
+
+/* Every previously white form/summary block becomes a readable mint card. */
+#app-screen :is(.form-group, .form-grid, .search-box, .quick-registration-toolbar,
+  .daily-timer-card, .daily-scores-card, .daily-selected-timer-box,
+  .daily-workspace, .result-field-card, .monthly-result-card, .chart-wrap,
+  .empty-state, .no-data, .notice, .info-message, .message, .alert,
+  .analysis-summary-card, .analysis-card, .class-card, .class-box),
+#wafdeen-app-screen :is(.form-group, .wafdeen-note, .wafdeen-timer-box,
+  .wafdeen-type-grid, .wafdeen-grade-period-panel, .empty-state, .no-data) {
+  background: var(--ref-surface) !important;
+  color: var(--ref-text) !important;
+  border-color: rgba(119, 225, 204, .78) !important;
+}
+
+#app-screen :is(.form-group, .form-grid, .search-box, .quick-registration-toolbar,
+  .daily-timer-card, .daily-scores-card, .daily-selected-timer-box,
+  .daily-workspace, .result-field-card, .monthly-result-card, .chart-wrap,
+  .empty-state, .no-data, .notice, .info-message, .message, .alert,
+  .analysis-summary-card, .analysis-card, .class-card, .class-box) *,
+#wafdeen-app-screen :is(.form-group, .wafdeen-note, .wafdeen-timer-box,
+  .wafdeen-type-grid, .wafdeen-grade-period-panel, .empty-state, .no-data) * {
+  color: var(--ref-text) !important;
+}
+
+/* Inputs, select options, and placeholders have enough contrast. */
+#app-screen :is(input,select,textarea)::placeholder,
+#wafdeen-app-screen :is(input,select,textarea)::placeholder,
+#results-screen :is(input,select,textarea)::placeholder,
+#student-login-screen :is(input,select,textarea)::placeholder { color: #4b7771 !important; opacity: 1 !important; }
+#app-screen select option,
+#wafdeen-app-screen select option { background: #f5fffc !important; color: var(--ref-text) !important; }
+
+/* Progress bars, meters, score rulers, and range controls use the site palette. */
+#app-screen :is(progress, meter, input[type="range"]),
+#wafdeen-app-screen :is(progress, meter, input[type="range"]) {
+  accent-color: var(--ref-thumb) !important;
+}
+#app-screen progress,
+#wafdeen-app-screen progress {
+  background: #b8e8df !important;
+  border: 1px solid #6ecdbd !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+#app-screen progress::-webkit-progress-bar,
+#wafdeen-app-screen progress::-webkit-progress-bar { background: #b8e8df !important; }
+#app-screen progress::-webkit-progress-value,
+#wafdeen-app-screen progress::-webkit-progress-value { background: linear-gradient(90deg, #0b8f75, #f0a04a) !important; }
+#app-screen input[type="range"],
+#wafdeen-app-screen input[type="range"] { background: transparent !important; }
+#app-screen input[type="range"]::-webkit-slider-runnable-track,
+#wafdeen-app-screen input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px; background: #79cdbd !important; border-radius: 8px;
+}
+#app-screen input[type="range"]::-webkit-slider-thumb,
+#wafdeen-app-screen input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 20px; height: 20px;
+  margin-top: -6px; border-radius: 50%; background: var(--ref-thumb) !important;
+  border: 2px solid #fff !important; box-shadow: 0 1px 5px rgba(0,40,35,.35);
+}
+
+/* Status boxes retain meaning without introducing unreadable red/yellow text. */
+#app-screen :is(.toast-success, .alert-success, .success-message) {
+  background: #d9f5eb !important; color: #075b4d !important; border-color: #65c9ae !important;
+}
+#app-screen :is(.toast-error, .alert-danger, .error-message) {
+  background: #fae2dc !important; color: #7d3029 !important; border-color: #d77b6f !important;
+}
+#app-screen :is(.toast-info, .notice, .info-message) {
+  background: #e0f3ef !important; color: var(--ref-text) !important; border-color: #71cbbb !important;
+}
+
+/* Dark regions intentionally use one readable light text color. */
+#main-menu-drawer.sidebar-nav,
+#main-menu-drawer.sidebar-nav :is(h1,h2,h3,h4,h5,h6,p,span,label,li),
+#wafdeen-app-screen .wafdeen-drawer,
+#wafdeen-app-screen .wafdeen-drawer :is(h1,h2,h3,h4,h5,h6,p,span,label,li) {
+  color: #f5fffc !important;
+}
+#main-menu-drawer.sidebar-nav :is(button,.tab-btn,.reports-toggle,.sidebar-close-btn,[role="button"]) *,
+#wafdeen-app-screen .wafdeen-drawer button * { color: #fff !important; }
+
+/* Charts and canvases no longer sit as white islands against the teal page. */
+#app-screen canvas,
+#wafdeen-app-screen canvas {
+  background: var(--ref-surface) !important;
+  border: 1px solid rgba(119, 225, 204, .78) !important;
+}
