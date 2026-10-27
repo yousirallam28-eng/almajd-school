@@ -71,3 +71,24 @@ html{scrollbar-color:#f0a04a #0b6f68}
 #app-screen table td[style*="background:white"],
 #wafdeen-app-screen table td[style*="background: white"],
 #wafdeen-app-screen table td[style*="background:white"]{background:#0a625e!important;color:#eafff9!important}
+
+
+/* Global typography color sampled from the user's reference: #F2F6F6. */
+:root{--ref-unified-text:#f2f6f6;--ref-unified-surface:#1b6561;--ref-unified-surface-deep:#15514f}
+body,#app-screen,#wafdeen-app-screen,#results-screen,#student-login-screen{color:var(--ref-unified-text)!important}
+#app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#wafdeen-app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#results-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption),
+#student-login-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,li,dt,dd,legend,small,strong,em,td,th,caption){color:var(--ref-unified-text)!important;text-shadow:none!important}
+#app-screen :is(.card-view,.panel,.section-card,.admin-card,.quick-entry-panel,.analysis-chart-card,.analysis-time-card,.analysis-week-comparison,.student-portal-section,.table-responsive,.report-card,.summary-card,.stat-card,.class-card,.class-box,.student-card,.top-student-card,.note-card,.payment-card,fieldset),
+#wafdeen-app-screen :is(.wafdeen-panel,.wafdeen-monitor-card,.wafdeen-daily-panel),
+#studentPortalArea>*:not(.hidden),#studentResultDisplayArea>*:not(.hidden),#preparatoryResultDisplayArea>*:not(.hidden){background:var(--ref-unified-surface)!important;color:var(--ref-unified-text)!important;border-color:rgba(151,255,226,.52)!important}
+#app-screen :is(.card-view,.panel,.section-card,.admin-card,.quick-entry-panel,.analysis-chart-card,.analysis-time-card,.analysis-week-comparison,.student-portal-section,.table-responsive,.report-card,.summary-card,.stat-card,.class-card,.class-box,.student-card,.top-student-card,.note-card,.payment-card,fieldset) *,
+#wafdeen-app-screen :is(.wafdeen-panel,.wafdeen-monitor-card,.wafdeen-daily-panel) *,
+#studentPortalArea>*:not(.hidden) * ,#studentResultDisplayArea>*:not(.hidden) *,#preparatoryResultDisplayArea>*:not(.hidden) *{color:var(--ref-unified-text)!important;text-shadow:none!important}
+#app-screen :is(input,select,textarea),#wafdeen-app-screen :is(input,select,textarea),#results-screen :is(input,select,textarea),#student-login-screen :is(input,select,textarea),#login-screen.login-card .form-group input,#wafdeen-login-screen.wafdeen-login-card input{background:var(--ref-unified-surface-deep)!important;color:var(--ref-unified-text)!important;border-color:rgba(151,255,226,.52)!important}
+#app-screen :is(input,select,textarea)::placeholder,#wafdeen-app-screen :is(input,select,textarea)::placeholder,#results-screen :is(input,select,textarea)::placeholder,#student-login-screen :is(input,select,textarea)::placeholder{color:#dbeceb!important;opacity:1!important}
+#app-screen table tbody tr,#wafdeen-app-screen table tbody tr{background:var(--ref-unified-surface)!important;color:var(--ref-unified-text)!important}
+#app-screen table tbody tr:nth-child(even),#wafdeen-app-screen table tbody tr:nth-child(even){background:#226f6a!important}
+#results-screen.login-card>div[style*="grid"]>section{background:var(--ref-unified-surface)!important;color:var(--ref-unified-text)!important}
+#results-screen.login-card>div[style*="grid"]>section *{color:var(--ref-unified-text)!important}
