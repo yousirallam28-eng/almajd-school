@@ -556,3 +556,12 @@ input[type="checkbox"],input[type="radio"] {
   color: #c7e5df !important;
   opacity: 1 !important;
 }
+
+/* Table variants carry older, more specific row colors; normalize every row. */
+#app-screen#app-screen table tbody tr,#app-screen#app-screen table tbody tr:nth-child(even),
+#wafdeen-app-screen#wafdeen-app-screen table tbody tr,#wafdeen-app-screen#wafdeen-app-screen table tbody tr:nth-child(even) {
+  background: var(--ref-unified-panel) !important;
+  background-image: none !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
