@@ -974,7 +974,6 @@ body::before, body::after,
 #app-screen .header-logo,
 #app-screen .institute-header img,
 #wafdeen-app-screen img.header-logo {
-  content: url("public/almajd-logo-round.png") !important;
   background: #f9fffc !important;
   border: 3px solid #e4b94f !important;
   border-radius: 50% !important;
