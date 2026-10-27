@@ -923,3 +923,233 @@ body:not(.login-screen-active) {
     border-radius: 16px !important;
   }
 }
+
+/* Final contrast repair: one dark translucent material, no white strips or glare. */
+html, body,
+body:not(.login-screen-active),
+#app-screen, #app-screen .container, #app-screen .content-area,
+#wafdeen-app-screen, #wafdeen-app-screen .content-area {
+  background: #063d3b !important;
+  color: #f5fffb !important;
+}
+body:not(.login-screen-active) {
+  background:
+    radial-gradient(circle at 16% 8%, rgba(31, 181, 151, .20), transparent 28%),
+    radial-gradient(circle at 88% 20%, rgba(26, 122, 142, .18), transparent 30%),
+    linear-gradient(145deg, #062f35 0%, #064c49 48%, #073b56 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* Remove decorative glare that washed out white cards and text. */
+body::before, body::after,
+.container::before, .container::after,
+.card-view::before, .card-view::after,
+.panel::before, .panel::after,
+.section-card::before, .section-card::after,
+.institute-header::before, .institute-header::after,
+.login-card::before, .login-card::after {
+  display: none !important;
+  opacity: 0 !important;
+  content: none !important;
+}
+
+/* Header, user bar, logout, menu handle, and drawer are one dark glass family. */
+#app-screen .institute-header,
+#wafdeen-app-screen .wafdeen-topbar,
+#app-screen .user-bar,
+#wafdeen-app-screen .wafdeen-topbar,
+#main-menu-handle, .main-menu-handle, .wafdeen-menu-handle {
+  background: linear-gradient(135deg, rgba(3, 47, 49, .96), rgba(8, 105, 91, .88)) !important;
+  color: #f7fffc !important;
+  border: 1px solid rgba(123, 239, 211, .48) !important;
+  box-shadow: 0 14px 32px rgba(0, 16, 28, .30), inset 0 1px 0 rgba(255,255,255,.18) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(150%) !important;
+  backdrop-filter: blur(18px) saturate(150%) !important;
+}
+#app-screen .institute-header *,
+#app-screen .user-bar *,
+#wafdeen-app-screen .wafdeen-topbar * {
+  color: #f7fffc !important;
+}
+#app-screen .header-logo,
+#app-screen .institute-header img,
+#wafdeen-app-screen img.header-logo {
+  content: url("public/almajd-logo-round.png") !important;
+  background: #f9fffc !important;
+  border: 3px solid #e4b94f !important;
+  border-radius: 50% !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.34) !important;
+}
+#app-screen .user-bar button,
+#app-screen .user-bar .action-btn,
+#wafdeen-app-screen .wafdeen-topbar button,
+#wafdeen-app-screen button[onclick*="Logout"],
+#wafdeen-app-screen button[onclick*="logout"] {
+  background: linear-gradient(135deg, #d59635, #a34b2d) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,239,179,.76) !important;
+  box-shadow: 0 8px 18px rgba(69,26,15,.30), inset 0 1px 0 rgba(255,255,255,.30) !important;
+}
+
+/* All content surfaces use dark teal glass; never white. */
+#app-screen :is(.card-view, .panel, .section-card, .admin-card, .quick-entry-panel,
+  .analysis-chart-card, .analysis-time-card, .analysis-week-comparison,
+  .student-portal-section, .table-responsive, .report-card, .summary-card,
+  .stat-card, .data-card, .form-card, fieldset, .class-box, .top-student-card),
+#wafdeen-app-screen :is(.wafdeen-panel, .wafdeen-monitor-card, .wafdeen-drawer,
+  .card-view, .section-card, .panel, .table-responsive, .table-container) {
+  background: linear-gradient(145deg, rgba(12, 105, 93, .84), rgba(4, 54, 62, .88)) !important;
+  color: #f7fffc !important;
+  border: 1px solid rgba(118, 235, 208, .44) !important;
+  box-shadow: 0 16px 40px rgba(0, 16, 28, .28), inset 0 1px 0 rgba(255,255,255,.18) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+}
+#app-screen :is(.form-group, .class-card, .class-box, .student-card,
+  .top-student-card, .summary-card, .stat-card, .analysis-summary-card,
+  .result-field-card, .report-card, .note-card, .payment-card),
+#wafdeen-app-screen :is(.form-group, .class-card, .class-box, .student-card,
+  .summary-card, .stat-card, .report-card, .note-card) {
+  background: rgba(9, 78, 76, .76) !important;
+  color: #f7fffc !important;
+  border-color: rgba(117, 230, 207, .35) !important;
+}
+#app-screen :is(h1,h2,h3,h4,h5,h6,p,label,legend,small,strong,span,div),
+#wafdeen-app-screen :is(h1,h2,h3,h4,h5,h6,p,label,legend,small,strong,span,div) {
+  color: #f5fffb !important;
+  text-shadow: none !important;
+}
+
+/* Daily workspace: make the selected-student content visible and consistent. */
+#daily-tab, #daily-workspace, .daily-only-workspace,
+#daily-workspace .daily-timer-card, #daily-workspace .daily-scores-card,
+#daily-workspace .daily-selected-timer-box,
+#daily-workspace .daily-error-counter,
+#daily-workspace .daily-score-note,
+#daily-workspace .daily-grade-type-selector,
+#daily-workspace .daily-timer-actions,
+#daily-workspace .daily-type-grid,
+#daily-workspace .form-grid,
+#daily-workspace .form-group {
+  background: linear-gradient(145deg, rgba(11, 98, 89, .82), rgba(4, 56, 64, .86)) !important;
+  color: #f8fffd !important;
+  border-color: rgba(115, 237, 210, .44) !important;
+  box-shadow: 0 12px 26px rgba(0, 15, 28, .22), inset 0 1px 0 rgba(255,255,255,.15) !important;
+}
+#daily-workspace .daily-type-btn,
+#daily-workspace .daily-grade-type-btn,
+#daily-workspace .daily-counter-arrow,
+#daily-workspace .behavior-reason-btn,
+#daily-workspace .daily-timer-actions button,
+#daily-workspace .action-btn,
+#daily-workspace button {
+  background: linear-gradient(135deg, #087d70, #045257) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(143, 255, 226, .62) !important;
+  box-shadow: 0 8px 18px rgba(0,22,28,.28), inset 0 1px 0 rgba(255,255,255,.23) !important;
+}
+#daily-workspace .daily-type-btn.active,
+#daily-workspace .daily-grade-type-btn.active {
+  background: linear-gradient(135deg, #d29b36, #9a542d) !important;
+  border-color: #ffe29a !important;
+  color: #fff !important;
+}
+#daily-workspace input, #daily-workspace select, #daily-workspace textarea,
+#dailyClassSelect, #dailyStudentSelect {
+  background: rgba(5, 49, 55, .92) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(130, 241, 216, .52) !important;
+}
+#daily-workspace input::placeholder, #daily-workspace textarea::placeholder { color: rgba(235,255,249,.68) !important; }
+#daily-workspace option, #dailyClassSelect option, #dailyStudentSelect option { background: #084b4d !important; color: #fff !important; }
+#dailyStudentHint { background: rgba(6, 77, 75, .82) !important; color: #edfff9 !important; }
+
+/* Tables and reports: eliminate alternating white rows and preserve readable contrast. */
+#app-screen table, #wafdeen-app-screen table,
+#app-screen table tbody, #wafdeen-app-screen table tbody {
+  background: transparent !important;
+  color: #f7fffc !important;
+}
+#app-screen table tr, #wafdeen-app-screen table tr,
+#app-screen table tbody tr:nth-child(even), #app-screen table tbody tr:nth-child(odd),
+#wafdeen-app-screen table tbody tr:nth-child(even), #wafdeen-app-screen table tbody tr:nth-child(odd) {
+  background: rgba(7, 68, 69, .76) !important;
+  color: #f7fffc !important;
+}
+#app-screen table tbody tr:nth-child(even), #wafdeen-app-screen table tbody tr:nth-child(even) {
+  background: rgba(11, 92, 87, .82) !important;
+}
+#app-screen table th, #app-screen table td,
+#wafdeen-app-screen table th, #wafdeen-app-screen table td {
+  background: transparent !important;
+  color: #f7fffc !important;
+  border-color: rgba(133, 235, 212, .30) !important;
+  text-shadow: none !important;
+}
+#app-screen table thead tr, #wafdeen-app-screen table thead tr {
+  background: linear-gradient(135deg, #063e43, #087567) !important;
+}
+
+/* Sidebar: visible dark glass drawer and readable controls. */
+#main-menu-drawer.sidebar-nav, .sidebar-nav,
+#wafdeen-drawer, .wafdeen-drawer {
+  background: linear-gradient(165deg, rgba(3, 39, 45, .98), rgba(4, 77, 72, .97)) !important;
+  color: #fff !important;
+  border: 1px solid rgba(116, 237, 211, .58) !important;
+  box-shadow: -16px 22px 60px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.20) !important;
+}
+.sidebar-nav *, #wafdeen-drawer *, .wafdeen-drawer * { color: #f7fffc !important; }
+.sidebar-nav .tab-btn, .sidebar-nav .reports-toggle,
+#wafdeen-drawer button, .wafdeen-drawer button {
+  background: linear-gradient(135deg, rgba(8, 119, 105, .92), rgba(3, 67, 69, .96)) !important;
+  color: #fff !important;
+  border-color: rgba(130, 241, 216, .48) !important;
+}
+.sidebar-nav .tab-btn.active { background: linear-gradient(135deg, #d39b39, #9a542d) !important; color: #fff !important; }
+
+/* Inputs, selects, modals, notifications: remove remaining white surfaces. */
+#app-screen input, #app-screen select, #app-screen textarea,
+#wafdeen-app-screen input, #wafdeen-app-screen select, #wafdeen-app-screen textarea,
+#results-screen input, #results-screen select, #student-login-screen input, #student-login-screen select {
+  background: rgba(7, 62, 69, .90) !important;
+  color: #fff !important;
+  border-color: rgba(126, 237, 215, .52) !important;
+}
+#app-screen input[readonly], #app-screen input:disabled,
+#wafdeen-app-screen input[readonly], #wafdeen-app-screen input:disabled {
+  background: rgba(22, 83, 84, .88) !important;
+  color: #dffcf4 !important;
+}
+.site-modal, .site-modal-box, .site-modal-message,
+#app-screen .toast-msg, #results-screen .toast-msg, #student-login-screen .toast-msg {
+  background: linear-gradient(145deg, rgba(4, 52, 59, .97), rgba(7, 98, 88, .95)) !important;
+  color: #fff !important;
+  border-color: rgba(126, 237, 215, .56) !important;
+}
+
+/* Catch legacy inline white surfaces that are created by older admin/report renderers. */
+#app-screen div[style*="background"],
+#app-screen section[style*="background"],
+#app-screen article[style*="background"],
+#wafdeen-app-screen div[style*="background"],
+#wafdeen-app-screen section[style*="background"],
+#wafdeen-app-screen article[style*="background"] {
+  background: linear-gradient(145deg, rgba(9, 86, 81, .84), rgba(4, 55, 64, .88)) !important;
+  color: #f7fffc !important;
+  border-color: rgba(119, 235, 210, .38) !important;
+}
+#app-screen div[style*="background"] *,
+#app-screen section[style*="background"] *,
+#app-screen article[style*="background"] *,
+#wafdeen-app-screen div[style*="background"] *,
+#wafdeen-app-screen section[style*="background"] *,
+#wafdeen-app-screen article[style*="background"] * { color: #f7fffc !important; text-shadow: none !important; }
+#app-screen .hidden, #wafdeen-app-screen .hidden { background: transparent !important; }
+
+/* Make all warning/missing states dark-red instead of white-pink. */
+#app-screen :is(.field-missing, .daily-field-missing, .missing-cell, .grade-missing),
+#wafdeen-app-screen :is(.field-missing, .daily-field-missing, .missing-cell, .grade-missing) {
+  background: rgba(117, 31, 43, .92) !important;
+  color: #ffe9ed !important;
+  border-color: #ff9eae !important;
+}

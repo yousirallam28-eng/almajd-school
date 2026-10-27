@@ -94,3 +94,14 @@ test('liquid glass branch uses one round logo across all HTML image slots', () =
   assert.match(theme, /Final unified surface pass/);
   assert.match(theme, /\.student-portal-fullscreen-toolbar/);
 });
+
+test('liquid glass contrast pass covers daily workspace, reports, logout, and drawer', () => {
+  const theme = readFileSync(new URL('../legacy/css/liquid-glass-theme.css', import.meta.url), 'utf8');
+  assert.match(theme, /#daily-workspace/);
+  assert.match(theme, /#app-screen table tbody tr:nth-child\(even\)/);
+  assert.match(theme, /#app-screen \.user-bar button/);
+  assert.match(theme, /#main-menu-drawer\.sidebar-nav/);
+  assert.match(theme, /body::before, body::after/);
+  assert.match(theme, /display: none !important/);
+  assert.match(theme, /Catch legacy inline white surfaces/);
+});
