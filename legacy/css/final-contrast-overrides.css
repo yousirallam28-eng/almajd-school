@@ -424,3 +424,29 @@ input[type="checkbox"],input[type="radio"] {
 #wafdeen-app-screen input[type="checkbox"],#wafdeen-app-screen input[type="radio"] {
   accent-color: var(--ref-unified-accent) !important;
 }
+
+/* Shared surfaces and controls across every main and wafdeen screen. */
+#app-screen :is([class*="card"],[class*="panel"],[class*="box"],[class*="tile"],fieldset),
+#wafdeen-app-screen :is([class*="card"],[class*="panel"],[class*="box"],[class*="tile"],fieldset) {
+  background-color: var(--ref-unified-panel) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+}
+#app-screen table tbody tr,#app-screen table tbody tr:nth-child(even),
+#wafdeen-app-screen table tbody tr,#wafdeen-app-screen table tbody tr:nth-child(even) {
+  background: var(--ref-unified-panel) !important;
+  color: var(--ref-unified-text) !important;
+}
+#app-screen :is(button,.action-btn,.tab-btn,.top-period-btn):not(.btn-danger):not(.btn-warning):not(.main-menu-handle),
+#wafdeen-app-screen :is(button,.action-btn,.tab-btn):not(.btn-danger):not(.btn-warning):not(.wafdeen-menu-handle) {
+  background: linear-gradient(135deg,var(--ref-unified-button),var(--ref-unified-button-dark)) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-unified-line) !important;
+  opacity: 1 !important;
+}
+#app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,li,dt,dd,legend,caption,td,th),
+#wafdeen-app-screen :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,li,dt,dd,legend,caption,td,th),
+.site-modal-box :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,li,dt,dd,legend,caption,td,th) {
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
