@@ -301,7 +301,7 @@ button.action-btn,
 #wafdeen-app-screen .wafdeen-grade-period-btn {
   -webkit-backdrop-filter: blur(14px) saturate(135%);
   backdrop-filter: blur(14px) saturate(135%);
-  transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+  transition: color .22s ease, background-color .22s ease, border-color .22s ease;
 }
 
 button.action-btn:hover,
@@ -477,7 +477,7 @@ body .main-menu-handle {
   box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 9px 22px rgba(15,61,51,.14) !important;
   -webkit-backdrop-filter: blur(14px) saturate(145%);
   backdrop-filter: blur(14px) saturate(145%);
-  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease !important;
 }
 
 body button:hover,
@@ -870,7 +870,7 @@ body:not(.login-screen-active) {
 #wafdeen-app-screen :is(button, .action-btn, .tab-btn) {
   border-radius: 14px !important;
   text-shadow: 0 1px 5px rgba(0,20,28,.22);
-  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease !important;
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease !important;
 }
 #app-screen :is(button, .action-btn, .tab-btn, .result-link-btn, .student-login-link-btn):hover,
 #wafdeen-app-screen :is(button, .action-btn, .tab-btn):hover {
@@ -1456,7 +1456,7 @@ button.action-btn,
 #wafdeen-app-screen .wafdeen-grade-period-btn {
   -webkit-backdrop-filter: blur(14px) saturate(135%);
   backdrop-filter: blur(14px) saturate(135%);
-  transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+  transition: color .22s ease, background-color .22s ease, border-color .22s ease;
 }
 
 button.action-btn:hover,
@@ -1632,7 +1632,7 @@ body .main-menu-handle {
   box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 9px 22px rgba(15,61,51,.14) !important;
   -webkit-backdrop-filter: blur(14px) saturate(145%);
   backdrop-filter: blur(14px) saturate(145%);
-  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease !important;
 }
 
 body button:hover,
@@ -2025,7 +2025,7 @@ body:not(.login-screen-active) {
 #wafdeen-app-screen :is(button, .action-btn, .tab-btn) {
   border-radius: 14px !important;
   text-shadow: 0 1px 5px rgba(0,20,28,.22);
-  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease !important;
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease !important;
 }
 #app-screen :is(button, .action-btn, .tab-btn, .result-link-btn, .student-login-link-btn):hover,
 #wafdeen-app-screen :is(button, .action-btn, .tab-btn):hover {
@@ -2224,6 +2224,6 @@ body:not(.login-screen-active) {
 
   html[data-site-appearance="new"] #app-screen :is(button, .action-btn, .tab-btn, .result-link-btn, .student-login-link-btn),
   html[data-site-appearance="new"] #wafdeen-app-screen :is(button, .action-btn, .tab-btn) {
-    transition: transform .16s ease, background-color .16s ease, color .16s ease !important;
+    transition: color .16s ease, background-color .16s ease, border-color .16s ease !important;
   }
 }

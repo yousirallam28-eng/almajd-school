@@ -7,6 +7,14 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const switcher = readFileSync(new URL('../legacy/js/theme-switcher.js', import.meta.url), 'utf8');
 const liveApp = readFileSync(new URL('../legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
 const liquidTheme = readFileSync(new URL('../legacy/css/liquid-glass-theme.css', import.meta.url), 'utf8');
+const appearanceTransitionStyles = [
+  '../legacy/css/modern-almajd-theme.js.css',
+  '../public/legacy/css/modern-almajd-theme.js.css',
+  '../public/appearance/wafdeen-redesign.css',
+  '../public/appearance/unified-reference-theme.css',
+  '../legacy/css/liquid-glass-theme.css',
+  '../public/appearance/liquid-glass-theme.css'
+].map((path) => [path, readFileSync(new URL(path, import.meta.url), 'utf8')]);
 const appearanceBootstrap = html.match(/<script id="appearance-bootstrap">([\s\S]*?)<\/script>/)?.[1];
 
 const themeStylesheetIds = [
@@ -26,7 +34,10 @@ test('theme links retain Vite IDs and fall back to direct GitHub Pages public pa
 });
 
 test('changed appearance assets use fresh cache-busting versions', () => {
-  assert.match(html, /liquid-glass-theme\.css\?v=glass-6/);
+  assert.match(html, /modern-almajd-theme\.js\.css\?v=theme-color-1/);
+  assert.match(html, /wafdeen-redesign\.css\?v=4/);
+  assert.match(html, /unified-reference-theme\.css\?v=5/);
+  assert.match(html, /liquid-glass-theme\.css\?v=glass-7/);
   assert.match(html, /theme-switcher\.js\?v=3/);
 });
 
@@ -117,8 +128,21 @@ test('touch devices skip backdrop filters and decorative blurred login layers', 
   assert.match(liquidTheme, /body\.login-screen-active::before[\s\S]*display:\s*none\s*!important/);
 });
 
-test('desktop glass keeps its look with bounded blur and lighter interaction transitions', () => {
+test('appearance layers only transition color, background-color, and border-color', () => {
+  const allowedProperties = new Set(['color', 'background-color', 'border-color', 'none']);
+  for (const [path, css] of appearanceTransitionStyles) {
+    const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    const declarations = [...withoutComments.matchAll(/(?:^|[;}])\s*(?:-webkit-)?transition\s*:\s*([^;}]+)/gi)];
+    for (const [, value] of declarations) {
+      const properties = value.replace(/!important/gi, '').split(',').map((entry) => entry.trim().match(/^[a-z-]+/i)?.[0]).filter(Boolean);
+      for (const property of properties) {
+        assert.ok(allowedProperties.has(property), `${path} transitions ${property}`);
+      }
+    }
+  }
+});
+
+test('desktop glass keeps its look with bounded blur', () => {
   assert.match(liquidTheme, /@media \(hover: hover\) and \(pointer: fine\) and \(min-width: 651px\)/);
   assert.match(liquidTheme, /backdrop-filter:\s*blur\(12px\) saturate\(145%\)\s*!important/);
-  assert.match(liquidTheme, /transition:\s*transform \.16s ease, background-color \.16s ease, color \.16s ease\s*!important/);
 });

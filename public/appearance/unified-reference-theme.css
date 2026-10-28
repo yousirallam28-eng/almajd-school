@@ -121,7 +121,7 @@ body.login-screen-active::after {
   color: #ffffff !important;
   box-shadow: 0 4px 10px rgba(0, 45, 39, .22), inset 0 1px 0 rgba(255,255,255,.2) !important;
   text-shadow: none !important;
-  transition: background .18s ease, transform .18s ease, box-shadow .18s ease !important;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease !important;
 }
 
 #app-screen :is(button, .action-btn, .tab-btn, .result-link-btn, .student-login-link-btn):hover,
