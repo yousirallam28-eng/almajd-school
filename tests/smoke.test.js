@@ -105,3 +105,11 @@ test('liquid glass contrast pass covers daily workspace, reports, logout, and dr
   assert.match(theme, /display: none !important/);
   assert.match(theme, /Catch legacy inline white surfaces/);
 });
+
+test('buttons show orange press feedback in both appearance modes', () => {
+  const feedback = readFileSync(new URL('../legacy/css/button-press-feedback.css', import.meta.url), 'utf8');
+  assert.match(html, /button-press-feedback\.css/);
+  assert.match(feedback, /:not\(:disabled\):active/);
+  assert.match(feedback, /background: #f28c28 !important/);
+  assert.match(feedback, /:focus-visible/);
+});

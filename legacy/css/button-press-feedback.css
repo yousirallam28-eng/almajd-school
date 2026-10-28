@@ -1,0 +1,62 @@
+/* Visible orange feedback whenever a user presses an interactive button. */
+#app-screen#app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
+#wafdeen-app-screen#wafdeen-app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
+#siteModal#siteModal :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
+#login-screen#login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
+#wafdeen-login-screen#wafdeen-login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
+#results-screen#results-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
+#student-login-screen#student-login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
+#studentPortalArea#studentPortalArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
+#studentResultDisplayArea#studentResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
+#preparatoryResultDisplayArea#preparatoryResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled) {
+  transition: background-color 120ms ease, background-image 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app-screen#app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
+#wafdeen-app-screen#wafdeen-app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
+#siteModal#siteModal :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
+#login-screen#login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
+#wafdeen-login-screen#wafdeen-login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
+#results-screen#results-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
+#student-login-screen#student-login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
+#studentPortalArea#studentPortalArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
+#studentResultDisplayArea#studentResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
+#preparatoryResultDisplayArea#preparatoryResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active {
+  background: #f28c28 !important;
+  background-image: none !important;
+  background-color: #f28c28 !important;
+  color: #fff !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 0 0 3px rgba(242, 140, 40, .28) !important;
+  transform: translateY(1px) scale(.98);
+}
+
+#app-screen#app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
+#wafdeen-app-screen#wafdeen-app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
+#siteModal#siteModal :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
+#login-screen#login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
+#wafdeen-login-screen#wafdeen-login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
+#results-screen#results-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
+#student-login-screen#student-login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
+#studentPortalArea#studentPortalArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
+#studentResultDisplayArea#studentResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
+#preparatoryResultDisplayArea#preparatoryResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible {
+  outline: 3px solid rgba(242, 140, 40, .8) !important;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app-screen#app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]),
+  #wafdeen-app-screen#wafdeen-app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]),
+  #siteModal#siteModal :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]),
+  #login-screen#login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]),
+  #wafdeen-login-screen#wafdeen-login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]),
+  #results-screen#results-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]),
+  #student-login-screen#student-login-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]),
+  #studentPortalArea#studentPortalArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]),
+  #studentResultDisplayArea#studentResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]),
+  #preparatoryResultDisplayArea#preparatoryResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]) {
+    transition: none;
+  }
+}
