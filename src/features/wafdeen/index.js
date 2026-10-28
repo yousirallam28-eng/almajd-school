@@ -722,9 +722,11 @@ function installNavigationGuards() {
       if (tabId === 'wafdeen-tab' && !canOpenFeature('wafdeen', currentTeacher())) return notice('هذه الصفحة متاحة للمدير أو للمعلم المصرح له فقط.', 'error');
       if (tabId === 'wafdeen-monthly-report-tab' && !canOpenFeature('wafdeen-report', currentTeacher())) return notice('تقرير الوافدين الشهري متاح للمدير فقط.', 'error');
       const result = original.apply(this, arguments);
-      if (tabId === 'wafdeen-tab' || tabId === 'wafdeen-monthly-report-tab') {
+      if (tabId === 'wafdeen-monthly-report-tab') {
         byId('sheikh-recordings-menu-wrap')?.classList.add('open');
         byId('sheikh-recordings-menu-btn')?.classList.add('active');
+      }
+      if (tabId === 'wafdeen-tab' || tabId === 'wafdeen-monthly-report-tab') {
         Promise.resolve(window.MajdApp?.loadFeature(tabId)).then(() => {
           if (tabId === 'wafdeen-tab') return renderWafdeenView();
           return renderWafdeenMonthlyReport();

@@ -1,8 +1,0 @@
-/* ===== ./css/27-v35-button-fix.css ===== */
-
-/* V35: ضمان أن أزرار النتائج تستقبل النقرات ولا يوجد عنصر شفاف يغطيها */
-#btn-upload-student-results,#btn-generate-student-results,#btn-upload-prep-results,#btn-generate-prep-results,#btn-delete-all-results{
-  position:relative!important; z-index:100!important; pointer-events:auto!important; cursor:pointer!important; touch-action:manipulation!important;
-}
-#results-admin-summary,#results-admin-msg{position:relative;z-index:2;}
-#studentsResultsExcelFile,#preparatoryResultsExcelFile{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;}
