@@ -23,6 +23,21 @@
   };
 })();
 </script>
+<style id="appearance-first-paint-style">
+  html { background-color: #F7FAF8; }
+  html[data-site-appearance="new"] { background-color: #062f35; }
+  html[data-site-appearance="new"] body.login-screen-active {
+    background:
+      radial-gradient(circle at 12% 18%, rgba(72,224,178,.72), transparent 25%),
+      radial-gradient(circle at 88% 10%, rgba(255,199,92,.62), transparent 24%),
+      radial-gradient(circle at 78% 88%, rgba(39,133,255,.44), transparent 30%),
+      radial-gradient(circle at 18% 92%, rgba(214,78,176,.38), transparent 27%),
+      linear-gradient(145deg, #062f35 0%, #0b514a 42%, #123a54 100%);
+    background-attachment: fixed;
+  }
+</style>
+<link rel="preload" as="style" href="%BASE_URL%appearance/liquid-glass-theme.css?v=glass-7">
+<link rel="preload" as="style" href="%BASE_URL%appearance/final-contrast-overrides.css?v=17">
 <!-- خطوط عربية أصيلة -->
 <!-- مكتبة تصدير الإكسل SheetJS -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>

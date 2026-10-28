@@ -16,6 +16,7 @@ const appearanceTransitionStyles = [
   '../public/appearance/liquid-glass-theme.css'
 ].map((path) => [path, readFileSync(new URL(path, import.meta.url), 'utf8')]);
 const appearanceBootstrap = html.match(/<script id="appearance-bootstrap">([\s\S]*?)<\/script>/)?.[1];
+const appearanceFirstPaintStyle = html.match(/<style id="appearance-first-paint-style">([\s\S]*?)<\/style>/)?.[1];
 
 const themeStylesheetIds = [
   'modern-almajd-theme',
@@ -63,6 +64,17 @@ test('saved appearance is applied before theme stylesheets can paint over the ol
   vm.runInNewContext(appearanceBootstrap, { window, document });
   assert.equal(attributes.get('data-site-appearance'), 'old');
   assert.equal(window.__almajdSiteAppearance, 'old');
+});
+
+test('first paint keeps the saved appearance background while the full theme CSS loads', () => {
+  assert.ok(appearanceFirstPaintStyle, 'critical appearance styles must be inline in the document head');
+  assert.ok(html.indexOf('id="appearance-bootstrap"') < html.indexOf('id="appearance-first-paint-style"'));
+  assert.ok(html.indexOf('id="appearance-first-paint-style"') < html.indexOf('id="modern-almajd-theme"'));
+  assert.match(appearanceFirstPaintStyle, /html\s*\{\s*background-color:\s*#F7FAF8/);
+  assert.match(appearanceFirstPaintStyle, /html\[data-site-appearance="new"\]\s*\{\s*background-color:\s*#062f35/);
+  assert.match(appearanceFirstPaintStyle, /html\[data-site-appearance="new"\]\s*body\.login-screen-active\s*\{[\s\S]*linear-gradient\(145deg, #062f35 0%, #0b514a 42%, #123a54 100%\)/);
+  assert.match(html, /<link rel="preload" as="style" href="%BASE_URL%appearance\/liquid-glass-theme\.css\?v=glass-7">/);
+  assert.match(html, /<link rel="preload" as="style" href="%BASE_URL%appearance\/final-contrast-overrides\.css\?v=17">/);
 });
 
 test('appearance changes do not force layout or rebuild the analysis report', () => {
