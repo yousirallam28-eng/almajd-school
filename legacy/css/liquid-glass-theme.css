@@ -2178,3 +2178,20 @@ body:not(.login-screen-active) {
 }
 #app-screen :is(.modal, .modal-content, .modal-box, .dropdown-menu, .popover, .toast-msg, .empty-state, .no-data, .message-box) *,
 #wafdeen-app-screen :is(.modal, .modal-content, .modal-box, .dropdown-menu, .popover, .toast-msg, .empty-state, .no-data, .message-box) * { color: #f7fffc !important; }
+
+
+/* Performance: keep the glass palette while avoiding per-surface GPU blur on touch devices. */
+@media (hover: none), (pointer: coarse), (max-width: 650px) {
+  html[data-site-appearance="new"] *,
+  html[data-site-appearance="new"] *::before,
+  html[data-site-appearance="new"] *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html[data-site-appearance="new"] body.login-screen-active::before,
+  html[data-site-appearance="new"] body.login-screen-active::after {
+    display: none !important;
+    filter: none !important;
+  }
+}

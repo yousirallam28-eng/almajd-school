@@ -1997,6 +1997,39 @@ function renderAnalysisCharts(studentName, className, selectedWeekKey) {
         });
     });
 }
+function updateStudentDataAnalysisAppearance() {
+    var useNewAppearance = document.documentElement.getAttribute('data-site-appearance') !== 'old';
+    var chartColor = useNewAppearance ? '#f0a04a' : undefined;
+    var textColor = useNewAppearance ? '#f2f6f6' : undefined;
+    var gridColor = useNewAppearance ? 'rgba(242,246,246,.14)' : undefined;
+    Object.values(analysisChartInstances).forEach(function (chart) {
+        if (!chart || !chart.data || !chart.options) return;
+        (chart.data.datasets || []).forEach(function (dataset) {
+            dataset.borderColor = chartColor;
+            dataset.backgroundColor = chartColor;
+            dataset.pointBackgroundColor = chartColor;
+            dataset.pointBorderColor = textColor;
+        });
+        var plugins = chart.options.plugins || {};
+        if (plugins.legend && plugins.legend.labels) plugins.legend.labels.color = textColor;
+        if (plugins.tooltip) {
+            plugins.tooltip.backgroundColor = useNewAppearance ? '#063f3d' : undefined;
+            plugins.tooltip.titleColor = textColor;
+            plugins.tooltip.bodyColor = textColor;
+            plugins.tooltip.borderColor = useNewAppearance ? '#62b8aa' : undefined;
+            plugins.tooltip.borderWidth = useNewAppearance ? 1 : undefined;
+        }
+        var scales = chart.options.scales || {};
+        ['x', 'y'].forEach(function (key) {
+            var scale = scales[key];
+            if (!scale) return;
+            if (scale.ticks && key === 'x') scale.ticks.color = textColor;
+            if (scale.grid) scale.grid.color = gridColor;
+        });
+        try { chart.update('none'); } catch (error) {}
+    });
+}
+window.updateStudentDataAnalysisAppearance = updateStudentDataAnalysisAppearance;
 function renderStudentDataAnalysis() {
     var _a, _b, _c;
     var className = (_a = document.getElementById('analysisClassSelect')) === null || _a === void 0 ? void 0 : _a.value;
