@@ -1,0 +1,25 @@
+/* ===== ./css/08-analysis-only-admin-sections.css ===== */
+
+/* عند فتح تحليل البيانات داخل لوحة الإدارة:
+   اعرض تحليل البيانات فقط، وأخفِ كل أقسام لوحة الإدارة الأخرى. */
+#admin-tab.analysis-only > *:not(#student-analysis-section) {
+  display: none !important;
+}
+
+#admin-tab.analysis-only {
+  display: block !important;
+}
+
+#admin-tab.analysis-only #student-analysis-section {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* لا تظهر عناصر لوحة الإدارة الداخلية حتى لو أعاد النظام بناءها ديناميكياً */
+#admin-tab.analysis-only .admin-panel,
+#admin-tab.analysis-only .admin-section,
+#admin-tab.analysis-only .admin-card,
+#admin-tab.analysis-only [data-admin-section] {
+  display: none !important;
+}

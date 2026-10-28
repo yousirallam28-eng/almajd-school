@@ -1,0 +1,16 @@
+/* ===== ./css/25-block.css ===== */
+@media(max-width:800px){}
+
+
+/* تحسين عرض بطاقات الدرجات على الهاتف */
+.grade-missing, .missing-cell{color:#d90429!important;background:#fff0f1!important;border:1px solid #ffb3bd;border-radius:7px;padding:3px 7px;font-weight:900;display:inline-block}
+.recorded-time{color:#0b6b53!important;font-weight:900}
+.field-missing{border:2px solid #e63946!important;background:#fff5f5!important;box-shadow:0 0 0 2px rgba(230,57,70,.08)}
+.field-missing-group>label{color:#c1121f!important;font-weight:900}
+.grade-record-head{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-bottom:10px;margin-bottom:8px;border-bottom:2px solid var(--border-soft);color:var(--primary-dark)}
+.grade-record-fields{display:flex;flex-direction:column;gap:7px}
+.grade-record-row{display:grid;grid-template-columns:minmax(125px,38%) 1fr;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px dashed var(--border-soft)}
+.grade-record-label{font-weight:900;color:var(--ink);font-size:.9rem}
+.grade-record-value{min-width:0;text-align:right;overflow-wrap:anywhere;font-weight:700}
+.grade-card-actions{display:flex;gap:8px;margin-top:12px}.grade-card-actions button{flex:1}
+@media(max-width:600px){.grade-record-row{grid-template-columns:1fr;gap:3px}.grade-record-label{font-size:.82rem;color:var(--primary-dark)}.grade-record-value{text-align:right}.grade-card-actions{flex-direction:column}}

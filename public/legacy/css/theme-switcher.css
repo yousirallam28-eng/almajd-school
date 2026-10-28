@@ -1,0 +1,20 @@
+#theme-switcher.theme-switcher {
+  position: fixed; top: 16px; left: 16px; z-index: 2147483646;
+  width: auto; min-width: 176px; min-height: 48px; margin: 0; padding: 9px 12px;
+  display: flex; align-items: center; justify-content: flex-start; gap: 9px;
+  border: 1px solid rgba(240, 190, 105, .72); border-radius: 14px;
+  background: linear-gradient(135deg, #0d766d, #07554f); color: #f2f6f6;
+  box-shadow: 0 5px 15px rgba(0, 18, 23, .22); font: inherit; font-weight: 800; cursor: pointer;
+}
+@media (max-width: 600px) {
+  #theme-switcher.theme-switcher { top: 10px; left: 10px; min-width: 0; min-height: 42px; padding: 7px 9px; gap: 6px; font-size: .82em; }
+}
+#theme-switcher.theme-switcher:hover, #theme-switcher.theme-switcher:focus-visible {
+  border-color: #ffd18b; background: linear-gradient(135deg, #118a7d, #08635c);
+  outline: 2px solid rgba(255, 209, 139, .55); outline-offset: 2px;
+}
+#theme-switcher .theme-switcher-icon { color: #ffd18b; font-size: 1.25em; line-height: 1; }
+#theme-switcher .theme-switcher-current {
+  margin-inline-start: auto; padding: 4px 8px; border: 1px solid rgba(255, 255, 255, .38);
+  border-radius: 999px; background: rgba(0, 28, 31, .24); color: #fff; font-size: .78em; white-space: nowrap;
+}

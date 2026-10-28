@@ -1,0 +1,13 @@
+/* ===== ./css/03-block.css ===== */
+
+:root{--unified-bg:#ffffff;--unified-bg-2:#ffffff;--unified-text:#1d2b25;}
+
+/* Shared controls for daily grade types. */
+.daily-grade-type-selector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0 12px;}
+.daily-grade-type-btn{border:2px solid var(--border-soft-strong);border-radius:14px;padding:12px 10px;background:var(--surface-alt);color:var(--text);font-weight:900;cursor:pointer;transition:.2s;}
+.daily-grade-type-btn.active{background:var(--primary-color);color:#fff;border-color:var(--primary-color);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08);}
+.daily-type-field-hidden{display:none!important;}
+.daily-type-save-done{opacity:.65!important;cursor:not-allowed!important;}
+.daily-field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+
+@media(max-width:650px){.daily-grade-type-selector{grid-template-columns:1fr;}}

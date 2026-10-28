@@ -1,0 +1,339 @@
+/* Unified reference theme: dark teal surfaces, mint cards, one button system, one logo treatment. */
+:root {
+  --ref-bg: #00554f;
+  --ref-bg-deep: #003f3d;
+  --ref-header: #062a29;
+  --ref-surface: #ecfffb;
+  --ref-surface-soft: #d8f5ee;
+  --ref-action: #0b8f75;
+  --ref-action-dark: #066b62;
+  --ref-action-hover: #10a487;
+  --ref-accent: #f0a04a;
+  --ref-danger: #ba5b55;
+  --ref-ink: #063f3d;
+  --ref-muted: #b9e8dd;
+  --ref-line: rgba(151, 255, 226, .52);
+  --ref-radius: 12px;
+}
+
+html, body {
+  background: var(--ref-bg) !important;
+  color: var(--ref-surface) !important;
+}
+
+body, body:not(.login-screen-active), body.login-screen-active {
+  background: linear-gradient(180deg, var(--ref-header) 0 58px, var(--ref-bg) 220px, var(--ref-bg-deep) 100%) !important;
+  background-attachment: fixed !important;
+}
+
+body::before, body::after, body.login-screen-active::before, body.login-screen-active::after {
+  display: none !important;
+}
+
+/* Shared logo: the same round asset, size, frame, and treatment everywhere. */
+.login-logo-img, .header-logo, .menu-brand-icon, #app-screen img[src*="almajd-logo-round"] {
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  min-height: 58px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  border-radius: 50% !important;
+  padding: 3px !important;
+  background: #f4fffc !important;
+  border: 2px solid var(--ref-line) !important;
+  box-shadow: 0 4px 12px rgba(0, 25, 24, .28) !important;
+}
+
+#login-screen .login-logo-img {
+  width: 112px !important;
+  height: 112px !important;
+}
+
+.watermark-bg { opacity: .055 !important; filter: none !important; }
+
+/* App chrome */
+.institute-header, .user-bar, .main-menu-handle {
+  background: var(--ref-header) !important;
+  color: #f5fffc !important;
+  border: 0 !important;
+  box-shadow: 0 5px 18px rgba(0, 24, 23, .24) !important;
+  backdrop-filter: none !important;
+}
+
+.institute-header *, .user-bar *, .main-menu-handle * { color: #f5fffc !important; }
+
+#app-screen .container, #app-screen .tab-content { background: transparent !important; }
+
+/* All content blocks share the same light reference card. */
+#app-screen :is(.card-view, .panel, .section-card, .admin-card, .quick-entry-panel, .analysis-chart-card, .analysis-time-card, .analysis-week-comparison, .student-portal-section, .table-responsive, .report-card, .summary-card, .stat-card, .class-card, .class-box, .student-card, .top-student-card, .note-card, .payment-card, fieldset) {
+  background: var(--ref-surface) !important;
+  color: var(--ref-ink) !important;
+  border: 1px solid rgba(119, 225, 204, .78) !important;
+  border-radius: var(--ref-radius) !important;
+  box-shadow: 0 5px 15px rgba(0, 35, 32, .16) !important;
+  backdrop-filter: none !important;
+}
+
+#app-screen :is(.card-view, .panel, .section-card, .admin-card, .quick-entry-panel, .analysis-chart-card, .analysis-time-card, .analysis-week-comparison, .student-portal-section, .table-responsive, .report-card, .summary-card, .stat-card, .class-card, .class-box, .student-card, .top-student-card, .note-card, .payment-card, fieldset) * {
+  color: var(--ref-ink) !important;
+  text-shadow: none !important;
+}
+
+/* One standard button family; semantic variants stay within the same palette. */
+#app-screen :is(button, .action-btn, .tab-btn, .result-link-btn, .student-login-link-btn), #login-screen :is(button, .action-btn) {
+  min-height: 40px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(157, 255, 224, .58) !important;
+  background: linear-gradient(180deg, var(--ref-action), var(--ref-action-dark)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(0, 45, 39, .22), inset 0 1px 0 rgba(255,255,255,.2) !important;
+  text-shadow: none !important;
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease !important;
+}
+
+#app-screen :is(button, .action-btn, .tab-btn, .result-link-btn, .student-login-link-btn):hover, #login-screen :is(button, .action-btn):hover {
+  background: linear-gradient(180deg, var(--ref-action-hover), var(--ref-action)) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 14px rgba(0, 45, 39, .28) !important;
+}
+
+#app-screen :is(.btn-warning, .btn-export) { background: linear-gradient(180deg, #f2aa51, #d98232) !important; }
+#app-screen .btn-danger { background: linear-gradient(180deg, #c96a60, var(--ref-danger)) !important; }
+#app-screen .tab-btn:not(.active) {
+  background: var(--ref-surface-soft) !important;
+  color: var(--ref-ink) !important;
+  border-color: rgba(9, 126, 108, .35) !important;
+}
+#app-screen .tab-btn.active { background: linear-gradient(180deg, var(--ref-action), var(--ref-action-dark)) !important; color: #fff !important; }
+
+/* Sidebar follows the reference: deep teal drawer, green controls, orange active state. */
+#main-menu-drawer.sidebar-nav {
+  background: linear-gradient(180deg, #063d3b, #022d2d) !important;
+  border: 1px solid rgba(140, 244, 217, .42) !important;
+  box-shadow: 0 12px 28px rgba(0, 20, 20, .34) !important;
+}
+#main-menu-drawer.sidebar-nav :is(button, .tab-btn, .reports-toggle, .sidebar-close-btn, [role="button"]) {
+  background: linear-gradient(180deg, var(--ref-action), var(--ref-action-dark)) !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  border-color: var(--ref-line) !important;
+}
+#main-menu-drawer.sidebar-nav :is(button, .tab-btn, .reports-toggle, .sidebar-close-btn, [role="button"]):hover, #main-menu-drawer.sidebar-nav :is(button, .tab-btn, .reports-toggle).active {
+  background: linear-gradient(180deg, #f2aa51, #d98232) !important;
+  color: #fff !important;
+}
+
+/* Inputs and tables match the light cards instead of mixing legacy colors. */
+#app-screen :is(input, select, textarea), #login-screen :is(input, select, textarea) {
+  background: #f5fffc !important;
+  color: var(--ref-ink) !important;
+  border: 1px solid rgba(10, 132, 111, .42) !important;
+  border-radius: 9px !important;
+  box-shadow: inset 0 1px 3px rgba(0, 60, 52, .08) !important;
+}
+
+#app-screen table thead th { background: var(--ref-action-dark) !important; color: #fff !important; }
+#app-screen table tbody tr:nth-child(even) { background: #dff8f1 !important; }
+
+@media (max-width: 650px) {
+  .header-logo { width: 48px !important; height: 48px !important; min-width: 48px !important; min-height: 48px !important; }
+  #app-screen :is(.card-view, .panel, .section-card, .admin-card) { border-radius: 10px !important; }
+}
+
+
+/* Readability pass from the latest screenshots. Keep text dark on light surfaces and
+   white only on intentionally dark chrome/buttons; remove legacy multicolor text. */
+:root {
+  --ref-text: #063f3d;
+  --ref-text-muted: #2d625d;
+  --ref-track: #0b6f68;
+  --ref-thumb: #f0a04a;
+}
+
+/* The page scrollbar/ruler uses the same teal + accent palette. */
+html { scrollbar-color: var(--ref-thumb) var(--ref-track); scrollbar-width: auto; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: var(--ref-track) !important; border-radius: 10px; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f7b660, #d77d31) !important;
+  border: 2px solid var(--ref-track) !important;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: #ffc978 !important; }
+
+/* Neutralize legacy bright/multicolor text inside the application. */
+#app-screen, #results-screen, #student-login-screen {
+  color: var(--ref-text) !important;
+}
+#app-screen :is(h1, h2, h3, h4, h5, h6, p, span, label, li, dt, dd, legend, small, strong, em, td, th, caption), #results-screen :is(h1, h2, h3, h4, h5, h6, p, span, label, li, dt, dd, legend, small, strong, em, td, th, caption), #student-login-screen :is(h1, h2, h3, h4, h5, h6, p, span, label, li, dt, dd, legend, small, strong, em, td, th, caption) {
+  color: var(--ref-text) !important;
+  text-shadow: none !important;
+}
+
+/* Every previously white form/summary block becomes a readable mint card. */
+#app-screen :is(.form-group, .form-grid, .search-box, .quick-registration-toolbar, .daily-timer-card, .daily-scores-card, .daily-selected-timer-box, .daily-workspace, .result-field-card, .monthly-result-card, .chart-wrap, .empty-state, .no-data, .notice, .info-message, .message, .alert, .analysis-summary-card, .analysis-card, .class-card, .class-box) {
+  background: var(--ref-surface) !important;
+  color: var(--ref-text) !important;
+  border-color: rgba(119, 225, 204, .78) !important;
+}
+
+#app-screen :is(.form-group, .form-grid, .search-box, .quick-registration-toolbar, .daily-timer-card, .daily-scores-card, .daily-selected-timer-box, .daily-workspace, .result-field-card, .monthly-result-card, .chart-wrap, .empty-state, .no-data, .notice, .info-message, .message, .alert, .analysis-summary-card, .analysis-card, .class-card, .class-box) * {
+  color: var(--ref-text) !important;
+}
+
+/* Inputs, select options, and placeholders have enough contrast. */
+#app-screen :is(input, select, textarea)::placeholder, #results-screen :is(input, select, textarea)::placeholder, #student-login-screen :is(input, select, textarea)::placeholder { color: #4b7771 !important; opacity: 1 !important; }
+#app-screen select option { background: #f5fffc !important; color: var(--ref-text) !important; }
+
+/* Progress bars, meters, score rulers, and range controls use the site palette. */
+#app-screen :is(progress, meter, input[type="range"]) {
+  accent-color: var(--ref-thumb) !important;
+}
+#app-screen progress {
+  background: #b8e8df !important;
+  border: 1px solid #6ecdbd !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+#app-screen progress::-webkit-progress-bar { background: #b8e8df !important; }
+#app-screen progress::-webkit-progress-value { background: linear-gradient(90deg, #0b8f75, #f0a04a) !important; }
+#app-screen input[type="range"] { background: transparent !important; }
+#app-screen input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px; background: #79cdbd !important; border-radius: 8px;
+}
+#app-screen input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 20px; height: 20px;
+  margin-top: -6px; border-radius: 50%; background: var(--ref-thumb) !important;
+  border: 2px solid #fff !important; box-shadow: 0 1px 5px rgba(0,40,35,.35);
+}
+
+/* Status boxes retain meaning without introducing unreadable red/yellow text. */
+#app-screen :is(.toast-success, .alert-success, .success-message) {
+  background: #d9f5eb !important; color: #075b4d !important; border-color: #65c9ae !important;
+}
+#app-screen :is(.toast-error, .alert-danger, .error-message) {
+  background: #fae2dc !important; color: #7d3029 !important; border-color: #d77b6f !important;
+}
+#app-screen :is(.toast-info, .notice, .info-message) {
+  background: #e0f3ef !important; color: var(--ref-text) !important; border-color: #71cbbb !important;
+}
+
+/* Dark regions intentionally use one readable light text color. */
+#main-menu-drawer.sidebar-nav, #main-menu-drawer.sidebar-nav :is(h1, h2, h3, h4, h5, h6, p, span, label, li) {
+  color: #f5fffc !important;
+}
+#main-menu-drawer.sidebar-nav :is(button, .tab-btn, .reports-toggle, .sidebar-close-btn, [role="button"]) * { color: #fff !important; }
+
+/* Charts and canvases no longer sit as white islands against the teal page. */
+#app-screen canvas {
+  background: var(--ref-surface) !important;
+  border: 1px solid rgba(119, 225, 204, .78) !important;
+}
+
+
+/* Targeted fixes for result cards and generated portal content seen in the supplied screenshots. */
+#results-screen > div[style*="grid"], #results-screen section, #studentPortalArea, #studentResultDisplayArea, #preparatoryResultDisplayArea {
+  color: var(--ref-text) !important;
+}
+
+#results-screen section, #studentPortalArea > *, #studentResultDisplayArea > *, #preparatoryResultDisplayArea > * {
+  background: var(--ref-surface) !important;
+  color: var(--ref-text) !important;
+  border-color: #55bda9 !important;
+}
+
+#results-screen section :is(h1, h2, h3, h4, h5, h6, p, span, label, small, strong, li, td, th, div), #studentPortalArea :is(h1, h2, h3, h4, h5, h6, p, span, label, small, strong, li, td, th, div), #studentResultDisplayArea :is(h1, h2, h3, h4, h5, h6, p, span, label, small, strong, li, td, th, div), #preparatoryResultDisplayArea :is(h1, h2, h3, h4, h5, h6, p, span, label, small, strong, li, td, th, div) {
+  color: var(--ref-text) !important;
+  text-shadow: none !important;
+}
+
+#results-screen section .login-subtitle, #results-screen section h3 { color: var(--ref-text) !important; }
+#results-screen section :is(input, select, textarea) {
+  background: #ffffff !important;
+  color: var(--ref-text) !important;
+}
+#results-screen section :is(input, select, textarea)::placeholder { color: #4b7771 !important; }
+
+/* Result summaries use dark readable labels with teal values instead of white-on-white. */
+#studentPortalArea :is(.result-field-card, .student-portal-section, .monthly-result-card, .result-card, .summary-card, .stat-card, .result-display-v16-row), #studentResultDisplayArea :is(.result-field-card, .student-portal-section, .monthly-result-card, .result-card, .summary-card, .stat-card, .result-display-v16-row), #preparatoryResultDisplayArea :is(.result-field-card, .student-portal-section, .monthly-result-card, .result-card, .summary-card, .stat-card, .result-display-v16-row) {
+  background: #f5fffc !important;
+  color: var(--ref-text) !important;
+  border-color: #72cdbb !important;
+}
+
+/* The data table is intentionally dark; all cell content therefore uses one light color. */
+#app-screen table { color: #eafff9 !important; }
+#app-screen table :is(td, th) {
+  color: #eafff9 !important;
+  text-shadow: none !important;
+}
+#app-screen table td :is(span, small, strong, div) { color: #eafff9 !important; }
+#app-screen table td:empty { background: rgba(0, 63, 61, .55) !important; }
+#app-screen table tbody tr { background: #0a625e !important; }
+#app-screen table tbody tr:nth-child(even) { background: #0b7069 !important; }
+#app-screen table tbody tr:hover { background: #168d7e !important; }
+
+/* Action pills inside dark tables retain their light text and a consistent red warning color. */
+#app-screen table :is(button, .action-btn, .btn-danger, .btn-warning) {
+  color: #ffffff !important;
+  background: linear-gradient(180deg, #c4665d, #9d403e) !important;
+  border-color: #f3b2a4 !important;
+}
+
+/* Search/date toolbars from the screenshots: white fields with dark text and teal framing. */
+#app-screen .search-box, #app-screen .quick-registration-toolbar, #app-screen [id*="DateNav"], #app-screen [id*="dateNav"] {
+  background: var(--ref-surface) !important;
+  color: var(--ref-text) !important;
+  border-color: #65c5b3 !important;
+}
+#app-screen .search-box :is(input, select), #app-screen .quick-registration-toolbar :is(input, select), #app-screen [id*="DateNav"] :is(input, select), #app-screen [id*="dateNav"] :is(input, select) {
+  background: #ffffff !important;
+  color: var(--ref-text) !important;
+}
+
+
+/* Final specificity overrides: legacy liquid-glass selectors are more specific than the
+   shared rules above, so these exact selectors intentionally win. */
+#login-screen.login-card .form-group input {
+  background: #f5fffc !important;
+  color: #063f3d !important;
+  border: 1px solid #5fbfae !important;
+  box-shadow: inset 0 1px 3px rgba(0, 60, 52, .12) !important;
+}
+#login-screen.login-card .form-group input::placeholder {
+  color: #4b7771 !important;
+  opacity: 1 !important;
+}
+#login-screen.login-card .modern-login-welcome {
+  background: #d8f5ee !important;
+  color: #063f3d !important;
+  border: 1px solid #65c5b3 !important;
+  box-shadow: 0 3px 10px rgba(0, 50, 45, .12) !important;
+}
+#login-screen.login-card .modern-login-welcome * { color: #063f3d !important; }
+#login-screen.login-card .login-subtitle, #login-screen.login-card .form-group label {
+  color: #eafff9 !important;
+  text-shadow: 0 1px 2px rgba(0, 35, 32, .55) !important;
+}
+#login-screen.login-card > .action-btn, #login-screen.login-card .modern-quick-btn {
+  background: linear-gradient(180deg, #0b8f75, #066b62) !important;
+  color: #ffffff !important;
+  border-color: #8cebd3 !important;
+}
+
+/* Inline white backgrounds in generated result sections must also be overridden. */
+#results-screen.login-card > div[style*="grid"] > section, #results-screen.login-card > div[style*="grid"] > section[style] {
+  background: #ecfffb !important;
+  color: #063f3d !important;
+  border-color: #55bda9 !important;
+}
+#results-screen.login-card > div[style*="grid"] > section :is(h3, .login-subtitle, p, span, label, div) {
+  color: #063f3d !important;
+  text-shadow: none !important;
+}
+#results-screen.login-card > div[style*="grid"] > section :is(input, select, textarea) {
+  background: #ffffff !important;
+  color: #063f3d !important;
+  border-color: #55bda9 !important;
+}

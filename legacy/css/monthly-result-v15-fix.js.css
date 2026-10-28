@@ -1,0 +1,10 @@
+/* ===== ./css/19-monthly-result-v15-fix.css ===== */
+
+.monthly-result-month{text-align:center;margin:8px 0 14px;color:var(--primary-dark);font-weight:800}
+.monthly-result-fail{animation:monthlyFailPulse .9s ease-in-out infinite alternate}
+.monthly-result-fail .login-card,.monthly-result-fail #resultDisplayArea,.monthly-result-fail #studentPortalArea{background:#ffe5e5!important;border-color:#d32f2f!important}
+.monthly-result-fail-card{border:2px solid #d32f2f!important;background:#fff0f0!important}
+@keyframes monthlyFailPulse{from{background:#fff}to{background:#ffe1e1}}
+.monthly-result-fireworks{position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden}
+.firework-piece{position:absolute;font-size:26px;animation:fireworkFall 2.5s ease-out forwards;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+@keyframes fireworkFall{0%{transform:translateY(-20px) scale(.5) rotate(0deg);opacity:0}15%{opacity:1}100%{transform:translateY(75vh) translateX(60px) scale(1.2) rotate(360deg);opacity:0}}
