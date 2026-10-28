@@ -38,7 +38,18 @@ test('changed appearance assets use fresh cache-busting versions', () => {
   assert.match(html, /wafdeen-redesign\.css\?v=4/);
   assert.match(html, /unified-reference-theme\.css\?v=5/);
   assert.match(html, /liquid-glass-theme\.css\?v=glass-7/);
+  assert.match(html, /final-contrast-overrides\.css\?v=17/);
   assert.match(html, /theme-switcher\.js\?v=3/);
+});
+
+test('new appearance covers public results, parent follow-up, quick registration, and login screens', () => {
+  const finalOverrides = readFileSync(new URL('../public/appearance/final-contrast-overrides.css', import.meta.url), 'utf8');
+  assert.match(finalOverrides, /html\[data-site-appearance="new"\] #results-screen#results-screen section/);
+  assert.match(finalOverrides, /#results-screen#results-screen,#student-login-screen#student-login-screen[\s\S]*?\.result-display-v17-row/);
+  assert.match(finalOverrides, /#student-login-screen#student-login-screen #studentPortalArea[\s\S]*?student-portal-section/);
+  assert.match(finalOverrides, /#studentPortalArea#studentPortalArea[\s\S]*?\.result-field-label/);
+  assert.match(finalOverrides, /#app-screen#app-screen #quick-registration-tab/);
+  assert.match(finalOverrides, /#login-screen#login-screen\.login-card/);
 });
 
 test('saved appearance is applied before theme stylesheets can paint over the old design', () => {

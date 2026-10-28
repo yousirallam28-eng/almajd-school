@@ -617,6 +617,120 @@ input[type="checkbox"],input[type="radio"] {
   text-shadow: none !important;
   opacity: 1 !important;
 }
+/* Complete the new appearance on entry, result, parent, and post-login screens. */
+:root {
+  --ref-result-surface: linear-gradient(145deg, #216f69 0%, #185b57 100%);
+  --ref-result-inset: linear-gradient(145deg, #14524f 0%, #104744 100%);
+  --ref-result-line: rgba(151, 255, 226, .48);
+  --ref-result-shadow: 0 14px 32px rgba(0, 16, 28, .24), inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+html[data-site-appearance="new"] #login-screen#login-screen.login-card,
+html[data-site-appearance="new"] #results-screen#results-screen.login-card,
+html[data-site-appearance="new"] #student-login-screen#student-login-screen.login-card,
+html[data-site-appearance="new"] #wafdeen-login-screen#wafdeen-login-screen.wafdeen-login-card {
+  background: var(--ref-result-surface) !important;
+  background-image: var(--ref-result-surface) !important;
+  color: var(--ref-unified-text) !important;
+  border: 1px solid var(--ref-result-line) !important;
+  box-shadow: var(--ref-result-shadow) !important;
+}
+html[data-site-appearance="new"] #results-screen#results-screen section {
+  background: var(--ref-result-surface) !important;
+  background-image: var(--ref-result-surface) !important;
+  color: var(--ref-unified-text) !important;
+  border: 1px solid var(--ref-result-line) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--ref-result-shadow) !important;
+}
+html[data-site-appearance="new"] #results-screen#results-screen section *,
+html[data-site-appearance="new"] #student-login-screen#student-login-screen #studentPortalArea :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,li,td,th,div) {
+  color: var(--ref-unified-text) !important;
+  text-shadow: none !important;
+}
+html[data-site-appearance="new"] :is(#results-screen#results-screen,#student-login-screen#student-login-screen,#studentPortalArea#studentPortalArea,#studentResultDisplayArea#studentResultDisplayArea,#preparatoryResultDisplayArea#preparatoryResultDisplayArea) .result-display-v17-row {
+  background: var(--ref-result-inset) !important;
+  background-image: var(--ref-result-inset) !important;
+  color: var(--ref-unified-text) !important;
+  border: 1px solid var(--ref-result-line) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--ref-result-shadow) !important;
+}
+html[data-site-appearance="new"] :is(#results-screen#results-screen,#student-login-screen#student-login-screen,#studentPortalArea#studentPortalArea,#studentResultDisplayArea#studentResultDisplayArea,#preparatoryResultDisplayArea#preparatoryResultDisplayArea) .result-display-v17-label {
+  color: var(--ref-unified-text) !important;
+}
+html[data-site-appearance="new"] :is(#results-screen#results-screen,#student-login-screen#student-login-screen,#studentPortalArea#studentPortalArea,#studentResultDisplayArea#studentResultDisplayArea,#preparatoryResultDisplayArea#preparatoryResultDisplayArea) .result-display-v17-value {
+  color: #ffe29b !important;
+}
+html[data-site-appearance="new"] #student-login-screen#student-login-screen #studentPortalArea :is(.student-portal-summary,.student-portal-stat,.student-portal-section,.result-field-card,.monthly-result-card,.student-attendance-grid,.student-report-table,.student-full-grade-section,.student-portal-fullscreen-toolbar),
+html[data-site-appearance="new"] #studentPortalArea#studentPortalArea :is(.student-portal-summary,.student-portal-stat,.student-portal-section,.result-field-card,.monthly-result-card,.student-attendance-grid,.student-report-table,.student-full-grade-section,.student-portal-fullscreen-toolbar),
+html[data-site-appearance="new"] #studentResultDisplayArea#studentResultDisplayArea :is(.student-portal-summary,.student-portal-stat,.student-portal-section,.result-field-card,.monthly-result-card,.student-attendance-grid,.student-report-table,.student-full-grade-section),
+html[data-site-appearance="new"] #preparatoryResultDisplayArea#preparatoryResultDisplayArea :is(.student-portal-summary,.student-portal-stat,.student-portal-section,.result-field-card,.monthly-result-card,.student-attendance-grid,.student-report-table,.student-full-grade-section) {
+  background: var(--ref-result-surface) !important;
+  background-image: var(--ref-result-surface) !important;
+  color: var(--ref-unified-text) !important;
+  border: 1px solid var(--ref-result-line) !important;
+  border-radius: 15px !important;
+  box-shadow: var(--ref-result-shadow) !important;
+}
+html[data-site-appearance="new"] :is(#studentPortalArea#studentPortalArea,#studentResultDisplayArea#studentResultDisplayArea,#preparatoryResultDisplayArea#preparatoryResultDisplayArea) :is(.result-field-card,.student-portal-stat) {
+  background: var(--ref-result-inset) !important;
+  background-image: var(--ref-result-inset) !important;
+}
+html[data-site-appearance="new"] :is(#studentPortalArea#studentPortalArea,#studentResultDisplayArea#studentResultDisplayArea,#preparatoryResultDisplayArea#preparatoryResultDisplayArea) :is(.result-field-label,.result-field-value,.student-portal-stat .label,.student-portal-stat .value) {
+  background: var(--ref-result-inset) !important;
+  background-image: none !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-result-line) !important;
+}
+html[data-site-appearance="new"] :is(#studentPortalArea#studentPortalArea,#studentResultDisplayArea#studentResultDisplayArea,#preparatoryResultDisplayArea#preparatoryResultDisplayArea) :is(.table-responsive,.student-report-table,.student-full-grade-table) {
+  overflow-x: auto !important;
+  border-color: var(--ref-result-line) !important;
+}
+html[data-site-appearance="new"] :is(#studentPortalArea#studentPortalArea,#studentResultDisplayArea#studentResultDisplayArea,#preparatoryResultDisplayArea#preparatoryResultDisplayArea) :is(table,tbody,tr,td,th) {
+  background: var(--ref-result-inset) !important;
+  background-image: none !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-result-line) !important;
+}
+html[data-site-appearance="new"] #app-screen#app-screen #quick-registration-tab :is(.card-view,.quick-registration-toolbar,.quick-entry-panel,.quick-entry-gate,.quick-registration-note,.quick-registration-table,.quick-registration-permission-row,.form-grid,.form-group) {
+  background: var(--ref-result-surface) !important;
+  background-image: var(--ref-result-surface) !important;
+  color: var(--ref-unified-text) !important;
+  border-color: var(--ref-result-line) !important;
+  box-shadow: var(--ref-result-shadow) !important;
+}
+html[data-site-appearance="new"] #app-screen#app-screen #quick-registration-tab :is(h1,h2,h3,h4,h5,h6,p,label,small,strong,span,th,td) {
+  color: var(--ref-unified-text) !important;
+  text-shadow: none !important;
+}
+html[data-site-appearance="new"] #app-screen#app-screen #quick-registration-tab :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
+  background: var(--ref-unified-surface-deep) !important;
+  color: var(--ref-unified-text) !important;
+  border: 1px solid var(--ref-result-line) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12) !important;
+}
+html[data-site-appearance="new"] #app-screen#app-screen #quick-registration-tab #quick-total {
+  background: linear-gradient(135deg, #8c6629, #674721) !important;
+  color: #fff4d2 !important;
+  border-color: #f0c66e !important;
+}
+html[data-site-appearance="new"] #app-screen#app-screen #quick-registration-tab :is(.quick-registration-note,.quick-entry-gate) {
+  border-right: 4px solid #f0c66e !important;
+}
+@media (max-width: 650px) {
+  html[data-site-appearance="new"] #results-screen#results-screen > div[style*="grid-template-columns"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html[data-site-appearance="new"] #results-screen#results-screen .result-display-v17-row {
+    gap: 8px !important;
+    padding: 12px !important;
+    flex-wrap: wrap !important;
+  }
+  html[data-site-appearance="new"] #student-login-screen#student-login-screen #studentPortalArea :is(.table-responsive,.student-report-table,.student-full-grade-table) {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+}
 #app-screen#app-screen :is(input,select,textarea),#wafdeen-app-screen#wafdeen-app-screen :is(input,select,textarea),
 #siteModal#siteModal .site-modal-box :is(input,select,textarea),#login-screen#login-screen :is(input,select,textarea),
 #wafdeen-login-screen#wafdeen-login-screen :is(input,select,textarea),#results-screen#results-screen :is(input,select,textarea),
