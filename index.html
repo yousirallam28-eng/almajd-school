@@ -101,6 +101,28 @@
 <button class="action-btn student-login-link-btn modern-quick-btn" onclick="showStudentLoginScreen()" style="height: 44px;" type="button">
     👨‍👩‍👧‍👦 متابعة ولي الأمر
   </button>
+<button class="action-btn modern-quick-btn hidden" id="wafdeen-login-btn" onclick="showWafdeenEntryScreen()" style="height: 44px;" type="button">
+    🕌 دخول جلسة الوافدين
+  </button>
+</div>
+<div class="login-card hidden" id="wafdeen-entry-screen">
+<img alt="شعار معهد المجد" class="login-logo-img" onerror="handleImgError(this)" src="public/almajd-logo-round.png"/>
+<h2 class="login-header-text" style="font-size:1.55em;">دخول جلسة الوافدين</h2>
+<div class="login-subtitle">سجّل بحساب المعلم المخوّل للدخول إلى الجلسة</div>
+<div class="islamic-divider"><span>❖ 🕮 ❖</span></div>
+<div aria-live="polite" class="toast-msg" id="wafdeen-login-msg" role="status"></div>
+<form id="wafdeen-login-form" onsubmit="event.preventDefault(); submitWafdeenEntryLogin();">
+<div class="form-group" style="margin-bottom: 14px;">
+<label for="wafdeen-login-username">اسم المستخدم:</label>
+<input autocomplete="username" id="wafdeen-login-username" required type="text"/>
+</div>
+<div class="form-group" style="margin-bottom: 22px;">
+<label for="wafdeen-login-password">كلمة المرور:</label>
+<input autocomplete="current-password" id="wafdeen-login-password" required type="password"/>
+</div>
+<button class="action-btn btn-save" id="wafdeen-login-submit" style="width: 100%; font-size: 1em; height: 46px;" type="submit">دخول 🔐</button>
+</form>
+<button class="action-btn" onclick="closeWafdeenEntryScreen()" style="width:100%;background:linear-gradient(135deg,#7f8c8d,#566573);margin-top:12px;" type="button">🔙 رجوع</button>
 </div>
 <!-- شاشة عرض النتيجة بالكود (بدون تسجيل دخول) -->
 <!-- شاشة النتائج بالكود: فصل كامل بين الطلاب والتمهيدي -->
@@ -193,7 +215,6 @@
 <div class="tabs">
 <button class="tab-btn active" onclick="switchTab('daily-tab', event)" type="button">📝 الرصد اليومي</button>
 <button class="tab-btn hidden" id="status-tab-btn" onclick="switchTab('status-tab', event)" type="button">🔍 حالة الرصد</button>
-<button class="tab-btn hidden" id="wafdeen-tab-btn" onclick="openWafdeenTab()" type="button">🕌 جلسة الوافدين</button>
 <div class="reports-menu-wrap hidden" id="reports-menu-wrap">
 <button class="tab-btn reports-toggle" id="reports-main-btn" onclick="toggleReportsMenu(event)" type="button">
             📊 التقارير <span class="reports-chevron">⌄</span>

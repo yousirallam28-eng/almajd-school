@@ -2,6 +2,7 @@ import { wafdeenMockStore } from './mockData.js';
 import { createWafdeenSession, loadWafdeenSessionData } from '../../api/wafdeen-sessions.api.js';
 import { canOpenFeature, isAdmin, isSupervisor } from '../../app/permissions.js';
 import { registerFeature } from '../register.js';
+import { installWafdeenLoginEntry } from './login-entry.js';
 import {
   WAFDEEN_GRADE_TYPES,
   aggregateMonthlyQuranUsage,
@@ -642,7 +643,6 @@ function openTab(tabId) {
   const event = { currentTarget: button, target: button };
   window.switchTab?.(tabId, event);
 }
-
 function installPageHandlers() {
   const view = byId('wafdeen-tab');
   if (view && view.dataset.wafdeenBound !== 'true') {
@@ -748,6 +748,7 @@ window.openWafdeenTab = () => openTab('wafdeen-tab');
 window.openWafdeenMonthlyReport = () => openTab('wafdeen-monthly-report-tab');
 window.refreshWafdeenNavigation = updateNavigation;
 installPageHandlers();
+installWafdeenLoginEntry(openTab);
 installNavigationGuards();
 updateNavigation();
 registerFeature('wafdeen', ['renderWafdeenView', 'renderWafdeenMonthlyReport']);
