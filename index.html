@@ -210,6 +210,8 @@
 <button class="tab-btn reports-toggle" id="sheikh-recordings-menu-btn" onclick="toggleSheikhRecordingsMenu(event)" type="button">📋 تسجيلات الشيوخ <span class="reports-chevron">⌄</span></button>
 <div class="reports-submenu" id="sheikh-recordings-submenu">
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" type="button">📋 تسجيل الشيوخ</button>
+<button class="tab-btn hidden" id="wafdeen-tab-btn" onclick="openWafdeenTab()" type="button">🕌 واجهة الوافدين</button>
+<button class="tab-btn hidden" id="wafdeen-monthly-report-tab-btn" onclick="openWafdeenMonthlyReport()" type="button">📊 تقرير الشهري الوقتي</button>
 <button class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)" type="button">🗒️ الملاحظات</button>
 </div>
 </div>
@@ -1120,6 +1122,93 @@
 <tbody></tbody>
 </table>
 </div>
+</div>
+</div>
+<div class="tab-content hidden" id="wafdeen-tab">
+<div class="card-view" id="wafdeen-view" style="border-top:4px solid var(--accent-gold);">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+<h3 class="card-title">🕌 جلسة الوافدين</h3>
+<button class="action-btn btn-save" id="wafdeen-refresh" type="button">🔄 تحديث البيانات</button>
+</div>
+<div class="card-view" id="wafdeen-data-mode" style="border:2px solid var(--accent-gold);"><strong>اتصال حي مفعل:</strong> تُقرأ حقول هوية الطالب ووقت جلسات القرآن الضرورية فقط؛ لا تُحمّل الدرجات القديمة ولا تُعدّل السجلات السابقة.</div>
+<div aria-live="polite" class="toast-msg" id="wafdeen-message" role="status"></div>
+<div class="btn-group" style="margin:8px 0 16px;">
+<button aria-pressed="true" class="action-btn btn-save active" data-wafdeen-panel-button="daily" type="button">📝 الرصد اليومي</button>
+<button aria-pressed="false" class="action-btn btn-save" data-wafdeen-panel-button="grades" type="button">🏆 الدرجات</button>
+<button aria-pressed="false" class="action-btn btn-save hidden" data-wafdeen-panel-button="students" id="wafdeen-students-panel-btn" type="button">👨‍🎓 إدارة الطلاب</button>
+</div>
+<section data-wafdeen-panel="daily">
+<div class="card-view">
+<h4 class="card-title">اختيار الطالب والتاريخ</h4>
+<div class="form-grid">
+<div class="form-group"><label for="wafdeen-student-select">الطالب:</label><select id="wafdeen-student-select"><option value="">اختر الطالب</option></select></div>
+<div class="form-group"><label for="wafdeen-date">تاريخ الرصد:</label><input id="wafdeen-date" type="date"></div>
+</div>
+</div>
+<div class="card-view">
+<h4 class="card-title">⏱️ جلسة التسميع</h4>
+<p>ابدأ المؤقت عند بدء الجلسة، ثم احفظ الدرجة بعد انتهائها. الحد الأقصى للجلسة ساعتان.</p>
+<div aria-live="polite" id="wafdeen-session-time" style="font-size:1.4em;font-weight:800;margin:10px 0;">0 س 0 د 0 ث</div>
+<button class="action-btn btn-save" id="wafdeen-timer-toggle" type="button">بدء جلسة التسميع</button>
+<button class="action-btn btn-danger" id="wafdeen-timer-reset" type="button">تصفير الجلسة</button>
+</div>
+<div class="card-view">
+<h4 class="card-title">📝 رصد القرآن الكريم</h4>
+<div class="btn-group" style="margin-bottom:12px;">
+<button aria-pressed="true" class="action-btn btn-save active" data-wafdeen-grade-type="new" type="button">📖 الجديد</button>
+<button aria-pressed="false" class="action-btn btn-save" data-wafdeen-grade-type="old" type="button">📚 الماضي</button>
+<button aria-pressed="false" class="action-btn btn-save" data-wafdeen-grade-type="recitation" type="button">🎙️ التلاوة</button>
+</div>
+<p>كل خطأ يخصم درجة، وكل تشكيل نصف درجة، وكل تردد ربع درجة.</p>
+<div class="form-grid">
+<div class="form-group"><label>نوع الرصد:</label><strong id="wafdeen-grade-type-label">الجديد</strong></div>
+<div class="form-group"><label>الدرجة من 10:</label><strong aria-live="polite" id="wafdeen-score">10/10</strong></div>
+<div class="form-group"><label for="wafdeen-errors">الأخطاء:</label><input id="wafdeen-errors" min="0" step="1" type="number" value="0"></div>
+<div class="form-group"><label for="wafdeen-tashkeel">التشكيل:</label><input id="wafdeen-tashkeel" min="0" step="1" type="number" value="0"></div>
+<div class="form-group"><label for="wafdeen-repetition">التردد:</label><input id="wafdeen-repetition" min="0" step="1" type="number" value="0"></div>
+<div class="form-group"><label for="wafdeen-pages">عدد الصفحات:</label><input id="wafdeen-pages" inputmode="numeric" min="1" placeholder="عدد الصفحات" type="number"></div>
+<div class="form-group"><label for="wafdeen-topic">المقرر الذي تم تسميعه:</label><input id="wafdeen-topic" placeholder="اكتب المقرر" type="text"></div>
+</div>
+<div class="btn-group">
+<button class="action-btn btn-save" id="wafdeen-save-grade" type="button">حفظ الجديد</button>
+<button class="action-btn btn-danger" id="wafdeen-mark-absent" type="button">🚫 تسجيل غياب</button>
+</div>
+</div>
+</section>
+<section class="hidden" data-wafdeen-panel="grades">
+<div class="card-view">
+<h4 class="card-title">🏆 سجل الطالب المحدد</h4>
+<div class="table-responsive"><table id="wafdeen-history-table"><thead><tr><th>التاريخ</th><th>الحالة / النوع</th><th>الدرجات / وقت الجلسة</th></tr></thead><tbody></tbody></table></div>
+</div>
+</section>
+<section class="hidden" data-wafdeen-panel="students" id="wafdeen-student-admin">
+<div class="card-view">
+<h4 class="card-title">👨‍🎓 إدارة قائمة الطلاب</h4>
+<p>الأرشفة تخفي الطالب من الاختيار فقط، ولا تحذف درجاته أو سجلاته السابقة.</p>
+<div class="form-grid"><div class="form-group"><label for="wafdeen-new-student-name">اسم الطالب:</label><input id="wafdeen-new-student-name" type="text"></div>
+<div class="form-group"><button class="action-btn btn-save" id="wafdeen-add-student" type="button">إضافة الطالب</button></div></div>
+<div class="table-responsive"><table id="wafdeen-students-table"><thead><tr><th>الطالب</th><th>الصف المسجل</th><th>الإجراء</th></tr></thead><tbody></tbody></table></div>
+</div>
+<div class="card-view">
+<h4 class="card-title">🔐 صلاحية واجهة الوافدين لمعلمي الموقع</h4>
+<p>بيانات المعلمين هنا تجريبية فقط؛ تغيير الصلاحية يؤثر في ذاكرة الاختبار المحلية ولا يغيّر حسابات الموقع أو كلمات مروره.</p>
+<div class="table-responsive"><table id="wafdeen-teachers-table"><thead><tr><th>حساب المعلم</th><th>الصف</th><th>المركز</th><th>دخول واجهة الوافدين</th></tr></thead><tbody></tbody></table></div>
+</div>
+</section>
+</div>
+</div>
+<div class="tab-content hidden" id="wafdeen-monthly-report-tab">
+<div class="card-view" style="border-top:4px solid var(--accent-gold);">
+<h3 class="card-title">📊 تقرير الشهري الوقتي</h3>
+<p id="wafdeen-report-mode">التقرير الحي يقرأ حقول الجلسات للفترة المحددة من 15 إلى 14 فقط، دون أسماء الطلاب أو تعديل السجلات.</p>
+<div aria-live="polite" class="toast-msg" id="wafdeen-report-message" role="status"></div>
+<div class="form-grid" style="align-items:end;">
+<div class="form-group"><label for="wafdeen-report-month">الشهر:</label><input id="wafdeen-report-month" type="month"></div>
+<div class="form-group"><button class="action-btn btn-save" id="wafdeen-report-refresh" type="button">🔄 تحديث التقرير</button></div>
+<div class="form-group"><button class="action-btn btn-export" id="wafdeen-report-export" type="button">📤 تصدير Excel</button></div>
+</div>
+<p id="wafdeen-report-period"></p><p id="wafdeen-report-count"></p>
+<div class="table-responsive"><table id="wafdeen-monthly-report-table"><thead><tr><th>الشيخ</th><th>عدد الجلسات</th><th>وقت جلسات التسميع</th><th>الساعات (50 دقيقة)</th><th>الساعات (60 دقيقة)</th></tr></thead><tbody></tbody></table></div>
 </div>
 </div>
 <!-- 8. تبويب النسخة الاحتياطية -->

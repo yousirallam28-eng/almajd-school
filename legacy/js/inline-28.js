@@ -15,7 +15,7 @@
   var accountCollections = { teachers: true };
 
   async function request(op, fields, token) {
-    var isMutation = ['upsert', 'delete', 'bulkUpsert', 'importBatch', 'changePassword'].includes(String(op));
+    var isMutation = ['upsert', 'delete', 'bulkUpsert', 'importBatch', 'changePassword', 'createWafdeenSession'].includes(String(op));
     var data = fields && fields.data ? fields.data : {};
     var deletedFlag = data && data._deleted;
     var isDelete = op === 'delete' || (op === 'upsert' && (deletedFlag === true || deletedFlag === 1 || ['true','1','yes'].includes(String(deletedFlag || '').trim().toLowerCase())));
@@ -52,6 +52,7 @@
         showSavedToast(isDelete ? 'تم الحذف' : (saveAction === 'updated' ? 'تم التعديل' : 'تم الحفظ'));
       } else if (op === 'bulkUpsert' || op === 'importBatch') showSavedToast('تم الحفظ');
       else if (op === 'delete') showSavedToast('تم الحذف');
+      else if (op === 'createWafdeenSession') showSavedToast('تم حفظ جلسة الوافدين كسجل جديد');
       return payload;
     } finally {
       if (isMutation) endLoadingOperation();
@@ -311,6 +312,9 @@
     writeRecord: async function (c, id, data, options) { quota.writes++; var r = await request('upsert', { collection: c, id: String(id), data: data || {}, merge: !!(options && options.merge) }); return r.record || r; },
     deleteRecord: async function (c, id) { quota.deletes++; return request('delete', { collection: c, id: String(id) }); },
     readRecord: async function (c, id) { quota.reads++; var r = await request('get', { collection: c, id: String(id) }); return r.record || null; },
+    listWafdeenStudentNames: async function () { quota.reads++; var r = await request('listWafdeenStudentNames', {}); if (!Array.isArray(r.names)) throw new Error('INVALID_NAMES_RESPONSE'); return Array.from(new Set(r.names.map(function (name) { return String(name || '').trim(); }).filter(Boolean))); },
+    listWafdeenSessionData: async function (options) { quota.reads++; options = options || {}; var fields = { purpose: options.purpose === 'report' ? 'report' : 'daily' }; if (fields.purpose === 'report') fields.month = String(options.month || ''); var r = await request('listWafdeenSessionData', fields); if (!Array.isArray(r.students) || !Array.isArray(r.dailySessions) || !Array.isArray(r.usage)) throw new Error('INVALID_WAFDEEN_SESSION_RESPONSE'); return r; },
+    createWafdeenSession: async function (session) { quota.writes++; var r = await request('createWafdeenSession', { session: session || {} }); if (!r || r.ok !== true) throw new Error('WAFDEEN_SESSION_NOT_SAVED'); return { ok: true }; },
     updateVerified: async function (c, id, patch) { var old = await w.MajdLocalDataAPI.readRecord(c, id) || {}; return w.MajdLocalDataAPI.writeRecord(c, id, Object.assign({}, old, patch || {}, { id: String(id) }), { merge: true }); },
     saveAndVerifySharia: async function (id, record) { return w.MajdLocalDataAPI.writeRecord('shariaGrades', id, record, { merge: true }); },
     migrateLegacyDailyRecords: async function () { return false; },

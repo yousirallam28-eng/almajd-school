@@ -47,8 +47,18 @@ const removedAssets = [
 ];
 const removedAssetDirs = ['../legacy/js', '../public/legacy/js', '../legacy/css', '../public/legacy/css', '../public/appearance'];
 
-test('retired class pages and time reports are not wired into the portal', () => {
-  assert.doesNotMatch(html, /open-wafdeen-login-btn|wafdeen-login-screen|wafdeen-app-screen|wafdeen-time-tab|wafdeenTimeReport|wafdeenEducationRecordsTable|wafdeenGradesReportTable|وقت الوافدين|جلسة الوافدين/i);
+test('Wafdeen is integrated into the main portal with the guarded live session path', () => {
+  assert.match(html, /id="wafdeen-tab"/);
+  assert.match(html, /id="wafdeen-monthly-report-tab"/);
+  assert.match(html, /تقرير الشهري الوقتي/);
+  assert.match(html, /id="wafdeen-student-select"/);
+  assert.match(html, /id="wafdeen-monthly-report-table"/);
+  assert.match(html, /اتصال حي مفعل/);
+  assert.match(html, /id="wafdeen-data-mode"/);
+  assert.match(html, /id="wafdeen-report-mode"/);
+  assert.match(html, /لا تُعدّل السجلات السابقة/);
+  assert.match(html, /الحالة \/ النوع/);
+  assert.doesNotMatch(html, /open-wafdeen-login-btn|wafdeen-login-screen|wafdeen-app-screen|wafdeen-time-tab|wafdeenTimeReport|wafdeenEducationRecordsTable|wafdeenGradesReportTable|وقت الوافدين|مراجعة الأسماء المسجلة في السحابة|وقت التعليم|المواد التعليمية|firebase|firestore/i);
   assert.doesNotMatch(html, /wafdeenToggle|showWafdeenLoginScreen|data-inlined-from="\.\/js\/(?:features\/wafdeen-application|compat\/wafdeen-quran-timer-exports)\.js"/);
   assert.equal(html.slice(html.indexOf('</body>') + '</body>'.length).trim(), '</html>', 'all loaded resources must be inside the document body');
   for (const asset of removedAssets) assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} should no longer ship`);

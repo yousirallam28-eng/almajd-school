@@ -1,0 +1,4 @@
+project_id = "ixjfhkoozjuoswohqqcr"
+
+[functions.majd-api]
+verify_jwt = false
