@@ -1,4 +1,19 @@
-/* Visible orange feedback whenever a user presses an interactive button. */
+:root {
+  --button-feedback-background: #f28c28;
+  --button-feedback-text: #fff;
+  --button-feedback-border: #d97706;
+  --button-feedback-shadow: rgba(242, 140, 40, .28);
+  --button-feedback-focus: rgba(242, 140, 40, .8);
+}
+html[data-site-appearance="old"] {
+  --button-feedback-background: #d4af37;
+  --button-feedback-text: #302400;
+  --button-feedback-border: #9a7600;
+  --button-feedback-shadow: rgba(154, 118, 0, .32);
+  --button-feedback-focus: rgba(154, 118, 0, .85);
+}
+
+/* Feedback colors follow the active appearance: orange new, golden yellow old. */
 #app-screen#app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
 #wafdeen-app-screen#wafdeen-app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
 #siteModal#siteModal :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled),
@@ -23,12 +38,12 @@
 #studentPortalArea#studentPortalArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
 #studentResultDisplayArea#studentResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active,
 #preparatoryResultDisplayArea#preparatoryResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):active {
-  background: #f28c28 !important;
+  background: var(--button-feedback-background) !important;
   background-image: none !important;
-  background-color: #f28c28 !important;
-  color: #fff !important;
-  border-color: #d97706 !important;
-  box-shadow: 0 0 0 3px rgba(242, 140, 40, .28) !important;
+  background-color: var(--button-feedback-background) !important;
+  color: var(--button-feedback-text) !important;
+  border-color: var(--button-feedback-border) !important;
+  box-shadow: 0 0 0 3px var(--button-feedback-shadow) !important;
   transform: translateY(1px) scale(.98);
 }
 
@@ -42,12 +57,12 @@
 #studentPortalArea#studentPortalArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):is(.active,.selected,.is-active,[aria-pressed="true"],[aria-selected="true"],[aria-checked="true"]),
 #studentResultDisplayArea#studentResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):is(.active,.selected,.is-active,[aria-pressed="true"],[aria-selected="true"],[aria-checked="true"]),
 #preparatoryResultDisplayArea#preparatoryResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):not(:disabled):is(.active,.selected,.is-active,[aria-pressed="true"],[aria-selected="true"],[aria-checked="true"]) {
-  background: #f28c28 !important;
+  background: var(--button-feedback-background) !important;
   background-image: none !important;
-  background-color: #f28c28 !important;
-  color: #fff !important;
-  border-color: #d97706 !important;
-  box-shadow: 0 0 0 3px rgba(242, 140, 40, .28) !important;
+  background-color: var(--button-feedback-background) !important;
+  color: var(--button-feedback-text) !important;
+  border-color: var(--button-feedback-border) !important;
+  box-shadow: 0 0 0 3px var(--button-feedback-shadow) !important;
 }
 
 #app-screen#app-screen :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
@@ -60,7 +75,7 @@
 #studentPortalArea#studentPortalArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
 #studentResultDisplayArea#studentResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible,
 #preparatoryResultDisplayArea#preparatoryResultDisplayArea :is(button,input[type="button"],input[type="submit"],input[type="reset"],label.action-btn,.action-btn,[role="button"]):focus-visible {
-  outline: 3px solid rgba(242, 140, 40, .8) !important;
+  outline: 3px solid var(--button-feedback-focus) !important;
   outline-offset: 2px;
 }
 
