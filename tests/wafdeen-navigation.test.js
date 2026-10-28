@@ -17,9 +17,28 @@ test('Wafdeen login entry is directly below Parent Follow-up on the outer login 
   assert.doesNotMatch(sheikhSubmenu, /wafdeen-tab-btn|wafdeen-login-btn|واجهة الوافدين|جلسة الوافدين/);
 });
 
+test('the Wafdeen screen uses its own standalone-style drawer with only retained destinations', () => {
+  const drawer = html.match(/<aside[^>]*id="wafdeen-drawer"[^>]*>([\s\S]*?)<\/aside>/)?.[1];
+  assert.ok(drawer, 'the Wafdeen screen must have its own internal drawer');
+  for (const [id, label] of [
+    ['daily', 'الرصد اليومي'],
+    ['grades', 'الدرجات'],
+    ['teachers', 'إضافة / إدارة المعلمين'],
+    ['students', 'إضافة / إدارة الطلاب']
+  ]) {
+    assert.match(drawer, new RegExp(`data-wafdeen-panel-button="${id}"`));
+    assert.match(drawer, new RegExp(label));
+    assert.match(html, new RegExp(`data-wafdeen-panel="${id}"`));
+  }
+  assert.doesNotMatch(drawer, /تقرير الشهري الوقتي|التقرير الشهري|مراجعة أسماء السحابة|وقت التعليم|المواد التعليمية|Firebase|Firestore/i);
+  assert.match(html, /id="wafdeen-monthly-report-tab-btn"[^>]*>[\s\S]*?تقرير الشهري الوقتي/);
+});
+
 test('Wafdeen login reuses staff authentication and checks the existing permission before opening the session', () => {
   assert.match(html, /id="wafdeen-login-btn" onclick="showWafdeenEntryScreen\(\)"/);
   assert.match(feature, /installWafdeenLoginEntry/);
+  assert.match(html, /<link rel="stylesheet" href="src\/features\/wafdeen\/wafdeen\.css\?v=wafdeen-menu-1" id="wafdeen-style">/);
+  assert.doesNotMatch(feature, /import\s+['"][^'"]+\.css['"]/);
   assert.match(loginEntry, /await window\.handleLogin\(\)/);
   assert.match(loginEntry, /if \(!canOpenFeature\('wafdeen', teacher\)\)/);
   assert.match(loginEntry, /openTab\('wafdeen-tab'\)/);

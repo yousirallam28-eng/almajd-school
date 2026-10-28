@@ -177,16 +177,24 @@ function renderStudentTable() {
   const body = document.querySelector('#wafdeen-students-table tbody');
   if (!body) return;
   const active = state.students.filter((student) => !student._deleted).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'));
-  body.innerHTML = active.map((student) => `<tr><td>${escapeHtml(student.name || '—')}</td><td>${escapeHtml(student.className || '—')}</td><td>${isManager() ? `<button class="action-btn btn-danger" type="button" data-wafdeen-archive="${escapeHtml(student.id)}">أرشفة</button>` : '—'}</td></tr>`).join('') || '<tr><td colspan="3">لا يوجد طلاب مسجلون بعد.</td></tr>';
+  body.innerHTML = active.map((student) => `<tr><td>${escapeHtml(student.name || '—')}</td><td>${escapeHtml(student.className || '—')}</td><td>${isManager() && !liveSessionsEnabled() ? `<button class="action-btn btn-danger" type="button" data-wafdeen-archive="${escapeHtml(student.id)}">أرشفة</button>` : '—'}</td></tr>`).join('') || '<tr><td colspan="3">لا يوجد طلاب مسجلون بعد.</td></tr>';
   const managerArea = byId('wafdeen-student-admin');
-  if (managerArea) managerArea.classList.toggle('hidden', !isManager() || liveSessionsEnabled());
-  renderTeacherAccessTable();
+  if (managerArea) managerArea.classList.toggle('hidden', !isManager());
+  byId('wafdeen-student-admin-actions')?.classList.toggle('hidden', liveSessionsEnabled());
+  byId('wafdeen-student-admin-notice')?.classList.toggle('hidden', !liveSessionsEnabled());
 }
 
 function renderTeacherAccessTable() {
   const body = document.querySelector('#wafdeen-teachers-table tbody');
   if (!body) return;
-  if (!isManager() || liveSessionsEnabled()) { body.innerHTML = ''; return; }
+  const note = byId('wafdeen-teacher-admin-note');
+  if (!isManager()) { body.innerHTML = ''; return; }
+  if (liveSessionsEnabled()) {
+    if (note) note.textContent = 'حسابات المعلمين وصلاحياتهم لا تُعدّل من هذه الجلسة؛ تُعرض الصلاحية للقراءة فقط ويظل التحقق عبر النظام الحالي.';
+    body.innerHTML = '<tr><td colspan="4">إدارة الحسابات غير متاحة أثناء الاتصال الحي.</td></tr>';
+    return;
+  }
+  if (note) note.textContent = 'بيانات المعلمين هنا تجريبية فقط؛ تغيير الصلاحية يؤثر في ذاكرة الاختبار المحلية ولا يغيّر حسابات الموقع أو كلمات مروره.';
   const teachers = wafdeenMockStore.list('demoStaff');
   body.innerHTML = teachers.map((teacher) => {
     const id = escapeHtml(teacher.id);
@@ -627,6 +635,7 @@ function exportMonthlyReport() {
 }
 
 function showPanel(name) {
+  if (['teachers', 'students'].includes(name) && !isManager()) return notice('إدارة المعلمين والطلاب متاحة للمدير فقط.', 'error');
   document.querySelectorAll('[data-wafdeen-panel]').forEach((panel) => panel.classList.toggle('hidden', panel.dataset.wafdeenPanel !== name));
   document.querySelectorAll('[data-wafdeen-panel-button]').forEach((button) => {
     const active = button.dataset.wafdeenPanelButton === name;
@@ -634,6 +643,21 @@ function showPanel(name) {
     button.setAttribute('aria-pressed', String(active));
   });
   if (name === 'grades') renderHistory();
+  if (name === 'students') renderStudentTable();
+  if (name === 'teachers') renderTeacherAccessTable();
+}
+
+function setWafdeenMenuOpen(open) {
+  const handle = byId('wafdeen-menu-handle');
+  const drawer = byId('wafdeen-drawer');
+  const overlay = byId('wafdeen-overlay');
+  const isOpen = Boolean(open);
+  drawer?.classList.toggle('open', isOpen);
+  overlay?.classList.toggle('open', isOpen);
+  drawer?.setAttribute('aria-hidden', String(!isOpen));
+  overlay?.setAttribute('aria-hidden', String(!isOpen));
+  handle?.setAttribute('aria-expanded', String(isOpen));
+  document.body.classList.toggle('wafdeen-menu-open', isOpen);
 }
 
 function openTab(tabId) {
@@ -649,7 +673,12 @@ function installPageHandlers() {
     view.dataset.wafdeenBound = 'true';
     view.addEventListener('click', (event) => {
       const panelButton = event.target.closest('[data-wafdeen-panel-button]');
-      if (panelButton) return showPanel(panelButton.dataset.wafdeenPanelButton);
+      if (event.target.closest('#wafdeen-menu-handle')) return setWafdeenMenuOpen(!byId('wafdeen-drawer')?.classList.contains('open'));
+      if (event.target.closest('#wafdeen-menu-close, #wafdeen-overlay')) return setWafdeenMenuOpen(false);
+      if (panelButton) {
+        showPanel(panelButton.dataset.wafdeenPanelButton);
+        return setWafdeenMenuOpen(false);
+      }
       const typeButton = event.target.closest('[data-wafdeen-grade-type]');
       if (typeButton) return selectGradeType(typeButton.dataset.wafdeenGradeType);
       const archiveButton = event.target.closest('[data-wafdeen-archive]');
@@ -678,6 +707,9 @@ function installPageHandlers() {
         renderHistory();
       }
     });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && byId('wafdeen-drawer')?.classList.contains('open')) setWafdeenMenuOpen(false);
+    });
   }
   const report = byId('wafdeen-monthly-report-tab');
   if (report && report.dataset.wafdeenBound !== 'true') {
@@ -695,11 +727,12 @@ function installPageHandlers() {
 function updateNavigation() {
   const featureButton = byId('wafdeen-tab-btn');
   const reportButton = byId('wafdeen-monthly-report-tab-btn');
-  const studentsButton = byId('wafdeen-students-panel-btn');
+  const menuHandle = byId('wafdeen-menu-handle');
   const absenceButton = byId('wafdeen-mark-absent');
   if (featureButton) featureButton.classList.toggle('hidden', !canOpenFeature('wafdeen', currentTeacher()));
   if (reportButton) reportButton.classList.toggle('hidden', !canOpenFeature('wafdeen-report', currentTeacher()));
-  if (studentsButton) studentsButton.classList.toggle('hidden', !isManager() || liveSessionsEnabled());
+  if (menuHandle) menuHandle.classList.toggle('hidden', !canOpenFeature('wafdeen', currentTeacher()));
+  document.querySelectorAll('[data-wafdeen-admin-only]').forEach((button) => button.classList.toggle('hidden', !isManager()));
   if (absenceButton) absenceButton.disabled = liveSessionsEnabled();
   byId('wafdeen-tab')?.classList.toggle('hidden', !canOpenFeature('wafdeen', currentTeacher()));
   byId('wafdeen-monthly-report-tab')?.classList.toggle('hidden', !canOpenFeature('wafdeen-report', currentTeacher()));
@@ -710,6 +743,7 @@ function installNavigationGuards() {
     const original = window.showAppScreen;
     const wrapped = function (...args) {
       const result = original.apply(this, args);
+      if (byId('app-screen')?.classList.contains('hidden')) setWafdeenMenuOpen(false);
       updateNavigation();
       return result;
     };
@@ -721,6 +755,7 @@ function installNavigationGuards() {
     const wrapped = function (tabId, event) {
       if (tabId === 'wafdeen-tab' && !canOpenFeature('wafdeen', currentTeacher())) return notice('هذه الصفحة متاحة للمدير أو للمعلم المصرح له فقط.', 'error');
       if (tabId === 'wafdeen-monthly-report-tab' && !canOpenFeature('wafdeen-report', currentTeacher())) return notice('تقرير الوافدين الشهري متاح للمدير فقط.', 'error');
+      if (tabId !== 'wafdeen-tab') setWafdeenMenuOpen(false);
       const result = original.apply(this, arguments);
       if (tabId === 'wafdeen-monthly-report-tab') {
         byId('sheikh-recordings-menu-wrap')?.classList.add('open');

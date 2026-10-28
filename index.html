@@ -58,6 +58,7 @@
 <link rel="stylesheet" href="%BASE_URL%appearance/almajd-global-redesign.css?v=1" id="almajd-global-redesign" media="not all" onerror="this.onerror=null;this.href='public/appearance/almajd-global-redesign.css?v=1'">
 <script id="appearance-bootstrap-head-styles">window.__setAlmajdAppearanceStyles(['modern-almajd-theme','almajd-global-redesign','unified-reference-theme'], window.__almajdSiteAppearance);</script>
 <link rel="stylesheet" href="legacy/css/button-press-feedback.css?v=3" id="button-press-feedback" onerror="this.onerror=null;this.href='public/legacy/css/button-press-feedback.css?v=3'">
+<link rel="stylesheet" href="src/features/wafdeen/wafdeen.css?v=wafdeen-menu-1" id="wafdeen-style">
 </head>
 <body class="login-screen-active" data-standalone="normal">
 <!-- نوافذ الموقع الداخلية: لا تستخدم نوافذ المتصفح confirm/prompt/alert -->
@@ -1149,15 +1150,21 @@
 <div class="card-view" id="wafdeen-view" style="border-top:4px solid var(--accent-gold);">
 <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
 <h3 class="card-title">🕌 جلسة الوافدين</h3>
+<div class="wafdeen-view-actions">
+<button aria-controls="wafdeen-drawer" aria-expanded="false" class="wafdeen-menu-handle" id="wafdeen-menu-handle" type="button">☰ قائمة الوافدين</button>
 <button class="action-btn btn-save" id="wafdeen-refresh" type="button">🔄 تحديث البيانات</button>
 </div>
-<div class="card-view" id="wafdeen-data-mode" style="border:2px solid var(--accent-gold);"><strong>اتصال حي مفعل:</strong> تُقرأ حقول هوية الطالب ووقت جلسات القرآن الضرورية فقط؛ لا تُحمّل الدرجات القديمة ولا تُعدّل السجلات السابقة.</div>
-<div aria-live="polite" class="toast-msg" id="wafdeen-message" role="status"></div>
-<div class="btn-group" style="margin:8px 0 16px;">
+</div>
+<div aria-hidden="true" class="wafdeen-overlay" id="wafdeen-overlay"></div>
+<aside aria-hidden="true" aria-label="قائمة جلسة الوافدين" class="wafdeen-drawer" id="wafdeen-drawer">
+<div class="wafdeen-drawer-head"><h3>📚 قائمة جلسة الوافدين</h3><button aria-label="إغلاق قائمة الوافدين" class="wafdeen-drawer-close" id="wafdeen-menu-close" type="button">×</button></div>
 <button aria-pressed="true" class="action-btn btn-save active" data-wafdeen-panel-button="daily" type="button">📝 الرصد اليومي</button>
 <button aria-pressed="false" class="action-btn btn-save" data-wafdeen-panel-button="grades" type="button">🏆 الدرجات</button>
-<button aria-pressed="false" class="action-btn btn-save hidden" data-wafdeen-panel-button="students" id="wafdeen-students-panel-btn" type="button">👨‍🎓 إدارة الطلاب</button>
-</div>
+<button aria-pressed="false" class="action-btn btn-save hidden" data-wafdeen-admin-only="true" data-wafdeen-panel-button="teachers" type="button">👨‍🏫 إضافة / إدارة المعلمين</button>
+<button aria-pressed="false" class="action-btn btn-save hidden" data-wafdeen-admin-only="true" data-wafdeen-panel-button="students" type="button">👨‍🎓 إضافة / إدارة الطلاب</button>
+</aside>
+<div class="card-view" id="wafdeen-data-mode" style="border:2px solid var(--accent-gold);"><strong>اتصال حي مفعل:</strong> تُقرأ حقول هوية الطالب ووقت جلسات القرآن الضرورية فقط؛ لا تُحمّل الدرجات القديمة ولا تُعدّل السجلات السابقة.</div>
+<div aria-live="polite" class="toast-msg" id="wafdeen-message" role="status"></div>
 <section data-wafdeen-panel="daily">
 <div class="card-view">
 <h4 class="card-title">اختيار الطالب والتاريخ</h4>
@@ -1206,13 +1213,18 @@
 <div class="card-view">
 <h4 class="card-title">👨‍🎓 إدارة قائمة الطلاب</h4>
 <p>الأرشفة تخفي الطالب من الاختيار فقط، ولا تحذف درجاته أو سجلاته السابقة.</p>
+<p class="hidden" id="wafdeen-student-admin-notice" role="status">عرض الطلاب هنا للقراءة فقط عند الاتصال الحي؛ لا تُجرى تغييرات على قائمة Supabase من هذه الجلسة.</p>
+<div id="wafdeen-student-admin-actions">
 <div class="form-grid"><div class="form-group"><label for="wafdeen-new-student-name">اسم الطالب:</label><input id="wafdeen-new-student-name" type="text"></div>
 <div class="form-group"><button class="action-btn btn-save" id="wafdeen-add-student" type="button">إضافة الطالب</button></div></div>
+</div>
 <div class="table-responsive"><table id="wafdeen-students-table"><thead><tr><th>الطالب</th><th>الصف المسجل</th><th>الإجراء</th></tr></thead><tbody></tbody></table></div>
 </div>
+</section>
+<section class="hidden" data-wafdeen-panel="teachers" id="wafdeen-teacher-admin">
 <div class="card-view">
-<h4 class="card-title">🔐 صلاحية واجهة الوافدين لمعلمي الموقع</h4>
-<p>بيانات المعلمين هنا تجريبية فقط؛ تغيير الصلاحية يؤثر في ذاكرة الاختبار المحلية ولا يغيّر حسابات الموقع أو كلمات مروره.</p>
+<h4 class="card-title">👨‍🏫 إدارة المعلمين وصلاحية الوافدين</h4>
+<p id="wafdeen-teacher-admin-note" role="status">بيانات المعلمين هنا تجريبية فقط؛ تغيير الصلاحية يؤثر في ذاكرة الاختبار المحلية ولا يغيّر حسابات الموقع أو كلمات مروره.</p>
 <div class="table-responsive"><table id="wafdeen-teachers-table"><thead><tr><th>حساب المعلم</th><th>الصف</th><th>المركز</th><th>دخول واجهة الوافدين</th></tr></thead><tbody></tbody></table></div>
 </div>
 </section>
