@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { listWafdeenStudentNames } from "./wafdeen_names.js";
 import { createWafdeenSession, listWafdeenSessionData } from "./wafdeen_sessions.js";
+import { createWafdeenStudent, createWafdeenTeacher, listWafdeenTeachers } from "./wafdeen_admin.js";
 
 const URL = Deno.env.get("SUPABASE_URL") ?? "";
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -237,6 +238,24 @@ async function handle(req: Request) {
   const auth = req.headers.get("authorization") || "";
   const u = await authenticate(auth.startsWith("Bearer ") ? auth.slice(7) : "");
   if (!u) return respond({ error: "UNAUTHORIZED" }, 401);
+
+  if (b.op === "addWafdeenStudent") {
+    const result = await createWafdeenStudent(db!, u, admin, { studentName: b.studentName });
+    if (result.status !== 201) return respond({ error: result.error }, result.status);
+    return respond({ student: result.student }, 201);
+  }
+
+  if (b.op === "listWafdeenTeachers") {
+    const result = await listWafdeenTeachers(db!, u, admin);
+    if (result.status !== 200) return respond({ error: result.error }, result.status);
+    return respond({ teachers: result.teachers });
+  }
+
+  if (b.op === "createWafdeenTeacher") {
+    const result = await createWafdeenTeacher(db!, u, admin, b.teacher, passHash);
+    if (result.status !== 201) return respond({ error: result.error }, result.status);
+    return respond({ teacher: result.teacher }, 201);
+  }
 
   if (b.op === "listWafdeenStudentNames") {
     const result = await listWafdeenStudentNames(db!, u, admin);

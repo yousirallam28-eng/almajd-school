@@ -1,5 +1,6 @@
 import { wafdeenMockStore } from './mockData.js';
 import { createWafdeenSession, loadWafdeenSessionData } from '../../api/wafdeen-sessions.api.js';
+import { addWafdeenStudent, createWafdeenTeacher, listWafdeenTeachers } from '../../api/wafdeen-admin.api.js';
 import { canOpenFeature, isAdmin, isSupervisor } from '../../app/permissions.js';
 import { registerFeature } from '../register.js';
 import { installWafdeenLoginEntry } from './login-entry.js';
@@ -13,7 +14,7 @@ import {
   scoreFromCounts
 } from './model.js';
 
-const state = { students: [], dailyRecords: [], usage: [], gradeType: 'new', loaded: false };
+const state = { students: [], teachers: [], dailyRecords: [], usage: [], gradeType: 'new', loaded: false };
 const timer = { elapsedMs: 0, startedAt: 0, intervalId: null, owner: '' };
 const byId = (id) => document.getElementById(id);
 const text = (id, value) => { const el = byId(id); if (el) el.textContent = String(value ?? ''); };
@@ -180,21 +181,36 @@ function renderStudentTable() {
   body.innerHTML = active.map((student) => `<tr><td>${escapeHtml(student.name || '—')}</td><td>${escapeHtml(student.className || '—')}</td><td>${isManager() && !liveSessionsEnabled() ? `<button class="action-btn btn-danger" type="button" data-wafdeen-archive="${escapeHtml(student.id)}">أرشفة</button>` : '—'}</td></tr>`).join('') || '<tr><td colspan="3">لا يوجد طلاب مسجلون بعد.</td></tr>';
   const managerArea = byId('wafdeen-student-admin');
   if (managerArea) managerArea.classList.toggle('hidden', !isManager());
-  byId('wafdeen-student-admin-actions')?.classList.toggle('hidden', liveSessionsEnabled());
-  byId('wafdeen-student-admin-notice')?.classList.toggle('hidden', !liveSessionsEnabled());
+  byId('wafdeen-student-admin-actions')?.classList.toggle('hidden', !isManager());
+  byId('wafdeen-student-admin-notice')?.classList.toggle('hidden', !isManager());
 }
 
-function renderTeacherAccessTable() {
+async function renderTeacherAccessTable() {
   const body = document.querySelector('#wafdeen-teachers-table tbody');
   if (!body) return;
   const note = byId('wafdeen-teacher-admin-note');
   if (!isManager()) { body.innerHTML = ''; return; }
+  const actions = byId('wafdeen-teacher-admin-actions');
+  if (actions) actions.classList.toggle('hidden', !liveSessionsEnabled());
   if (liveSessionsEnabled()) {
-    if (note) note.textContent = 'حسابات المعلمين وصلاحياتهم لا تُعدّل من هذه الجلسة؛ تُعرض الصلاحية للقراءة فقط ويظل التحقق عبر النظام الحالي.';
-    body.innerHTML = '<tr><td colspan="4">إدارة الحسابات غير متاحة أثناء الاتصال الحي.</td></tr>';
+    if (note) note.textContent = 'الإضافة تنشئ حسابًا جديدًا بصلاحية الوافدين للمدير فقط؛ الحسابات الموجودة وصلاحياتها لا تتغير، ولا تُقرأ كلمات المرور المحفوظة.';
+    body.innerHTML = '<tr><td colspan="4">جارٍ تحميل قائمة المعلمين المصرح بها للمدير…</td></tr>';
+    try {
+      state.teachers = await listWafdeenTeachers();
+      body.innerHTML = state.teachers.map((teacher) => {
+        const restricted = isSupervisor(teacher);
+        const allowed = teacher.canWafdeen === true;
+        const status = isAdmin(teacher) ? 'مدير النظام' : restricted ? 'مشرف — غير مصرح' : allowed ? 'مصرح' : 'غير مصرح';
+        return `<tr><td>${escapeHtml(teacher.username || '—')}</td><td>${escapeHtml(teacher.assignedClass || '—')}</td><td>${escapeHtml(teacher.center || '—')}</td><td>${status}</td></tr>`;
+      }).join('') || '<tr><td colspan="4">لا توجد حسابات معلمين.</td></tr>';
+    } catch (error) {
+      console.error('[wafdeen] teacher list failed', error);
+      body.innerHTML = '<tr><td colspan="4">تعذر تحميل قائمة المعلمين.</td></tr>';
+      if (note) note.textContent = error?.message || 'تعذر تحميل قائمة المعلمين.';
+    }
     return;
   }
-  if (note) note.textContent = 'بيانات المعلمين هنا تجريبية فقط؛ تغيير الصلاحية يؤثر في ذاكرة الاختبار المحلية ولا يغيّر حسابات الموقع أو كلمات مروره.';
+  if (note) note.textContent = 'بيانات المعلمين هنا تجريبية فقط؛ لا تغيّر بيانات الحسابات الحقيقية أو كلمات مرورها.';
   const teachers = wafdeenMockStore.list('demoStaff');
   body.innerHTML = teachers.map((teacher) => {
     const id = escapeHtml(teacher.id);
@@ -318,12 +334,30 @@ export async function renderWafdeenView() {
 }
 
 async function saveStudent() {
-  if (liveSessionsEnabled()) return notice('إدارة الطلاب غير متاحة ضمن مسار الجلسات الآمن؛ لم يتم تغيير قائمة الطلاب.', 'error');
   if (!isManager()) return notice('إدارة قائمة الطلاب متاحة للمدير فقط.', 'error');
-  const name = String(byId('wafdeen-new-student-name')?.value || '').trim();
+  const name = String(byId('wafdeen-new-student-name')?.value || '').trim().replace(/\s+/g, ' ');
   if (!name) return notice('اكتب اسم الطالب أولًا.', 'error');
-  if (state.students.some((student) => String(student.name || '').trim().toLocaleLowerCase() === name.toLocaleLowerCase())) {
+  const normalizedName = name.normalize('NFKC').toLocaleLowerCase('ar');
+  if (state.students.some((student) => String(student.name || '').trim().normalize('NFKC').replace(/\s+/g, ' ').toLocaleLowerCase('ar') === normalizedName)) {
     return notice('هذا الاسم موجود بالفعل في قائمة الطلاب.', 'error');
+  }
+  if (liveSessionsEnabled()) {
+    const button = byId('wafdeen-add-student');
+    if (button) button.disabled = true;
+    try {
+      const student = await addWafdeenStudent(name);
+      state.students.push(student);
+      if (byId('wafdeen-new-student-name')) byId('wafdeen-new-student-name').value = '';
+      renderStudentSelect();
+      renderStudentTable();
+      notice('تمت إضافة الطالب كسجل قائمة جديد؛ لم تتغير أي جلسة سابقة.', 'success');
+    } catch (error) {
+      console.error('[wafdeen] student save failed', error);
+      notice(error?.message === 'STUDENT_ALREADY_EXISTS' ? 'هذا الاسم موجود بالفعل في القائمة أو في جلسة سابقة.' : error?.message || 'تعذر إضافة الطالب.', 'error');
+    } finally {
+      if (button) button.disabled = false;
+    }
+    return;
   }
   const id = `wf_${Date.now()}`;
   const record = { id, name, createdAt: timestamp(), updatedAt: timestamp() };
@@ -337,6 +371,37 @@ async function saveStudent() {
   } catch (error) {
     console.error('[wafdeen] student save failed', error);
     notice(error?.message || 'تعذر حفظ الطالب.', 'error');
+  }
+}
+
+async function saveTeacher() {
+  if (!isManager()) return notice('إضافة المعلمين متاحة للمدير فقط.', 'error');
+  if (!liveSessionsEnabled()) return notice('إضافة حسابات حقيقية تتطلب اتصالًا حيًا؛ لم يتم تغيير بيانات الاختبار.', 'error');
+  const usernameInput = byId('wafdeen-new-teacher-user');
+  const passwordInput = byId('wafdeen-new-teacher-password');
+  const username = String(usernameInput?.value || '').trim();
+  const password = String(passwordInput?.value || '');
+  const assignedClass = String(byId('wafdeen-new-teacher-class')?.value || '').trim();
+  const center = String(byId('wafdeen-new-teacher-center')?.value || '').trim();
+  if (!username || !password || !assignedClass || !center) return notice('أكمل اسم المستخدم وكلمة المرور والصف والمركز.', 'error');
+  if (password.length < 12 || password.length > 256) return notice('يجب أن تكون كلمة المرور الأولية 12 حرفًا على الأقل.', 'error');
+  if (state.teachers.some((teacher) => String(teacher.username || '').trim().toLocaleLowerCase('ar') === username.toLocaleLowerCase('ar'))) {
+    return notice('اسم المستخدم موجود بالفعل.', 'error');
+  }
+  const button = byId('wafdeen-add-teacher');
+  if (button) button.disabled = true;
+  try {
+    const teacher = await createWafdeenTeacher({ username, password, assignedClass, center });
+    state.teachers = [teacher, ...state.teachers];
+    if (usernameInput) usernameInput.value = '';
+    notice('تم إنشاء حساب المعلم بصلاحية الوافدين؛ سيُطلب منه تغيير كلمة المرور عند أول دخول.', 'success');
+    await renderTeacherAccessTable();
+  } catch (error) {
+    console.error('[wafdeen] teacher create failed', error);
+    notice(error?.message === 'USERNAME_EXISTS' ? 'اسم المستخدم موجود بالفعل.' : error?.message || 'تعذر إضافة المعلم.', 'error');
+  } finally {
+    if (passwordInput) passwordInput.value = '';
+    if (button) button.disabled = false;
   }
 }
 
@@ -691,6 +756,7 @@ function installPageHandlers() {
       if (event.target.closest('#wafdeen-save-grade')) return saveGrade();
       if (event.target.closest('#wafdeen-mark-absent')) return markAbsent();
       if (event.target.closest('#wafdeen-add-student')) return saveStudent();
+      if (event.target.closest('#wafdeen-add-teacher')) return saveTeacher();
       if (event.target.closest('#wafdeen-refresh')) return renderWafdeenView();
     });
     view.addEventListener('input', (event) => {
@@ -738,12 +804,28 @@ function updateNavigation() {
   byId('wafdeen-monthly-report-tab')?.classList.toggle('hidden', !canOpenFeature('wafdeen-report', currentTeacher()));
 }
 
+function setGeneralNavigationVisible(visible) {
+  const handle = byId('main-menu-handle');
+  const drawer = byId('main-menu-drawer');
+  const overlay = byId('menu-overlay');
+  if (!visible) window.closeMainMenu?.();
+  [handle, drawer, overlay].forEach((element) => {
+    if (!element) return;
+    element.classList.toggle('hidden', !visible);
+    element.setAttribute('aria-hidden', String(!visible));
+  });
+  if (handle && !visible) handle.setAttribute('aria-expanded', 'false');
+}
+
 function installNavigationGuards() {
   if (typeof window.showAppScreen === 'function' && !window.showAppScreen.__wafdeenWrapped) {
     const original = window.showAppScreen;
     const wrapped = function (...args) {
       const result = original.apply(this, args);
-      if (byId('app-screen')?.classList.contains('hidden')) setWafdeenMenuOpen(false);
+      if (byId('app-screen')?.classList.contains('hidden')) {
+        setWafdeenMenuOpen(false);
+        setGeneralNavigationVisible(true);
+      }
       updateNavigation();
       return result;
     };
@@ -755,7 +837,11 @@ function installNavigationGuards() {
     const wrapped = function (tabId, event) {
       if (tabId === 'wafdeen-tab' && !canOpenFeature('wafdeen', currentTeacher())) return notice('هذه الصفحة متاحة للمدير أو للمعلم المصرح له فقط.', 'error');
       if (tabId === 'wafdeen-monthly-report-tab' && !canOpenFeature('wafdeen-report', currentTeacher())) return notice('تقرير الوافدين الشهري متاح للمدير فقط.', 'error');
-      if (tabId !== 'wafdeen-tab') setWafdeenMenuOpen(false);
+      if (tabId === 'wafdeen-tab') setGeneralNavigationVisible(false);
+      else {
+        setGeneralNavigationVisible(true);
+        setWafdeenMenuOpen(false);
+      }
       const result = original.apply(this, arguments);
       if (tabId === 'wafdeen-monthly-report-tab') {
         byId('sheikh-recordings-menu-wrap')?.classList.add('open');

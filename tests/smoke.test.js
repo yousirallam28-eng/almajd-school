@@ -12,8 +12,10 @@ test('legacy assets are externalized and modular entry is present', () => {
 });
 
 test('sheikh registration only exports supported classes', () => {
-  assert.doesNotMatch(html, /<select id="sheikhRegClassSelect"[\s\S]*?<option value="تمهيدي">/);
-  assert.doesNotMatch(html, /<select id="sheikhRegClassSelect"[\s\S]*?<option value="الوافدين">/);
+  const sheikhClasses = html.match(/<select id="sheikhRegClassSelect"[^>]*>([\s\S]*?)<\/select>/)?.[1] || '';
+  assert.ok(sheikhClasses, 'the Sheikh registration class picker must exist');
+  assert.doesNotMatch(sheikhClasses, /<option value="تمهيدي">/);
+  assert.doesNotMatch(sheikhClasses, /<option value="الوافدين">/);
   const sheikhCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
   assert.match(sheikhCode, /function isSheikhRegistrationExportClass_\(className\)/);
   assert.match(sheikhCode, /return ALL_CLASSES\.includes\(normalized\) && normalized !== 'تمهيدي'/);

@@ -8,7 +8,7 @@ const teacher = { account_type: 'staff', username: 'teacher-demo', username_norm
 const isAdmin = (user) => user?.username === 'admin';
 const knownStudent = { studentId: 'student-demo-1', studentName: 'طالب تجريبي' };
 
-function createFakeDb({ dailyRows = [], usageRows = [], studentRows = [{ ...knownStudent, teacherUsername: 'teacher-demo', className: 'الوافدين' }], insertError = null } = {}) {
+function createFakeDb({ dailyRows = [], usageRows = [], rosterRows = [], studentRows = [{ ...knownStudent, teacherUsername: 'teacher-demo', className: 'الوافدين' }], insertError = null } = {}) {
   const calls = [];
   const inserts = [];
   const db = {
@@ -26,11 +26,14 @@ function createFakeDb({ dailyRows = [], usageRows = [], studentRows = [{ ...know
         limit(value) { state.limit = value; calls.push(['limit', value]); return this; },
         insert(rows) { inserts.push(rows); calls.push(['insert', rows]); return Promise.resolve({ error: insertError }); },
         then(resolve, reject) {
-          let rows = state.select === 'data->>studentId,data->>studentName'
-            ? studentRows
-            : state.table === 'majd_records' && state.filters.some(([operator, key, value]) => operator === 'eq' && key === 'collection' && value === 'wafdeenUsage')
-              ? usageRows
-              : dailyRows;
+          const collection = state.filters.find(([operator, key]) => operator === 'eq' && key === 'collection')?.[2];
+          let rows = collection === 'wafdeenRoster'
+            ? rosterRows
+            : state.select === 'data->>studentId,data->>studentName'
+              ? studentRows
+              : collection === 'wafdeenUsage'
+                ? usageRows
+                : dailyRows;
           rows = rows.filter((row) => state.filters.every(([operator, field, value]) => {
             if (field === 'collection') return true;
             const property = field.startsWith('data->>') ? field.slice(7) : field;
@@ -110,6 +113,23 @@ test('ordinary Wafdeen staff are scoped to their own or shared guest-class daily
   assert.equal(result.status, 200);
   assert.ok(db.calls.some((call) => call[0] === 'eq' && call[1] === 'data->>teacherUsername' && call[2] === 'teacher-demo'));
   assert.ok(db.calls.some((call) => call[0] === 'eq' && call[1] === 'data->>className' && call[2] === 'الوافدين'));
+});
+
+test('newly registered roster students appear in the daily selector and are eligible for their first session', async () => {
+  const newStudent = { studentId: 'wafdeen_roster_demo', studentName: 'طالب قائمة جديد' };
+  const db = createFakeDb({ rosterRows: [{ ...newStudent, record_id: newStudent.studentId, className: 'الوافدين' }], studentRows: [] });
+  const loaded = await listWafdeenSessionData(db, admin, isAdmin);
+  assert.deepEqual(loaded.students, [newStudent]);
+
+  const result = await createWafdeenSession(db, teacher, isAdmin, {
+    studentId: newStudent.studentId, studentName: newStudent.studentName,
+    dateISO: '2026-10-20', gradeType: 'new', pages: '2', topic: 'مقرر تجريبي',
+    errors: 0, tashkeel: 0, repetition: 0, sessionSeconds: 90
+  });
+  assert.equal(result.status, 201);
+  assert.equal(db.inserts.length, 1);
+  assert.equal(db.inserts[0].length, 2);
+  assert.ok(db.calls.some((call) => call[0] === 'eq' && call[1] === 'collection' && call[2] === 'wafdeenRoster'));
 });
 
 test('ungranted staff cannot read session data or create sessions', async () => {

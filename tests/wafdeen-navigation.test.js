@@ -34,6 +34,18 @@ test('the Wafdeen screen uses its own standalone-style drawer with only retained
   assert.match(html, /id="wafdeen-monthly-report-tab-btn"[^>]*>[\s\S]*?تقرير الشهري الوقتي/);
 });
 
+test('the Wafdeen drawer replaces the general navigation only while its session tab is active', () => {
+  assert.match(html, /id="main-menu-handle"/);
+  assert.match(html, /id="main-menu-drawer"/);
+  assert.match(html, /id="menu-overlay"/);
+  assert.match(feature, /function setGeneralNavigationVisible\(visible\)/);
+  assert.match(feature, /if \(!visible\) window\.closeMainMenu\?\.\(\)/);
+  assert.match(feature, /if \(tabId === 'wafdeen-tab'\) setGeneralNavigationVisible\(false\)/);
+  assert.match(feature, /setGeneralNavigationVisible\(true\);\s*setWafdeenMenuOpen\(false\)/);
+  assert.match(feature, /setGeneralNavigationVisible\(true\);\s*\}/);
+  assert.match(feature, /if \(byId\('app-screen'\)\?\.classList\.contains\('hidden'\)\) \{\s*setWafdeenMenuOpen\(false\);\s*setGeneralNavigationVisible\(true\);/);
+});
+
 test('Wafdeen login reuses staff authentication and checks the existing permission before opening the session', () => {
   assert.match(html, /id="wafdeen-login-btn" onclick="showWafdeenEntryScreen\(\)"/);
   assert.match(feature, /installWafdeenLoginEntry/);

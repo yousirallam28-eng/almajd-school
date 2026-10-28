@@ -12,6 +12,8 @@ const mockStoreSource = readFileSync(new URL('../src/features/wafdeen/mockData.j
 const mainEntrySource = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 const edgeSource = readFileSync(new URL('../supabase/functions/majd-api/index.ts', import.meta.url), 'utf8');
 const namesHelperSource = readFileSync(new URL('../supabase/functions/majd-api/wafdeen_names.js', import.meta.url), 'utf8');
+const adminHelperSource = readFileSync(new URL('../supabase/functions/majd-api/wafdeen_admin.js', import.meta.url), 'utf8');
+const adminApiSource = readFileSync(new URL('../src/api/wafdeen-admin.api.js', import.meta.url), 'utf8');
 
 test('cloud request timeout covers response-body reading', () => {
   const fetchPosition = bridge.indexOf('response = await fetch(EDGE_URL');
@@ -41,7 +43,14 @@ test('Wafdeen has a local mock fallback and the approved app entrypoint activate
   assert.match(wafdeenFeature, /createWafdeenSession/);
   assert.match(mainEntrySource, /window\.__MAJD_WAFDEEN_SESSIONS_ENABLED__ = true/);
   assert.match(mockStoreSource, /isMockOnly: true/);
-  assert.doesNotMatch(wafdeenFeature, /cloudClient|MajdLocalDataAPI|fetch\(|teachersData|wafdeenStudents|password|firebase|firestore/i);
+  assert.doesNotMatch(wafdeenFeature, /cloudClient|MajdLocalDataAPI|fetch\(|teachersData|wafdeenStudents|firebase|firestore/i);
+  assert.doesNotMatch(wafdeenFeature, /(?:teacher|currentTeacher\(\))\.password|password_hash|password_salt/i, 'the UI must not read stored credentials');
+  assert.match(wafdeenFeature, /createWafdeenTeacher\(\{ username, password, assignedClass, center \}\)/, 'only a newly entered initial password is submitted');
+  assert.doesNotMatch(adminApiSource, /teacher\?\.password|password_hash|password_salt/i);
+  const teacherProjection = adminHelperSource.match(/const TEACHER_SELECT = '([^']+)'/)?.[1] || '';
+  assert.doesNotMatch(teacherProjection, /password|hash|salt|\*/i);
+  assert.match(adminHelperSource, /\.insert\(row\)/);
+  assert.doesNotMatch(adminHelperSource, /\.upsert\(|\.delete\(/);
   assert.doesNotMatch(mockStoreSource, /password|wafdeenStudents/i);
 });
 
@@ -134,6 +143,17 @@ test('source and public bridges expose the same narrow Wafdeen session operation
   assert.ok(bridge.includes(createMethod));
   assert.match(sourceBridge, /createWafdeenSession'\]\.includes\(String\(op\)\)/);
   assert.match(bridge, /createWafdeenSession'\]\.includes\(String\(op\)\)/);
+  for (const method of ['addWafdeenStudent', 'listWafdeenTeachers', 'createWafdeenTeacher']) {
+    assert.match(sourceBridge, new RegExp(`${method}: async function`));
+    assert.match(bridge, new RegExp(`${method}: async function`));
+  }
+  const authPosition = edgeSource.indexOf('const u = await authenticate(');
+  for (const op of ['addWafdeenStudent', 'listWafdeenTeachers', 'createWafdeenTeacher']) {
+    const opPosition = edgeSource.indexOf(`if (b.op === "${op}")`);
+    assert.ok(opPosition > authPosition, `${op} must be behind existing session authentication`);
+  }
+  assert.match(edgeSource, /createWafdeenTeacher\(db!, u, admin, b\.teacher, passHash\)/);
+  assert.match(adminHelperSource, /if \(typeof isAdmin !== 'function' \|\| !isAdmin\(user\)\) return \{ status: 403, error: 'FORBIDDEN' \}/);
 });
 
 test('frontend API adapter validates names using a mocked browser API only', async () => {

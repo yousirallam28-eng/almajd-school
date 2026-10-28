@@ -1227,8 +1227,8 @@
 <section class="hidden" data-wafdeen-panel="students" id="wafdeen-student-admin">
 <div class="card-view">
 <h4 class="card-title">👨‍🎓 إدارة قائمة الطلاب</h4>
-<p>الأرشفة تخفي الطالب من الاختيار فقط، ولا تحذف درجاته أو سجلاته السابقة.</p>
-<p class="hidden" id="wafdeen-student-admin-notice" role="status">عرض الطلاب هنا للقراءة فقط عند الاتصال الحي؛ لا تُجرى تغييرات على قائمة Supabase من هذه الجلسة.</p>
+<p>تُضاف أسماء الطلاب كسجلات قائمة جديدة؛ لا تُستبدل أو تُحذف الجلسات والدرجات السابقة.</p>
+<p id="wafdeen-student-admin-notice" role="status">يستطيع المدير إضافة أسماء جديدة فقط. سجلات الجلسات والدرجات السابقة تبقى كما هي.</p>
 <div id="wafdeen-student-admin-actions">
 <div class="form-grid"><div class="form-group"><label for="wafdeen-new-student-name">اسم الطالب:</label><input id="wafdeen-new-student-name" type="text"></div>
 <div class="form-group"><button class="action-btn btn-save" id="wafdeen-add-student" type="button">إضافة الطالب</button></div></div>
@@ -1239,8 +1239,22 @@
 <section class="hidden" data-wafdeen-panel="teachers" id="wafdeen-teacher-admin">
 <div class="card-view">
 <h4 class="card-title">👨‍🏫 إدارة المعلمين وصلاحية الوافدين</h4>
-<p id="wafdeen-teacher-admin-note" role="status">بيانات المعلمين هنا تجريبية فقط؛ تغيير الصلاحية يؤثر في ذاكرة الاختبار المحلية ولا يغيّر حسابات الموقع أو كلمات مروره.</p>
-<div class="table-responsive"><table id="wafdeen-teachers-table"><thead><tr><th>حساب المعلم</th><th>الصف</th><th>المركز</th><th>دخول واجهة الوافدين</th></tr></thead><tbody></tbody></table></div>
+<p id="wafdeen-teacher-admin-note" role="status">إضافة معلم تنشئ حسابًا جديدًا بصلاحية الوافدين، ولا تغيّر صلاحيات الحسابات الموجودة. لا تُعرض كلمات المرور المحفوظة.</p>
+<div class="hidden" id="wafdeen-teacher-admin-actions">
+<div class="form-grid">
+<div class="form-group"><label for="wafdeen-new-teacher-user">اسم المستخدم:</label><input autocomplete="username" id="wafdeen-new-teacher-user" maxlength="120" type="text"></div>
+<div class="form-group"><label for="wafdeen-new-teacher-password">كلمة مرور أولية (12 حرفًا على الأقل):</label><input autocomplete="new-password" id="wafdeen-new-teacher-password" minlength="12" maxlength="256" type="password"></div>
+<div class="form-group"><label for="wafdeen-new-teacher-class">الصف:</label><select id="wafdeen-new-teacher-class">
+<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
+<option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option><option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
+<option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option><option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option><option value="أولى شرعي">أولى شرعي</option>
+</select></div>
+<div class="form-group"><label for="wafdeen-new-teacher-center">المركز:</label><select id="wafdeen-new-teacher-center"><option value="رئيسي">معلم رئيسي</option><option value="مساعد">معلم مساعد</option></select></div>
+<div class="form-group"><button class="action-btn btn-save" id="wafdeen-add-teacher" type="button">إضافة المعلم</button></div>
+</div>
+<p>سيُطلب من المعلم تغيير كلمة المرور عند أول دخول.</p>
+</div>
+<div class="table-responsive"><table id="wafdeen-teachers-table"><thead><tr><th>حساب المعلم</th><th>الصف</th><th>المركز</th><th>صلاحية واجهة الوافدين</th></tr></thead><tbody></tbody></table></div>
 </div>
 </section>
 </div>

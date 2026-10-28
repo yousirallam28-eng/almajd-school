@@ -15,7 +15,7 @@
   var accountCollections = { teachers: true };
 
   async function request(op, fields, token) {
-    var isMutation = ['upsert', 'delete', 'bulkUpsert', 'importBatch', 'changePassword', 'createWafdeenSession'].includes(String(op));
+    var isMutation = ['upsert', 'delete', 'bulkUpsert', 'importBatch', 'changePassword', 'createWafdeenSession'].includes(String(op)) || ['addWafdeenStudent', 'createWafdeenTeacher'].includes(String(op));
     var data = fields && fields.data ? fields.data : {};
     var deletedFlag = data && data._deleted;
     var isDelete = op === 'delete' || (op === 'upsert' && (deletedFlag === true || deletedFlag === 1 || ['true','1','yes'].includes(String(deletedFlag || '').trim().toLowerCase())));
@@ -54,6 +54,7 @@
       } else if (op === 'bulkUpsert' || op === 'importBatch') showSavedToast('تم الحفظ');
       else if (op === 'delete') showSavedToast('تم الحذف');
       else if (op === 'createWafdeenSession') showSavedToast('تم حفظ جلسة الوافدين كسجل جديد');
+      else if (op === 'addWafdeenStudent' || op === 'createWafdeenTeacher') showSavedToast('تمت الإضافة بنجاح');
       return payload;
     } finally {
       if (isMutation) endLoadingOperation();
@@ -316,6 +317,9 @@
     listWafdeenStudentNames: async function () { quota.reads++; var r = await request('listWafdeenStudentNames', {}); if (!Array.isArray(r.names)) throw new Error('INVALID_NAMES_RESPONSE'); return Array.from(new Set(r.names.map(function (name) { return String(name || '').trim(); }).filter(Boolean))); },
     listWafdeenSessionData: async function (options) { quota.reads++; options = options || {}; var fields = { purpose: options.purpose === 'report' ? 'report' : 'daily' }; if (fields.purpose === 'report') fields.month = String(options.month || ''); var r = await request('listWafdeenSessionData', fields); if (!Array.isArray(r.students) || !Array.isArray(r.dailySessions) || !Array.isArray(r.usage)) throw new Error('INVALID_WAFDEEN_SESSION_RESPONSE'); return r; },
     createWafdeenSession: async function (session) { quota.writes++; var r = await request('createWafdeenSession', { session: session || {} }); if (!r || r.ok !== true) throw new Error('WAFDEEN_SESSION_NOT_SAVED'); return { ok: true }; },
+    addWafdeenStudent: async function (studentName) { quota.writes++; var r = await request('addWafdeenStudent', { studentName: String(studentName || '') }); if (!r || !r.student) throw new Error('WAFDEEN_STUDENT_NOT_ADDED'); return { student: r.student }; },
+    listWafdeenTeachers: async function () { quota.reads++; var r = await request('listWafdeenTeachers', {}); if (!Array.isArray(r.teachers)) throw new Error('INVALID_WAFDEEN_TEACHERS_RESPONSE'); return r.teachers; },
+    createWafdeenTeacher: async function (teacher) { quota.writes++; var r = await request('createWafdeenTeacher', { teacher: teacher || {} }); if (!r || !r.teacher) throw new Error('WAFDEEN_TEACHER_NOT_ADDED'); return { teacher: r.teacher }; },
     updateVerified: async function (c, id, patch) { var old = await w.MajdLocalDataAPI.readRecord(c, id) || {}; return w.MajdLocalDataAPI.writeRecord(c, id, Object.assign({}, old, patch || {}, { id: String(id) }), { merge: true }); },
     saveAndVerifySharia: async function (id, record) { return w.MajdLocalDataAPI.writeRecord('shariaGrades', id, record, { merge: true }); },
     migrateLegacyDailyRecords: async function () { return false; },

@@ -1,4 +1,5 @@
 import { canListWafdeenStudentNames } from './wafdeen_names.js';
+import { listWafdeenRoster } from './wafdeen_admin.js';
 
 export const DAILY_SESSION_SELECT = [
   'data->>studentId',
@@ -162,6 +163,14 @@ async function findKnownStudent(db, user, isAdmin, studentId, studentName) {
     if (error) throw error;
     if ((data || []).some((row) => String(row.studentId || '') === studentId && String(row.studentName || '') === studentName)) return true;
   }
+  const { data, error } = await db.from('majd_records')
+    .select(STUDENT_SELECT)
+    .eq('collection', 'wafdeenRoster')
+    .eq('data->>studentId', studentId)
+    .eq('data->>studentName', studentName)
+    .limit(1);
+  if (error) throw error;
+  if ((data || []).some((row) => String(row.studentId || '') === studentId && String(row.studentName || '') === studentName)) return true;
   return false;
 }
 
@@ -220,7 +229,11 @@ export async function listWafdeenSessionData(db, user, isAdmin, options = {}) {
   const usagePromise = purpose === 'report'
     ? readCollection(db, 'wafdeenUsage', USAGE_SESSION_SELECT, user, isAdmin, filters)
     : Promise.resolve([]);
-  const [dailyRows, usageRows] = await Promise.all([dailyPromise, usagePromise]);
+  const rosterPromise = purpose === 'daily'
+    ? listWafdeenRoster(db, user, isAdmin)
+    : Promise.resolve({ status: 200, students: [] });
+  const [dailyRows, usageRows, rosterResult] = await Promise.all([dailyPromise, usagePromise, rosterPromise]);
+  if (rosterResult.status !== 200) return { status: rosterResult.status, error: rosterResult.error };
   const dailySessions = dailyRows.map((row) => {
     const safe = keepOnly(row, dailySafeFields);
     if (Object.prototype.hasOwnProperty.call(safe, 'quranSessionTimeByType')) safe.quranSessionTimeByType = keepOnlyQuranTimes(safe.quranSessionTimeByType);
@@ -229,6 +242,11 @@ export async function listWafdeenSessionData(db, user, isAdmin, options = {}) {
   const usage = usageRows.map((row) => keepOnly(row, USAGE_SAFE_FIELDS));
   const studentsById = new Map();
   if (purpose === 'daily') {
+    for (const row of rosterResult.students) {
+      const studentId = String(row.studentId || '').trim();
+      const studentName = String(row.studentName || '').trim();
+      if (studentId && studentName && !studentsById.has(studentId)) studentsById.set(studentId, { studentId, studentName });
+    }
     for (const row of dailySessions) {
       const studentId = String(row.studentId || '').trim();
       const studentName = String(row.studentName || '').trim();

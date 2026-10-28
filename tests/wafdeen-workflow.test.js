@@ -130,7 +130,9 @@ test('removing class support does not add a client-side deletion of historical r
   assert.match(storage, /writeRecord: async function/);
   assert.match(storage, /deleteRecord: async function/);
   assert.match(storage, /hydrateMain\(\)/);
-  assert.doesNotMatch(storage, /wafdeenLogin|hydrateWafdeen|refreshWafdeenViews|findWafdeenRecord|saveWafdeenUsage|loadWafdeen|getWafdeenMonthlyReports|wafdeenTeachers|wafdeenStudents|wafdeenDailyRecords|wafdeenUsage/i);
+  const storageWithoutScopedTeacherList = storage.replace(/^\s*listWafdeenTeachers: async function \(\) \{[^\n]*\},\n/gm, '');
+  assert.match(storage, /listWafdeenTeachers: async function/);
+  assert.doesNotMatch(storageWithoutScopedTeacherList, /wafdeenLogin|hydrateWafdeen|refreshWafdeenViews|findWafdeenRecord|saveWafdeenUsage|loadWafdeen|getWafdeenMonthlyReports|wafdeenTeachers|wafdeenStudents|wafdeenDailyRecords|wafdeenUsage/i);
   assert.doesNotMatch(optionalCompat, /wafdeen|الوافدين/i);
   assert.doesNotMatch(main, /(?:writeRecord|deleteRecord)\(['"]wafdeen/i);
   assert.doesNotMatch(publicMain, /(?:writeRecord|deleteRecord)\(['"]wafdeen/i);
