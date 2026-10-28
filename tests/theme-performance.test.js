@@ -15,9 +15,9 @@ const themeStylesheetIds = [
   'final-contrast-overrides'
 ];
 
-test('theme stylesheets stay separate in Vite production HTML with their switcher IDs', () => {
+test('theme links retain Vite IDs and fall back to direct GitHub Pages public paths', () => {
   for (const id of themeStylesheetIds) {
-    assert.match(html, new RegExp(`<link[^>]*href="%BASE_URL%appearance/[^"]+"[^>]*id="${id}"`));
+    assert.match(html, new RegExp(`<link[^>]*href="%BASE_URL%appearance/[^\"]+"[^>]*id="${id}"[^>]*onerror="[^"]*public/appearance/`));
   }
 });
 
