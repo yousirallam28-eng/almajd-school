@@ -11,6 +11,18 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="معهد المجد" name="apple-mobile-web-app-title"/>
+<script id="appearance-bootstrap">
+(function () {
+  var appearance = 'new';
+  try { appearance = window.localStorage.getItem('almajd-site-appearance') === 'old' ? 'old' : 'new'; } catch (error) {}
+  document.documentElement.setAttribute('data-site-appearance', appearance);
+  window.__almajdSiteAppearance = appearance;
+  window.__setAlmajdAppearanceStyles = function (ids, mode) {
+    var media = mode === 'old' ? 'not all' : 'all';
+    ids.forEach(function (id) { var stylesheet = document.getElementById(id); if (stylesheet) stylesheet.media = media; });
+  };
+})();
+</script>
 <!-- خطوط عربية أصيلة -->
 <!-- مكتبة تصدير الإكسل SheetJS -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -35,7 +47,8 @@
 <link rel="stylesheet" href="legacy/css/style-13.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/style-14.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/style-15.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="legacy/css/style-16.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')"><link rel="stylesheet" href="legacy/css/modern-almajd-theme.js.css" id="modern-almajd-theme" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
+<link rel="stylesheet" href="legacy/css/style-16.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
+<link rel="stylesheet" href="legacy/css/modern-almajd-theme.js.css" id="modern-almajd-theme" media="not all" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/style-18.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/monthly-result-v15-fix.js.css" id="monthly-result-v15-fix" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/result-display-v16.js.css" id="result-display-v16" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
@@ -44,8 +57,9 @@
 <link rel="stylesheet" href="legacy/css/wafdeen-time-report-style.js.css" id="wafdeen-time-report-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/sharia-mode-style.js.css" id="sharia-mode-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/sharia-simple-daily-style.js.css" id="sharia-simple-daily-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="%BASE_URL%appearance/wafdeen-redesign.css?v=3" id="wafdeen-redesign" onerror="this.onerror=null;this.href='public/appearance/wafdeen-redesign.css?v=3'">
-<link rel="stylesheet" href="%BASE_URL%appearance/unified-reference-theme.css?v=4" id="unified-reference-theme" onerror="this.onerror=null;this.href='public/appearance/unified-reference-theme.css?v=4'">
+<link rel="stylesheet" href="%BASE_URL%appearance/wafdeen-redesign.css?v=3" id="wafdeen-redesign" media="not all" onerror="this.onerror=null;this.href='public/appearance/wafdeen-redesign.css?v=3'">
+<link rel="stylesheet" href="%BASE_URL%appearance/unified-reference-theme.css?v=4" id="unified-reference-theme" media="not all" onerror="this.onerror=null;this.href='public/appearance/unified-reference-theme.css?v=4'">
+<script id="appearance-bootstrap-head-styles">window.__setAlmajdAppearanceStyles(['modern-almajd-theme','wafdeen-redesign','unified-reference-theme'], window.__almajdSiteAppearance);</script>
 </head>
 <body class="login-screen-active" data-standalone="normal">
 <!-- نوافذ الموقع الداخلية: لا تستخدم نوافذ المتصفح confirm/prompt/alert -->
@@ -1428,9 +1442,10 @@
 
 
 <link rel="stylesheet" href="legacy/css/quick-registration-style.js.css" id="quick-registration-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="legacy/css/wafdeen-same-theme.css" id="wafdeen-same-theme" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="%BASE_URL%appearance/liquid-glass-theme.css?v=glass-5" id="liquid-glass-theme" onerror="this.onerror=null;this.href='public/appearance/liquid-glass-theme.css?v=glass-5'">
-<link rel="stylesheet" href="%BASE_URL%appearance/final-contrast-overrides.css?v=16" id="final-contrast-overrides" onerror="this.onerror=null;this.href='public/appearance/final-contrast-overrides.css?v=16'">
+<link rel="stylesheet" href="legacy/css/wafdeen-same-theme.css" id="wafdeen-same-theme" media="not all" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
+<link rel="stylesheet" href="%BASE_URL%appearance/liquid-glass-theme.css?v=glass-5" id="liquid-glass-theme" media="not all" onerror="this.onerror=null;this.href='public/appearance/liquid-glass-theme.css?v=glass-5'">
+<link rel="stylesheet" href="%BASE_URL%appearance/final-contrast-overrides.css?v=16" id="final-contrast-overrides" media="not all" onerror="this.onerror=null;this.href='public/appearance/final-contrast-overrides.css?v=16'">
+<script id="appearance-bootstrap-body-styles">window.__setAlmajdAppearanceStyles(['wafdeen-same-theme','liquid-glass-theme','final-contrast-overrides'], window.__almajdSiteAppearance);</script>
 <script id="quick-registration-feature" data-inlined-from="./js/features/quick-registration.js" src="legacy/js/js__features__quick-registration.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 
 

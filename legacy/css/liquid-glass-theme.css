@@ -2195,3 +2195,35 @@ body:not(.login-screen-active) {
     filter: none !important;
   }
 }
+
+/* Performance: preserve the glass look on desktop without the heaviest blur or shadow animation. */
+@media (hover: hover) and (pointer: fine) and (min-width: 651px) {
+  html[data-site-appearance="new"] body :is(.login-card, #login-screen, #wafdeen-login-screen, #results-screen, #student-login-screen) {
+    -webkit-backdrop-filter: blur(12px) saturate(145%) !important;
+    backdrop-filter: blur(12px) saturate(145%) !important;
+  }
+
+  html[data-site-appearance="new"] #app-screen :is(.section-card, .panel, .card-view, .admin-card, .quick-entry-panel,
+    .analysis-chart-card, .analysis-time-card, .analysis-week-comparison, .student-portal-section, .table-responsive,
+    .report-card, .summary-card, .class-box),
+  html[data-site-appearance="new"] #wafdeen-app-screen :is(.wafdeen-panel, .wafdeen-monitor-card, .wafdeen-daily-panel),
+  html[data-site-appearance="new"] #app-screen :is(.institute-header, .sidebar-nav, .user-bar, .main-menu-handle),
+  html[data-site-appearance="new"] #wafdeen-app-screen :is(.wafdeen-topbar, .wafdeen-drawer),
+  html[data-site-appearance="new"] #app-screen :is(.toast-msg, .site-modal-box, .modal-content, .modal-card),
+  html[data-site-appearance="new"] #wafdeen-app-screen :is(.toast-msg, .site-modal-box, .modal-content, .modal-card) {
+    -webkit-backdrop-filter: blur(8px) saturate(135%) !important;
+    backdrop-filter: blur(8px) saturate(135%) !important;
+  }
+
+  html[data-site-appearance="new"] #app-screen :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+  html[data-site-appearance="new"] #wafdeen-app-screen :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    -webkit-backdrop-filter: blur(6px) saturate(130%) !important;
+    backdrop-filter: blur(6px) saturate(130%) !important;
+    transition: border-color .14s ease, background-color .14s ease, color .14s ease !important;
+  }
+
+  html[data-site-appearance="new"] #app-screen :is(button, .action-btn, .tab-btn, .result-link-btn, .student-login-link-btn),
+  html[data-site-appearance="new"] #wafdeen-app-screen :is(button, .action-btn, .tab-btn) {
+    transition: transform .16s ease, background-color .16s ease, color .16s ease !important;
+  }
+}

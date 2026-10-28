@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   var preferenceKey = 'almajd-site-appearance';
-  var newThemeStylesheetIds = ['wafdeen-redesign','unified-reference-theme','liquid-glass-theme','final-contrast-overrides'];
+  var newThemeStylesheetIds = ['modern-almajd-theme','wafdeen-redesign','unified-reference-theme','wafdeen-same-theme','liquid-glass-theme','final-contrast-overrides'];
   var chartAppearanceUpdatePending = false;
   function scheduleChartAppearanceUpdate() {
     if (chartAppearanceUpdatePending || typeof window.updateStudentDataAnalysisAppearance !== 'function') return;
@@ -17,7 +17,11 @@
     var useNewAppearance = appearance !== 'old';
     var normalizedAppearance = useNewAppearance ? 'new' : 'old';
     document.documentElement.setAttribute('data-site-appearance', normalizedAppearance);
-    newThemeStylesheetIds.forEach(function (id) { var stylesheet = document.getElementById(id); if (stylesheet) stylesheet.disabled = !useNewAppearance; });
+    if (typeof window.__setAlmajdAppearanceStyles === 'function') {
+      window.__setAlmajdAppearanceStyles(newThemeStylesheetIds, normalizedAppearance);
+    } else {
+      newThemeStylesheetIds.forEach(function (id) { var stylesheet = document.getElementById(id); if (stylesheet) stylesheet.media = useNewAppearance ? 'all' : 'not all'; });
+    }
     var button = document.getElementById('theme-switcher');
     var currentLabel = document.getElementById('theme-switcher-current');
     var label = useNewAppearance ? 'الشكل الجديد' : 'الشكل القديم';
