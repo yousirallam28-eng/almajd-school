@@ -25,6 +25,11 @@ test('theme links retain Vite IDs and fall back to direct GitHub Pages public pa
   }
 });
 
+test('changed appearance assets use fresh cache-busting versions', () => {
+  assert.match(html, /liquid-glass-theme\.css\?v=glass-6/);
+  assert.match(html, /theme-switcher\.js\?v=3/);
+});
+
 test('saved appearance is applied before theme stylesheets can paint over the old design', () => {
   assert.ok(appearanceBootstrap, 'an early appearance bootstrap must be present in the document head');
   assert.ok(html.indexOf('id="appearance-bootstrap"') < html.indexOf('id="modern-almajd-theme"'));
