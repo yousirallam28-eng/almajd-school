@@ -12,7 +12,7 @@
   var REQUEST_TIMEOUT_MS = 20000;
   var lastConnectionError = null;
   var quota = { reads: 0, writes: 0, deletes: 0, date: new Date().toISOString().slice(0, 10) };
-  var accountCollections = { teachers: true, wafdeenTeachers: true, wafdeenStudents: true };
+  var accountCollections = { teachers: true };
 
   async function request(op, fields, token) {
     var isMutation = ['upsert', 'delete', 'bulkUpsert', 'importBatch', 'changePassword'].includes(String(op));
@@ -240,19 +240,6 @@
     w.teachersData = map.teachers || (w.currentTeacher ? [Object.assign({}, w.currentTeacher)] : []);
     try { memoryStorage.setItem('studentsData', JSON.stringify(w.studentsData)); memoryStorage.setItem('dailyRecords', JSON.stringify(w.dailyRecords)); memoryStorage.setItem('shariaGradesData', JSON.stringify(w.shariaGradesData)); memoryStorage.setItem('notesData', JSON.stringify(w.notesData)); memoryStorage.setItem('resultsData', JSON.stringify(w.resultsData)); memoryStorage.setItem('teachersData', JSON.stringify(w.teachersData)); } catch (_) {}
   }
-  async function hydrateWafdeen() {
-    var names = ['wafdeenTeachers', 'wafdeenStudents', 'wafdeenDailyRecords', 'wafdeenExams', 'wafdeenUsage', 'wafdeenSettings', 'wafdeenMonthlyReports'];
-    var pairs = await Promise.all(names.map(async function (name) { try { return [name, await readAll(name)]; } catch (_) { return [name, []]; } }));
-    var map = Object.fromEntries(pairs);
-    w.wafdeenTeachersData = map.wafdeenTeachers || [];
-    w.wafdeenStudentsData = map.wafdeenStudents || [];
-    w.wafdeenDailyRecords = map.wafdeenDailyRecords || [];
-    w.wafdeenExamsData = map.wafdeenExams || [];
-    w.wafdeenUsageData = map.wafdeenUsage || [];
-    try { memoryStorage.setItem('wafdeenTeachersData', JSON.stringify(w.wafdeenTeachersData)); memoryStorage.setItem('wafdeenStudentsData', JSON.stringify(w.wafdeenStudentsData)); memoryStorage.setItem('wafdeenDailyRecords', JSON.stringify(w.wafdeenDailyRecords)); memoryStorage.setItem('wafdeenExamsData', JSON.stringify(w.wafdeenExamsData)); memoryStorage.setItem('wafdeenUsageData', JSON.stringify(w.wafdeenUsageData)); } catch (_) {}
-    if (typeof w.wafdeenLocalReadyResolve === 'function') { w.wafdeenLocalReady = true; w.wafdeenLocalReadyResolve(true); }
-    return true;
-  }
   function setLoadStatus(rootId, text, isError) {
     var root = document.getElementById(rootId);
     if (!root) return;
@@ -285,14 +272,6 @@
       ['renderTeachersTable', 'renderStudentsTable', 'renderClassCards', 'populateAnalysisStudents', 'populateAnalysisWeeks'].forEach(safelyRefresh);
     }
     ['ensureAllClassSelects_', 'populatePaymentsClasses', 'updatePaymentsStudentList', 'populatePaymentReportClasses', 'updatePaymentReportStudentList', 'populateNotesClasses', 'updateNotesStudentList', 'updateStudentListDropdown', 'populateWeeks', 'renderDailyTable', 'renderAttendanceTable', 'renderWeeklyTable', 'renderMonthlyReport', 'renderManagerView', 'renderClassStatusTable', 'renderNotesTable', 'renderPaymentReportTable', 'renderPaymentsTable', 'renderTopStudents', 'refreshDailyRecordsVerificationVisibility_'].forEach(safelyRefresh);
-  }
-  function refreshWafdeenViews() {
-    if (!w.currentWafdeenTeacher) return;
-    ['wafdeenRenderStudentSelect', 'wafdeenRenderQuranCounters', 'refreshWafdeenMainLog_'].forEach(safelyRefresh);
-    if (w.currentWafdeenTeacher.isAdmin) ['wafdeenRenderTeachersTable', 'wafdeenRenderStudentsTable', 'wafdeenReportPanelInit'].forEach(safelyRefresh);
-    var panels = ['daily', 'materials', 'grades', 'educationTime', 'localReview', 'teachers', 'students', 'report'];
-    var active = panels.find(function (name) { var el = document.getElementById('wafdeen-panel-' + name); return el && !el.classList.contains('hidden'); });
-    if (active && typeof w.wafdeenShowPanel === 'function') { try { w.wafdeenShowPanel(active); } catch (e) { console.warn('تعذر تحديث لوحة الوافدين:', e); } }
   }
   async function changeInitialPassword(currentPassword) {
     var first = w.prompt('هذه أول مرة تسجل فيها. أنشئ كلمة مرور جديدة (12 حرفًا على الأقل):');
@@ -335,7 +314,6 @@
     updateVerified: async function (c, id, patch) { var old = await w.MajdLocalDataAPI.readRecord(c, id) || {}; return w.MajdLocalDataAPI.writeRecord(c, id, Object.assign({}, old, patch || {}, { id: String(id) }), { merge: true }); },
     saveAndVerifySharia: async function (id, record) { return w.MajdLocalDataAPI.writeRecord('shariaGrades', id, record, { merge: true }); },
     migrateLegacyDailyRecords: async function () { return false; },
-    saveByAction: async function (action, record) { var c = String(action).toLowerCase().includes('monthly') ? 'wafdeenMonthlyReports' : 'wafdeenExams'; return w.MajdLocalDataAPI.writeRecord(c, record.id, record, { merge: true }); },
     getPayments: async function () { return readAll('payments'); },
     savePayment: async function (record) { return w.MajdLocalDataAPI.writeRecord('payments', record.id, record, { merge: true }); },
     deletePayment: async function (id) { await w.MajdLocalDataAPI.deleteRecord('payments', id); return { deleted: true }; },
@@ -343,9 +321,6 @@
     dailyQuotaRead: function () { return Object.assign({}, quota); },
     findStudentByLoginCode: async function (code) { var r = await publicRequest('findStudentByLoginCode', { code: String(code || '') }); if (!r.student) return null; w.studentsData = [r.student]; w.dailyRecords = r.dailyRecords || []; return r.student; }, findResultByCode: async function (code) { var r = await publicRequest('findResultByCode', { code: String(code || '') }); return r.result || null; },
     flushLocalRenderQueue: async function () { return true; },
-    findWafdeenRecord: async function (id) { id = String(id); var ref = { id: id, update: function (patch) { return w.MajdLocalDataAPI.writeRecord('wafdeenDailyRecords', id, patch, { merge: true }); }, get: async function () { var r = await w.MajdLocalDataAPI.readRecord('wafdeenDailyRecords', id); return { id: id, exists: !!r, data: function () { return r; } }; }, delete: function () { return w.MajdLocalDataAPI.deleteRecord('wafdeenDailyRecords', id); } }; var rec = await w.MajdLocalDataAPI.readRecord('wafdeenDailyRecords', id); return rec ? ref : null; },
-    saveWafdeenUsage: async function (record) { return w.MajdLocalDataAPI.writeRecord('wafdeenUsage', record.id, record, { merge: true }); },
-    loadWafdeen: hydrateWafdeen,
     loadBooks: async function () { var r = await booksRequest('list'); return r.books || []; }, uploadBook: async function (file, title, level, subject, onProgress) {
       if (!file || file.size > 25 * 1024 * 1024 || !/\.pdf$/i.test(file.name || '')) throw new Error('اختر ملف PDF حجمه 25 ميجابايت أو أقل.');
       if (!sessionToken) throw new Error('UNAUTHORIZED');
@@ -362,7 +337,6 @@
         return done.book;
       } finally { endLoadingOperation(); }
     }, deleteBookFromDrive: async function (id) { await booksRequest('delete', { id: String(id) }); return true; },
-    getWafdeenMonthlyReports: async function () { return readAll('wafdeenMonthlyReports'); }
   };
   w.localdataWriteRecord_ = async function (c, id, data, options) { return w.MajdLocalDataAPI.writeRecord(c, id, data, options); };
   w.deletelocaldataRecord = async function (c, id) { return w.MajdLocalDataAPI.deleteRecord(c, id); };
@@ -403,53 +377,10 @@
     var ok = await w.siteConfirm('تأكيد تسجيل الخروج', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟', 'تسجيل الخروج', true);
     if (!ok) return;
     loadGeneration++;
-      sessionToken = ''; try { sessionStorage.removeItem('majdSessionToken'); } catch (_) {} w.currentTeacher = null; w.currentWafdeenTeacher = null;
-    memoryStorage.removeItem('currentTeacher'); memoryStorage.removeItem('currentWafdeenTeacher');
+      sessionToken = ''; try { sessionStorage.removeItem('majdSessionToken'); } catch (_) {} w.currentTeacher = null;
+    memoryStorage.removeItem('currentTeacher');
     w.showLoginScreen();
   };
-  w.wafdeenLogin = async function () {
-    var username = (document.getElementById('wafdeenUsername') || {}).value || '';
-    var password = (document.getElementById('wafdeenPassword') || {}).value || '';
-    if (!username.trim() || !password) return w.showMessage('wafdeen-login-msg', 'يرجى إدخال اسم المستخدم وكلمة المرور', 'error');
-    showLoadingCard('جارٍ التحقق من بيانات الدخول...');
-    try {
-      w.currentWafdeenTeacher = await doLogin(username.trim(), password, 'wafdeen');
-      memoryStorage.setItem('currentWafdeenTeacher', JSON.stringify(w.currentWafdeenTeacher));
-      var ticket = ++loadGeneration;
-      w.showWafdeenAppScreen();
-      showLoadingCard('تم الدخول؛ جارٍ تحميل بيانات الطلاب...');
-      setLoadStatus('wafdeen-app-screen', 'تم تسجيل الدخول؛ جارٍ تحميل البيانات. انتظر لحظات قبل إجراء التعديلات.', false);
-      hydrateWafdeen().then(function () {
-        if (ticket !== loadGeneration || !w.currentWafdeenTeacher) return;
-        refreshWafdeenViews();
-        setLoadStatus('wafdeen-app-screen', '', false);
-        hideLoadingCard();
-      }).catch(function (e) {
-        if (ticket !== loadGeneration || !w.currentWafdeenTeacher) return;
-        console.error('تحميل بيانات الوافدين بعد الدخول:', e);
-        hideLoadingCard();
-        setLoadStatus('wafdeen-app-screen', 'تم الدخول، لكن تعذر تحميل البيانات الآن. تحقق من الاتصال ثم أعد المحاولة.', true);
-      });
-    } catch (e) {
-      hideLoadingCard();
-      sessionToken = '';
-      w.showMessage('wafdeen-login-msg', e.status === 401 ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : (e.message || 'تعذر الاتصال بالخادم. حاول مرة أخرى.'), 'error');
-    }
-  };
-
-
-  w.wafdeenLogout = async function () {
-    var message = (w.wafdeenTimerRunning || w.wafdeenElapsedSeconds > 0) ? 'يوجد وقت غير محفوظ. هل تريد تسجيل الخروج دون حفظه؟' : 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
-    var ok = await w.siteConfirm('تأكيد تسجيل الخروج', message, 'تسجيل الخروج', true);
-    if (!ok) return;
-    loadGeneration++;
-    if (typeof w.wafdeenStopInterval === 'function') w.wafdeenStopInterval();
-    sessionToken = ''; w.currentWafdeenTeacher = null;
-    memoryStorage.removeItem('currentWafdeenTeacher');
-    if (typeof w.wafdeenResetTimer === 'function') w.wafdeenResetTimer();
-    w.showLoginScreen();
-  };
-
   w.MajdLocalDataAPI.flushLocalRenderQueue = function () { return Promise.resolve(true); };
   w.MajdLocalDataAPI.isConnected = function () { return !!sessionToken; };
 })(window);

@@ -1,0 +1,6 @@
+/* Shared layout containment for charts and analysis panels. */
+.analysis-charts-grid,
+.analysis-time-card,
+.analysis-week-comparison {
+  contain: layout style;
+}

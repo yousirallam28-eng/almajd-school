@@ -11,12 +11,12 @@ test('legacy assets are externalized and modular entry is present', () => {
   assert.ok(!html.includes('function addTeacher()'));
 });
 
-test('sheikh registration excludes preparatory and wafdeen classes', () => {
+test('sheikh registration only exports supported classes', () => {
   assert.doesNotMatch(html, /<select id="sheikhRegClassSelect"[\s\S]*?<option value="تمهيدي">/);
   assert.doesNotMatch(html, /<select id="sheikhRegClassSelect"[\s\S]*?<option value="الوافدين">/);
   const sheikhCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
   assert.match(sheikhCode, /function isSheikhRegistrationExportClass_\(className\)/);
-  assert.match(sheikhCode, /لا يمكن تصدير التمهيدي أو الوافدين/);
+  assert.match(sheikhCode, /return ALL_CLASSES\.includes\(normalized\) && normalized !== 'تمهيدي'/);
 });
 
 test('sheikh registration supports exporting a selected date range', () => {
@@ -116,7 +116,7 @@ test('buttons use orange feedback in the new appearance and golden yellow in the
   assert.match(feedback, /--button-feedback-text: #302400;/);
   assert.match(feedback, /background: var\(--button-feedback-background\) !important/);
   assert.match(feedback, /background-color 240ms ease/);
-  assert.match(feedback, /:is\(\.active,\.selected,\.is-active,/);
+  assert.match(feedback, /:is\(\s*\.active,\s*\.selected,\s*\.is-active,/);
   assert.match(feedback, /\[aria-pressed="true"\]/);
   assert.equal(fallbackFeedback, feedback);
   assert.match(feedback, /:focus-visible/);

@@ -195,11 +195,6 @@
 }
 #login-screen .result-link-btn{border-right:4px solid #0b6e5c !important;}
 #login-screen .student-login-link-btn{border-right:4px solid #c9a227 !important;}
-#login-screen .modern-quick-btn[onclick="showWafdeenLoginScreen()"]{
-  border-right:4px solid #5d4594 !important;
-  background:#f7f4fb !important;
-  color:#5d4594 !important;
-}
 #login-screen #login-msg{
   position:relative;
   z-index:2;

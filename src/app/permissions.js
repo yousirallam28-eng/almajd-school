@@ -7,7 +7,8 @@ export function isSupervisor(teacher = window.currentTeacher) {
 }
 
 export function canOpenFeature(feature, teacher = window.currentTeacher) {
+  if (feature === 'wafdeen-time') return false;
   if (isAdmin(teacher)) return true;
-  if (feature === 'expenses' || feature === 'notes' || feature === 'status' || feature === 'top-students' || feature === 'wafdeen-time') return Boolean(teacher);
+  if (feature === 'expenses' || feature === 'notes' || feature === 'status' || feature === 'top-students') return Boolean(teacher);
   return !isSupervisor(teacher) || feature === 'status';
 }

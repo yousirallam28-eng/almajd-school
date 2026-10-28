@@ -1,6 +1,0 @@
-/* ===== ./css/28-wafdeen-performance-v5-css.css ===== */
-
-/* لا نغير التصميم؛ هذه الخصائص تقلل تكلفة رسم العناصر المخفية/خارج الشاشة فقط. */
-.wafdeen-heavy-table,.analysis-charts-grid,.analysis-time-card,.analysis-week-comparison{
-  contain:layout style;
-}

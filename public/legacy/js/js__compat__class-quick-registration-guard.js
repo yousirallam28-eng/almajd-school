@@ -1,11 +1,11 @@
 /* ===== ./js/compat/class-quick-registration-guard.js ===== */
 
 (function(){
-  var CANONICAL_CLASSES=["تمهيدي","الوافدين","أولى - أولاد","أولى - بنات","ثانية - أولاد","ثانية - بنات","ثالثة - أولاد","ثالثة - بنات","رابعة - أولاد","رابعة - بنات","خامسة - أولاد","خامسة - بنات","أولى شرعي"];
+  var CANONICAL_CLASSES=["تمهيدي","أولى - أولاد","أولى - بنات","ثانية - أولاد","ثانية - بنات","ثالثة - أولاد","ثالثة - بنات","رابعة - أولاد","رابعة - بنات","خامسة - أولاد","خامسة - بنات","أولى شرعي"];
   function guard(){
     try{
       if(!Array.isArray(window.ALL_CLASSES)||!window.ALL_CLASSES.length) window.ALL_CLASSES=CANONICAL_CLASSES.slice();
-      window.GENERAL_CLASSES=window.ALL_CLASSES.filter(function(c){return String(c).trim()!=='الوافدين';});
+      if(!Array.isArray(window.GENERAL_CLASSES)||!window.GENERAL_CLASSES.length) window.GENERAL_CLASSES=window.ALL_CLASSES;
       if(typeof window.renderClassCards==='function') window.renderClassCards();
     }catch(e){console.warn('class guard:',e);}
     try{

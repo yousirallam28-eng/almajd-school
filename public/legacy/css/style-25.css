@@ -1,33 +1,16 @@
 /* ===== ./css/25-block.css ===== */
-
-.wafdeen-monitor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:stretch}
-.wafdeen-monitor-card{height:100%;box-sizing:border-box}
-.wafdeen-monitor-title{font-size:1.35rem;font-weight:900;margin-bottom:10px}
-.wafdeen-edu-box{display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;background:linear-gradient(135deg,#1f2937,#111827);border:2px solid rgba(255,255,255,.14);border-radius:14px;color:#fff;cursor:pointer;text-align:right;padding:16px 18px;font-size:1.2rem;font-weight:900;transition:.2s;box-shadow:0 4px 12px rgba(0,0,0,.15)}
-.wafdeen-edu-box:hover{transform:translateY(-1px);border-color:var(--accent-gold-light);box-shadow:0 6px 16px rgba(0,0,0,.2)}
-.wafdeen-edu-box:active{transform:scale(.99)}
-.wafdeen-monitor-card h4{margin:14px 0 8px;font-size:1rem}
-@media(max-width:800px){.wafdeen-monitor-grid{grid-template-columns:1fr}}
-.wafdeen-grades-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-.wafdeen-grade-student-btn{width:100%;text-align:right;padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.05);color:inherit;cursor:pointer;font-weight:800}
-.wafdeen-grade-student-btn:hover,.wafdeen-grade-student-btn.active{border-color:var(--accent-gold-light);background:rgba(255,255,255,.09)}
-.wafdeen-grade-summary{padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;font-weight:900;min-height:20px}
- .wafdeen-grade-period-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.wafdeen-grade-period-btn{flex:1;min-width:100px;padding:10px 14px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface);color:var(--ink);font-family:inherit;font-weight:800;cursor:pointer}.wafdeen-grade-period-btn.active{background:linear-gradient(120deg,var(--primary-color),var(--primary-dark));color:#fff;border-color:var(--accent-gold)}.wafdeen-grade-period-panel{overflow:auto}.wafdeen-grade-period-panel table{width:100%;min-width:900px;border-collapse:collapse}.wafdeen-grade-period-panel th,.wafdeen-grade-period-panel td{padding:9px 7px;border:1px solid var(--border-soft);text-align:center;font-size:.84em}.wafdeen-grade-period-panel th{background:linear-gradient(180deg,var(--brand-dark-2),var(--primary-dark));color:var(--on-dark-gold)}.wafdeen-grade-period-panel tbody tr:nth-child(even){background:var(--surface-alt)}.wafdeen-grade-period-panel .grade-total{font-weight:900;color:var(--primary-color)}
+@media(max-width:800px){}
 
 
-/* تحسين عرض قائمة درجات الوافدين: بطاقة رأسية مناسبة للهاتف */
-.grade-missing,.missing-cell{color:#d90429!important;background:#fff0f1!important;border:1px solid #ffb3bd;border-radius:7px;padding:3px 7px;font-weight:900;display:inline-block}
-.grade-time,.recorded-time{color:#0b6b53!important;font-weight:900}
+/* تحسين عرض بطاقات الدرجات على الهاتف */
+.grade-missing, .missing-cell{color:#d90429!important;background:#fff0f1!important;border:1px solid #ffb3bd;border-radius:7px;padding:3px 7px;font-weight:900;display:inline-block}
+.recorded-time{color:#0b6b53!important;font-weight:900}
 .field-missing{border:2px solid #e63946!important;background:#fff5f5!important;box-shadow:0 0 0 2px rgba(230,57,70,.08)}
 .field-missing-group>label{color:#c1121f!important;font-weight:900}
-.wafdeen-grade-period-panel{overflow:visible!important}
-.wafdeen-horizontal-grades{width:100%;box-sizing:border-box;margin-bottom:14px}.wafdeen-horizontal-scroll{width:100%;overflow-x:auto!important;overflow-y:hidden;-webkit-overflow-scrolling:touch}.wafdeen-horizontal-grade-table{width:max-content;min-width:1200px;border-collapse:collapse;direction:rtl}.wafdeen-horizontal-grade-table th,.wafdeen-horizontal-grade-table td{white-space:nowrap;vertical-align:middle}.wafdeen-horizontal-grade-table td{min-width:90px}.wafdeen-horizontal-grade-table .grade-missing{display:inline-block}.wafdeen-horizontal-grade-table .grade-time{white-space:nowrap}.wafdeen-horizontal-grade-table .grade-total{font-size:1.05em}
-
-.wafdeen-grade-record-card{width:100%;box-sizing:border-box;border:1px solid var(--border-soft);border-radius:16px;background:var(--surface);margin:0 0 14px;padding:12px;box-shadow:0 3px 12px rgba(0,0,0,.06)}
 .grade-record-head{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-bottom:10px;margin-bottom:8px;border-bottom:2px solid var(--border-soft);color:var(--primary-dark)}
 .grade-record-fields{display:flex;flex-direction:column;gap:7px}
 .grade-record-row{display:grid;grid-template-columns:minmax(125px,38%) 1fr;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px dashed var(--border-soft)}
 .grade-record-label{font-weight:900;color:var(--ink);font-size:.9rem}
 .grade-record-value{min-width:0;text-align:right;overflow-wrap:anywhere;font-weight:700}
 .grade-card-actions{display:flex;gap:8px;margin-top:12px}.grade-card-actions button{flex:1}
-@media(max-width:600px){.wafdeen-grade-record-card{padding:10px}.grade-record-row{grid-template-columns:1fr;gap:3px}.grade-record-label{font-size:.82rem;color:var(--primary-dark)}.grade-record-value{text-align:right}.grade-card-actions{flex-direction:column}}
+@media(max-width:600px){.grade-record-row{grid-template-columns:1fr;gap:3px}.grade-record-label{font-size:.82rem;color:var(--primary-dark)}.grade-record-value{text-align:right}.grade-card-actions{flex-direction:column}}

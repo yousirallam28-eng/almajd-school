@@ -40,9 +40,7 @@
 <script data-inlined-from="./js/core/optional-local-compat.js" src="legacy/js/js__core__optional-local-compat.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script data-inlined-from="./js/core/admin-analysis-visibility.js" src="legacy/js/js__core__admin-analysis-visibility.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <link rel="stylesheet" href="legacy/css/analysis-only-admin-sections.js.css" id="analysis-only-admin-sections" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="legacy/css/wafdeen-login-button-fix.js.css" id="wafdeen-login-button-fix" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="legacy/css/wafdeen-buttons-click-fix.js.css" id="wafdeen-buttons-click-fix" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="legacy/css/wafdeen-click-fix.js.css" id="wafdeen-click-fix" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
+<link rel="stylesheet" href="legacy/css/login-interaction-fix.css" id="login-interaction-fix" onerror="this.onerror=null;this.href='public/legacy/css/login-interaction-fix.css'">
 <link rel="stylesheet" href="legacy/css/all-buttons-same-color.js.css" id="all-buttons-same-color" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/style-13.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/style-14.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
@@ -54,12 +52,11 @@
 <link rel="stylesheet" href="legacy/css/result-display-v16.js.css" id="result-display-v16" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/result-display-v17.js.css" id="result-display-v17" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <meta content="V26" name="result-excel-reader-version">
-<link rel="stylesheet" href="legacy/css/wafdeen-time-report-style.js.css" id="wafdeen-time-report-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/sharia-mode-style.js.css" id="sharia-mode-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/sharia-simple-daily-style.js.css" id="sharia-simple-daily-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="%BASE_URL%appearance/wafdeen-redesign.css?v=4" id="wafdeen-redesign" media="not all" onerror="this.onerror=null;this.href='public/appearance/wafdeen-redesign.css?v=4'">
 <link rel="stylesheet" href="%BASE_URL%appearance/unified-reference-theme.css?v=5" id="unified-reference-theme" media="not all" onerror="this.onerror=null;this.href='public/appearance/unified-reference-theme.css?v=5'">
-<script id="appearance-bootstrap-head-styles">window.__setAlmajdAppearanceStyles(['modern-almajd-theme','wafdeen-redesign','unified-reference-theme'], window.__almajdSiteAppearance);</script>
+<link rel="stylesheet" href="%BASE_URL%appearance/almajd-global-redesign.css?v=1" id="almajd-global-redesign" media="not all" onerror="this.onerror=null;this.href='public/appearance/almajd-global-redesign.css?v=1'">
+<script id="appearance-bootstrap-head-styles">window.__setAlmajdAppearanceStyles(['modern-almajd-theme','almajd-global-redesign','unified-reference-theme'], window.__almajdSiteAppearance);</script>
 <link rel="stylesheet" href="legacy/css/button-press-feedback.css?v=3" id="button-press-feedback" onerror="this.onerror=null;this.href='public/legacy/css/button-press-feedback.css?v=3'">
 </head>
 <body class="login-screen-active" data-standalone="normal">
@@ -104,174 +101,7 @@
 <button class="action-btn student-login-link-btn modern-quick-btn" onclick="showStudentLoginScreen()" style="height: 44px;" type="button">
     👨‍👩‍👧‍👦 متابعة ولي الأمر
   </button>
-<button id="open-wafdeen-login-btn" class="action-btn modern-quick-btn" onclick="showWafdeenLoginScreen(event)" style="height: 44px; margin-top: 8px;" type="button">
-    🕒 دخول جلسة الوافدين
-  </button>
 </div>
-<!-- ================= جلسة الوافدين ================= -->
-<div id="wafdeen-login-screen" class="wafdeen-login-card hidden">
-  <img src="public/almajd-logo-round.png" class="login-logo-img" alt="شعار معهد المجد" onerror="handleImgError(this)">
-  <h2 class="wafdeen-title">🕒 جلسة الوافدين</h2>
-  <div class="wafdeen-subtitle">دخول المعلمين المخوّلين إلى جلسة الوافدين</div>
-  <div class="islamic-divider"><span>❖ 🕮 ❖</span></div>
-  <div class="modern-login-welcome">
-    <strong>مرحبًا بك 👋</strong>
-    <span>سجّل دخولك للمتابعة داخل جلسة الوافدين</span>
-  </div>
-  <div id="wafdeen-login-msg" class="toast-msg"></div>
-  <div class="form-group"><label>اسم المستخدم:</label><input id="wafdeenUsername" type="text" autocomplete="username" placeholder="اسم المستخدم"></div>
-  <div class="form-group"><label>كلمة المرور:</label><input id="wafdeenPassword" type="password" autocomplete="current-password" placeholder="كلمة المرور"></div>
-  <button type="button" class="action-btn btn-save" style="width:100%;height:48px" onclick="wafdeenLogin()">دخول جلسة الوافدين 🔐</button>
-  <button type="button" class="action-btn" style="width:100%;height:44px;margin-top:8px" onclick="showLoginScreen()">🔙 رجوع</button>
-</div>
-
-<div id="wafdeen-app-screen" class="hidden wafdeen-app">
-  <button id="wafdeen-menu-handle" class="wafdeen-menu-handle hidden" onclick="toggleWafdeenMenu()">☰ قائمة الوافدين</button>
-  <div id="wafdeen-menu-overlay" class="wafdeen-overlay" onclick="closeWafdeenMenu()"></div>
-  <aside id="wafdeen-drawer" class="wafdeen-drawer" aria-hidden="true">
-    <h3>📚 قائمة جلسة الوافدين</h3>
-    <button type="button" class="action-btn btn-save" style="width:100%;margin-bottom:8px" onclick="wafdeenShowPanel('daily')">📝 الرصد اليومي</button>
-    <button type="button" class="action-btn btn-save" style="width:100%;margin-bottom:8px" onclick="wafdeenShowPanel('grades')">🏆 الدرجات</button>
-
-    <button type="button" class="action-btn" style="width:100%;margin-top:20px" onclick="closeWafdeenMenu()">إغلاق القائمة ✖</button>
-  </aside>
-
-  <div class="wafdeen-topbar">
-    <div>
-      <h2 class="wafdeen-title" style="text-align:right;margin:0">جلسة الوافدين</h2>
-      <div class="wafdeen-subtitle" style="text-align:right;margin:0">المستخدم: <span id="wafdeen-teacher-name" class="wafdeen-selected"></span></div>
-    </div>
-    <button type="button" class="action-btn" onclick="wafdeenLogout()">تسجيل خروج 🚪</button>
-  </div>
-
-  <div id="wafdeen-panel-grades" class="wafdeen-panel hidden wafdeen-daily-panel">
-    <h3>🏆 الدرجات</h3>
-    <div class="wafdeen-panel">
-      <button type="button" class="action-btn btn-save" style="width:100%;margin-bottom:10px" onclick="wafdeenToggleGradesStudents()">👨‍🎓 أسماء الطلاب المسجلين <span id="wafdeen-grades-students-icon">▼</span></button>
-      <div id="wafdeen-grades-students-list" class="wafdeen-grades-list hidden"></div>
-    </div>
-    <div id="wafdeen-grades-details" class="wafdeen-panel hidden">
-      <h3>درجات الطالب: <span id="wafdeen-grades-student-name"></span></h3>
-      <div class="wafdeen-grade-period-tabs">
-        <button type="button" class="wafdeen-grade-period-btn active" onclick="wafdeenShowGradePeriod('today',this)">اليوم</button>
-        <button type="button" class="wafdeen-grade-period-btn" onclick="wafdeenShowGradePeriod('week',this)">الأسبوع</button>
-        <button type="button" class="wafdeen-grade-period-btn" onclick="wafdeenShowGradePeriod('month',this)">الشهر</button>
-      </div>
-      <div id="wafdeen-grade-today" class="wafdeen-grade-period-panel"></div>
-      <div id="wafdeen-grade-week" class="wafdeen-grade-period-panel hidden"></div>
-      <div id="wafdeen-grade-month" class="wafdeen-grade-period-panel hidden"></div>
-    </div>
-  </div>
-
-
-
-  <div id="wafdeen-panel-daily" class="wafdeen-panel wafdeen-daily-panel">
-    <h3>📝 الرصد اليومي</h3>
-    <div class="wafdeen-panel">
-      <h3>اختيار الطالب</h3>
-      <select id="wafdeenStudentSelect" style="width:100%;font-weight:800" onchange="wafdeenResetTimer();wafdeenUpdateDailyScoresVisibility()"></select>
-      <div id="wafdeen-student-info" class="wafdeen-note" style="margin-top:8px"></div>
-    </div>
-
-    <div class="wafdeen-monitor-grid">
-      <div class="wafdeen-panel wafdeen-monitor-card wafdeen-edu-card">
-        <button type="button" class="wafdeen-edu-box" onclick="toggleWafdeenQuranMonitor()" aria-expanded="false">
-          <span>📖 القرآن الكريم</span><span id="wafdeen-quran-toggle-icon">▼</span>
-        </button>
-        <div id="wafdeen-quran-monitor-content" class="hidden">
-          <div class="wafdeen-note">اختر نوع التسميع ثم استخدم مؤقت القرآن الكريم بشكل مستقل.</div>
-          <h4>نوع التسميع</h4>
-          <div class="wafdeen-type-grid">
-            <button type="button" class="wafdeen-type-btn" data-quran-type="الجديد" onclick="selectWafdeenQuranType('الجديد',this)">الجديد</button>
-            <button type="button" class="wafdeen-type-btn" data-quran-type="الماضي" onclick="selectWafdeenQuranType('الماضي',this)">الماضي</button>
-            <button type="button" class="wafdeen-type-btn" data-quran-type="التلاوة" onclick="selectWafdeenQuranType('التلاوة',this)">التلاوة</button>
-          </div>
-          <div class="wafdeen-timer-box">
-            <div id="wafdeen-quran-timer">00:00:00</div>
-            <div id="wafdeen-quran-timer-status" class="wafdeen-timer-status">جلسة تسميع واحدة تشمل الجديد والماضي والتلاوة — اضغط بدء الجلسة</div>
-          </div>
-          <div class="wafdeen-controls">
-            <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStartPause()">بدء الجلسة</button>
-            <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStartPause(true)">استراحة</button>
-            <button type="button" class="action-btn btn-save" onclick="wafdeenQuranStopTimer()">إنهاء الجلسة وحفظ الوقت</button>
-            <button type="button" class="action-btn" onclick="wafdeenQuranReset()">جلسة جديدة</button>
-          </div>
-
-          <div id="wafdeen-daily-scores-panel" class="wafdeen-panel wafdeen-daily-scores">
-      <h3>📝 الدرجات بالمعيار</h3>
-      <div class="wafdeen-note">استخدم السهم ▲ للزيادة والسهم ▼ للنقصان. كل ضغطة تغيّر العدد بمقدار واحد. كل خطأ = درجة، وكل تشكيل = نصف درجة، وكل تردد = ربع درجة. الدرجة تبدأ من 10 وتُخصم تلقائيًا، بحد أدنى صفر.</div>
-
-      <div class="wafdeen-error-counters">
-        <div class="wafdeen-error-counter">
-          <div class="counter-label">❌ أخطاء</div>
-          <div id="wafdeen-counter-errors" class="counter-value">0</div>
-          <div class="wafdeen-counter-arrows">
-            <button type="button" class="wafdeen-counter-arrow" aria-label="إضافة خطأ" onclick="event.preventDefault();wafdeenIncrementCounter('errors');return false;">▲</button>
-            <button type="button" class="wafdeen-counter-arrow" aria-label="حذف خطأ" onclick="event.preventDefault();wafdeenDecrementCounter('errors');return false;">▼</button>
-          </div>
-          <div class="counter-weight">درجة كاملة</div>
-        </div>
-        <div class="wafdeen-error-counter">
-          <div class="counter-label">◌ تشكيل</div>
-          <div id="wafdeen-counter-tashkeel" class="counter-value">0</div>
-          <div class="wafdeen-counter-arrows">
-            <button type="button" class="wafdeen-counter-arrow" aria-label="إضافة تشكيل" onclick="event.preventDefault();wafdeenIncrementCounter('tashkeel');return false;">▲</button>
-            <button type="button" class="wafdeen-counter-arrow" aria-label="حذف تشكيل" onclick="event.preventDefault();wafdeenDecrementCounter('tashkeel');return false;">▼</button>
-          </div>
-          <div class="counter-weight">نصف درجة</div>
-        </div>
-        <div class="wafdeen-error-counter">
-          <div class="counter-label">🔁 تردد</div>
-          <div id="wafdeen-counter-repetition" class="counter-value">0</div>
-          <div class="wafdeen-counter-arrows">
-            <button type="button" class="wafdeen-counter-arrow" aria-label="إضافة تردد" onclick="event.preventDefault();wafdeenIncrementCounter('repetition');return false;">▲</button>
-            <button type="button" class="wafdeen-counter-arrow" aria-label="حذف تردد" onclick="event.preventDefault();wafdeenDecrementCounter('repetition');return false;">▼</button>
-          </div>
-          <div class="counter-weight">ربع درجة</div>
-        </div>
-      </div>
-
-      <div class="wafdeen-score-summary">
-        <div class="wafdeen-auto-score"><div class="score-label">الجديد</div><div id="wafdeen-auto-new" class="score-value">10</div></div>
-        <div class="wafdeen-auto-score"><div class="score-label">الماضي</div><div id="wafdeen-auto-old" class="score-value">10</div></div>
-        <div class="wafdeen-auto-score"><div class="score-label">التلاوة</div><div id="wafdeen-auto-recitation" class="score-value">10</div></div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group"><label>درجة الجديد (تلقائي):</label><input type="number" id="wafdeenNewLesson" min="0" max="10" step="0.25" readonly></div>
-        <div class="form-group"><label>عدد الصفحات (الجديد):</label><input type="text" id="wafdeenNewPagesCount" placeholder="عدد الصفحات"></div>
-        <div class="form-group"><label>مقرر الجديد الذي تم تسميعه:</label><input type="text" id="wafdeenNewTopicRecited" placeholder="المقرر الذي تم تسميعه"></div>
-        <div class="form-group"><label>درجة الماضي (تلقائي):</label><input type="number" id="wafdeenOldRevision" min="0" max="10" step="0.25" readonly></div>
-        <div class="form-group"><label>عدد الصفحات (الماضي):</label><input type="text" id="wafdeenOldPagesCount" placeholder="عدد الصفحات"></div>
-        <div class="form-group"><label>مقرر الماضي الذي تم تسميعه:</label><input type="text" id="wafdeenOldTopicRecited" placeholder="المقرر الذي تم تسميعه"></div>
-        <div class="form-group"><label>درجة التلاوة (تلقائي):</label><input type="number" id="wafdeenRecitation" min="0" max="10" step="0.25" readonly></div>
-        <div class="form-group"><label>عدد الصفحات/الأجزاء (التلاوة):</label><input type="text" id="wafdeenRecitationPagesCount" placeholder="عدد الصفحات أو الأجزاء"></div>
-        <div class="form-group"><label>مقرر التلاوة الذي تم تسميعه:</label><input type="text" id="wafdeenRecitationTopicRecited" placeholder="المقرر الذي تم تسميعه"></div>
-      </div>
-      <div class="wafdeen-score-total">المجموع: <span id="wafdeen-auto-total">30</span> من 30</div>
-      <div class="wafdeen-daily-save">
-        <button type="button" class="action-btn btn-save" onclick="saveWafdeenDailyRecord()">💾 حفظ الرصد اليومي</button>
-        <button type="button" class="action-btn btn-danger" onclick="markWafdeenAbsent()">🚫 غياب (صفر في كل الخانات)</button>
-      </div>
-    </div>
-
-        </div>
-      </div>
-
-
-    </div>
-
-    <div id="wafdeen-save-msg" class="toast-msg" style="margin-top:12px"></div>
-  </div>
-
-
-
-
-
-
-
-</div>
-
 <!-- شاشة عرض النتيجة بالكود (بدون تسجيل دخول) -->
 <!-- شاشة النتائج بالكود: فصل كامل بين الطلاب والتمهيدي -->
 <div class="login-card hidden" id="results-screen">
@@ -380,7 +210,6 @@
 <button class="tab-btn reports-toggle" id="sheikh-recordings-menu-btn" onclick="toggleSheikhRecordingsMenu(event)" type="button">📋 تسجيلات الشيوخ <span class="reports-chevron">⌄</span></button>
 <div class="reports-submenu" id="sheikh-recordings-submenu">
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" type="button">📋 تسجيل الشيوخ</button>
-<button class="tab-btn" id="wafdeen-time-tab-btn" onclick="switchTab('wafdeen-time-tab', event)" type="button">⏱️ وقت الوافدين</button>
 <button class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)" type="button">🗒️ الملاحظات</button>
 </div>
 </div>
@@ -523,7 +352,7 @@
 <label>السلوك (10):</label>
 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
 <input id="behavior" max="10" min="0" readonly="" required="" style="max-width:90px;" type="number" value="10">
-<button class="action-btn btn-warning" onclick="wafdeenToggleBehaviorPanel('daily')" style="padding:6px 12px;font-size:.82em;min-width:auto;" type="button">📋 اختيار سبب الخصم إن وُجد</button>
+<button class="action-btn btn-warning" onclick="toggleBehaviorPanel('daily')" style="padding:6px 12px;font-size:.82em;min-width:auto;" type="button">📋 اختيار سبب الخصم إن وُجد</button>
 </input></div>
 <div class="daily-score-note" id="daily-behavior-summary">لا يوجد خصم — الدرجة: 10/10</div>
 <div class="behavior-reason-grid" id="daily-behavior-grid"></div>
@@ -534,17 +363,17 @@
 <div class="form-group fifth-hide-on-class"><label>مقرر الجديد اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="newTopicToday" placeholder="اكتب مقرر الجديد اليوم..." required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الجديد):</label><input id="newPagesCount" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="اكتب عدد الصفحات بالأرقام فقط" required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الجديد الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="newTopicRecited" placeholder="اكتب مقرر الجديد الذي تم تسميعه..." required="" type="text"/></div>
-<div class="form-group fifth-hide-on-class wafdeen-hide-count"><label>عدد التسميع (الجديد):</label><select id="newRecitationCount" onchange="updateDailyRecitationGrade('new')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
+<div class="form-group fifth-hide-on-class "><label>عدد التسميع (الجديد):</label><select id="newRecitationCount" onchange="updateDailyRecitationGrade('new')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 <div class="form-group fifth-hide-on-class"><label>الماضي (10):<span class="daily-score-time" id="oldRevisionTimeLabel"></span></label><input class="daily-grade-input daily-auto-grade" disabled="" id="oldRevision" max="10" min="0" oninput="enforceDailyRecitationGrade('old')" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" readonly="" required="" type="number"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الماضي اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="oldTopicToday" placeholder="اكتب مقرر الماضي اليوم..." required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>عدد الصفحات (الماضي):</label><input id="oldPagesCount" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="اكتب عدد الصفحات بالأرقام فقط" required="" type="text"/></div>
 <div class="form-group fifth-hide-on-class"><label>مقرر الماضي الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="oldTopicRecited" placeholder="اكتب مقرر الماضي الذي تم تسميعه..." required="" type="text"/></div>
-<div class="form-group fifth-hide-on-class wafdeen-hide-count"><label>عدد التسميع (الماضي):</label><select id="oldRecitationCount" onchange="updateDailyRecitationGrade('old')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
+<div class="form-group fifth-hide-on-class "><label>عدد التسميع (الماضي):</label><select id="oldRecitationCount" onchange="updateDailyRecitationGrade('old')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 <div class="form-group"><label>التلاوة (10):<span class="daily-score-time" id="recitationTimeLabel"></span></label><input class="daily-grade-input daily-auto-grade" disabled="" id="recitation" max="10" min="0" oninput="enforceDailyRecitationGrade('recitation')" placeholder="الدرجة تلقائيًا حسب الأخطاء والتشكيل والتردد" readonly="" required="" type="number"/></div>
 <div class="form-group"><label>مقرر التلاوة اليوم <span style="color:var(--danger-color);">*</span>:</label><input id="recitationTopicToday" placeholder="اكتب مقرر التلاوة اليوم..." required="" type="text"/></div>
 <div class="form-group"><label>عدد الصفحات/الأجزاء (التلاوة):</label><input id="recitationPagesCount" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="اكتب عدد الصفحات أو الأجزاء بالأرقام فقط" required="" type="text"/></div>
 <div class="form-group"><label>مقرر التلاوة الذي تم تسميعه <span style="color:var(--danger-color);">*</span>:</label><input id="recitationTopicRecited" placeholder="اكتب مقرر التلاوة الذي تم تسميعه..." required="" type="text"/></div>
-<div class="form-group wafdeen-hide-count"><label>عدد التسميع (التلاوة):</label><select id="recitationRecitationCount" onchange="updateDailyRecitationGrade('recitation')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
+<div class="form-group "><label>عدد التسميع (التلاوة):</label><select id="recitationRecitationCount" onchange="updateDailyRecitationGrade('recitation')" required=""><option selected="" value="1">مرة</option><option value="2">مرتين</option><option value="3">ثلاث مرات</option></select></div>
 <div class="form-group"><label>الواجب (10):</label><input id="homework" max="10" min="0" placeholder="0-10" required="" type="number"/></div>
 <div class="form-group"><label>📖 التجويد (10) — يُضاف إلى المجموع:</label><input id="tajweed" max="10" min="0" placeholder="0-10" required="" type="number"/></div>
 </div>
@@ -886,75 +715,6 @@
 <div class="classes-cards-grid" id="topStudentsClasses"></div>
 </div>
 </div>
-<!-- 7.5 تبويب وقت الوافدين -->
-<div class="tab-content" id="sharia-grades-tab">
-<div class="card-view">
-<h3 class="card-title">📚 درجات الشرعي</h3>
-<div class="form-grid">
-<div class="form-group"><label>الفترة:</label><select id="shariaReportPeriod" onchange="renderShariaGradesReport()"><option value="day">اليوم</option><option value="week">الأسبوع</option><option value="month">الشهر</option></select></div>
-<div class="form-group"><label>التاريخ:</label><input id="shariaReportDate" onchange="renderShariaGradesReport()" type="date"/></div>
-</div>
-<div class="btn-group"><button class="action-btn btn-save" onclick="renderShariaGradesReport()" type="button">🔄 تحديث</button><button class="action-btn btn-export" onclick="exportToExcel('shariaGradesReportTable','درجات_الشرعي')" type="button">📊 تصدير إكسل</button></div>
-<div class="table-responsive"><table id="shariaGradesReportTable"><thead><tr><th>التاريخ</th><th>الطالب</th><th>الشيخ</th><th>الحضور</th><th>المقرر</th><th>السلوك</th><th>درجة الامتحان / 100</th></tr></thead><tbody></tbody></table></div>
-</div></div>
-<div class="tab-content" id="wafdeen-time-tab">
-<div class="card-view">
-<h3 class="card-title">⏱️ وقت الوافدين</h3>
-<p style="font-size:.92em;color:#666;margin-top:-6px;">تقرير المدير اليومي والأسبوعي والشهري لوقت الجديد والماضي والتلاوة، ومدة كل جلسة تسميع ووقت التعليم، مع التصدير إلى Excel.</p>
-<div class="wafdeen-time-period-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-<button class="action-btn btn-save active" id="wafdeen-time-day-btn" onclick="setWafdeenTimePeriod('day')" type="button">📅 تقرير اليوم</button>
-<button class="action-btn" id="wafdeen-time-week-btn" onclick="setWafdeenTimePeriod('week')" type="button">📆 تقرير الأسبوع</button>
-<button class="action-btn" id="wafdeen-time-month-btn" onclick="setWafdeenTimePeriod('month')" type="button">🗓️ تقرير الشهر</button>
-</div>
-<div class="form-grid" style="align-items:end;">
-<div class="form-group" id="wafdeen-time-day-field">
-<label>اليوم:</label>
-<input id="wafdeenTimeDay" onchange="renderWafdeenTimeReport()" type="date"/>
-</div>
-<div class="form-group hidden" id="wafdeen-time-week-field">
-<label>أي يوم داخل الأسبوع:</label>
-<input id="wafdeenTimeWeekDate" onchange="renderWafdeenTimeReport()" type="date"/>
-</div>
-<div class="form-group hidden" id="wafdeen-time-month-field">
-<label>الشهر:</label>
-<input id="wafdeenTimeMonth" onchange="renderWafdeenTimeReport()" type="month"/>
-</div>
-</div>
-<div id="wafdeenTimePeriodLabel" style="font-weight:800;color:var(--primary-dark);margin:8px 0 12px;"></div>
-<div class="btn-group">
-<button class="action-btn btn-save" onclick="renderWafdeenTimeReport()" type="button">🔄 تحديث التقرير</button>
-<button class="action-btn btn-export" onclick="exportWafdeenTimeReportExcel()" type="button">📊 تصدير إكسل</button>
-</div>
-</div>
-<div class="card-view">
-<div class="table-responsive">
-<table id="wafdeenTimeReportTable">
-<thead><tr><th>الشيخ</th><th>وقت الجديد الكامل لكل الطلاب</th><th>وقت الماضي الكامل لكل الطلاب</th><th>وقت التلاوة</th><th>مدة جلسة التسميع</th><th>وقت التعليم</th><th>المجموع الكامل</th></tr></thead>
-<tbody id="wafdeenTimeReportBody"></tbody>
-</table>
-</div>
-<div id="wafdeenTimeReportEmpty" style="display:none;text-align:center;color:#777;padding:20px;">لا توجد بيانات وقت للمدة المحددة.</div>
-</div>
-<div class="card-view" style="margin-top:18px;">
-<h3 class="card-title">📚 إدارة وقت التعليم — المدير</h3>
-<p style="font-size:.9em;color:#666;">يُسجل الوقت في السحابة مربوطًا بالمدرس والطالب والمادة والتاريخ. يمكن تعديل السجلات من الجدول.</p>
-<div class="form-grid">
-<div class="form-group"><label>المدرس المخوّل:</label><select id="wafdeenEduTeacher" onchange="renderWafdeenEduStudents()"><option value="">اختر المدرس</option></select></div>
-<div class="form-group"><label>الطالب:</label><select id="wafdeenEduStudent"><option value="">اختر الطالب</option></select></div>
-<div class="form-group"><label>المادة:</label><select id="wafdeenEduSubject"><option value="فقه">فقه</option><option value="منطق">منطق</option><option value="حديث">حديث</option><option value="اللغة العربية">اللغة العربية</option></select></div>
-<div class="form-group"><label>التاريخ:</label><input id="wafdeenEduDate" type="date"></div>
-<div class="form-group"><label>المدة (بالدقائق):</label><input id="wafdeenEduMinutes" type="number" min="1" step="1" placeholder="مثال: 30"></div>
-</div>
-<button class="action-btn btn-save" type="button" onclick="saveWafdeenEducationTimeAsManager()">💾 حفظ وقت التعليم سحابيًا</button><div class="toast-msg" id="wafdeen-manager-msg"></div>
-<div class="table-responsive" style="margin-top:14px"><table id="wafdeenEducationRecordsTable"><thead><tr><th>التاريخ</th><th>المدرس</th><th>الطالب</th><th>المادة</th><th>المدة</th><th>إجراء</th></tr></thead><tbody id="wafdeenEducationRecordsBody"></tbody></table></div>
-</div>
-<div class="card-view" style="margin-top:18px;">
-<h3 class="card-title">📊 تقرير درجات الوافدين</h3>
-<p style="font-size:.9em;color:#666;">يعرض سجلات الجديد والماضي والتلاوة وعدادات الأخطاء والمقررات ومدة التسميع ضمن الفترة المحددة أعلاه.</p>
-<div class="btn-group"><button class="action-btn btn-export" type="button" onclick="exportToExcel('wafdeenGradesReportTable','تقرير_درجات_الوافدين')">📊 تصدير درجات الوافدين</button></div>
-<div class="table-responsive"><table id="wafdeenGradesReportTable"><thead><tr><th>التاريخ</th><th>المدرس</th><th>الطالب</th><th>الجديد /10</th><th>أخطاء الجديد</th><th>مقرر الجديد</th><th>الماضي /10</th><th>أخطاء الماضي</th><th>مقرر الماضي</th><th>التلاوة /10</th><th>أخطاء التلاوة</th><th>مقرر التلاوة</th><th>مدة الجلسة</th></tr></thead><tbody id="wafdeenGradesReportBody"></tbody></table></div>
-</div>
-</div>
 <!-- 7. تبويب الملاحظات -->
 <div class="tab-content" id="notes-tab">
 <div class="card-view">
@@ -1037,7 +797,7 @@
 <div class="tab-content" id="total-expenses-tab">
   <div class="card-view">
     <h3 class="card-title">💰 إجمالي المصاريف</h3>
-    <p style="font-size:.9em;color:#666;margin-top:-6px;">إجمالي الدفعات المسجلة لكل طالب من سجلات قاعدة البيانات، مع استبعاد فصل الوافدين.</p>
+    <p style="font-size:.9em;color:#666;margin-top:-6px;">إجمالي الدفعات المسجلة للطلاب في الصفوف المعتمدة فقط.</p>
     <div id="total-expenses-status" role="status" aria-live="polite" style="margin:10px 0;color:var(--text-muted);">افتح التقرير لتحميل البيانات.</div>
     <div class="table-responsive notes-table" style="overflow-x:auto;">
       <table id="totalExpensesTable" style="min-width:680px;width:100%;">
@@ -1239,12 +999,6 @@
 <option value="الكل">مدير (جميع الصلاحيات)</option>
 </select>
 </div>
-<div class="form-group" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-<label style="margin:0;display:flex;align-items:center;gap:8px;cursor:pointer;">
-<input id="newTeacherWafdeen" style="width:20px;height:20px;" type="checkbox"/>
-السماح للشيخ بفصل الوافدين
-</label>
-</div>
 <div class="form-group">
 <label>الدور/المركز:</label>
 <select id="newTeacherCenter">
@@ -1276,7 +1030,7 @@
 <div class="table-responsive" style="margin-bottom: 22px;">
 <table id="teachersTable">
 <thead>
-<tr><th>اسم المستخدم</th><th>كلمة المرور</th><th>الصف المسند</th><th>فصل الوافدين</th><th>الدور/المركز</th><th>إجراءات والتعديل</th></tr>
+<tr><th>اسم المستخدم</th><th>كلمة المرور</th><th>الصف المسند</th><th>الدور/المركز</th><th>إجراءات والتعديل</th></tr>
 </thead>
 <tbody></tbody>
 </table>
@@ -1420,8 +1174,6 @@
 
 <script data-inlined-from="./js/compat/registration-button-compatibility.js" src="legacy/js/js__compat__registration-button-compatibility.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <link rel="stylesheet" href="legacy/css/style-25.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<script data-inlined-from="./js/features/wafdeen-application.js" src="legacy/js/js__features__wafdeen-application.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-<script data-inlined-from="./js/compat/wafdeen-quran-timer-exports.js" src="legacy/js/js__compat__wafdeen-quran-timer-exports.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script data-inlined-from="./js/core/daily-type-ui-init.js" src="legacy/js/js__core__daily-type-ui-init.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 
 <link rel="stylesheet" href="legacy/css/v10-date-fix-style.js.css" id="v10-date-fix-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
@@ -1431,22 +1183,17 @@
 <link rel="stylesheet" href="legacy/css/v35-button-fix.js.css" id="v35-button-fix" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <script id="v35-button-fix-script" data-inlined-from="./js/compat/results-button-bindings.js" src="legacy/js/js__compat__results-button-bindings.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script data-inlined-from="./js/compat/legacy-global-api-compatibility.js" src="legacy/js/js__compat__legacy-global-api-compatibility.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-<script data-inlined-from="./js/compat/standalone-mode-flags.js" src="legacy/js/js__compat__standalone-mode-flags.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-<script id="wafdeen-performance-v6" data-inlined-from="./js/features/wafdeen-performance.js" src="legacy/js/js__features__wafdeen-performance.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-<link rel="stylesheet" href="legacy/css/wafdeen-performance-v5-css.js.css" id="wafdeen-performance-v5-css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<!-- تعديل فصل الوافدين: نظام درجات مستقل من 30 + استبعاد المصروفات والملاحظات -->
-<link rel="stylesheet" href="legacy/css/wafdeen-30-rules.js.css" id="wafdeen-30-rules" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<script data-inlined-from="./js/features/daily-wafdeen-ui-rules.js" src="legacy/js/js__features__daily-wafdeen-ui-rules.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
+<link rel="stylesheet" href="legacy/css/analysis-performance.css" id="analysis-performance" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
+
 <script data-inlined-from="./js/features/sharia-report-date-init.js" src="legacy/js/js__features__sharia-report-date-init.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script data-inlined-from="./js/compat/stable-record-navigation-guard.js" src="legacy/js/js__compat__stable-record-navigation-guard.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script data-inlined-from="./js/features/daily-record-identity.js" src="legacy/js/js__features__daily-record-identity.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 
 
 <link rel="stylesheet" href="legacy/css/quick-registration-style.js.css" id="quick-registration-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="legacy/css/wafdeen-same-theme.css" id="wafdeen-same-theme" media="not all" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="%BASE_URL%appearance/liquid-glass-theme.css?v=glass-7" id="liquid-glass-theme" media="not all" onerror="this.onerror=null;this.href='public/appearance/liquid-glass-theme.css?v=glass-7'">
 <link rel="stylesheet" href="%BASE_URL%appearance/final-contrast-overrides.css?v=17" id="final-contrast-overrides" media="not all" onerror="this.onerror=null;this.href='public/appearance/final-contrast-overrides.css?v=17'">
-<script id="appearance-bootstrap-body-styles">window.__setAlmajdAppearanceStyles(['wafdeen-same-theme','liquid-glass-theme','final-contrast-overrides'], window.__almajdSiteAppearance);</script>
+<script id="appearance-bootstrap-body-styles">window.__setAlmajdAppearanceStyles(['liquid-glass-theme','final-contrast-overrides'], window.__almajdSiteAppearance);</script>
 <script id="quick-registration-feature" data-inlined-from="./js/features/quick-registration.js" src="legacy/js/js__features__quick-registration.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 
 
@@ -1454,29 +1201,22 @@
 
 
 
-</body>
+
 <script data-inlined-from="./js/core/local-file-startup-safety.js" src="legacy/js/js__core__local-file-startup-safety.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-</html>
-
-
 <script data-inlined-from="./js/features/sharia-and-daily-reports.js" src="legacy/js/js__features__sharia-and-daily-reports.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script data-inlined-from="./js/features/screen-wake-lock.js" src="legacy/js/js__features__screen-wake-lock.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script data-inlined-from="./js/features/background-timer-refresh.js" src="legacy/js/js__features__background-timer-refresh.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script data-inlined-from="./js/features/install-app-prompt.js" src="legacy/js/js__features__install-app-prompt.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script data-inlined-from="./js/compat/class-render-compatibility.js" src="legacy/js/js__compat__class-render-compatibility.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script id="final-class-quick-registration-guard" data-inlined-from="./js/compat/class-quick-registration-guard.js" src="legacy/js/js__compat__class-quick-registration-guard.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-
 <script id="daily-architecture-v2" data-inlined-from="./js/features/daily-records-state.js" src="legacy/js/js__features__daily-records-state.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-
 <script id="majd-local-removal-guard" src="legacy/js/majd-local-removal-guard.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-
 <script src="legacy/js/inline-28.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-
 <script id="total-expenses-report" src="legacy/js/total-expenses-report.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-
 <script id="numeric-pages-only" src="legacy/js/numeric-pages-only.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-
 <link rel="stylesheet" href="legacy/css/theme-switcher.css?v=1" id="theme-switcher-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <script src="legacy/js/theme-switcher.js?v=3" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script id="majd-button-sounds" src="legacy/js/button-sounds.js" onerror="this.onerror=null;this.src='public/legacy/js/button-sounds.js'"></script>
 <script type="module" src="src/main.js"></script>
+</body>
+</html>

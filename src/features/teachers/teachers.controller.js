@@ -2,7 +2,6 @@ import { addTeacherRecord, editTeacherRecord, removeTeacherRecord } from './teac
 
 const $ = (id) => document.getElementById(id);
 const value = (id) => $(id)?.value?.trim() || '';
-const checked = (id) => Boolean($(id)?.checked);
 const data = () => Array.isArray(window.teachersData) ? window.teachersData : [];
 const isAdmin = () => window.currentTeacher?.username === 'admin';
 const notify = (message, type = 'error') => window.showMessage?.('app-msg', message, type);
@@ -32,7 +31,7 @@ export async function editTeacher(id) {
   if (data().some((item) => String(item.id) !== String(id) && item.username === result.username)) {
     return error('اسم المستخدم موجود بالفعل لمعلم آخر.');
   }
-  const updated = { ...teacher, ...result, canWafdeen: Boolean(result.canWafdeen) };
+  const updated = { ...teacher, ...result };
   try {
     const saved = await editTeacherRecord(id, updated);
     const index = data().findIndex((item) => String(item.id) === String(id));
@@ -54,7 +53,6 @@ export async function addTeacher() {
     password: value('newTeacherPass'),
     assignedClass: $('newTeacherClass')?.value || '',
     center: $('newTeacherCenter')?.value || '',
-    canWafdeen: checked('newTeacherWafdeen'),
     updatedAt: new Date().toISOString()
   };
   if (!teacher.username || !teacher.password) return notify('يرجى إدخال البيانات كاملة', 'error');
@@ -67,7 +65,6 @@ export async function addTeacher() {
     notify('تم إضافة المعلم/المعلمة بنجاح', 'success');
     if ($('newTeacherUser')) $('newTeacherUser').value = '';
     if ($('newTeacherPass')) $('newTeacherPass').value = '';
-    if ($('newTeacherWafdeen')) $('newTeacherWafdeen').checked = false;
   } catch (cause) {
     console.error('[teachers] create failed', cause);
     notify(cause.message || 'تعذر رفع المعلم إلى السحابة. أعد تسجيل الدخول وحاول مرة أخرى.', 'error');
@@ -82,7 +79,7 @@ export function renderTeachersTable() {
     const actions = teacher.username === 'admin'
       ? '<span style="color:gray;">مدير النظام الرئيسي</span>'
       : `<button type="button" class="action-btn btn-edit" style="padding:3px 8px; min-width:auto;" onclick="editTeacher('${id}')">تعديل</button> <button type="button" class="action-btn btn-danger" style="padding:3px 8px; min-width:auto;" onclick="deleteTeacher('${id}')">حذف</button>`;
-    return `<tr><td style="font-weight:bold;">${escapeHtml(teacher.username)}</td><td title="كلمة المرور مخفية لأسباب أمنية">••••••</td><td>${escapeHtml(teacher.assignedClass)}</td><td>${teacher.canWafdeen ? '✅ مسموح' : '—'}</td><td>${escapeHtml(teacher.center)}</td><td>${actions}</td></tr>`;
+    return `<tr><td style="font-weight:bold;">${escapeHtml(teacher.username)}</td><td title="كلمة المرور مخفية لأسباب أمنية">••••••</td><td>${escapeHtml(teacher.assignedClass)}</td><td>${escapeHtml(teacher.center)}</td><td>${actions}</td></tr>`;
   }).join('');
 }
 

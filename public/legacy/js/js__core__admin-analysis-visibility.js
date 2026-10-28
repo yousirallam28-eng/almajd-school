@@ -56,14 +56,6 @@ var persistentAuthStorage = memoryStorage;
         analysis.querySelectorAll('#admin-tab,#backup-tab,#manager-tab,.admin-panel,.admin-section,[data-tab="admin"],[data-tab="backup"],[data-tab="manager"]')
             .forEach(function (el) { return el.style.setProperty('display', 'none', 'important'); });
     }
-    // يتم استدعاء دالة استعادة حالة التسجيل بعد اكتمال تحميل جميع كتل JavaScript.
-    // الدالة معرفة في كتلة لاحقة من الملف، لذلك استدعاؤها هنا مباشرة كان يسبب:
-    // ReferenceError: wafdeenRestoreRegistrationState_ is not defined
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof wafdeenRestoreRegistrationState_ === 'function') {
-            wafdeenRestoreRegistrationState_().catch(console.error);
-        }
-    });
     document.addEventListener('DOMContentLoaded', function () {
         hideAdminInsideAnalysis();
         var target = document.body;

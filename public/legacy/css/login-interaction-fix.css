@@ -1,0 +1,4 @@
+/* Shared pointer and touch behavior for the normal login card and quick links. */
+#login-screen { position: relative !important; z-index: 10000 !important; pointer-events: auto !important; }
+#login-screen .modern-quick-btn { position: relative !important; z-index: 10001 !important; pointer-events: auto !important; cursor: pointer !important; touch-action: manipulation; }
+body.login-screen-active #login-screen { pointer-events: auto !important; }

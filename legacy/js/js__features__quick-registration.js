@@ -27,7 +27,7 @@ var qEditingId='';
 function qtoggleEntryPanel(name){var panel=document.getElementById('quick-entry-panel'),gate=document.getElementById('quick-entry-gate'),ready=!!String(name||'').trim();if(panel){panel.classList.toggle('is-ready',ready);panel.setAttribute('aria-hidden',ready?'false':'true');}if(gate){gate.classList.toggle('is-hidden',ready);gate.textContent=ready?'تم اختيار الطالب — أدخل الدرجات ثم احفظ التسجيل.':'👤 اختر الطالب أولاً لعرض قائمة التسجيل';}}
 function qupdateSaveLock(record){var saveBtn=document.querySelector('#quick-registration-tab button[onclick="quickRegistrationSave()"]'),absentBtn=document.querySelector('#quick-registration-tab button[onclick="quickRegistrationSave(true)"]'),hasRecord=!!record,editing=hasRecord&&String(qEditingId)===String(record.id||record.recordId||'');[saveBtn,absentBtn].forEach(function(btn){if(!btn)return;var busy=btn.textContent.indexOf('جارٍ الحفظ')>=0;if(!busy)btn.disabled=hasRecord&&!editing;btn.title=hasRecord&&!editing?'تم تسجيل هذا الطالب. استخدم زر تعديل من القائمة لتعديل السجل.':'';});}
 function qbehaviorReasons(){
-  if(typeof WAFDEEN_BEHAVIOR_REASONS!=='undefined'&&Array.isArray(WAFDEEN_BEHAVIOR_REASONS))return WAFDEEN_BEHAVIOR_REASONS;
+  if(typeof DAILY_BEHAVIOR_REASONS!=='undefined'&&Array.isArray(DAILY_BEHAVIOR_REASONS))return DAILY_BEHAVIOR_REASONS;
   return [{key:'late',label:'التأخر عن الحصة'},{key:'talking',label:'كثرة الكلام'},{key:'not_ready',label:'عدم الاستعداد'},{key:'bad_behavior',label:'سلوك غير مناسب'}];
 }
 function qrenderBehaviorReasons(){

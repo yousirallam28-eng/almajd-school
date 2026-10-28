@@ -70,8 +70,7 @@ body:not(.login-screen-active) .tab-btn.active{
   border-color:var(--modern-green) !important;
   box-shadow:0 10px 22px rgba(11,110,92,.20) !important;
 }
-body:not(.login-screen-active) .card-view,
-body:not(.login-screen-active) .class-box{
+body:not(.login-screen-active) .card-view, body:not(.login-screen-active) .class-box{
   border:1px solid var(--modern-line) !important;
   border-top:3px solid var(--modern-green) !important;
   border-radius:20px !important;
@@ -92,9 +91,7 @@ body:not(.login-screen-active) label{
   color:#53625c !important;
   font-weight:800 !important;
 }
-body:not(.login-screen-active) input,
-body:not(.login-screen-active) select,
-body:not(.login-screen-active) textarea{
+body:not(.login-screen-active) input, body:not(.login-screen-active) select, body:not(.login-screen-active) textarea{
   min-height:46px;
   box-sizing:border-box;
   border:1.5px solid var(--modern-line) !important;
@@ -104,9 +101,7 @@ body:not(.login-screen-active) textarea{
   box-shadow:none !important;
   transition:border-color .2s,box-shadow .2s,background .2s,transform .2s;
 }
-body:not(.login-screen-active) input:focus,
-body:not(.login-screen-active) select:focus,
-body:not(.login-screen-active) textarea:focus{
+body:not(.login-screen-active) input:focus, body:not(.login-screen-active) select:focus, body:not(.login-screen-active) textarea:focus{
   border-color:var(--modern-green) !important;
   background:#fff !important;
   box-shadow:0 0 0 4px rgba(11,110,92,.09) !important;
@@ -195,17 +190,14 @@ body:not(.login-screen-active) .main-menu-panel button{
 }
 body:not(.login-screen-active) .form-grid{gap:16px !important;}
 body:not(.login-screen-active) .classes-cards-grid{gap:18px !important;}
-body:not(.login-screen-active) .section-header,
-body:not(.login-screen-active) .panel-header{
+body:not(.login-screen-active) .section-header, body:not(.login-screen-active) .panel-header{
   border-radius:18px !important;
 }
-body:not(.login-screen-active) .wafdeen-error-counter,
 body:not(.login-screen-active) .daily-error-counter{
   background:#fff !important;
   border-color:var(--modern-line) !important;
   box-shadow:0 6px 16px rgba(18,58,36,.06);
 }
-body:not(.login-screen-active) .wafdeen-counter-arrow,
 body:not(.login-screen-active) .daily-counter-arrow{
   background:linear-gradient(135deg,#0b6e5c,#075442) !important;
   border-color:#075442 !important;

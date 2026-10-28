@@ -10,7 +10,7 @@ const liquidTheme = readFileSync(new URL('../legacy/css/liquid-glass-theme.css',
 const appearanceTransitionStyles = [
   '../legacy/css/modern-almajd-theme.js.css',
   '../public/legacy/css/modern-almajd-theme.js.css',
-  '../public/appearance/wafdeen-redesign.css',
+  '../public/appearance/almajd-global-redesign.css',
   '../public/appearance/unified-reference-theme.css',
   '../legacy/css/liquid-glass-theme.css',
   '../public/appearance/liquid-glass-theme.css'
@@ -19,13 +19,12 @@ const appearanceBootstrap = html.match(/<script id="appearance-bootstrap">([\s\S
 
 const themeStylesheetIds = [
   'modern-almajd-theme',
-  'wafdeen-redesign',
+  'almajd-global-redesign',
   'unified-reference-theme',
-  'wafdeen-same-theme',
   'liquid-glass-theme',
   'final-contrast-overrides'
 ];
-const publicAppearanceStylesheetIds = ['wafdeen-redesign', 'unified-reference-theme', 'liquid-glass-theme', 'final-contrast-overrides'];
+const publicAppearanceStylesheetIds = ['almajd-global-redesign', 'unified-reference-theme', 'liquid-glass-theme', 'final-contrast-overrides'];
 
 test('theme links retain Vite IDs and fall back to direct GitHub Pages public paths', () => {
   for (const id of publicAppearanceStylesheetIds) {
@@ -35,7 +34,7 @@ test('theme links retain Vite IDs and fall back to direct GitHub Pages public pa
 
 test('changed appearance assets use fresh cache-busting versions', () => {
   assert.match(html, /modern-almajd-theme\.js\.css\?v=theme-color-1/);
-  assert.match(html, /wafdeen-redesign\.css\?v=4/);
+  assert.match(html, /almajd-global-redesign\.css\?v=1/);
   assert.match(html, /unified-reference-theme\.css\?v=5/);
   assert.match(html, /liquid-glass-theme\.css\?v=glass-7/);
   assert.match(html, /final-contrast-overrides\.css\?v=17/);
@@ -44,12 +43,11 @@ test('changed appearance assets use fresh cache-busting versions', () => {
 
 test('new appearance covers public results, parent follow-up, quick registration, and login screens', () => {
   const finalOverrides = readFileSync(new URL('../public/appearance/final-contrast-overrides.css', import.meta.url), 'utf8');
-  assert.match(finalOverrides, /html\[data-site-appearance="new"\] #results-screen#results-screen section/);
-  assert.match(finalOverrides, /#results-screen#results-screen,#student-login-screen#student-login-screen[\s\S]*?\.result-display-v17-row/);
-  assert.match(finalOverrides, /#student-login-screen#student-login-screen #studentPortalArea[\s\S]*?student-portal-section/);
-  assert.match(finalOverrides, /#studentPortalArea#studentPortalArea[\s\S]*?\.result-field-label/);
-  assert.match(finalOverrides, /#app-screen#app-screen #quick-registration-tab/);
-  assert.match(finalOverrides, /#login-screen#login-screen\.login-card/);
+  assert.match(finalOverrides, /#results-screen\.login-card>div\[style\*="grid"\]>section/);
+  assert.match(finalOverrides, /#studentPortalArea \.student-portal-section/);
+  assert.match(finalOverrides, /#studentPortalArea \.result-field-label/);
+  assert.match(finalOverrides, /#app-screen \.quick-registration-toolbar/);
+  assert.match(finalOverrides, /#login-screen\.login-card/);
 });
 
 test('saved appearance is applied before theme stylesheets can paint over the old design', () => {
@@ -113,14 +111,14 @@ test('appearance switch updates linked styles, persists selection, and coalesces
   assert.equal(attrs.get('data-site-appearance'), 'old');
   assert.equal(stylesheets.get('liquid-glass-theme').media, 'not all');
   assert.equal(stylesheets.get('modern-almajd-theme').media, 'not all');
-  assert.equal(stylesheets.get('wafdeen-same-theme').media, 'not all');
+  assert.equal(stylesheets.get('almajd-global-redesign').media, 'not all');
   assert.equal(label.textContent, 'الشكل القديم');
 
   window.toggleSiteAppearance();
   assert.equal(attrs.get('data-site-appearance'), 'new');
   assert.equal(stylesheets.get('liquid-glass-theme').media, 'all');
   assert.equal(stylesheets.get('modern-almajd-theme').media, 'all');
-  assert.equal(stylesheets.get('wafdeen-same-theme').media, 'all');
+  assert.equal(stylesheets.get('almajd-global-redesign').media, 'all');
   assert.equal(localValues.get('almajd-site-appearance'), 'new');
   assert.equal(button.attributes['aria-pressed'], 'true');
   assert.equal(label.textContent, 'الشكل الجديد');

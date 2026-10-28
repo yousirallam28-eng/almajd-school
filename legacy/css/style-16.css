@@ -13,17 +13,17 @@
 body{background:radial-gradient(circle at 50% 0%,rgba(205,218,48,.20),transparent 28%),linear-gradient(180deg,#f7f4e7,#eef0dc) !important;color:#183d25 !important;}
 body:not(.login-screen-active) .container{background:rgba(255,254,247,.88)!important;border-color:rgba(214,174,54,.28)!important;}
 .institute-header{background:linear-gradient(135deg,#123f25,#246d3c,#6e8e25)!important;border-color:rgba(214,174,54,.65)!important;}
-.header-logo,.login-logo-img{background:#f7efc7!important;border-color:#d6ae36!important;outline-color:#f1d978!important;}
-.card-view,.class-box,.panel,.section-card{background:rgba(255,254,247,.96)!important;border-color:rgba(23,107,58,.16)!important;}
-.card-title,.section-title,.panel-title{color:#176b3a!important;}
-button.action-btn,.tab-btn.active,.daily-counter-arrow,.wafdeen-counter-arrow,#main-menu-handle{background:linear-gradient(135deg,#176b3a,#0d4b2a)!important;color:#fff!important;}
-button.action-btn:hover,.tab-btn.active:hover{background:linear-gradient(135deg,#1d7b43,#105d32)!important;}
+.header-logo, .login-logo-img{background:#f7efc7!important;border-color:#d6ae36!important;outline-color:#f1d978!important;}
+.card-view, .class-box, .panel, .section-card{background:rgba(255,254,247,.96)!important;border-color:rgba(23,107,58,.16)!important;}
+.card-title, .section-title, .panel-title{color:#176b3a!important;}
+button.action-btn, .tab-btn.active, .daily-counter-arrow, #main-menu-handle{background:linear-gradient(135deg,#176b3a,#0d4b2a)!important;color:#fff!important;}
+button.action-btn:hover, .tab-btn.active:hover{background:linear-gradient(135deg,#1d7b43,#105d32)!important;}
 th{background:linear-gradient(135deg,#176b3a,#0d4b2a)!important;color:#fff!important;border-bottom-color:#d6ae36!important;}
-input:focus,select:focus,textarea:focus{border-color:#176b3a!important;box-shadow:0 0 0 4px rgba(23,107,58,.10)!important;}
-input,select,textarea{background:#fffef8!important;border-color:#d8ddc9!important;color:#183d25!important;}
-.badge,.chip,.status-badge{border-color:#d6ae36!important;}
+input:focus, select:focus, textarea:focus{border-color:#176b3a!important;box-shadow:0 0 0 4px rgba(23,107,58,.10)!important;}
+input, select, textarea{background:#fffef8!important;border-color:#d8ddc9!important;color:#183d25!important;}
+.badge, .chip, .status-badge{border-color:#d6ae36!important;}
 #main-menu-drawer.sidebar-nav{background:radial-gradient(circle at 80% 8%,rgba(214,174,54,.13),transparent 28%),linear-gradient(180deg,#123f25,#0b2f1d)!important;border-color:rgba(214,174,54,.55)!important;}
-#main-menu-drawer .tabs>.tab-btn,#main-menu-drawer .reports-menu-wrap>.reports-toggle,#main-menu-drawer .reports-submenu .tab-btn{background:linear-gradient(135deg,#176b3a,#0d4b2a)!important;color:#fff!important;}
+#main-menu-drawer .tabs>.tab-btn, #main-menu-drawer .reports-menu-wrap>.reports-toggle, #main-menu-drawer .reports-submenu .tab-btn{background:linear-gradient(135deg,#176b3a,#0d4b2a)!important;color:#fff!important;}
 #login-screen.login-card{background:linear-gradient(180deg,rgba(255,254,247,.98),rgba(247,244,226,.96))!important;border-color:rgba(214,174,54,.42)!important;}
 #login-screen .login-header-text{color:#176b3a!important;}
 #login-screen .login-subtitle{color:#9c7720!important;}

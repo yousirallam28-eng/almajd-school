@@ -578,15 +578,13 @@ tr:hover { background-color: rgba(212, 175, 55, 0.10) !important; }
 .sidebar-nav .tabs{display:flex;flex-direction:column;gap:8px}.sidebar-nav .tab-btn{position:relative;overflow:hidden;min-height:48px;padding:12px 14px;border-radius:14px;background:rgba(18,30,26,.78);border-color:rgba(212,175,55,.16);box-shadow:0 4px 12px rgba(0,0,0,.16);transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}.sidebar-nav .tab-btn::after{content:"";position:absolute;top:0;bottom:0;right:0;width:3px;background:var(--accent-gold);transform:scaleY(0);transition:transform .2s ease}.sidebar-nav .tab-btn:hover{transform:translateX(-3px);background:rgba(27,50,42,.94);border-color:rgba(212,175,55,.42)}.sidebar-nav .tab-btn.active{background:linear-gradient(120deg,rgba(18,144,120,.96),rgba(6,61,51,.98));border-color:var(--accent-gold);box-shadow:0 8px 18px rgba(0,0,0,.24)}.sidebar-nav .tab-btn.active::after{transform:scaleY(1)}
 /* المشرف يرى زر حالة الإنجاز فقط */
 body.supervisor-mode .sidebar-nav .tab-btn{display:none!important}
-body.supervisor-mode .sidebar-nav #status-tab-btn,body.supervisor-mode .sidebar-nav #notes-tab-btn,body.supervisor-mode .sidebar-nav #wafdeen-time-tab-btn,body.supervisor-mode .sidebar-nav #reports-main-btn,body.supervisor-mode .sidebar-nav #top-students-tab-btn,body.supervisor-mode .sidebar-nav #sheikh-recordings-menu-btn,body.supervisor-mode .sidebar-nav #payments-tab-btn,body.supervisor-mode .sidebar-nav #payments-entry-tab-btn,body.supervisor-mode .sidebar-nav #payment-report-tab-btn,body.supervisor-mode .sidebar-nav #total-expenses-tab-btn{display:flex!important}
+body.supervisor-mode .sidebar-nav #status-tab-btn, body.supervisor-mode .sidebar-nav #notes-tab-btn, body.supervisor-mode .sidebar-nav #reports-main-btn, body.supervisor-mode .sidebar-nav #top-students-tab-btn, body.supervisor-mode .sidebar-nav #sheikh-recordings-menu-btn, body.supervisor-mode .sidebar-nav #payments-tab-btn, body.supervisor-mode .sidebar-nav #payments-entry-tab-btn, body.supervisor-mode .sidebar-nav #payment-report-tab-btn, body.supervisor-mode .sidebar-nav #total-expenses-tab-btn{display:flex!important}
 @media(max-width:850px){.main-menu-handle{top:10px!important;right:10px!important;height:48px;min-width:48px;padding:0 13px;border-radius:16px}.menu-handle-text{font-size:.78em}.sidebar-nav{top:8px;right:8px;height:calc(100dvh - 16px);width:min(340px,calc(100vw - 16px));border-radius:24px}.main-menu-handle.open{right:10px!important}}
 @media(max-width:430px){.menu-handle-text{display:none}.main-menu-handle{width:48px;padding:0}.sidebar-nav{width:calc(100vw - 12px);right:6px;top:6px;height:calc(100dvh - 12px);border-radius:22px}}
 
 
 /* المشرف: الملاحظات للعرض فقط بدون إضافة/تعديل/تصدير */
-body.supervisor-mode #notes-tab .card-view:first-child .form-grid,
-body.supervisor-mode #notes-tab .card-view:first-child .btn-group,
-body.supervisor-mode #notes-tab .card-view:first-child p{display:none!important}
+body.supervisor-mode #notes-tab .card-view:first-child .form-grid, body.supervisor-mode #notes-tab .card-view:first-child .btn-group, body.supervisor-mode #notes-tab .card-view:first-child p{display:none!important}
 body.supervisor-mode #notes-tab .card-view:first-child{padding-bottom:10px}
 body.supervisor-mode #notes-tab .notes-supervisor-readonly{display:block!important}
 body.supervisor-mode #notes-tab #notesExportBtn{display:none!important}
@@ -641,10 +639,10 @@ body.supervisor-mode #notes-tab #notesExportBtn{display:none!important}
 .analysis-summary-card .a-sub{font-size:.74em;color:var(--text-muted);margin-top:3px;}
 .analysis-diagnosis{background:linear-gradient(135deg,#f7fbf8,#eef7f2);border:1px solid var(--border-soft-strong);border-right:5px solid var(--primary-color);border-radius:14px;padding:14px;margin-bottom:16px;line-height:1.9;}
 .analysis-diagnosis strong{color:var(--primary-dark);}
-.analysis-time-card,.analysis-week-comparison{margin-top:16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:16px;padding:14px;}
-.analysis-time-card h4,.analysis-week-comparison h4{margin:0 0 12px;color:var(--accent-gold-light);font-family:'Amiri',serif;font-size:1.2em;}
+.analysis-time-card, .analysis-week-comparison{margin-top:16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:16px;padding:14px;}
+.analysis-time-card h4, .analysis-week-comparison h4{margin:0 0 12px;color:var(--accent-gold-light);font-family:'Amiri',serif;font-size:1.2em;}
 .analysis-table{min-width:780px;width:100%;border-collapse:collapse;}
-.analysis-table th,.analysis-table td{padding:9px 8px;border-bottom:1px solid var(--border-soft);text-align:center;}
+.analysis-table th, .analysis-table td{padding:9px 8px;border-bottom:1px solid var(--border-soft);text-align:center;}
 .analysis-table th{position:static;}
 .analysis-charts-title{margin:22px 0 12px;color:var(--accent-gold-light);font-family:'Amiri',serif;font-size:1.35em;font-weight:800;border-bottom:1px dashed var(--accent-gold);padding-bottom:7px;}
 .analysis-charts-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
@@ -1131,11 +1129,7 @@ body {
     min-width: 0;
   }
 
-  .tab-content,
-  .card-view,
-  .form-grid,
-  .search-box,
-  .btn-group {
+  .tab-content, .card-view, .form-grid, .search-box, .btn-group {
     max-width: 100%;
     min-width: 0;
   }
@@ -1234,8 +1228,7 @@ body {
     gap: 7px;
   }
 
-  .search-box input,
-  .search-box button {
+  .search-box input, .search-box button {
     width: 100%;
     min-width: 0 !important;
   }
@@ -1261,16 +1254,13 @@ img, svg, video, canvas, iframe {
 
 
 body.fifth-selected .fifth-hide-on-class { display: none !important; }
-body.wafdeen-selected .wafdeen-hide-count { display: none !important; }
 
 /* لون النص المختار داخل خانات الصف والطالب */
-#dailyClassSelect,
-#studentNameSelect{
+#dailyClassSelect, #studentNameSelect{
   color: var(--accent-gold) !important;
   font-weight: 900 !important;
 }
-#dailyClassSelect option,
-#studentNameSelect option{
+#dailyClassSelect option, #studentNameSelect option{
   color: var(--accent-gold);
 }
 
@@ -1295,119 +1285,6 @@ body.wafdeen-selected .wafdeen-hide-count { display: none !important; }
   white-space:nowrap;
 }
 .missing-cell::before { content:'⚠️'; }
-
-
-/* توحيد الأزرار البيضاء داخل جلسة الوافدين مع لون أزرارها الأخرى */
-.wafdeen-app-screen button:not(.btn-save):not(.btn-danger):not(.btn-edit):not(.btn-warning):not(.btn-export){
-  background: linear-gradient(120deg,var(--primary-color) 0%,var(--primary-dark) 100%) !important;
-  color:#fff !important;
-  border-color:var(--accent-gold) !important;
-}
-.wafdeen-app-screen button:not(.btn-save):not(.btn-danger):not(.btn-edit):not(.btn-warning):not(.btn-export):hover{
-  color:#fff !important;
-}
-
-/* ================= عدادات أخطاء جلسة الوافدين ================= */
-.wafdeen-error-counters{
-  display:none;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;
-  margin:12px 0 14px;
-}
-.wafdeen-error-counters.is-visible{display:grid;}
-.wafdeen-error-counter{
-  border:1px solid var(--border-soft);
-  background:var(--surface);
-  border-radius:14px;
-  padding:10px;
-  text-align:center;
-  user-select:none;
-  transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
-}
-.wafdeen-error-counter:hover{
-  border-color:var(--accent-gold);
-  box-shadow:0 5px 14px rgba(0,0,0,.12);
-}
-.wafdeen-error-counter .counter-label{font-weight:800;color:var(--text-muted);font-size:.82em}
-.wafdeen-error-counter .counter-value{
-  display:block;
-  font-size:1.75em;
-  font-weight:900;
-  color:var(--primary-dark);
-  line-height:1.25;
-  margin:4px 0 7px;
-  min-height:1.4em;
-  font-variant-numeric:tabular-nums;
-}
-.wafdeen-error-counter .counter-weight{font-size:.72em;color:var(--accent-gold-dark);font-weight:800}
-.wafdeen-counter-arrows{
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-  margin:0 auto;
-  width:min(100%,92px);
-}
-.wafdeen-counter-arrow{
-  appearance:none;
-  border:1px solid var(--primary-dark) !important;
-  border-radius:9px;
-  min-height:34px;
-  padding:4px 8px;
-  background:var(--primary-color) !important;
-  color:#fff !important;
-  font-size:1.05em;
-  font-weight:900;
-  line-height:1;
-  cursor:pointer;
-  transition:transform .12s ease,background .12s ease,box-shadow .12s ease;
-}
-.wafdeen-counter-arrow:hover{
-  background:var(--primary-dark) !important;
-  color:#fff !important;
-  box-shadow:0 3px 8px rgba(0,0,0,.18);
-}
-.wafdeen-counter-arrow:active{
-  transform:scale(.94);
-  background:var(--accent-gold) !important;
-  color:#fff !important;
-}
-.wafdeen-counter-value-pop{
-  animation:wafdeenCounterPop .22s ease;
-}
-@keyframes wafdeenCounterPop{
-  0%{transform:scale(1)}
-  50%{transform:scale(1.28)}
-  100%{transform:scale(1)}
-}
-.wafdeen-score-summary{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;
-  margin:10px 0 14px;
-}
-.wafdeen-auto-score{
-  background:linear-gradient(135deg,#f7fbf8,#eef7f2);
-  border:1px solid var(--border-soft-strong);
-  border-top:3px solid var(--accent-gold);
-  border-radius:12px;
-  padding:9px;
-  text-align:center;
-}
-.wafdeen-auto-score .score-label{font-size:.76em;color:var(--text-muted);font-weight:800}
-.wafdeen-auto-score .score-value{font-size:1.2em;font-weight:900;color:var(--primary-dark)}
-.wafdeen-score-total{
-  background:#fdf9f0;
-  border:1px solid var(--accent-gold-light);
-  border-radius:12px;
-  padding:10px;
-  text-align:center;
-  font-weight:900;
-  margin-top:8px;
-}
-@media(max-width:600px){
-  .wafdeen-error-counters,.wafdeen-score-summary{grid-template-columns:1fr 1fr 1fr}
-  .wafdeen-error-counter{padding:8px 4px}
-}
 
 /* شاشة تسجيل الطالب بالكود: كشف درجات كامل الشاشة */
 .student-portal-fullscreen {

@@ -15,8 +15,7 @@ const featureByTab = {
   'payments-tab': 'expenses',
   'payment-report-tab': 'expenses',
   'total-expenses-tab': 'expenses',
-  'sheikh-registration-tab': 'sheikh-recordings',
-  'wafdeen-time-tab': 'sheikh-recordings'
+  'sheikh-registration-tab': 'sheikh-recordings'
 };
 
 const modules = {

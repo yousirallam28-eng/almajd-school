@@ -1,13 +1,4 @@
 /* ===== ./css/04-block.css ===== */
 
-/* جلسة الوافدين: قائمة مستقلة، وقائمة الموقع الأصلية ممنوعة تمامًا */
-body.wafdeen-mode #main-menu-handle,
-body.wafdeen-mode #main-menu-drawer,
-body.wafdeen-mode #menu-overlay { display:none !important; }
-body.login-screen-active #main-menu-handle,
-body.login-screen-active #main-menu-drawer,
-body.login-screen-active #menu-overlay,
-body.wafdeen-mode #main-menu-handle,
-body.wafdeen-mode #main-menu-drawer,
-body.wafdeen-mode #menu-overlay { display:none !important; visibility:hidden !important; pointer-events:none !important; }
+body.login-screen-active #main-menu-handle, body.login-screen-active #main-menu-drawer, body.login-screen-active #menu-overlay { display:none !important; visibility:hidden !important; pointer-events:none !important; }
 .daily-student-class{display:none!important;}

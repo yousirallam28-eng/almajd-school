@@ -8,12 +8,12 @@ test('teacher feature preserves cloud-safe teacher shape', () => {
     username: ' teacher ',
     password: 'secret',
     assignedClass: 'الأول',
-    center: 'رئيسي',
-    canWafdeen: false
+    center: 'رئيسي'
   });
   assert.deepEqual({ id: teacher.id, username: teacher.username, assignedClass: teacher.assignedClass }, {
     id: '42', username: 'teacher', assignedClass: 'الأول'
   });
+  assert.equal('canWafdeen' in teacher, false);
 });
 
 test('teacher normalization does not mutate input', () => {

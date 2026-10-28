@@ -2,7 +2,7 @@
 
 /* ===== إصلاح ثبات جلسة التسجيل بعد أول حفظ =====
    يمنع انتقال واجهة النظام إلى شاشة الدخول/الرئيسية بسبب إعادة الرسم أو أي خطأ جانبي أثناء أول تسجيل.
-   يعمل مع جميع الفصول، بما فيها الوافدين وأولى شرعي. */
+   يعمل مع جميع الفصول المدعومة. */
 (function installStableRecordNavigation_(){
   if(window.__stableRecordNavigationInstalled) return;
   window.__stableRecordNavigationInstalled=true;
@@ -15,8 +15,7 @@
       dailyClass: String((document.getElementById('dailyClassSelect')||{}).value||''),
       student: String((document.getElementById('studentNameSelect')||{}).value||''),
       scroll: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0,
-      teacher: currentTeacher ? Object.assign({}, currentTeacher) : null,
-      wafdeenTeacher: currentWafdeenTeacher ? Object.assign({}, currentWafdeenTeacher) : null
+      teacher: currentTeacher ? Object.assign({}, currentTeacher) : null
     };
   }
 
@@ -27,16 +26,9 @@
         currentTeacher=st.teacher;
         try{persistentAuthStorage.setItem('currentTeacher',JSON.stringify(currentTeacher));}catch(_){ }
       }
-      if(!currentWafdeenTeacher && st.wafdeenTeacher){
-        currentWafdeenTeacher=st.wafdeenTeacher;
-        try{persistentAuthStorage.setItem('currentWafdeenTeacher',JSON.stringify(currentWafdeenTeacher));}catch(_){ }
-      }
-
       /* إذا ظهرت شاشة الدخول بشكل غير مقصود، أعد شاشة العمل فقط إذا كانت الجلسة موجودة. */
       if(currentTeacher && document.getElementById('app-screen') && document.getElementById('app-screen').classList.contains('hidden')){
         if(typeof showAppScreen==='function') showAppScreen();
-      } else if(currentWafdeenTeacher && document.getElementById('wafdeen-app-screen') && document.getElementById('wafdeen-app-screen').classList.contains('hidden')){
-        if(typeof showWafdeenAppScreen==='function') showWafdeenAppScreen();
       }
 
       var cls=document.getElementById('classSelect');
@@ -83,13 +75,9 @@
   wrap_('markAbsent');
   wrap_('saveShariaGrade');
   wrap_('markShariaAbsent');
-  wrap_('saveWafdeenDailyRecord');
-  wrap_('wafdeenSaveGradeType');
-  wrap_('wafdeenSaveGradeAndTime');
-  wrap_('wafdeenGuardedDailySave');
 
   /* بعض الدوال قد تُعرّف بعد هذا الجزء؛ أعد الربط بعد اكتمال تحميل السكربتات. */
   setTimeout(function(){
-    ['addGrade','markAbsent','saveShariaGrade','markShariaAbsent','saveWafdeenDailyRecord','wafdeenSaveGradeType','wafdeenSaveGradeAndTime','wafdeenGuardedDailySave'].forEach(wrap_);
+    ['addGrade','markAbsent','saveShariaGrade','markShariaAbsent'].forEach(wrap_);
   },0);
 })();

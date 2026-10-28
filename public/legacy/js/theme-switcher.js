@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   var preferenceKey = 'almajd-site-appearance';
-  var newThemeStylesheetIds = ['modern-almajd-theme','wafdeen-redesign','unified-reference-theme','wafdeen-same-theme','liquid-glass-theme','final-contrast-overrides'];
+  var newThemeStylesheetIds = ['modern-almajd-theme','almajd-global-redesign','unified-reference-theme','liquid-glass-theme','final-contrast-overrides'];
   var chartAppearanceUpdatePending = false;
   function scheduleChartAppearanceUpdate() {
     if (chartAppearanceUpdatePending || typeof window.updateStudentDataAnalysisAppearance !== 'function') return;

@@ -8,7 +8,6 @@ export function normalizeTeacher(input) {
     password: String(input.password || '').trim(),
     assignedClass: String(input.assignedClass || '').trim(),
     center: String(input.center || '').trim(),
-    canWafdeen: Boolean(input.canWafdeen),
     updatedAt: input.updatedAt || new Date().toISOString()
   };
 }

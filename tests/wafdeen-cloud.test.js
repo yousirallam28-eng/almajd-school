@@ -13,11 +13,12 @@ test('cloud request timeout covers response-body reading', () => {
   assert.match(bridge, /controller\.signal\.aborted\) throw bodyError/);
 });
 
-test('wafdeen hydration does not silently turn cloud read failures into empty datasets', () => {
-  const start = bridge.indexOf('async function hydrateWafdeen()');
-  const end = bridge.indexOf('\n  function ', start + 1);
-  assert.ok(start >= 0 && end > start);
-  const hydrate = bridge.slice(start, end);
-  assert.match(hydrate, /Promise\.all\(names\.map\(async function \(name\) \{ return \[name, await readAll\(name\)\]; \}\)\)/);
-  assert.doesNotMatch(hydrate, /catch\s*\([^)]*\)\s*\{\s*return\s*\[name,\s*\[\]\]/);
+test('class-specific cloud hydration and write adapters are no longer exposed', () => {
+  assert.doesNotMatch(bridge, /hydrateWafdeen|refreshWafdeenViews|wafdeenLogin|wafdeenLogout/);
+  assert.doesNotMatch(bridge, /findWafdeenRecord|saveWafdeenUsage|loadWafdeen|getWafdeenMonthlyReports/);
+  assert.doesNotMatch(bridge, /wafdeenTeachers|wafdeenStudents|wafdeenDailyRecords|wafdeenExams|wafdeenUsage/);
+  assert.match(bridge, /async function hydrateMain\(\)/, "the general school's data loader remains available");
+  assert.match(bridge, /writeRecord: async function/);
+  assert.match(bridge, /deleteRecord: async function/);
+  assert.doesNotMatch(bridge, /(?:writeRecord|deleteRecord)\(['"]wafdeen/i, 'the page no longer issues class-specific data mutations');
 });

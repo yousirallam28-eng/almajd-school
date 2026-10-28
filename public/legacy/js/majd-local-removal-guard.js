@@ -5,7 +5,6 @@
   w.__MAJD_LOCAL_DISABLED__ = true;
   w.uselocaldata = false;
   w.db = null;
-  w.wafdeenStorage = null;
   w.localIsAvailable = function () { return false; };
   w.localDatabase = function () { return null; };
   w.MajdLocalDataAPI = {

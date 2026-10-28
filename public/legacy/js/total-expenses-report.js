@@ -18,9 +18,9 @@
       var payments=await window.MajdLocalDataAPI.getPayments();
       if(!Array.isArray(payments))throw new Error('لم تصل سجلات المصروفات بصيغة صحيحة.');
       payments=payments.filter(function(row){return row&&!row._deleted;});
-      var allClasses=(Array.isArray(window.ALL_CLASSES)?window.ALL_CLASSES:[]).filter(function(c){return String(c).trim()&&String(c).trim()!=='الوافدين';});
+      var allClasses=(Array.isArray(window.ALL_CLASSES)?window.ALL_CLASSES:[]).filter(function(c){return String(c).trim();});
       var classRank=new Map(allClasses.map(function(c,i){return [String(c),i];}));
-      var students=(Array.isArray(window.studentsData)?window.studentsData:[]).filter(function(st){return st&&!st._deleted&&String(st.name||'').trim()&&String(st.className||'').trim()!=='الوافدين'&&classRank.has(String(st.className||''));});
+      var students=(Array.isArray(window.studentsData)?window.studentsData:[]).filter(function(st){return st&&!st._deleted&&String(st.name||'').trim()&&classRank.has(String(st.className||''));});
       students.sort(function(a,b){return classRank.get(String(a.className))-classRank.get(String(b.className))||String(a.name||'').localeCompare(String(b.name||''),'ar');});
       var byId=new Map(),byNameClass=new Map(),nameClassCounts=new Map();
       students.forEach(function(st){var id=String(st.id||st.studentId||'');if(id)byId.set(id,st);var key=String(st.className||'')+'\u0000'+String(st.name||'').trim();nameClassCounts.set(key,(nameClassCounts.get(key)||0)+1);byNameClass.set(key,st);});
@@ -38,7 +38,7 @@
           else if(nameClassCounts.get(key)>1)skippedAmbiguous++;
           else unmatched++;
         }
-        if(!student||String(student.className||'')==='الوافدين')return;
+        if(!student)return;
         var raw=row.amount;
         if(raw===null||raw===undefined||String(raw).trim()==='')throw new Error('توجد دفعة بلا مبلغ صالح؛ لم أعرض إجماليًا قد يكون مضللًا.');
         var amount=Number(raw);

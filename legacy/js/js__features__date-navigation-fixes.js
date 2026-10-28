@@ -15,10 +15,6 @@
     var e=document.getElementById('recordDate');
     return e&&/^\d{4}-\d{2}-\d{2}$/.test(e.value)?e.value:isoLocalV10(new Date());
   }
-  function currentWafdeenDateV10(){
-    var e=document.getElementById('wafdeenDailyDate');
-    return e&&/^\d{4}-\d{2}-\d{2}$/.test(e.value)?e.value:isoLocalV10(new Date());
-  }
   function resetDailyEntryV10(){
     try{ if(typeof dailyTimerRunning!=='undefined' && dailyTimerRunning && typeof pauseDailyTimer==='function') pauseDailyTimer(); }catch(e){}
     try{ if(typeof dailyTimerInterval!=='undefined' && dailyTimerInterval) clearInterval(dailyTimerInterval); }catch(e){}
@@ -51,20 +47,6 @@
     input.value=isoLocalV10(new Date()); resetDailyEntryV10(); updateDailyDateUIV10();
     var note=document.getElementById('v10DailyDateStatus'); if(note) note.textContent='اليوم المحدد للرصد: '+input.value+' — '+dayNameV10(input.value)+' (كل يوم منفصل عن الآخر)';
   };
-  window.v10SetWafdeenDate=function(delta){
-    var input=document.getElementById('wafdeenDailyDate'); if(!input)return;
-    var d=dateObjV10(currentWafdeenDateV10()); d.setDate(d.getDate()+Number(delta||0)); input.value=isoLocalV10(d);
-    try{ if(typeof changeWafdeenDailyDate==='function') changeWafdeenDailyDate(0); }catch(e){}
-    var st=document.getElementById('wafdeenStudentSelect'); if(st) st.value='';
-    var note=document.getElementById('v10WafdeenDateStatus'); if(note) note.textContent='اليوم المحدد: '+input.value+' — كل يوم منفصل عن الآخر';
-  };
-  window.v10GoWafdeenToday=function(){
-    var input=document.getElementById('wafdeenDailyDate'); if(!input)return;
-    input.value=isoLocalV10(new Date());
-    try{ if(typeof changeWafdeenDailyDate==='function') changeWafdeenDailyDate(0); }catch(e){}
-    var st=document.getElementById('wafdeenStudentSelect'); if(st) st.value='';
-    var note=document.getElementById('v10WafdeenDateStatus'); if(note) note.textContent='اليوم المحدد: '+input.value+' — كل يوم منفصل عن الآخر';
-  };
   function installDailyBar(){
     var tab=document.getElementById('daily-tab'); if(!tab || document.getElementById('v10DailyDateBar'))return;
     var bar=document.createElement('div'); bar.id='v10DailyDateBar'; bar.className='v10-daily-date-bar';
@@ -76,15 +58,6 @@
     var picker=document.getElementById('v10DailyDatePicker');
     if(picker){picker.value=currentDailyDateV10();picker.onchange=function(){var real=document.getElementById('recordDate');if(real){real.value=picker.value;resetDailyEntryV10();updateDailyDateUIV10();status.textContent='اليوم المحدد للرصد: '+picker.value+' — '+dayNameV10(picker.value)+' (كل يوم منفصل عن الآخر)';}};}
     updateDailyDateUIV10(); status.textContent='اليوم المحدد للرصد: '+currentDailyDateV10()+' — '+dayNameV10(currentDailyDateV10())+' (كل يوم منفصل عن الآخر)';
-  }
-  function installWafdeenBar(){
-    var el=document.getElementById('wafdeenDailyDate'); if(!el || document.getElementById('v10WafdeenDateBar'))return;
-    var host=el.closest('.form-group')||el.parentElement; if(!host)return;
-    var bar=document.createElement('div'); bar.id='v10WafdeenDateBar'; bar.className='v10-daily-date-bar';
-    bar.innerHTML='<span class="v10-date-label">📅 تاريخ رصد الوافدين:</span><button type="button" class="action-btn btn-warning" onclick="v10SetWafdeenDate(-1)">◀ اليوم السابق</button><button type="button" class="action-btn btn-warning" onclick="v10SetWafdeenDate(1)">اليوم التالي ▶</button><button type="button" class="action-btn btn-export" onclick="v10GoWafdeenToday()">اليوم</button>';
-    var status=document.createElement('div'); status.id='v10WafdeenDateStatus'; status.className='v10-daily-date-status';
-    host.parentNode.insertBefore(bar,host); bar.insertAdjacentElement('afterend',status);
-    status.textContent='اليوم المحدد: '+currentWafdeenDateV10()+' — كل يوم منفصل عن الآخر';
   }
   // إعادة بناء قائمة الطلاب بحيث كل يوم يبدأ من قائمة الطلاب الأصلية، مع توضيح المسجل في اليوم الحالي فقط.
   var oldUpdate=window.updateStudentListDropdown;
@@ -122,11 +95,11 @@
   };
   // عند فتح صفحة الرصد أو تغيير التاريخ، نعيد تحميل سياق اليوم فقط.
   function bootV10(){
-    if(window.__wafdeenV10Booted) return;
-    window.__wafdeenV10Booted=true;
+    if(window.__dailyDateV10Booted) return;
+    window.__dailyDateV10Booted=true;
     try{
       var rd=document.getElementById('recordDate');if(rd && !/^\d{4}-\d{2}-\d{2}$/.test(rd.value))rd.value=isoLocalV10(new Date());
-      installDailyBar();installWafdeenBar();
+      installDailyBar();
       try{ if(typeof applyDailyDateEditPermission_==='function') applyDailyDateEditPermission_(); }catch(e){}
       var todayOnly=isoLocalV10(new Date());
       var realDate=document.getElementById('recordDate');if(realDate)realDate.value=todayOnly;

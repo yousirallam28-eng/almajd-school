@@ -85,7 +85,6 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 /* ================= قائمة الصفوف المعتمدة ================= */
 var ALL_CLASSES = [
     "تمهيدي",
-    "الوافدين",
     "أولى - أولاد", "أولى - بنات",
     "ثانية - أولاد", "ثانية - بنات",
     "ثالثة - أولاد", "ثالثة - بنات",
@@ -93,31 +92,21 @@ var ALL_CLASSES = [
     "خامسة - أولاد", "خامسة - بنات",
     "أولى شرعي"
 ];
-var GENERAL_CLASSES = ALL_CLASSES.filter(function (className) { return String(className).trim() !== 'الوافدين'; });
+var GENERAL_CLASSES = ALL_CLASSES;
 // حماية قائمة الفصول: لا تسمح لأي مزامنة أو فلتر مؤقت بمسح الفصول من الواجهة.
 function restoreCanonicalClasses_(){
-  if(!Array.isArray(window.ALL_CLASSES)||window.ALL_CLASSES.length===0) window.ALL_CLASSES = ["تمهيدي","الوافدين","أولى - أولاد","أولى - بنات","ثانية - أولاد","ثانية - بنات","ثالثة - أولاد","ثالثة - بنات","رابعة - أولاد","رابعة - بنات","خامسة - أولاد","خامسة - بنات","أولى شرعي"];
-  window.GENERAL_CLASSES = window.ALL_CLASSES.filter(function (className) { return String(className).trim() !== 'الوافدين'; });
+  window.ALL_CLASSES = ["تمهيدي","أولى - أولاد","أولى - بنات","ثانية - أولاد","ثانية - بنات","ثالثة - أولاد","ثالثة - بنات","رابعة - أولاد","رابعة - بنات","خامسة - أولاد","خامسة - بنات","أولى شرعي"];
+  window.GENERAL_CLASSES = window.ALL_CLASSES;
   try{ if(typeof renderClassCards==='function') renderClassCards(); }catch(e){}
   try{ if(typeof ensureAllClassSelects_==='function') ensureAllClassSelects_(); }catch(e){}
 }
-
 /* ================= 1. تهيئة التخزين المحلي (localdata Configuration) ================= */
-
-/* ================= local files: كتب الوافدين (ملفات فقط) =================
-   الرفع يتم إلى مجلد "كتب" عبر local file handling.
-   ملاحظة: local file handling الحالي يستقبل الرفع عبر POST.
-*/
-
-
-
-
-
 
 /* ================= المصروفات: localdata ================= */
 /*
   المصروفات تُحفظ وتُقرأ وتُحذف من localdata، مع نسخة محلية مساعدة عند انقطاع الاتصال.
 */
+// Keep this historical key unchanged so existing locally stored payment data remains readable.
 var PAYMENTS_LOCAL_KEY = 'wafdeenPaymentsLocal_v2';
 function getLocalPayments_() { try {
     var a = JSON.parse(memoryStorage.getItem(PAYMENTS_LOCAL_KEY) || '[]');
@@ -162,11 +151,7 @@ function normalizePaymentIdPart_(v) {
 function paymentRecordId_(studentId, studentName, month) {
     return 'payment_' + normalizePaymentIdPart_(studentId || studentName) + '_' + normalizePaymentIdPart_(month);
 }
-function teacherCanAccessWafdeen_(teacher) {
-    if (!teacher) return false;
-    if (teacher.username === 'admin' || teacher.assignedClass === 'الكل' || teacher.center === 'الكل') return true;
-    return teacher.assignedClass === 'الوافدين' || !!teacher.canWafdeen;
-}
+
 /* ===== [إصلاح الرصد] مطابقة الفصل بشكل موحّد وآمن للمدرس ===== */
 function teacherClassNormalize_(v) {
     var s = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
@@ -179,27 +164,31 @@ function teacherClassNormalize_(v) {
     }
     return s;
 }
+function teacherHasUnsupportedClass_(teacher) {
+    if (!teacher) return false;
+    var username = String(teacher.username || '').trim();
+    var assigned = String(teacher.assignedClass || '').trim();
+    if (username === 'admin' || assigned === 'الكل') return false;
+    return !ALL_CLASSES.includes(teacherClassNormalize_(assigned));
+}
 function isDailyClassManager_() {
     return !!(currentTeacher && (String(currentTeacher.username || '').trim() === 'admin' || String(currentTeacher.assignedClass || '').trim() === 'الكل'));
 }
 function teacherOwnsClass_(className) {
+    var c = teacherClassNormalize_(className);
+    if (!ALL_CLASSES.includes(c)) return false;
     if (isDailyClassManager_()) return true;
     if (!currentTeacher) return false;
-    var a = teacherClassNormalize_(currentTeacher.assignedClass), c = teacherClassNormalize_(className);
-    return !!a && a === c;
+    var a = teacherClassNormalize_(currentTeacher.assignedClass);
+    return !!a && ALL_CLASSES.includes(a) && a === c;
 }
 function ensureAllClassSelects_() {
     try {
         var manager_1 = !!(currentTeacher && (currentTeacher.username === 'admin' || currentTeacher.assignedClass === 'الكل' || currentTeacher.center === 'الكل'));
         var allowed_1 = manager_1 ? ALL_CLASSES : (function () {
             var assigned = currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.assignedClass;
-            /* [إصلاح] لا نعطي المدرس كل الفصول أبدًا: نطابق فصله بعد التطبيع، وإلا نقفله على فصله فقط. */
-            if (!assigned) return [];
             var assignedNorm_ = teacherClassNormalize_(assigned);
-            if (!ALL_CLASSES.includes(assigned)) assigned = ALL_CLASSES.includes(assignedNorm_) ? assignedNorm_ : assigned;
-            var list = [assigned];
-            if (assigned !== 'الوافدين' && currentTeacher && currentTeacher.canWafdeen) list.push('الوافدين');
-            return list;
+            return ALL_CLASSES.includes(assignedNorm_) ? [assignedNorm_] : [];
         })();
         var ids = ['classSelect', 'dailyClassSelect', 'weeklyClassSelect', 'monthlyClassSelect', 'attendanceClassSelect', 'paymentsClassSelect', 'paymentReportClassSelect', 'notesClassSelect'];
         ids.forEach(function (id) {
@@ -543,7 +532,7 @@ var currentTeacher = (function(){
 var isShowingAllDays = false;
 var currentManagerClass = 'أولى - أولاد';
 var nameMapping = {
-    "اولي شارعي": "أولى شرعي", "الوافدين": "الوافدين", "الصف الأول الشرعي - أولاد": "أولى شرعي", "الصف الأول الشرعي - بنات": "أولى شرعي",
+    "اولي شارعي": "أولى شرعي", "الصف الأول الشرعي - أولاد": "أولى شرعي", "الصف الأول الشرعي - بنات": "أولى شرعي",
     "الصف الأول - أولاد": "أولى - أولاد", "الصف الأول - بنات": "أولى - بنات",
     "الصف الثاني - أولاد": "ثانية - أولاد", "الصف الثاني - بنات": "ثانية - بنات",
     "الصف الثالث - أولاد": "ثالثة - أولاد", "الصف الثالث - بنات": "ثالثة - بنات",
@@ -606,6 +595,7 @@ function ensureStudentLoginCodes(list) {
         var storedMonth = String(s.loginCodeMonth || '').trim();
         // الأكواد القديمة التي لا تحمل تاريخاً: نحافظ عليها لأول شهر فقط، ثم يبدأ النظام
         // نظام التغيير الشهري من الشهر التالي.
+        if (!s || !ALL_CLASSES.includes(teacherClassNormalize_(s.className))) return s;
         if (!storedMonth) {
             s.loginCode = String(s.loginCode || '').trim().toUpperCase() || deterministicStudentLoginCode(s, monthKey);
             s.loginCodeMonth = monthKey;
@@ -655,9 +645,6 @@ window.onload = function () {
         }
         showAppScreen();
     }
-    else if (currentWafdeenTeacher && typeof showWafdeenAppScreen === 'function') {
-        showWafdeenAppScreen();
-    }
     else {
         showLoginScreen();
     }
@@ -675,10 +662,6 @@ window.onload = function () {
     document.getElementById('mgrMonthSelect').value = new Date().getMonth();
     document.getElementById('mgrYearSelect').value = new Date().getFullYear();
     checkWeeklyAutoBackup();
-    try {
-        initWafdeenDailyDate();
-    }
-    catch (_) { }
 };
 function exportToExcel(tableId, filename) {
     var table = document.getElementById(tableId);
@@ -832,9 +815,6 @@ function populateWeeks() {
 }
 function syncDailyClassAndStudents() {
     var visible = document.getElementById('dailyClassSelect');
-    if (visible && currentTeacher && !teacherCanAccessWafdeen_(currentTeacher) && visible.value === 'الوافدين') {
-        visible.value = currentTeacher.assignedClass || 'تمهيدي';
-    }
     var hidden = document.getElementById('classSelect');
     if (!visible || !hidden)
         return;
@@ -880,9 +860,6 @@ function updateStudentListDropdown() {
 var localSyncReady = false;
 var localSyncReadyResolve = null;
 var localSyncReadyPromise = new Promise(function (resolve) { localSyncReadyResolve = resolve; });
-var wafdeenLocalReady = false;
-var wafdeenLocalReadyResolve = null;
-var wafdeenLocalReadyPromise = new Promise(function (resolve) { wafdeenLocalReadyResolve = resolve; });
 var localSyncListeners = {};
 function syncStamp_(obj) {
     var e_24, _a;
@@ -918,84 +895,6 @@ function syncMergeLocalWithLocal_(local, _ignored) {
     return Array.from(byId.values());
 }
 
-// حفظ موحد وفوري للسجلات، حتى لا تختفي الدرجات عند إعادة تحميل الصفحة.
-function wafdeenSaveRecordDurably_(collectionName, record) {
-    return __awaiter(this, void 0, void 0, function () {
-        var item;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!record || record.id == null)
-                        return [2 /*return*/, false];
-                    item = __assign(__assign({}, record), { updatedAt: record.updatedAt || new Date().toISOString() });
-                    if (!localIsAvailable()) return [3 /*break*/, 2];
-                    return [4 /*yield*/, window.MajdLocalDataAPI.collection(collectionName).doc(String(item.id)).set(item, { merge: true })];
-                case 1:
-                    _a.sent();
-                    _a.label = 2;
-                case 2: return [2 /*return*/, true];
-            }
-        });
-    });
-}
-// حالة وقت التسجيل لا تعتمد على الذاكرة المؤقتة للصفحة.
-// تظل فعالة بعد Refresh إلى أن يضغط الشيخ إيقاف التسجيل.
-function wafdeenPersistRegistrationState_(active_1) {
-    return __awaiter(this, arguments, void 0, function (active, extra) {
-        var state;
-        if (extra === void 0) { extra = {}; }
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    state = __assign({ active: !!active, updatedAt: new Date().toISOString() }, extra);
-                    try {
-                        memoryStorage.setItem("wafdeenRegistrationState", JSON.stringify(state));
-                    }
-                    catch (_) { }
-                    if (!localIsAvailable()) return [3 /*break*/, 2];
-                    return [4 /*yield*/, window.MajdLocalDataAPI.collection("wafdeenSettings").doc("registrationState")
-                            .set(state, { merge: true })];
-                case 1:
-                    _a.sent();
-                    _a.label = 2;
-                case 2: return [2 /*return*/, state];
-            }
-        });
-    });
-}
-function wafdeenRestoreRegistrationState_() {
-    return __awaiter(this, void 0, void 0, function () {
-        var state, snap, _3;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    state = null;
-                    if (!localIsAvailable()) return [3 /*break*/, 4];
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, window.MajdLocalDataAPI.collection("wafdeenSettings").doc("registrationState").get()];
-                case 2:
-                    snap = _a.sent();
-                    if (snap.exists)
-                        state = __assign(__assign({}, state), snap.data());
-                    return [3 /*break*/, 4];
-                case 3:
-                    _3 = _a.sent();
-                    return [3 /*break*/, 4];
-                case 4:
-                    if (state && state.active) {
-                        window.wafdeenRegistrationActive = true;
-                        document.documentElement.dataset.registrationActive = "true";
-                        return [2 /*return*/, true];
-                    }
-                    window.wafdeenRegistrationActive = false;
-                    document.documentElement.dataset.registrationActive = "false";
-                    return [2 /*return*/, false];
-            }
-        });
-    });
-}
 var localSyncState_ = {};
 // ================= localdata Local-First Layer =================
 // كل سجل يُحفظ كمستند مستقل في localRecords. memoryStorage مجرد ذاكرة مؤقتة داخل الصفحة ولا تُحفظ على الجهاز.
@@ -1013,6 +912,7 @@ function dailyGradesBackupWrite_(items) {
     try { memoryStorage.setItem(DAILY_GRADES_BACKUP_KEY_, JSON.stringify(items || [])); } catch (_) {}
 }
 function dailyGradesBackupBeforeSend_(collectionName, record, operation) {
+    // Preserve historical class records in the local recovery archive; this is not a class-specific writer.
     if (!['dailyRecords', 'shariaGrades', 'wafdeenDailyRecords'].includes(String(collectionName || ''))) return;
     var id = String((record && (record.id || record.recordId)) || '').trim();
     if (!id) return;
@@ -1071,8 +971,7 @@ var localRenderQueue_ = {};
 var localRenderTimers_ = {};
 var localSyncDeferredCollections_ = {};
 function isRecitationPerformanceMode_() {
-    return !!(typeof wafdeenQuranTimerRunning !== 'undefined' && wafdeenQuranTimerRunning) ||
-           !!(typeof dailyTimerRunning !== 'undefined' && dailyTimerRunning);
+    return !!(typeof dailyTimerRunning !== 'undefined' && dailyTimerRunning);
 }
 function isElementVisible_(id) {
     var el = document.getElementById(id);
@@ -1204,6 +1103,8 @@ function handleLogin() {
                 case 5:
                     if (!teacher)
                         return [2 /*return*/, showMessage('login-msg', 'اسم المستخدم أو كلمة المرور غير صحيحة', 'error')];
+                    if (teacherHasUnsupportedClass_(teacher))
+                        return [2 /*return*/, showMessage('login-msg', 'هذا الحساب مرتبط بفصل لم يعد مدعوماً؛ بياناته محفوظة ولم يتم تعديلها.', 'error')];
                     currentTeacher = applyDataMapping(__assign({}, teacher));
                     try {
                         persistentAuthStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
@@ -1257,10 +1158,8 @@ async function handleLogout() {
 function showLoginScreen() {
     var _a, _b;
     closeMainMenu();
-    document.body.classList.remove('wafdeen-mode');
+
     document.body.classList.add('login-screen-active');
-    (_a = document.getElementById('wafdeen-login-screen')) === null || _a === void 0 ? void 0 : _a.classList.add('hidden');
-    (_b = document.getElementById('wafdeen-app-screen')) === null || _b === void 0 ? void 0 : _b.classList.add('hidden');
     document.getElementById('login-screen').classList.remove('hidden');
     document.getElementById('results-screen').classList.add('hidden');
     document.getElementById('student-login-screen').classList.add('hidden');
@@ -1269,10 +1168,8 @@ function showLoginScreen() {
 function showStudentLoginScreen() {
     var _a, _b;
     closeMainMenu();
-    document.body.classList.remove('wafdeen-mode');
+
     document.body.classList.add('login-screen-active');
-    (_a = document.getElementById('wafdeen-login-screen')) === null || _a === void 0 ? void 0 : _a.classList.add('hidden');
-    (_b = document.getElementById('wafdeen-app-screen')) === null || _b === void 0 ? void 0 : _b.classList.add('hidden');
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('results-screen').classList.add('hidden');
     document.getElementById('app-screen').classList.add('hidden');
@@ -1285,10 +1182,8 @@ function showStudentLoginScreen() {
 function showResultsScreen() {
     var _a, _b;
     closeMainMenu();
-    document.body.classList.remove('wafdeen-mode');
+
     document.body.classList.add('login-screen-active');
-    (_a = document.getElementById('wafdeen-login-screen')) === null || _a === void 0 ? void 0 : _a.classList.add('hidden');
-    (_b = document.getElementById('wafdeen-app-screen')) === null || _b === void 0 ? void 0 : _b.classList.add('hidden');
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('student-login-screen').classList.add('hidden');
     document.getElementById('app-screen').classList.add('hidden');
@@ -1382,9 +1277,14 @@ function setDailyDateEditPermission_(className, allowed) {
 
 function showAppScreen() {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
-    document.body.classList.remove('login-screen-active', 'wafdeen-mode');
-    (_a = document.getElementById('wafdeen-login-screen')) === null || _a === void 0 ? void 0 : _a.classList.add('hidden');
-    (_b = document.getElementById('wafdeen-app-screen')) === null || _b === void 0 ? void 0 : _b.classList.add('hidden');
+    if (teacherHasUnsupportedClass_(currentTeacher)) {
+        currentTeacher = null;
+        try { persistentAuthStorage.removeItem('currentTeacher'); } catch (_) {}
+        showLoginScreen();
+        showMessage('login-msg', 'هذا الحساب مرتبط بفصل لم يعد مدعوماً؛ بياناته محفوظة ولم يتم تعديلها.', 'error');
+        return;
+    }
+    document.body.classList.remove('login-screen-active');
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('results-screen').classList.add('hidden');
     document.getElementById('student-login-screen').classList.add('hidden');
@@ -1425,7 +1325,6 @@ function showAppScreen() {
         document.querySelectorAll('.sidebar-nav .tab-btn').forEach(function (btn) { return btn.classList.add('hidden'); });
         statusBtn.classList.remove('hidden');
         (_c = document.getElementById('notes-tab-btn')) === null || _c === void 0 ? void 0 : _c.classList.remove('hidden');
-        document.getElementById('wafdeen-time-tab-btn')?.classList.remove('hidden');
         document.getElementById('sheikh-recordings-menu-btn')?.classList.remove('hidden');
         sheikhRecordingsMenuWrap?.classList.remove('hidden');
         (_d = document.getElementById('top-students-tab-btn')) === null || _d === void 0 ? void 0 : _d.classList.remove('hidden');
@@ -1520,7 +1419,7 @@ function showAppScreen() {
     else {
         var visibleDailyClass_2 = document.getElementById('dailyClassSelect');
         if (visibleDailyClass_2)
-            visibleDailyClass_2.disabled = !teacherCanAccessWafdeen_(currentTeacher);
+            visibleDailyClass_2.disabled = true;
         adminBtn.classList.add('hidden');
         (_q = document.getElementById('payments-tab-btn')) === null || _q === void 0 ? void 0 : _q.classList.add('hidden');
         document.getElementById('payments-entry-tab-btn')?.classList.add('hidden');
@@ -1626,7 +1525,7 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape')
 function toggleMainMenu(event) { if (event) {
     event.preventDefault();
     event.stopPropagation();
-} if (document.body.classList.contains('login-screen-active') || document.body.classList.contains('wafdeen-mode')) {
+} if (document.body.classList.contains('login-screen-active')) {
     closeMainMenu();
     return;
 } var drawer = document.getElementById('main-menu-drawer'); if (drawer && drawer.classList.contains('open'))
@@ -2054,86 +1953,6 @@ function renderStudentDataAnalysis() {
     renderAnalysisCharts(studentName, className, weekKey);
 }
 
-/* ================= تقرير وقت الوافدين ================= */
-var wafdeenTimeReportPeriod = 'day';
-var wafdeenTimeReportRows = [];
-function wafdeenTimePad2_(n){ return String(n).padStart(2,'0'); }
-function wafdeenTimeToday_(){ var d=new Date(); return d.getFullYear()+'-'+wafdeenTimePad2_(d.getMonth()+1)+'-'+wafdeenTimePad2_(d.getDate()); }
-function wafdeenTimeMonth_(){ var d=new Date(); return d.getFullYear()+'-'+wafdeenTimePad2_(d.getMonth()+1); }
-function wafdeenTimeFormatSeconds_(sec){ sec=Math.max(0,Math.floor(Number(sec)||0)); var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60; return [h,m,s].map(function(v){return String(v).padStart(2,'0');}).join(':'); }
-function wafdeenTimeDateObj_(iso){ var p=String(iso||'').slice(0,10).split('-'); if(p.length!==3) return null; var d=new Date(Number(p[0]),Number(p[1])-1,Number(p[2])); return isNaN(d.getTime())?null:d; }
-function wafdeenTimeWeekRange_(iso){ var d=wafdeenTimeDateObj_(iso)||new Date(), day=d.getDay(); var diff=(day+6)%7; var start=new Date(d); start.setDate(d.getDate()-diff); var end=new Date(start); end.setDate(start.getDate()+6); var fmt=function(x){return x.getFullYear()+'-'+wafdeenTimePad2_(x.getMonth()+1)+'-'+wafdeenTimePad2_(x.getDate());}; return [fmt(start),fmt(end)]; }
-function setWafdeenTimePeriod(period){
-  wafdeenTimeReportPeriod=period;
-  ['day','week','month'].forEach(function(k){var b=document.getElementById('wafdeen-time-'+k+'-btn'); if(b) b.classList.toggle('active',k===period); var f=document.getElementById('wafdeen-time-'+k+'-field'); if(f) f.classList.toggle('hidden',k!==period);});
-  var day=document.getElementById('wafdeenTimeDay'), week=document.getElementById('wafdeenTimeWeekDate'), month=document.getElementById('wafdeenTimeMonth');
-  if(day && !day.value) day.value=wafdeenTimeToday_();
-  if(week && !week.value) week.value=wafdeenTimeToday_();
-  if(month && !month.value) month.value=wafdeenTimeMonth_();
-  renderWafdeenTimeReport();
-}
-function getWafdeenTimeReportRange_(){
-  if(wafdeenTimeReportPeriod==='week') return wafdeenTimeWeekRange_(document.getElementById('wafdeenTimeWeekDate')?.value||wafdeenTimeToday_());
-  if(wafdeenTimeReportPeriod==='month'){ var v=document.getElementById('wafdeenTimeMonth')?.value||wafdeenTimeMonth_(); return [v+'-01',v+'-31']; }
-  var d=document.getElementById('wafdeenTimeDay')?.value||wafdeenTimeToday_(); return [d,d];
-}
-async function renderWafdeenTimeReport(){
-  var body=document.getElementById('wafdeenTimeReportBody'), empty=document.getElementById('wafdeenTimeReportEmpty');
-  if(!body)return;
-  var manager=window.currentTeacher;
-  if(!manager || !(manager.username==='admin' || manager.role==='admin' || manager.isAdmin===true || String(manager.assignedClass||'')==='الكل')){
-    body.innerHTML='<tr><td colspan="7">غير مصرح بعرض تقرير الوافدين.</td></tr>';
-    return;
-  }
-  var range=getWafdeenTimeReportRange_(), start=range[0], end=range[1];
-  var label=document.getElementById('wafdeenTimePeriodLabel');
-  if(label){ label.textContent=wafdeenTimeReportPeriod==='day'?'تقرير يوم '+start:wafdeenTimeReportPeriod==='week'?'تقرير الأسبوع من '+start+' إلى '+end:'تقرير شهر '+start.slice(0,7); }
-  body.innerHTML='<tr><td colspan="7">جارٍ تحميل بيانات الوافدين من السحابة...</td></tr>';
-  try {
-    var api=window.MajdLocalDataAPI;
-    if(!api || typeof api.getWafdeenDailyRecords!=='function' || typeof api.getWafdeenUsage!=='function') throw new Error('واجهة بيانات الوافدين غير متاحة.');
-    var loaded=await Promise.all([api.getWafdeenDailyRecords(),api.getWafdeenUsage()]);
-    var daily=loaded[0]||[], usage=loaded[1]||[], map={};
-    window.wafdeenDailyRecords=daily;
-    window.wafdeenUsageData=usage;
-    (Array.isArray(daily)?daily:[]).filter(function(r){
-      if(r && r._deleted) return false; var d=String(r.dateISO||'').slice(0,10); return d>=start && d<=end;
-    }).forEach(function(r){
-      var teacher=String(r.teacherName||r.teacherUsername||'غير محدد');
-      if(!map[teacher]) map[teacher]={teacherName:teacher,newTime:0,oldTime:0,recitationTime:0,sessionTime:0,educationTime:0,total:0,studentCount:0};
-      map[teacher].newTime+=Number(r.newLessonTimeSeconds)||0;
-      map[teacher].oldTime+=Number(r.oldRevisionTimeSeconds)||0;
-      map[teacher].recitationTime+=Number(r.recitationTimeSeconds)||0;
-      map[teacher].studentCount+=1;
-    });
-    (Array.isArray(usage)?usage:[]).filter(function(u){
-      if(!u || u._deleted) return false; var d=String(u.dateISO||'').slice(0,10); return d>=start && d<=end && (u.category==='quran_session' || u.category==='educational');
-    }).forEach(function(u){
-      var teacher=String(u.teacherName||u.teacherUsername||'غير محدد');
-      if(!map[teacher]) map[teacher]={teacherName:teacher,newTime:0,oldTime:0,recitationTime:0,sessionTime:0,educationTime:0,total:0,studentCount:0};
-      if(u.category==='quran_session') map[teacher].sessionTime+=Number(u.sessionSeconds||u.seconds)||0;
-      if(u.category==='educational') map[teacher].educationTime+=Number(u.seconds)||0;
-    });
-    wafdeenTimeReportRows=Object.keys(map).map(function(k){var x=map[k]; x.total=x.newTime+x.oldTime+x.recitationTime; return x;}).sort(function(a,b){return a.teacherName.localeCompare(b.teacherName,'ar');});
-    body.innerHTML=wafdeenTimeReportRows.map(function(x){return '<tr><td><strong>'+escapeHtml(x.teacherName)+'</strong></td><td>'+wafdeenTimeFormatSeconds_(x.newTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.oldTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.recitationTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.sessionTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.educationTime)+'</td><td>'+wafdeenTimeFormatSeconds_(x.total)+'</td></tr>';}).join('');
-    if(empty) empty.style.display=wafdeenTimeReportRows.length?'none':'block';
-    renderWafdeenManagerGradesReport_(daily,usage,start,end);
-    renderWafdeenManagerEducationRecords_(usage,start,end);
-  } catch(error) {
-    console.error('تعذر تحميل تقرير وقت الوافدين من السحابة:',error);
-    wafdeenTimeReportRows=[];
-    body.innerHTML='<tr><td colspan="7">تعذر تحميل تقرير الوافدين من السحابة: '+escapeHtml(error.message||error)+'</td></tr>';
-    if(empty) empty.style.display='none';
-    ['wafdeenGradesReportBody','wafdeenEducationRecordsBody'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML='<tr><td colspan="13">تعذر تحميل البيانات السحابية؛ أعد المحاولة.</td></tr>';});
-  }
-}
-function exportWafdeenTimeReportExcel(){
-  if(!wafdeenTimeReportRows.length){renderWafdeenTimeReport();}
-  if(!wafdeenTimeReportRows.length) return showMessage('wafdeen-save-msg','لا توجد بيانات وقت لتصديرها','error');
-  var data=wafdeenTimeReportRows.map(function(x){return {'الشيخ':x.teacherName,'وقت الجديد الكامل':wafdeenTimeFormatSeconds_(x.newTime),'وقت الماضي الكامل':wafdeenTimeFormatSeconds_(x.oldTime),'وقت التلاوة الكامل':wafdeenTimeFormatSeconds_(x.recitationTime),'مدة جلسة التسميع':wafdeenTimeFormatSeconds_(x.sessionTime),'وقت التعليم':wafdeenTimeFormatSeconds_(x.educationTime),'المجموع الكامل':wafdeenTimeFormatSeconds_(x.total)};});
-  try{var ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'وقت الوافدين'); var range=getWafdeenTimeReportRange_(); var suffix=wafdeenTimeReportPeriod==='day'?range[0]:wafdeenTimeReportPeriod==='week'?range[0]+'_الى_'+range[1]:range[0].slice(0,7); XLSX.writeFile(wb,'تقرير_وقت_الوافدين_'+suffix+'.xlsx');}catch(e){showMessage('wafdeen-save-msg','تعذر تصدير تقرير وقت الوافدين: '+(e.message||e),'error');}
-}
-
 function switchTab(tabId, event) {
     if (window.MajdApp && typeof window.MajdApp.loadFeature === 'function') {
         Promise.resolve(window.MajdApp.loadFeature(tabId)).catch(function (error) {
@@ -2142,7 +1961,7 @@ function switchTab(tabId, event) {
     }
     if (tabId === 'localdata-usage-tab') return;
     // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، الأوائل، المصروفات، ومقرر الدفع.
-    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab', 'total-expenses-tab', 'wafdeen-time-tab'].includes(tabId)) {
+    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab', 'total-expenses-tab'].includes(tabId)) {
         tabId = 'status-tab';
     }
     if (tabId !== 'admin-tab') {
@@ -2168,7 +1987,7 @@ function switchTab(tabId, event) {
         document.getElementById('expenses-menu-wrap')?.classList.add('open');
         document.getElementById('payments-tab-btn')?.classList.add('active');
     }
-    if (tabId === 'sheikh-registration-tab' || tabId === 'wafdeen-time-tab' || tabId === 'notes-tab') {
+    if (tabId === 'sheikh-registration-tab' || tabId === 'notes-tab') {
         document.getElementById('sheikh-recordings-menu-wrap')?.classList.add('open');
         document.getElementById('sheikh-recordings-menu-btn')?.classList.add('active');
     }
@@ -2187,7 +2006,6 @@ function switchTab(tabId, event) {
         renderManagerView();
     else if (tabId === 'top-students-tab')
         renderTopStudents();
-    else if (tabId === 'wafdeen-time-tab') { setWafdeenTimePeriod(wafdeenTimeReportPeriod || 'day'); }
     else if (tabId === 'sharia-grades-tab') { renderShariaGradesReport(); }
     else if (tabId === 'notes-tab') {
         populateNotesClasses();
@@ -2287,33 +2105,23 @@ function renderSheikhRegistrationView() {
 }
 
 function sheikhRegistrationStudents_(className) {
-    if (String(className || '').trim() === 'الوافدين') {
-        return (typeof wafdeenStudentsData !== 'undefined' && Array.isArray(wafdeenStudentsData) ? wafdeenStudentsData : [])
-            .filter(function (s) { return s && !s._deleted; })
-            .map(function (s) { return Object.assign({}, s, { className: 'الوافدين' }); });
-    }
-    return (studentsData || []).filter(function (s) { return s.className === className && !s._deleted; });
+    if (!ALL_CLASSES.includes(teacherClassNormalize_(className))) return [];
+    return (studentsData || []).filter(function (student) {
+        return student && !student._deleted && teacherClassNormalize_(student.className) === teacherClassNormalize_(className);
+    });
 }
-
 function sheikhRegistrationRecords_(className) {
     if (shariaIsClass_(className)) {
-        return (shariaGradesData || []).map(function (r) {
-            return Object.assign({}, r, { isAbsent: !!r.absent, attendanceStatus: r.absent ? 'absent' : 'present' });
+        return (shariaGradesData || []).map(function (record) {
+            return Object.assign({}, record, { isAbsent: !!record.absent, attendanceStatus: record.absent ? 'absent' : 'present' });
         });
-    }
-    if (String(className || '').trim() === 'الوافدين') {
-        return typeof wafdeenMainLogRecords_ === 'function' ? wafdeenMainLogRecords_() : (wafdeenDailyRecords || []);
     }
     return dailyRecords || [];
 }
-
 function sheikhRegistrationDate_(className, record) {
     var value = record && (record.dateISO || record.date);
-    return String(className || '').trim() === 'الوافدين' && typeof wafdeenMainLogDate_ === 'function'
-        ? wafdeenMainLogDate_(value)
-        : String(value || '').slice(0, 10);
+    return String(value || '').slice(0, 10);
 }
-
 /* ============================================================
    تصدير تسجيل الشيوخ إلى Excel
    - ورقة "المجمع": كل الفصول في ورقة واحدة.
@@ -2323,7 +2131,7 @@ function sheikhRegistrationDate_(className, record) {
    ============================================================ */
 function isSheikhRegistrationExportClass_(className) {
     var normalized = String(className || '').trim();
-    return normalized !== 'تمهيدي' && normalized !== 'الوافدين';
+    return ALL_CLASSES.includes(normalized) && normalized !== 'تمهيدي';
 }
 function getSheikhRegistrationClassOrder_() {
     return GENERAL_CLASSES.filter(isSheikhRegistrationExportClass_);
@@ -2710,7 +2518,7 @@ function exportCurrentSheikhClassExcel() {
         if (!className) return showMessage('app-msg', 'اختر الفصل أولاً.', 'error');
 
         if (!isSheikhRegistrationExportClass_(className)) {
-            return showMessage('app-msg', 'لا يمكن تصدير التمهيدي أو الوافدين من تسجيل الشيوخ.', 'error');
+            return showMessage('app-msg', 'هذا الفصل غير متاح في تصدير تسجيل الشيوخ.', 'error');
         }
         var rows = sheikhRegistrationRowsForClass_(className, dateVal);
         var wb = XLSX.utils.book_new();
@@ -2731,19 +2539,10 @@ function getDailyMax(className) {
 }
 function updateFifthGradeFields(className) {
     var fifth = isFifthClass(className);
-    var wafdeen = String(className || '').trim() === 'الوافدين';
     document.body.classList.toggle('fifth-selected', fifth);
-    document.body.classList.toggle('wafdeen-selected', wafdeen);
-    // في فصل الوافدين لا نعرض عدد مرات التسميع، وتُستخدم القيمة الافتراضية مرة واحدة داخليًا.
-    if (wafdeen) {
-        ['newRecitationCount','oldRecitationCount','recitationRecitationCount'].forEach(function(id){
-            var el=document.getElementById(id);
-            if(el) el.value='1';
-        });
-    }
     var saveBtn = document.querySelector('#daily-tab .daily-scores-card .btn-save');
     if (saveBtn)
-        saveBtn.innerText = "\uD83D\uDCBE \u062D\u0641\u0638 \u0627\u0644\u062F\u0631\u062C\u0627\u062A \u0648\u0627\u0644\u0648\u0642\u062A (\u0645\u0646 ".concat(getDailyMax(className), ")");
+        saveBtn.innerText = "💾 حفظ الدرجات والوقت (من ".concat(getDailyMax(className), ")");
 }
 function clampGrade(val) {
     var n = Number(val) || 0;
@@ -2758,7 +2557,7 @@ function getDailyTotal(record) {
         (record.oldRevision || 0) + (record.recitation || 0) + (record.homework || 0) + (record.tajweed || 0);
 }
 /* ================= أسباب خصم السلوك ================= */
-var WAFDEEN_BEHAVIOR_REASONS = [
+var DAILY_BEHAVIOR_REASONS = [
     { key: 'delay', label: 'التاخير', points: 1 },
     { key: 'makeup', label: 'المكياج', points: 2 },
     { key: 'hijab', label: 'الطرحه', points: 2 },
@@ -2778,65 +2577,65 @@ var WAFDEEN_BEHAVIOR_REASONS = [
     { key: 'cursing', label: 'السباب', points: 3 },
     { key: 'uniform', label: 'عدم الالتزام بالزي', points: 2 }
 ];
-var wafdeenBehaviorState = { daily: {}, modal: {} };
-function wafdeenBehaviorReasonsRowsHtml(prefix) {
-    return WAFDEEN_BEHAVIOR_REASONS.map(function (r) { return "\n    <div class=\"behavior-reason-row\">\n      <span class=\"behavior-reason-label\">".concat(r.label, " <span class=\"behavior-reason-points\">(-").concat(r.points, ")</span></span>\n      <div class=\"behavior-reason-controls\">\n        <button type=\"button\" class=\"behavior-reason-btn\" onclick=\"event.preventDefault();wafdeenBehaviorChange('").concat(prefix, "','").concat(r.key, "',-1);return false;\">\u2212</button>\n        <span id=\"").concat(prefix, "-behavior-count-").concat(r.key, "\" class=\"behavior-reason-count\">0</span>\n        <button type=\"button\" class=\"behavior-reason-btn\" onclick=\"event.preventDefault();wafdeenBehaviorChange('").concat(prefix, "','").concat(r.key, "',1);return false;\">+</button>\n      </div>\n    </div>"); }).join('');
+var dailyBehaviorState = { daily: {}, modal: {} };
+function behaviorReasonsRowsHtml(prefix) {
+    return DAILY_BEHAVIOR_REASONS.map(function (r) { return "\n    <div class=\"behavior-reason-row\">\n      <span class=\"behavior-reason-label\">".concat(r.label, " <span class=\"behavior-reason-points\">(-").concat(r.points, ")</span></span>\n      <div class=\"behavior-reason-controls\">\n        <button type=\"button\" class=\"behavior-reason-btn\" onclick=\"event.preventDefault();changeBehaviorReason('").concat(prefix, "','").concat(r.key, "',-1);return false;\">\u2212</button>\n        <span id=\"").concat(prefix, "-behavior-count-").concat(r.key, "\" class=\"behavior-reason-count\">0</span>\n        <button type=\"button\" class=\"behavior-reason-btn\" onclick=\"event.preventDefault();changeBehaviorReason('").concat(prefix, "','").concat(r.key, "',1);return false;\">+</button>\n      </div>\n    </div>"); }).join('');
 }
-function wafdeenMountBehaviorPanel(containerId, prefix) {
+function mountBehaviorPanel(containerId, prefix) {
     var el = document.getElementById(containerId);
     if (el)
-        el.innerHTML = wafdeenBehaviorReasonsRowsHtml(prefix);
+        el.innerHTML = behaviorReasonsRowsHtml(prefix);
 }
-function wafdeenToggleBehaviorPanel(prefix) {
+function toggleBehaviorPanel(prefix) {
     var grid = document.getElementById("".concat(prefix, "-behavior-grid"));
     if (grid)
         grid.classList.toggle('is-visible');
 }
-function wafdeenBehaviorDeduction(prefix) {
-    var state = wafdeenBehaviorState[prefix] || {};
-    return WAFDEEN_BEHAVIOR_REASONS.reduce(function (sum, r) { return sum + (Math.max(0, parseInt(state[r.key], 10) || 0)) * r.points; }, 0);
+function dailyBehaviorDeduction(prefix) {
+    var state = dailyBehaviorState[prefix] || {};
+    return DAILY_BEHAVIOR_REASONS.reduce(function (sum, r) { return sum + (Math.max(0, parseInt(state[r.key], 10) || 0)) * r.points; }, 0);
 }
-function wafdeenBehaviorSummaryText(prefix) {
-    var state = wafdeenBehaviorState[prefix] || {};
-    return WAFDEEN_BEHAVIOR_REASONS
+function dailyBehaviorSummaryText(prefix) {
+    var state = dailyBehaviorState[prefix] || {};
+    return DAILY_BEHAVIOR_REASONS
         .filter(function (r) { return (parseInt(state[r.key], 10) || 0) > 0; })
         .map(function (r) { var n = parseInt(state[r.key], 10) || 0; return "".concat(r.label, " \u00D7").concat(n, " (-").concat(n * r.points, ")"); })
         .join('، ');
 }
-function wafdeenRecalcBehavior(prefix) {
-    var deduction = wafdeenBehaviorDeduction(prefix);
+function recalculateBehavior(prefix) {
+    var deduction = dailyBehaviorDeduction(prefix);
     var score = Math.max(0, Math.min(10, 10 - deduction));
     var input = document.getElementById(prefix === 'daily' ? 'behavior' : 'modalBehavior');
     if (input)
         input.value = score;
     var summaryEl = document.getElementById("".concat(prefix, "-behavior-summary"));
-    var text = wafdeenBehaviorSummaryText(prefix);
+    var text = dailyBehaviorSummaryText(prefix);
     if (summaryEl)
         summaryEl.textContent = text ? "\u0633\u0628\u0628 \u0627\u0644\u062E\u0635\u0645: ".concat(text, " \u2014 \u0627\u0644\u062F\u0631\u062C\u0629: ").concat(score, "/10") : "\u0644\u0627 \u064A\u0648\u062C\u062F \u062E\u0635\u0645 \u2014 \u0627\u0644\u062F\u0631\u062C\u0629: 10/10";
     return score;
 }
-function wafdeenBehaviorChange(prefix, key, delta) {
-    if (!wafdeenBehaviorState[prefix])
-        wafdeenBehaviorState[prefix] = {};
-    var cur = Math.max(0, (parseInt(wafdeenBehaviorState[prefix][key], 10) || 0) + delta);
-    wafdeenBehaviorState[prefix][key] = cur;
+function changeBehaviorReason(prefix, key, delta) {
+    if (!dailyBehaviorState[prefix])
+        dailyBehaviorState[prefix] = {};
+    var cur = Math.max(0, (parseInt(dailyBehaviorState[prefix][key], 10) || 0) + delta);
+    dailyBehaviorState[prefix][key] = cur;
     var el = document.getElementById("".concat(prefix, "-behavior-count-").concat(key));
     if (el)
         el.textContent = String(cur);
-    wafdeenRecalcBehavior(prefix);
+    recalculateBehavior(prefix);
     if (prefix === 'daily') {
         try {
-            wafdeenSaveDailyDraft_();
+            saveDailyDraft_();
         }
         catch (_) { }
     }
 }
-function wafdeenResetBehaviorState(prefix, counts) {
+function resetBehaviorState(prefix, counts) {
     counts = counts || {};
     var state = {};
-    WAFDEEN_BEHAVIOR_REASONS.forEach(function (r) { state[r.key] = Math.max(0, parseInt(counts[r.key], 10) || 0); });
-    wafdeenBehaviorState[prefix] = state;
-    WAFDEEN_BEHAVIOR_REASONS.forEach(function (r) {
+    DAILY_BEHAVIOR_REASONS.forEach(function (r) { state[r.key] = Math.max(0, parseInt(counts[r.key], 10) || 0); });
+    dailyBehaviorState[prefix] = state;
+    DAILY_BEHAVIOR_REASONS.forEach(function (r) {
         var el = document.getElementById("".concat(prefix, "-behavior-count-").concat(r.key));
         if (el)
             el.textContent = String(state[r.key]);
@@ -2844,14 +2643,14 @@ function wafdeenResetBehaviorState(prefix, counts) {
     var grid = document.getElementById("".concat(prefix, "-behavior-grid"));
     if (grid)
         grid.classList.remove('is-visible');
-    wafdeenRecalcBehavior(prefix);
+    recalculateBehavior(prefix);
 }
-function wafdeenShowBehaviorReasons(text) {
+function showBehaviorReasons(text) {
     showSiteModal('📋 سبب خصم السلوك', text ? "<div style=\"line-height:2;\">".concat(String(text).replace(/[&<>"']/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]); }), "</div>") : '<div>لا يوجد خصم — الطالب حاصل على الدرجة كاملة.</div>', "<button type=\"button\" class=\"action-btn modal-success\" onclick=\"closeSiteModal()\">\u062D\u0633\u0646\u0627\u064B</button>");
 }
 document.addEventListener('DOMContentLoaded', function () {
-    wafdeenMountBehaviorPanel('daily-behavior-grid', 'daily');
-    wafdeenResetBehaviorState('daily', {});
+    mountBehaviorPanel('daily-behavior-grid', 'daily');
+    resetBehaviorState('daily', {});
 });
 /* ================= تايمر الرصد اليومي ================= */
 var dailyTimerType = 'new';
@@ -2941,13 +2740,14 @@ function selectDailyTimerType(type) {
 }
 // حفظ مؤقت فوري لدرجات الجديد والماضي والتلاوة والعدادات أثناء التسجيل.
 // المفتاح مرتبط بالطالب والتاريخ حتى لا تختلط درجات طالب بآخر.
-function wafdeenDailyDraftKey_() {
+function dailyDraftKey_() {
     var _a, _b;
     var student = ((_a = document.getElementById('studentNameSelect')) === null || _a === void 0 ? void 0 : _a.value) || '';
     var date = ((_b = document.getElementById('recordDate')) === null || _b === void 0 ? void 0 : _b.value) || '';
+    // Keep the original namespace so already-saved drafts remain available.
     return 'wafdeenDailyDraft:' + student + ':' + date;
 }
-function wafdeenSaveDailyDraft_() {
+function saveDailyDraft_() {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     try {
         var draft = {
@@ -2964,7 +2764,7 @@ function wafdeenSaveDailyDraft_() {
             recitationTashkeel: Number(((_l = dailyErrorCounters === null || dailyErrorCounters === void 0 ? void 0 : dailyErrorCounters.recitation) === null || _l === void 0 ? void 0 : _l.tashkeel) || 0),
             recitationRepetition: Number(((_m = dailyErrorCounters === null || dailyErrorCounters === void 0 ? void 0 : dailyErrorCounters.recitation) === null || _m === void 0 ? void 0 : _m.repetition) || 0),
             counterType: dailyCounterType || dailyTimerType || '',
-            behaviorCounts: __assign({}, (wafdeenBehaviorState.daily || {}))
+            behaviorCounts: __assign({}, (dailyBehaviorState.daily || {}))
         };
         ['attendance', 'behavior', 'tajweed', 'homework', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount',
             'oldTopicToday', 'oldPagesCount', 'oldTopicRecited', 'oldRecitationCount', 'recitationTopicToday',
@@ -2973,24 +2773,24 @@ function wafdeenSaveDailyDraft_() {
             if (el)
                 draft[id] = el.value;
         });
-        memoryStorage.setItem(wafdeenDailyDraftKey_(), JSON.stringify(draft));
+        memoryStorage.setItem(dailyDraftKey_(), JSON.stringify(draft));
     }
     catch (_) { }
 }
-function wafdeenBindDailyDraftInputs_() {
+function bindDailyDraftInputs_() {
     ['attendance', 'behavior', 'tajweed', 'homework', 'newLesson', 'oldRevision', 'recitation', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount',
         'oldTopicToday', 'oldPagesCount', 'oldTopicRecited', 'oldRecitationCount', 'recitationTopicToday', 'recitationPagesCount',
         'recitationTopicRecited', 'recitationRecitationCount'].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el || el.dataset.dailyDraftBound === '1') return;
-        el.addEventListener('input', wafdeenSaveDailyDraft_);
-        el.addEventListener('change', wafdeenSaveDailyDraft_);
+        el.addEventListener('input', saveDailyDraft_);
+        el.addEventListener('change', saveDailyDraft_);
         el.dataset.dailyDraftBound = '1';
     });
 }
-function wafdeenRestoreDailyDraft_() {
+function restoreDailyDraft_() {
     try {
-        var draft_1 = JSON.parse(memoryStorage.getItem(wafdeenDailyDraftKey_()) || 'null');
+        var draft_1 = JSON.parse(memoryStorage.getItem(dailyDraftKey_()) || 'null');
         if (!draft_1)
             return;
         ['newLesson', 'oldRevision', 'recitation', 'attendance', 'behavior', 'tajweed', 'homework', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount',
@@ -3008,7 +2808,7 @@ function wafdeenRestoreDailyDraft_() {
         if (draft_1.counterType)
             dailyCounterType = draft_1.counterType;
         dailyRenderCounters();
-        wafdeenResetBehaviorState('daily', draft_1.behaviorCounts || {});
+        resetBehaviorState('daily', draft_1.behaviorCounts || {});
     }
     catch (_) { }
 }
@@ -3040,7 +2840,7 @@ function dailyCalculateGrade(type) {
     gradeEl.readOnly = true;
     gradeEl.classList.add('daily-auto-grade');
     try {
-        wafdeenSaveDailyDraft_();
+        saveDailyDraft_();
     }
     catch (_) { }
     return score;
@@ -3064,7 +2864,7 @@ function dailyIncrementCounter(kind) {
         return false;
     c[kind] = (parseInt(c[kind], 10) || 0) + 1;
     dailyRenderCounters();
-    wafdeenSaveDailyDraft_();
+    saveDailyDraft_();
     dailyAnimateCounter(kind);
     return false;
 }
@@ -3074,7 +2874,7 @@ function dailyDecrementCounter(kind) {
         return false;
     c[kind] = Math.max(0, (parseInt(c[kind], 10) || 0) - 1);
     dailyRenderCounters();
-    wafdeenSaveDailyDraft_();
+    saveDailyDraft_();
     dailyAnimateCounter(kind);
     return false;
 }
@@ -3164,7 +2964,7 @@ function dailyPauseForStudentSwitch_() {
 }
 function showDailyStudentWorkspace() {
     var _a;
-    wafdeenBindDailyDraftInputs_();
+    bindDailyDraftInputs_();
     var student = (_a = document.getElementById('studentNameSelect')) === null || _a === void 0 ? void 0 : _a.value;
     var nextKey = dailyTimerStudentKey_();
     // عند الانتقال لطالب آخر: أوقف المؤقت تلقائيًا كـ«استراحة» واحفظ زمن الطالب السابق.
@@ -3209,9 +3009,9 @@ function showDailyStudentWorkspace() {
     resetDailyExtraFieldsFromRecord(existing || {});
     dailyLoadCountersFromRecord(existing || {});
     dailyRenderCounters();
-    wafdeenResetBehaviorState('daily', (existing === null || existing === void 0 ? void 0 : existing.behaviorReasons) || {});
+    resetBehaviorState('daily', (existing === null || existing === void 0 ? void 0 : existing.behaviorReasons) || {});
     try {
-        wafdeenRestoreDailyDraft_();
+        restoreDailyDraft_();
     }
     catch (_) { }
     dailyRenderCounters();
@@ -3231,7 +3031,7 @@ function startDailyTimer() {
     dailyTimerInterval = setInterval(renderDailyTimer, 1000);
     renderDailyTimer();
 }
-function wafdeenKeepDailyScroll_() {
+function keepDailyScroll_() {
     // الحفاظ على موضع الرصد اليومي عند الحفظ أو الاستراحة، حتى لا تقفز الصفحة إلى بدايتها.
     var y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
     var activeId = document.activeElement && document.activeElement.id ? document.activeElement.id : '';
@@ -3246,7 +3046,6 @@ function wafdeenKeepDailyScroll_() {
     [0, 50, 150, 350, 700, 1200].forEach(function (ms) { setTimeout(restore, ms); });
 }
 function pauseDailyTimer() {
-    wafdeenKeepDailyScroll_();
     if (!dailyTimerRunning)
         return;
     dailyTimerBaseSeconds += Math.floor((Date.now() - dailyTimerStartedAt) / 1000);
@@ -3256,7 +3055,6 @@ function pauseDailyTimer() {
     dailyTimerInterval = null;
     dailySaveTimerDraft_();
     try { window.MajdLocalDataAPI.flushLocalRenderQueue(); } catch (_) {}
-            try { wafdeenFlushLocalPersist_(); } catch (_) {}
     updateDailyTypeTimes();
     renderDailyTimer();
 }
@@ -3516,60 +3314,6 @@ function hasDailyRecordForSelectedStudent_() {
     var stableId = sid ? dailyStableRecordId_(sid, className, dateISO) : '';
     return (dailyRecords || []).find(function (r) { return !r._deleted && !r._legacyMigrated && ((stableId && String(r.id) === stableId) || (sid && String(r.studentId || '') === String(sid) && String(r.className || '') === String(className) && String(r.dateISO || '').slice(0, 10) === String(dateISO).slice(0, 10)) || (!sid && String(r.className || '') === String(className) && String(r.dateISO || '').slice(0, 10) === String(dateISO).slice(0, 10) && String(r.studentName || '').trim() === studentName)); }) || null;
 }
-function recordAbsenceTime() {
-    var _a, _b, _c, _d;
-    var studentId = ((_a = document.getElementById('studentSelect')) === null || _a === void 0 ? void 0 : _a.value) || ((_b = document.getElementById('wafdeenStudentSelect')) === null || _b === void 0 ? void 0 : _b.value);
-    var date = ((_c = document.getElementById('gradeDate')) === null || _c === void 0 ? void 0 : _c.value) || ((_d = document.getElementById('wafdeenDate')) === null || _d === void 0 ? void 0 : _d.value) || new Date().toISOString().slice(0, 10);
-    if (!studentId) {
-        showMessage('app-msg', 'من فضلك اختر الطالب أولاً!', 'error');
-        return;
-    }
-    var now = new Date();
-    var timeText = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-    var zeroTime = 0;
-    // Record a dedicated absence event with time = 0, without asking for grades.
-    var rec = {
-        id: 'absence-' + studentId + '-' + date + '-' + Date.now(),
-        studentId: studentId,
-        date: date,
-        attendanceStatus: 'absent',
-        isAbsent: true,
-        absence: true,
-        absenceTime: zeroTime,
-        time: zeroTime,
-        recordedAt: now.toISOString(),
-        recordedTimeText: timeText,
-    };
-    if (Array.isArray(window.dailyRecords)) {
-        window.dailyRecords.push(rec);
-        try {
-            memoryStorage.setItem('dailyRecords', JSON.stringify(window.dailyRecords));
-        }
-        catch (e) { }
-    }
-    // Also update any available Wafdeen collection.
-    if (Array.isArray(window.wafdeenDailyRecords)) {
-        window.wafdeenDailyRecords.push(rec);
-        try {
-            memoryStorage.setItem('wafdeenDailyRecords', JSON.stringify(window.wafdeenDailyRecords));
-        }
-        catch (e) { }
-    }
-    try {
-        if (typeof window.syncCollection_ === 'function') {
-            window.syncCollection_('dailyRecords', window.dailyRecords || []);
-        }
-    }
-    catch (e) { }
-    try {
-        if (typeof window.renderDailyRecords === 'function')
-            window.renderDailyRecords();
-        if (typeof window.renderWafdeenDailyRecords === 'function')
-            window.renderWafdeenDailyRecords();
-    }
-    catch (e) { }
-    showMessage('app-msg', "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u063A\u064A\u0627\u0628 \u0627\u0644\u0637\u0627\u0644\u0628 \u2014 \u0627\u0644\u0648\u0642\u062A: ".concat(zeroTime), 'success');
-}
 function validateDailyRequiredFields_(type){
     var labels={
         attendance:'الحضور', behavior:'السلوك', homework:'الواجب', tajweed:'التجويد',
@@ -3599,9 +3343,9 @@ function validateDailyRequiredFields_(type){
     }
     if(missing.length){
         // احتفظ بنسخة قبل إظهار الرسالة، ثم أعدها بعد أي تحديث متأخر للواجهة.
-        try { wafdeenSaveDailyDraft_(); } catch (_) { }
+        try { saveDailyDraft_(); } catch (_) { }
         [0, 50, 200].forEach(function (delay) {
-            setTimeout(function () { try { wafdeenRestoreDailyDraft_(); } catch (_) { } }, delay);
+            setTimeout(function () { try { restoreDailyDraft_(); } catch (_) { } }, delay);
         });
         var first=document.querySelector('#daily-workspace .field-missing, #daily-workspace .daily-field-missing');
         if(first) setTimeout(function(){try{first.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}},0);
@@ -3616,7 +3360,6 @@ function validateDailyRequiredFields_(type){
     return true;
 }
 function addGrade() {
-    wafdeenKeepDailyScroll_();
     return __awaiter(this, arguments, void 0, function (forceAbsent) {
         var className, dateISO, dayName, studentName, type, label, record, timerBox, val, num, countId, gradeId, topicTodayId, pagesId, topicRecitedId, count, grade, limit, now, existing, seconds, timeKey, ec, prefix, commonPatch, typeFields, e_27, idx;
         var _a;
@@ -3645,11 +3388,11 @@ function addGrade() {
                     if (dailyTimerRunning)
                         pauseDailyTimer();
                     // لقطة قبل أي حساب تلقائي قد يغير قيمة خانة مكتوبة.
-                    try { wafdeenSaveDailyDraft_(); } catch (_) { }
+                    try { saveDailyDraft_(); } catch (_) { }
                     updateDailyRecitationGrade(type);
                     dailyCalculateGrade(type);
                     // احفظ المسودة قبل التحقق حتى لا تضيع كتابات المدرس إذا كانت خانة ناقصة.
-                    try { wafdeenSaveDailyDraft_(); } catch (_) { }
+                    try { saveDailyDraft_(); } catch (_) { }
                     if (!validateDailyRequiredFields_(type))
                         return [2 /*return*/];
                     timerBox = document.getElementById('dailySelectedTimerBox');
@@ -3709,8 +3452,8 @@ function addGrade() {
                     record.dateISO = dateISO;
                     record.dayName = dayName;
                     record.studentName = studentName;
-                    record.behaviorReasons = __assign({}, (wafdeenBehaviorState.daily || {}));
-                    record.behaviorReasonsText = wafdeenBehaviorSummaryText('daily');
+                    record.behaviorReasons = __assign({}, (dailyBehaviorState.daily || {}));
+                    record.behaviorReasonsText = dailyBehaviorSummaryText('daily');
                     record.attendanceStatus = Number(record.attendance) === 0 ? 'present' : 'present';
                     record.isAbsent = false;
                     record[gradeId] = grade;
@@ -3763,7 +3506,7 @@ function addGrade() {
                     updateDailyTypeTimes();
                     renderDailyTimer();
                     // لا تصفّر العداد بعد الحفظ؛ يظل ثابتًا حتى يمسحه المدرس يدويًا.
-                    wafdeenSaveDailyDraft_();
+                    saveDailyDraft_();
                     dailyRenderCounters();
                     renderDailyTable();
                     renderAttendanceTable();
@@ -3838,17 +3581,18 @@ function openStudentEditModal(student) {
 }
 function openTeacherEditModal(teacher) {
     return new Promise(function (resolve) {
-        showSiteModal('✏️ تعديل بيانات المعلم / المعلمة', "<div class=\"modal-grid\">\n        <div class=\"form-group\">\n          <label>\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645:</label>\n          <input id=\"modalTeacherUsername\" value=\"".concat(String(teacher.username || '').replace(/"/g, '&quot;'), "\">\n        </div>\n        <div class=\"form-group\">\n          <label>\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631:</label>\n          <input id=\"modalTeacherPassword\" value=\"").concat(String(teacher.password || '').replace(/"/g, '&quot;'), "\">\n        </div>\n        <div class=\"form-group\">\n          <label>\u0627\u0644\u0635\u0641 \u0627\u0644\u0645\u0633\u0646\u062F:</label>\n          <select id=\"modalTeacherClass\">\n            <option value=\"\u0627\u0644\u0643\u0644\">\u0645\u062F\u064A\u0631 (\u062C\u0645\u064A\u0639 \u0627\u0644\u0635\u0641\u0648\u0641)</option>\n            ").concat(ALL_CLASSES.map(function (c) { return "<option value=\"".concat(c, "\" ").concat(c === teacher.assignedClass ? 'selected' : '', ">").concat(c, "</option>"); }).join(''), "\n          </select>\n        </div>\n        <div class=\"form-group\" style=\"display:flex;align-items:center;gap:10px;flex-wrap:wrap;\">\n          <label style=\"margin:0;display:flex;align-items:center;gap:8px;cursor:pointer;\">\n            <input id=\"modalTeacherWafdeen\" type=\"checkbox\" style=\"width:20px;height:20px;\" ").concat(teacher.canWafdeen ? 'checked' : '', ">\n            السماح للشيخ بفصل الوافدين\n          </label>\n        </div>\n        <div class=\"form-group\">\n          <label>\u0627\u0644\u062F\u0648\u0631 / \u0627\u0644\u0645\u0631\u0643\u0632:</label>\n          <select id=\"modalTeacherCenter\">\n            <option value=\"\u0631\u0626\u064A\u0633\u064A\" ").concat(teacher.center === 'رئيسي' ? 'selected' : '', ">\u0645\u0639\u0644\u0645 \u0631\u0626\u064A\u0633\u064A</option>\n            <option value=\"\u0645\u0633\u0627\u0639\u062F\" ").concat(teacher.center === 'مساعد' ? 'selected' : '', ">\u0645\u0639\u0644\u0645 \u0645\u0633\u0627\u0639\u062F</option>\n            <option value=\"\u0627\u0644\u0643\u0644\" ").concat(teacher.center === 'الكل' ? 'selected' : '', ">\u0645\u062F\u064A\u0631 \u0646\u0638\u0627\u0645</option>\n          </select>\n        </div>\n      </div>"), "<button type=\"button\" class=\"action-btn modal-success\" id=\"saveTeacherEditBtn\">\uD83D\uDCBE \u062D\u0641\u0638 \u0627\u0644\u062A\u0639\u062F\u064A\u0644</button>\n       <button type=\"button\" class=\"action-btn modal-cancel\" id=\"cancelTeacherEditBtn\">\u0625\u0644\u063A\u0627\u0621</button>");
+        showSiteModal('✏️ تعديل بيانات المعلم / المعلمة', "<div class=\"modal-grid\">\n        <div class=\"form-group\">\n          <label>\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645:</label>\n          <input id=\"modalTeacherUsername\" value=\"".concat(String(teacher.username || '').replace(/"/g, '&quot;'), "\">\n        </div>\n        <div class=\"form-group\">\n          <label>\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631:</label>\n          <input id=\"modalTeacherPassword\" value=\"").concat(String(teacher.password || '').replace(/"/g, '&quot;'), "\">\n        </div>\n        <div class=\"form-group\">\n          <label>\u0627\u0644\u0635\u0641 \u0627\u0644\u0645\u0633\u0646\u062F:</label>\n          <select id=\"modalTeacherClass\">\n            <option value=\"\u0627\u0644\u0643\u0644\">\u0645\u062F\u064A\u0631 (\u062C\u0645\u064A\u0639 \u0627\u0644\u0635\u0641\u0648\u0641)</option>\n            ").concat(teacher.assignedClass !== 'الكل' && !ALL_CLASSES.includes(teacher.assignedClass) ? "<option value='' selected>فصل محفوظ غير مدعوم — اختر فصلاً مدعوماً</option>" : '', ALL_CLASSES.map(function (c) { return "<option value=\"".concat(c, "\" ").concat(c === teacher.assignedClass ? 'selected' : '', ">").concat(c, "</option>"); }).join(''), "\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label>\u0627\u0644\u062F\u0648\u0631 / \u0627\u0644\u0645\u0631\u0643\u0632:</label>\n          <select id=\"modalTeacherCenter\">\n            <option value=\"\u0631\u0626\u064A\u0633\u064A\" ").concat(teacher.center === 'رئيسي' ? 'selected' : '', ">\u0645\u0639\u0644\u0645 \u0631\u0626\u064A\u0633\u064A</option>\n            <option value=\"\u0645\u0633\u0627\u0639\u062F\" ").concat(teacher.center === 'مساعد' ? 'selected' : '', ">\u0645\u0639\u0644\u0645 \u0645\u0633\u0627\u0639\u062F</option>\n            <option value=\"\u0627\u0644\u0643\u0644\" ").concat(teacher.center === 'الكل' ? 'selected' : '', ">\u0645\u062F\u064A\u0631 \u0646\u0638\u0627\u0645</option>\n          </select>\n        </div>\n      </div>"), "<button type=\"button\" class=\"action-btn modal-success\" id=\"saveTeacherEditBtn\">\uD83D\uDCBE \u062D\u0641\u0638 \u0627\u0644\u062A\u0639\u062F\u064A\u0644</button>\n       <button type=\"button\" class=\"action-btn modal-cancel\" id=\"cancelTeacherEditBtn\">\u0625\u0644\u063A\u0627\u0621</button>");
         document.getElementById('saveTeacherEditBtn').onclick = function () {
             var username = document.getElementById('modalTeacherUsername').value.trim();
             var password = document.getElementById('modalTeacherPassword').value.trim();
             var assignedClass = document.getElementById('modalTeacherClass').value;
             var center = document.getElementById('modalTeacherCenter').value;
-            var canWafdeen = !!document.getElementById('modalTeacherWafdeen') && document.getElementById('modalTeacherWafdeen').checked;
+            if (!assignedClass)
+                return showSiteError('اختر فصلاً مدعوماً قبل حفظ بيانات المعلم.');
             if (!username || !password)
                 return showSiteError('يرجى ملء اسم المستخدم وكلمة المرور.');
             closeSiteModal();
-            resolve({ username: username, password: password, assignedClass: assignedClass, center: center, canWafdeen: canWafdeen });
+            resolve({ username: username, password: password, assignedClass: assignedClass, center: center });
         };
         document.getElementById('cancelTeacherEditBtn').onclick = function () {
             closeSiteModal();
@@ -3858,10 +3602,11 @@ function openTeacherEditModal(teacher) {
 }
 function canManageDailyRecord_(record) {
     if (!currentTeacher || !record) return false;
+    var recordClass = teacherClassNormalize_(record.className);
+    if (!ALL_CLASSES.includes(recordClass)) return false;
     var username = String(currentTeacher.username || '').trim();
     var assigned = String(currentTeacher.assignedClass || '').trim();
-    var recordClass = String(record.className || '').trim();
-    return username === 'admin' || assigned === 'الكل' || (!!recordClass && teacherOwnsClass_(recordClass));
+    return username === 'admin' || assigned === 'الكل' || teacherOwnsClass_(recordClass);
 }
 function deleteRecord(id) {
     return __awaiter(this, void 0, void 0, function () {
@@ -3926,7 +3671,7 @@ function deleteRecord(id) {
                             if (typeof window.updateStudentListDropdown === 'function') window.updateStudentListDropdown();
                             if (shouldResetDailyEntry) {
                                 dailyStudentSelect.value = selectedDailyName;
-                                if (typeof window.wafdeenResetDailyEntryForm_ === 'function') window.wafdeenResetDailyEntryForm_();
+                                if (typeof window.resetDailyEntryForm_ === 'function') window.resetDailyEntryForm_();
                                 if (typeof window.updateMainDailySaveButton_ === 'function') window.updateMainDailySaveButton_();
                                 var dailyStudentInfo = document.getElementById('dailyStudentClass');
                                 if (dailyStudentInfo && dailyStudentSelect.selectedOptions && dailyStudentSelect.selectedOptions[0]) {
@@ -3951,75 +3696,7 @@ function dailyMissingCell(value, label) {
 function dailyMissingTimeCell(seconds) {
     return Number(seconds || 0) > 0 ? "<span class=\"recorded-time\">".concat(formatTimerSeconds(seconds), "</span>") : '<span class="missing-cell" title="الوقت لم يُسجل">الوقت لم يُسجل</span>';
 }
-function wafdeenIsMissingValue_(value) {
-    return value === null || value === undefined || String(value).trim() === '';
-}
-function wafdeenMarkMissingField_(id, missing) {
-    var el = document.getElementById(id);
-    var group = el === null || el === void 0 ? void 0 : el.closest('.form-group');
-    if (el)
-        el.classList.toggle('field-missing', !!missing);
-    if (group)
-        group.classList.toggle('field-missing-group', !!missing);
-}
-function wafdeenClearMissingMarks_() {
-    document.querySelectorAll('#wafdeen-daily-scores-panel .field-missing,#wafdeen-daily-scores-panel .field-missing-group').forEach(function (el) { return el.classList.remove('field-missing', 'field-missing-group'); });
-    var box = document.getElementById('wafdeen-missing-fields');
-    var list = document.getElementById('wafdeen-missing-fields-list');
-    if (list)
-        list.textContent = 'أكمل البيانات المطلوبة قبل الحفظ.';
-    if (box)
-        box.classList.add('hidden');
-}
-function wafdeenShowMissingFields_(items) {
-    var box = document.getElementById('wafdeen-missing-fields');
-    var list = document.getElementById('wafdeen-missing-fields-list');
-    if (!box || !list)
-        return;
-    if (items && items.length) {
-        list.innerHTML = items.map(function (x) { return "<span style=\"display:inline-block;margin:2px 4px;padding:2px 8px;border-radius:8px;background:#ffd9d9;color:#b71c1c\">".concat(String(x).replace(/[&<>"']/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]); }), "</span>"); }).join(' ');
-        box.classList.remove('hidden');
-    }
-    else
-        box.classList.add('hidden');
-}
-function wafdeenValidateDailyRequiredFields_() {
-    var _a, _b;
-    wafdeenClearMissingMarks_();
-    var selectedClass = (((_a = document.getElementById('classSelect')) === null || _a === void 0 ? void 0 : _a.value) || '');
-    var fifth = isFifthClass(selectedClass);
-    var wafdeen = String(selectedClass).trim() === 'الوافدين';
-    var attendance = Number((_b = document.getElementById('attendance')) === null || _b === void 0 ? void 0 : _b.value);
-    var isAbsent = attendance === 0;
-    var required = ['attendance', 'behavior', 'tajweed', 'homework', 'recitationTopicToday', 'recitationTopicRecited'];
-    // في حالة الغياب: الصفر ومقررات الغياب يكفيان، ولا نطلب صفحات/مرات/وقت تسميع.
-    if (!isAbsent) {
-        required.push('recitationPagesCount');
-        if (!wafdeen)
-            required.push('recitationRecitationCount');
-        if (!fifth)
-            required.push('newLesson', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'oldRevision', 'oldTopicToday', 'oldPagesCount', 'oldTopicRecited');
-        if (!wafdeen && !fifth)
-            required.push('newRecitationCount', 'oldRecitationCount');
-    }
-    var missing = required.filter(function (id) { var el = document.getElementById(id); return !el || wafdeenIsMissingValue_(el.value); });
-    // الوقت جزء من الرصد، ويظهر باللون الأحمر إذا لم يسجل. لا يلزم للغائب.
-    if (!isAbsent) {
-        if (!fifth && Number(dailyTimerSeconds.new || 0) <= 0)
-            missing.push('__newTime');
-        if (!fifth && Number(dailyTimerSeconds.old || 0) <= 0)
-            missing.push('__oldTime');
-        if (Number(dailyTimerSeconds.recitation || 0) <= 0)
-            missing.push('__recitationTime');
-    }
-    var timeMap = { __newTime: 'newLessonTimeLabel', __oldTime: 'oldRevisionTimeLabel', __recitationTime: 'recitationTimeLabel' };
-    missing.forEach(function (id) { if (id.startsWith('__'))
-        wafdeenMarkMissingField_(timeMap[id], true);
-    else
-        wafdeenMarkMissingField_(id, true); });
-    return missing;
-}
-function wafdeenResetDailyEntryForm_() {
+function resetDailyEntryForm_() {
     ['attendance', 'tajweed', 'homework', 'newTopicToday', 'newTopicRecited', 'oldTopicToday', 'oldTopicRecited', 'recitationTopicToday', 'recitationTopicRecited', 'newPagesCount', 'oldPagesCount', 'recitationPagesCount'].forEach(function (id) { var el = document.getElementById(id); if (el)
         el.value = ''; });
     ['newRecitationCount', 'oldRecitationCount', 'recitationRecitationCount'].forEach(function (id) { var el = document.getElementById(id); if (el)
@@ -4039,7 +3716,7 @@ function wafdeenResetDailyEntryForm_() {
     clearInterval(dailyTimerInterval);
     dailyTimerInterval = null;
     dailyResetCounters();
-    wafdeenResetBehaviorState('daily', {});
+    resetBehaviorState('daily', {});
     updateDailyTypeTimes();
     renderDailyTimer();
     dailyRenderCounters();
@@ -4047,10 +3724,9 @@ function wafdeenResetDailyEntryForm_() {
     if (summary)
         summary.textContent = 'تم الحفظ بنجاح. الخانات جاهزة لرصد طالب آخر أو رصد جديد.';
     try {
-        memoryStorage.removeItem(wafdeenDailyDraftKey_());
+        memoryStorage.removeItem(dailyDraftKey_());
     }
     catch (_) { }
-    wafdeenClearMissingMarks_();
 }
 function renderDailyTable() {
     var _a;
@@ -4091,7 +3767,7 @@ function renderDailyTable() {
                 : "")
             + "</div>";
         var behaviorReasonIcon = (!isAbsentRow && r.behaviorReasonsText)
-            ? " <span class=\"behavior-reason-icon\" title=\"\u0639\u0631\u0636 \u0633\u0628\u0628 \u0627\u0644\u062E\u0635\u0645\" onclick=\"wafdeenShowBehaviorReasons('".concat(String(r.behaviorReasonsText).replace(/'/g, "\\'"), "')\">\u2139\uFE0F</span>")
+            ? " <span class=\"behavior-reason-icon\" title=\"\u0639\u0631\u0636 \u0633\u0628\u0628 \u0627\u0644\u062E\u0635\u0645\" onclick=\"showBehaviorReasons('".concat(String(r.behaviorReasonsText).replace(/'/g, "\\'"), "')\">\u2139\uFE0F</span>")
             : '';
         tbody.innerHTML += "\n      <tr>\n        <td><strong>".concat(r.dayName || '-', "</strong><br><small style=\"color:#7f8c8d;\">").concat(r.dateISO, "</small></td>\n        <td>").concat(r.className, "</td>\n        <td>").concat(r.teacherName, "</td>\n        <td style=\"font-weight:bold;\">").concat(r.studentName, "</td>\n        <td>").concat(isAbsentRow ? '<span class="badge" style="background:var(--danger-color);color:#fff;padding:4px 10px;">🚫 غائب</span>' : dailyMissingCell(r.attendance), "</td>\n        <td>").concat(gradeCell(r.behavior)).concat(behaviorReasonIcon, "</td>\n        <td class=\"fifth-hide-on-class\">").concat(gradeCell(r.newLesson), "<span class=\"daily-score-time\">").concat(r.newLessonTimeSeconds ? "\u062A\u0645 \u0627\u0644\u062A\u0633\u0645\u064A\u0639 \u0641\u064A ".concat(formatTimerSeconds(r.newLessonTimeSeconds)) : '', "</span></td>\n        <td class=\"fifth-hide-on-class daily-score-time\">").concat(timeCellFn(r.newLessonTimeSeconds), "</td>\n        <td class=\"fifth-hide-on-class\" style=\"color:#e67e22;\">").concat(dailyMissingCell(r.newTopicToday || r.newTopicText), "</td>\n        <td class=\"fifth-hide-on-class\" style=\"color:#d35400;\">").concat(dailyMissingCell(r.newTopicRecited), "</td>\n        <td class=\"fifth-hide-on-class\">").concat(gradeCell(r.oldRevision), "<span class=\"daily-score-time\">").concat(r.oldRevisionTimeSeconds ? "\u062A\u0645 \u0627\u0644\u062A\u0633\u0645\u064A\u0639 \u0641\u064A ".concat(formatTimerSeconds(r.oldRevisionTimeSeconds)) : '', "</span></td>\n        <td class=\"fifth-hide-on-class daily-score-time\">").concat(timeCellFn(r.oldRevisionTimeSeconds), "</td>\n        <td class=\"fifth-hide-on-class\" style=\"color:#27ae60;\">").concat(dailyMissingCell(r.oldTopicToday || r.oldTopicText), "</td>\n        <td class=\"fifth-hide-on-class\" style=\"color:#229954;\">").concat(dailyMissingCell(r.oldTopicRecited), "</td>\n        <td>").concat(gradeCell(r.recitation), "<span class=\"daily-score-time\">").concat(r.recitationTimeSeconds ? "\u062A\u0645 \u0627\u0644\u062A\u0633\u0645\u064A\u0639 \u0641\u064A ".concat(formatTimerSeconds(r.recitationTimeSeconds)) : '', "</span></td>\n        <td class=\"daily-score-time\">").concat(timeCellFn(r.recitationTimeSeconds), "</td>\n        <td style=\"color:var(--primary-color); font-weight:bold;\">").concat(dailyMissingCell(r.recitationTopicToday || r.recitationTopic), "</td>\n        <td style=\"color:#7d3c98; font-weight:bold;\">").concat(dailyMissingCell(r.recitationTopicRecited), "</td>\n        <td>").concat(gradeCell(r.homework), "</td>\n        <td class=\"tajweed-cell\">").concat(gradeCell(r.tajweed)).concat(Number(r.tajweed || 0) >= 9 ? " <span class=\"tajweed-star\" title=\"\u062F\u0631\u062C\u0629 \u0639\u0627\u0644\u064A\u0629 \u0641\u064A \u0627\u0644\u062A\u062C\u0648\u064A\u062F\" onclick=\"showTajweedHigh('".concat(String(r.studentName).replace(/'/g, "\'"), "', ").concat(r.tajweed, ")\">\u2605</span>") : '', "</td>\n        <td><strong style=\"color:var(--primary-dark);\">").concat(total, "</strong> / ").concat(getDailyMax(r.className), "</td>\n        <td>").concat(actionBtns, "</td>\n      </tr>\n    ");
     });
@@ -4131,8 +3807,8 @@ function editRecord(id) {
             allowed = canManageDailyRecord_(record);
             if (!allowed)
                 return [2 /*return*/, showMessage('app-msg', 'يمكنك تعديل الطلاب المسجلين في فصلك فقط', 'error')];
-            showSiteModal('✏️ تعديل درجات الطالب', "<div class=\"modal-grid\">\n      <div class=\"form-group\">\n        <label>\u0627\u0644\u062A\u0627\u0631\u064A\u062E:</label>\n        <input type=\"date\" id=\"modalRecordDate\" value=\"".concat(record.dateISO, "\">\n      </div>\n      <div class=\"form-group\">\n        <label>\u0627\u0644\u0637\u0627\u0644\u0628:</label>\n        <input value=\"").concat(String(record.studentName || '').replace(/"/g, '&quot;'), "\" readonly>\n      </div>\n      <div class=\"form-group\"><label>\u0627\u0644\u062D\u0636\u0648\u0631 (10):</label><input type=\"number\" id=\"modalAttendance\" min=\"0\" max=\"10\" value=\"").concat((_a = record.attendance) !== null && _a !== void 0 ? _a : 0, "\"></div>\n      <div class=\"form-group full\">\n        <label>\u0627\u0644\u0633\u0644\u0648\u0643 (10):</label>\n        <div style=\"display:flex;align-items:center;gap:10px;flex-wrap:wrap;\">\n          <input type=\"number\" id=\"modalBehavior\" min=\"0\" max=\"10\" value=\"").concat((_b = record.behavior) !== null && _b !== void 0 ? _b : 0, "\" readonly style=\"max-width:90px;\">\n          <button type=\"button\" class=\"action-btn btn-warning\" style=\"padding:6px 12px;font-size:.82em;min-width:auto;\" onclick=\"wafdeenToggleBehaviorPanel('modal')\">\uD83D\uDCCB \u0627\u062E\u062A\u064A\u0627\u0631 \u0633\u0628\u0628 \u0627\u0644\u062E\u0635\u0645 \u0625\u0646 \u0648\u064F\u062C\u062F</button>\n        </div>\n        <div id=\"modal-behavior-summary\" class=\"daily-score-note\">\u0644\u0627 \u064A\u0648\u062C\u062F \u062E\u0635\u0645 \u2014 \u0627\u0644\u062F\u0631\u062C\u0629: 10/10</div>\n        <div id=\"modal-behavior-grid\" class=\"behavior-reason-grid\">").concat(wafdeenBehaviorReasonsRowsHtml('modal'), "</div>\n      </div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0627\u0644\u062C\u062F\u064A\u062F (10):</label><input type=\"number\" id=\"modalNewLesson\" min=\"0\" max=\"10\" value=\"").concat((_c = record.newLesson) !== null && _c !== void 0 ? _c : 0, "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062C\u062F\u064A\u062F \u0627\u0644\u064A\u0648\u0645 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalNewTopicToday\" value=\"").concat(String(record.newTopicToday || record.newTopicText || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062C\u062F\u064A\u062F \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalNewTopicRecited\" value=\"").concat(String(record.newTopicRecited || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0627\u0644\u0645\u0627\u0636\u064A (10):</label><input type=\"number\" id=\"modalOldRevision\" min=\"0\" max=\"10\" value=\"").concat((_d = record.oldRevision) !== null && _d !== void 0 ? _d : 0, "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u0645\u0627\u0636\u064A \u0627\u0644\u064A\u0648\u0645 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalOldTopicToday\" value=\"").concat(String(record.oldTopicToday || record.oldTopicText || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u0645\u0627\u0636\u064A \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalOldTopicRecited\" value=\"").concat(String(record.oldTopicRecited || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group\"><label>\u0627\u0644\u062A\u0644\u0627\u0648\u0629 (10):</label><input type=\"number\" id=\"modalRecitation\" min=\"0\" max=\"10\" value=\"").concat((_e = record.recitation) !== null && _e !== void 0 ? _e : 0, "\"></div>\n      <div class=\"form-group\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062A\u0644\u0627\u0648\u0629 \u0627\u0644\u064A\u0648\u0645 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalRecitationTopicToday\" value=\"").concat(String(record.recitationTopicToday || record.recitationTopic || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062A\u0644\u0627\u0648\u0629 \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalRecitationTopicRecited\" value=\"").concat(String(record.recitationTopicRecited || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group\"><label>\u0627\u0644\u0648\u0627\u062C\u0628 (10):</label><input type=\"number\" id=\"modalHomework\" min=\"0\" max=\"10\" value=\"").concat((_f = record.homework) !== null && _f !== void 0 ? _f : 0, "\"></div>\n      <div class=\"form-group\"><label>\uD83D\uDCD6 \u0627\u0644\u062A\u062C\u0648\u064A\u062F (10) \u2014 \u064A\u064F\u0636\u0627\u0641 \u0625\u0644\u0649 \u0627\u0644\u0645\u062C\u0645\u0648\u0639:</label><input type=\"number\" id=\"modalTajweed\" min=\"0\" max=\"10\" value=\"").concat((_g = record.tajweed) !== null && _g !== void 0 ? _g : 0, "\"></div>\n      <div class=\"form-group\"><label>\u0648\u0642\u062A \u0627\u0644\u062C\u062F\u064A\u062F:</label><input type=\"text\" id=\"modalNewTime\" value=\"").concat(formatTimerSeconds(record.newLessonTimeSeconds || 0), "\" readonly></div>\n      <div class=\"form-group\"><label>\u0648\u0642\u062A \u0627\u0644\u0645\u0627\u0636\u064A:</label><input type=\"text\" id=\"modalOldTime\" value=\"").concat(formatTimerSeconds(record.oldRevisionTimeSeconds || 0), "\" readonly></div>\n      <div class=\"form-group\"><label>\u0648\u0642\u062A \u0627\u0644\u062A\u0644\u0627\u0648\u0629:</label><input type=\"text\" id=\"modalRecitationTime\" value=\"").concat(formatTimerSeconds(record.recitationTimeSeconds || 0), "\" readonly></div>\n    </div>"), "<button type=\"button\" class=\"action-btn modal-success\" id=\"saveRecordEditBtn\">\uD83D\uDCBE \u062D\u0641\u0638 \u0627\u0644\u062A\u0639\u062F\u064A\u0644</button>\n     <button type=\"button\" class=\"action-btn modal-cancel\" id=\"cancelRecordEditBtn\">\u0625\u0644\u063A\u0627\u0621</button>");
-            wafdeenResetBehaviorState('modal', record.behaviorReasons || {});
+            showSiteModal('✏️ تعديل درجات الطالب', "<div class=\"modal-grid\">\n      <div class=\"form-group\">\n        <label>\u0627\u0644\u062A\u0627\u0631\u064A\u062E:</label>\n        <input type=\"date\" id=\"modalRecordDate\" value=\"".concat(record.dateISO, "\">\n      </div>\n      <div class=\"form-group\">\n        <label>\u0627\u0644\u0637\u0627\u0644\u0628:</label>\n        <input value=\"").concat(String(record.studentName || '').replace(/"/g, '&quot;'), "\" readonly>\n      </div>\n      <div class=\"form-group\"><label>\u0627\u0644\u062D\u0636\u0648\u0631 (10):</label><input type=\"number\" id=\"modalAttendance\" min=\"0\" max=\"10\" value=\"").concat((_a = record.attendance) !== null && _a !== void 0 ? _a : 0, "\"></div>\n      <div class=\"form-group full\">\n        <label>\u0627\u0644\u0633\u0644\u0648\u0643 (10):</label>\n        <div style=\"display:flex;align-items:center;gap:10px;flex-wrap:wrap;\">\n          <input type=\"number\" id=\"modalBehavior\" min=\"0\" max=\"10\" value=\"").concat((_b = record.behavior) !== null && _b !== void 0 ? _b : 0, "\" readonly style=\"max-width:90px;\">\n          <button type=\"button\" class=\"action-btn btn-warning\" style=\"padding:6px 12px;font-size:.82em;min-width:auto;\" onclick=\"toggleBehaviorPanel('modal')\">\uD83D\uDCCB \u0627\u062E\u062A\u064A\u0627\u0631 \u0633\u0628\u0628 \u0627\u0644\u062E\u0635\u0645 \u0625\u0646 \u0648\u064F\u062C\u062F</button>\n        </div>\n        <div id=\"modal-behavior-summary\" class=\"daily-score-note\">\u0644\u0627 \u064A\u0648\u062C\u062F \u062E\u0635\u0645 \u2014 \u0627\u0644\u062F\u0631\u062C\u0629: 10/10</div>\n        <div id=\"modal-behavior-grid\" class=\"behavior-reason-grid\">").concat(behaviorReasonsRowsHtml('modal'), "</div>\n      </div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0627\u0644\u062C\u062F\u064A\u062F (10):</label><input type=\"number\" id=\"modalNewLesson\" min=\"0\" max=\"10\" value=\"").concat((_c = record.newLesson) !== null && _c !== void 0 ? _c : 0, "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062C\u062F\u064A\u062F \u0627\u0644\u064A\u0648\u0645 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalNewTopicToday\" value=\"").concat(String(record.newTopicToday || record.newTopicText || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062C\u062F\u064A\u062F \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalNewTopicRecited\" value=\"").concat(String(record.newTopicRecited || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0627\u0644\u0645\u0627\u0636\u064A (10):</label><input type=\"number\" id=\"modalOldRevision\" min=\"0\" max=\"10\" value=\"").concat((_d = record.oldRevision) !== null && _d !== void 0 ? _d : 0, "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u0645\u0627\u0636\u064A \u0627\u0644\u064A\u0648\u0645 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalOldTopicToday\" value=\"").concat(String(record.oldTopicToday || record.oldTopicText || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group fifth-hide-on-class\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u0645\u0627\u0636\u064A \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalOldTopicRecited\" value=\"").concat(String(record.oldTopicRecited || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group\"><label>\u0627\u0644\u062A\u0644\u0627\u0648\u0629 (10):</label><input type=\"number\" id=\"modalRecitation\" min=\"0\" max=\"10\" value=\"").concat((_e = record.recitation) !== null && _e !== void 0 ? _e : 0, "\"></div>\n      <div class=\"form-group\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062A\u0644\u0627\u0648\u0629 \u0627\u0644\u064A\u0648\u0645 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalRecitationTopicToday\" value=\"").concat(String(record.recitationTopicToday || record.recitationTopic || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group\"><label>\u0645\u0642\u0631\u0631 \u0627\u0644\u062A\u0644\u0627\u0648\u0629 \u0627\u0644\u0630\u064A \u062A\u0645 \u062A\u0633\u0645\u064A\u0639\u0647 <span style=\"color:var(--danger-color);\">*</span>:</label><input id=\"modalRecitationTopicRecited\" value=\"").concat(String(record.recitationTopicRecited || '').replace(/"/g, '&quot;'), "\"></div>\n      <div class=\"form-group\"><label>\u0627\u0644\u0648\u0627\u062C\u0628 (10):</label><input type=\"number\" id=\"modalHomework\" min=\"0\" max=\"10\" value=\"").concat((_f = record.homework) !== null && _f !== void 0 ? _f : 0, "\"></div>\n      <div class=\"form-group\"><label>\uD83D\uDCD6 \u0627\u0644\u062A\u062C\u0648\u064A\u062F (10) \u2014 \u064A\u064F\u0636\u0627\u0641 \u0625\u0644\u0649 \u0627\u0644\u0645\u062C\u0645\u0648\u0639:</label><input type=\"number\" id=\"modalTajweed\" min=\"0\" max=\"10\" value=\"").concat((_g = record.tajweed) !== null && _g !== void 0 ? _g : 0, "\"></div>\n      <div class=\"form-group\"><label>\u0648\u0642\u062A \u0627\u0644\u062C\u062F\u064A\u062F:</label><input type=\"text\" id=\"modalNewTime\" value=\"").concat(formatTimerSeconds(record.newLessonTimeSeconds || 0), "\" readonly></div>\n      <div class=\"form-group\"><label>\u0648\u0642\u062A \u0627\u0644\u0645\u0627\u0636\u064A:</label><input type=\"text\" id=\"modalOldTime\" value=\"").concat(formatTimerSeconds(record.oldRevisionTimeSeconds || 0), "\" readonly></div>\n      <div class=\"form-group\"><label>\u0648\u0642\u062A \u0627\u0644\u062A\u0644\u0627\u0648\u0629:</label><input type=\"text\" id=\"modalRecitationTime\" value=\"").concat(formatTimerSeconds(record.recitationTimeSeconds || 0), "\" readonly></div>\n    </div>"), "<button type=\"button\" class=\"action-btn modal-success\" id=\"saveRecordEditBtn\">\uD83D\uDCBE \u062D\u0641\u0638 \u0627\u0644\u062A\u0639\u062F\u064A\u0644</button>\n     <button type=\"button\" class=\"action-btn modal-cancel\" id=\"cancelRecordEditBtn\">\u0625\u0644\u063A\u0627\u0621</button>");
+            resetBehaviorState('modal', record.behaviorReasons || {});
             document.getElementById('saveRecordEditBtn').onclick = function () { return __awaiter(_this, void 0, void 0, function () {
                 var dateISO, getVal, newTopicToday, newTopicRecited, oldTopicToday, oldTopicRecited, recitationTopicToday, recitationTopicRecited, newTopicsChanged, oldTopicsChanged, recitationTopicsChanged, fifth, values, dayNames, updatedRecord, newId, idx, e_28;
                 var _a;
@@ -4158,7 +3834,7 @@ function editRecord(id) {
 
                             if (values.some(function (v, i) { var originals = fifth ? [record.attendance, record.behavior, record.recitation, record.homework, record.tajweed] : [record.attendance, record.behavior, record.newLesson, record.oldRevision, record.recitation, record.homework, record.tajweed]; var originalValue = originals[i]; var baseline = originalValue == null ? 0 : originalValue; return String(v) !== String(baseline) && (v === '' || !isFinite(Number(v)) || Number(v) < 0 || Number(v) > 10); })) { return [2 /*return*/, showSiteError('الدرجة التي تعدّلها يجب أن تكون بين 0 و10.')]; }
                             var scoreForEdit = function (value, original) { var baseline = original == null ? 0 : original; return String(value) === String(baseline) ? original : clampGrade(value); }; dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-                            updatedRecord = __assign(__assign({}, record), { dateISO: dateISO, dayName: dayNames[new Date(dateISO + 'T00:00:00').getDay()], recitationTopicToday: recitationTopicToday, recitationTopicRecited: recitationTopicRecited, recitationTopic: recitationTopicToday, oldTopicToday: fifth ? '' : oldTopicToday, oldTopicRecited: fifth ? '' : oldTopicRecited, newTopicToday: fifth ? '' : newTopicToday, newTopicRecited: fifth ? '' : newTopicRecited, oldTopicText: fifth ? '' : oldTopicToday, newTopicText: fifth ? '' : newTopicToday, attendance: scoreForEdit(values[0], record.attendance), behavior: scoreForEdit(values[1], record.behavior), behaviorReasons: __assign({}, (wafdeenBehaviorState.modal || {})), behaviorReasonsText: wafdeenBehaviorSummaryText('modal'), newLesson: fifth ? 0 : scoreForEdit(values[2], record.newLesson), oldRevision: fifth ? 0 : scoreForEdit(values[3], record.oldRevision), recitation: fifth ? scoreForEdit(values[2], record.recitation) : scoreForEdit(values[4], record.recitation), homework: fifth ? scoreForEdit(values[3], record.homework) : scoreForEdit(values[5], record.homework), tajweed: fifth ? scoreForEdit(values[4], record.tajweed) : scoreForEdit(values[6], record.tajweed), newLessonTimeSeconds: Number(record.newLessonTimeSeconds || 0), oldRevisionTimeSeconds: Number(record.oldRevisionTimeSeconds || 0), recitationTimeSeconds: Number(record.recitationTimeSeconds || 0), recitation1: 0, recitation2: 0, recitation3: 0, recitation4: 0 });
+                            updatedRecord = __assign(__assign({}, record), { dateISO: dateISO, dayName: dayNames[new Date(dateISO + 'T00:00:00').getDay()], recitationTopicToday: recitationTopicToday, recitationTopicRecited: recitationTopicRecited, recitationTopic: recitationTopicToday, oldTopicToday: fifth ? '' : oldTopicToday, oldTopicRecited: fifth ? '' : oldTopicRecited, newTopicToday: fifth ? '' : newTopicToday, newTopicRecited: fifth ? '' : newTopicRecited, oldTopicText: fifth ? '' : oldTopicToday, newTopicText: fifth ? '' : newTopicToday, attendance: scoreForEdit(values[0], record.attendance), behavior: scoreForEdit(values[1], record.behavior), behaviorReasons: __assign({}, (dailyBehaviorState.modal || {})), behaviorReasonsText: dailyBehaviorSummaryText('modal'), newLesson: fifth ? 0 : scoreForEdit(values[2], record.newLesson), oldRevision: fifth ? 0 : scoreForEdit(values[3], record.oldRevision), recitation: fifth ? scoreForEdit(values[2], record.recitation) : scoreForEdit(values[4], record.recitation), homework: fifth ? scoreForEdit(values[3], record.homework) : scoreForEdit(values[5], record.homework), tajweed: fifth ? scoreForEdit(values[4], record.tajweed) : scoreForEdit(values[6], record.tajweed), newLessonTimeSeconds: Number(record.newLessonTimeSeconds || 0), oldRevisionTimeSeconds: Number(record.oldRevisionTimeSeconds || 0), recitationTimeSeconds: Number(record.recitationTimeSeconds || 0), recitation1: 0, recitation2: 0, recitation3: 0, recitation4: 0 });
                             newId = dailyStableRecordId_(record.studentId || dailyStudentId_(record.studentName, record.className), record.className, dateISO);
                             updatedRecord.id = newId;
                             updatedRecord.studentId = String(record.studentId || dailyStudentId_(record.studentName, record.className));
@@ -4420,39 +4096,6 @@ function showStudentReportChart(studentName, reportType) {
     var selectedClass = reportType === 'weekly'
         ? document.getElementById('weeklyClassSelect').value
         : document.getElementById('monthlyClassSelect').value;
-    /* إصلاح رسم الوافدين: استخدم سجلات الوافدين الفعلية بدل dailyRecords العامة. */
-    if (wafdeenIsClass_(selectedClass)) {
-        var wafRecords = typeof wafdeenMainLogRecords_ === 'function' ? wafdeenMainLogRecords_() : (wafdeenDailyRecords || []);
-        var labelsW = [], dataW = [], titleW = '';
-        var totalW = function(r){ return Math.max(0, Math.min(30, Number(r && r.total) || Number(r && r.newLesson || 0) + Number(r && r.oldRevision || 0) + Number(r && r.recitation || 0))); };
-        if (reportType === 'weekly') {
-            var wk = (document.getElementById('weekSelect') || {}).value || '';
-            var ord = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'];
-            labelsW = ord;
-            dataW = ord.map(function(day){
-                var r = wafRecords.find(function(x){ return !x._deleted && String(x.studentName||'') === String(studentName) && x.dateISO && getWeekKey(String(x.dateISO).slice(0,10)) === wk && (String(x.dayName||'') === day || (!x.dayName && wafdeenReportDayName_(x.dateISO) === day)); });
-                return r && !(r.isAbsent || String(r.attendanceStatus||'').toLowerCase()==='absent') ? totalW(r) : 0;
-            });
-            titleW = '📈 الرسم البياني الأسبوعي — ' + studentName;
-        } else {
-            var m = Number((document.getElementById('reportMonth') || {}).value || new Date().getMonth());
-            var y = Number((document.getElementById('reportYear') || {}).value || new Date().getFullYear());
-            var wd = getMonthWorkingDays(y, m);
-            wd.forEach(function(d){
-                labelsW.push(String(d.dayNum).padStart(2,'0') + '/' + String(m+1).padStart(2,'0'));
-                var r = wafRecords.find(function(x){ return !x._deleted && String(x.studentName||'') === String(studentName) && wafdeenMainLogDate_(x.dateISO||x.date||'') === d.dateISO; });
-                dataW.push(r && !(r.isAbsent || String(r.attendanceStatus||'').toLowerCase()==='absent') ? totalW(r) : 0);
-            });
-            titleW = '📈 الرسم البياني الشهري — ' + studentName;
-        }
-        showSiteModal(titleW, '<div style=\"background:#fff;border-radius:12px;padding:8px 4px;\"><canvas id=\"studentReportChartModal\" height=\"250\"></canvas></div>', '<button type=\"button\" class=\"action-btn modal-cancel\" onclick=\"closeSiteModal()\">إغلاق</button>');
-        setTimeout(function(){
-            renderBarChart('studentReportChartModal', function(c){window.studentReportModalChartInstance=c;}, function(){return window.studentReportModalChartInstance;}, labelsW, dataW, 'الدرجة اليومية للوافدين');
-            var ch=window.studentReportModalChartInstance;
-            if(ch){ch.options.scales=ch.options.scales||{};ch.options.scales.y=ch.options.scales.y||{};ch.options.scales.y.min=0;ch.options.scales.y.max=30;ch.update();}
-        },0);
-        return;
-    }
     var labels = [], data = [], title = '';
     if (reportType === 'weekly') {
         var weekKey_1 = document.getElementById('weekSelect').value;
@@ -4781,7 +4424,7 @@ function renderManagerView() {
         var mgrFifth = isFifthClass(currentManagerClass);
         dailyClassRecs.forEach(function (r) {
             var _a, _b, _c, _d, _e, _f, _g;
-            tDaily.innerHTML += "<tr>\n        <td>".concat(r.dateISO, "</td><td>").concat(r.teacherName, "</td><td style=\"font-weight:bold;\">").concat(r.studentName, "</td>\n        <td>").concat((_a = r.attendance) !== null && _a !== void 0 ? _a : 0, "</td><td>").concat((_b = r.behavior) !== null && _b !== void 0 ? _b : 0).concat(r.behaviorReasonsText ? " <span class=\"behavior-reason-icon\" title=\"\u0639\u0631\u0636 \u0633\u0628\u0628 \u0627\u0644\u062E\u0635\u0645\" onclick=\"wafdeenShowBehaviorReasons('".concat(String(r.behaviorReasonsText).replace(/'/g, "\\'"), "')\">\u2139\uFE0F</span>") : '', "</td><td class=\"fifth-hide-on-class\">").concat((_c = r.newLesson) !== null && _c !== void 0 ? _c : 0, "</td>\n        <td class=\"fifth-hide-on-class\" style=\"color:#e67e22;\">").concat(r.newTopicToday || r.newTopicText || '-', "</td><td class=\"fifth-hide-on-class\">").concat(r.newTopicRecited || '-', "</td><td class=\"fifth-hide-on-class\">").concat((_d = r.oldRevision) !== null && _d !== void 0 ? _d : 0, "</td>\n        <td class=\"fifth-hide-on-class\" style=\"color:#27ae60;\">").concat(r.oldTopicToday || r.oldTopicText || '-', "</td><td class=\"fifth-hide-on-class\">").concat(r.oldTopicRecited || '-', "</td><td>").concat((_e = r.recitation) !== null && _e !== void 0 ? _e : 0, "</td>\n        <td style=\"color:var(--primary-color);\">").concat(r.recitationTopicToday || r.recitationTopic || '-', "</td><td style=\"color:#7d3c98;\">").concat(r.recitationTopicRecited || '-', "</td><td>").concat((_f = r.homework) !== null && _f !== void 0 ? _f : 0, "</td>\n        <td class=\"tajweed-cell\">").concat((_g = r.tajweed) !== null && _g !== void 0 ? _g : 0).concat(Number(r.tajweed || 0) >= 9 ? " \u2605" : "", "</td>\n        <td><strong style=\"color:var(--primary-dark);\">").concat(getDailyTotal(r), "</strong> / ").concat(getDailyMax(r.className), "</td>\n      </tr>");
+            tDaily.innerHTML += "<tr>\n        <td>".concat(r.dateISO, "</td><td>").concat(r.teacherName, "</td><td style=\"font-weight:bold;\">").concat(r.studentName, "</td>\n        <td>").concat((_a = r.attendance) !== null && _a !== void 0 ? _a : 0, "</td><td>").concat((_b = r.behavior) !== null && _b !== void 0 ? _b : 0).concat(r.behaviorReasonsText ? " <span class=\"behavior-reason-icon\" title=\"\u0639\u0631\u0636 \u0633\u0628\u0628 \u0627\u0644\u062E\u0635\u0645\" onclick=\"showBehaviorReasons('".concat(String(r.behaviorReasonsText).replace(/'/g, "\\'"), "')\">\u2139\uFE0F</span>") : '', "</td><td class=\"fifth-hide-on-class\">").concat((_c = r.newLesson) !== null && _c !== void 0 ? _c : 0, "</td>\n        <td class=\"fifth-hide-on-class\" style=\"color:#e67e22;\">").concat(r.newTopicToday || r.newTopicText || '-', "</td><td class=\"fifth-hide-on-class\">").concat(r.newTopicRecited || '-', "</td><td class=\"fifth-hide-on-class\">").concat((_d = r.oldRevision) !== null && _d !== void 0 ? _d : 0, "</td>\n        <td class=\"fifth-hide-on-class\" style=\"color:#27ae60;\">").concat(r.oldTopicToday || r.oldTopicText || '-', "</td><td class=\"fifth-hide-on-class\">").concat(r.oldTopicRecited || '-', "</td><td>").concat((_e = r.recitation) !== null && _e !== void 0 ? _e : 0, "</td>\n        <td style=\"color:var(--primary-color);\">").concat(r.recitationTopicToday || r.recitationTopic || '-', "</td><td style=\"color:#7d3c98;\">").concat(r.recitationTopicRecited || '-', "</td><td>").concat((_f = r.homework) !== null && _f !== void 0 ? _f : 0, "</td>\n        <td class=\"tajweed-cell\">").concat((_g = r.tajweed) !== null && _g !== void 0 ? _g : 0).concat(Number(r.tajweed || 0) >= 9 ? " \u2605" : "", "</td>\n        <td><strong style=\"color:var(--primary-dark);\">").concat(getDailyTotal(r), "</strong> / ").concat(getDailyMax(r.className), "</td>\n      </tr>");
         });
     }
     var tWeekly = document.querySelector('#mgrWeeklyTable tbody');
@@ -4976,6 +4619,8 @@ function editStudent(id) {
                     student = studentsData.find(function (s) { return s.id.toString() === id.toString(); });
                     if (!student)
                         return [2 /*return*/];
+                    if (!ALL_CLASSES.includes(teacherClassNormalize_(student.className)))
+                        return [2 /*return*/, showSiteError('هذا السجل محفوظ من فصل لم يعد مدعوماً؛ لم يتم تغييره.')];
                     return [4 /*yield*/, openStudentEditModal(student)];
                 case 1:
                     result = _a.sent();
@@ -5025,6 +4670,8 @@ function editTeacher(id) {
                     teacher = teachersData.find(function (t) { return t.id.toString() === id.toString(); });
                     if (!teacher)
                         return [2 /*return*/];
+                    if (teacherHasUnsupportedClass_(teacher))
+                        return [2 /*return*/, showSiteError('هذا حساب محفوظ مرتبط بفصل متوقف؛ لم يتم تعديله.')];
                     return [4 /*yield*/, openTeacherEditModal(teacher)];
                 case 1:
                     result = _a.sent();
@@ -5035,7 +4682,7 @@ function editTeacher(id) {
                     });
                     if (duplicate)
                         return [2 /*return*/, showSiteError('اسم المستخدم موجود بالفعل لمعلم آخر.')];
-                    updatedTeacher = __assign(__assign({}, teacher), { username: result.username, password: result.password, assignedClass: result.assignedClass, center: result.center, canWafdeen: !!result.canWafdeen });
+                    updatedTeacher = __assign(__assign({}, teacher), { username: result.username, password: result.password, assignedClass: result.assignedClass, center: result.center });
                     _a.label = 2;
                 case 2:
                     _a.trys.push([2, 5, , 6]);
@@ -5076,6 +4723,8 @@ function deleteStudent(id) {
                     student = studentsData.find(function (s) { return s.id.toString() === id.toString(); });
                     if (!student)
                         return [2 /*return*/];
+                    if (!ALL_CLASSES.includes(teacherClassNormalize_(student.className)))
+                        return [2 /*return*/, showSiteError('هذا السجل محفوظ من فصل لم يعد مدعوماً؛ لم يتم حذفه.')];
                     return [4 /*yield*/, siteConfirm('🗑️ حذف الطالب', "\u0633\u064A\u062A\u0645 \u062D\u0630\u0641 \u0627\u0644\u0637\u0627\u0644\u0628 <strong>".concat(student.name, "</strong> \u0645\u0646 \u0635\u0641 <strong>").concat(student.className, "</strong>.<br>\u0644\u0646 \u064A\u062A\u0645 \u062D\u0630\u0641 \u062F\u0631\u062C\u0627\u062A\u0647 \u0627\u0644\u0633\u0627\u0628\u0642\u0629 \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B."), 'حذف الطالب', true)];
                 case 1:
                     ok = _a.sent();
@@ -5125,7 +4774,8 @@ function renderStudentsTable() {
     if (!tbody)
         return;
     tbody.innerHTML = '';
-    var sortedStudents = __spreadArray([], __read(studentsData), false).sort(function (a, b) { return a.name.localeCompare(b.name, 'ar'); });
+    var visibleStudents = (studentsData || []).filter(function (student) { return student && ALL_CLASSES.includes(teacherClassNormalize_(student.className)); });
+    var sortedStudents = __spreadArray([], __read(visibleStudents), false).sort(function (a, b) { return a.name.localeCompare(b.name, 'ar'); });
     sortedStudents.forEach(function (s) {
         tbody.innerHTML += "<tr> <td style=\"font-weight:bold;\">".concat(s.name, "</td> <td>").concat(s.className, "</td> <td> <button type=\"button\" class=\"action-btn btn-edit\" style=\"padding:3px 8px; min-width:auto;\" onclick=\"editStudent('").concat(s.id, "')\">\u062A\u0639\u062F\u064A\u0644</button> <button type=\"button\" class=\"action-btn btn-danger\" style=\"padding:3px 8px; min-width:auto;\" onclick=\"deleteStudent('").concat(s.id, "')\">\u062D\u0630\u0641</button> </td> </tr>");
     });
@@ -5153,9 +4803,10 @@ function renderStudentCodesTable() {
         return;
     renderStudentCodesClassFilter();
     tbody.innerHTML = '';
+    var visibleStudents = (studentsData || []).filter(function (s) { return s && ALL_CLASSES.includes(teacherClassNormalize_(s.className)); });
     var filtered = studentCodesClassFilter === 'الكل'
-        ? studentsData
-        : studentsData.filter(function (s) { return s.className === studentCodesClassFilter; });
+        ? visibleStudents
+        : visibleStudents.filter(function (s) { return teacherClassNormalize_(s.className) === studentCodesClassFilter; });
     var sortedStudents = __spreadArray([], __read(filtered), false).sort(function (a, b) { return a.name.localeCompare(b.name, 'ar'); });
     if (!sortedStudents.length) {
         tbody.innerHTML = '<tr><td colspan="3">لا يوجد طلاب مسجلون في هذا الصف حالياً</td></tr>';
@@ -5175,7 +4826,8 @@ function generateMissingStudentCodes() {
                     if (!currentTeacher || currentTeacher.username !== 'admin')
                         return [2 /*return*/];
                     scopeClass = studentCodesClassFilter;
-                    pool = scopeClass === 'الكل' ? studentsData : studentsData.filter(function (s) { return s.className === scopeClass; });
+                    var supportedStudents = (studentsData || []).filter(function (s) { return s && ALL_CLASSES.includes(teacherClassNormalize_(s.className)); });
+                    pool = scopeClass === 'الكل' ? supportedStudents : supportedStudents.filter(function (s) { return teacherClassNormalize_(s.className) === scopeClass; });
                     if (!pool.length) {
                         return [2 /*return*/, showMessage('student-codes-msg', 'لا يوجد طلاب في هذا الصف', 'error')];
                     }
@@ -5235,9 +4887,10 @@ function generateMissingStudentCodes() {
     });
 }
 function exportStudentLoginCodes() {
-    if (!studentsData.length)
+    var supportedStudents = (studentsData || []).filter(function (s) { return s && ALL_CLASSES.includes(teacherClassNormalize_(s.className)); });
+    if (!supportedStudents.length)
         return showMessage('student-codes-msg', 'لا يوجد طلاب لتصدير الأكواد', 'error');
-    var rows = __spreadArray([], __read(studentsData), false).sort(function (a, b) { return a.name.localeCompare(b.name, 'ar'); })
+    var rows = __spreadArray([], __read(supportedStudents), false).sort(function (a, b) { return a.name.localeCompare(b.name, 'ar'); })
         .map(function (s) { return ({ 'اسم الطالب/الطالبة': s.name, 'الصف': s.className, 'كود تسجيل الدخول': s.loginCode || '' }); });
     var ws = XLSX.utils.json_to_sheet(rows);
     var wb = XLSX.utils.book_new();
@@ -5246,7 +4899,7 @@ function exportStudentLoginCodes() {
 }
 function addTeacher() {
     return __awaiter(this, void 0, void 0, function () {
-        var u, p, c, cn, canWafdeen, newTeacher, saveResult;
+        var u, p, c, cn, newTeacher, saveResult;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5256,14 +4909,13 @@ function addTeacher() {
                     p = document.getElementById('newTeacherPass').value.trim();
                     c = document.getElementById('newTeacherClass').value;
                     cn = document.getElementById('newTeacherCenter').value;
-                    canWafdeen = !!document.getElementById('newTeacherWafdeen') && document.getElementById('newTeacherWafdeen').checked;
                     if (!u || !p)
                         return [2 /*return*/, showMessage('app-msg', 'يرجى إدخال البيانات كاملة', 'error')];
                     if (p.length < 1)
                         return [2 /*return*/, showMessage('app-msg', 'يرجى إدخال كلمة المرور.', 'error')];
                     if (teachersData.some(function (t) { return String(t.username || '').trim().toLocaleLowerCase() === u.toLocaleLowerCase(); }))
                         return [2 /*return*/, showMessage('app-msg', 'اسم المستخدم موجود مسبقاً', 'error')];
-                    newTeacher = { id: Date.now().toString(), username: u, password: p, assignedClass: c, center: cn, canWafdeen: canWafdeen, updatedAt: new Date().toISOString() };
+                    newTeacher = { id: Date.now().toString(), username: u, password: p, assignedClass: c, center: cn, updatedAt: new Date().toISOString() };
                     if (!localIsAvailable() || !window.MajdLocalDataAPI || typeof window.MajdLocalDataAPI.writeRecord !== 'function' || (typeof window.MajdLocalDataAPI.isAvailable === 'function' && !window.MajdLocalDataAPI.isAvailable()))
                         return [2 /*return*/, showMessage('app-msg', 'اتصال السحابة غير متاح. أعد تسجيل الدخول وحاول مرة أخرى.', 'error')];
                     return [4 /*yield*/, window.MajdLocalDataAPI.writeRecord('teachers', newTeacher.id, newTeacher, { merge: true }).catch(function (e) { console.error('teacher cloud save error:', e); return { __error: e }; })];
@@ -5289,7 +4941,6 @@ function addTeacher() {
                     showMessage('app-msg', 'تم إضافة المعلم/المعلمة بنجاح', 'success');
                     document.getElementById('newTeacherUser').value = '';
                     document.getElementById('newTeacherPass').value = '';
-                    if (document.getElementById('newTeacherWafdeen')) document.getElementById('newTeacherWafdeen').checked = false;
                     return [2 /*return*/];
             }
         });
@@ -5301,9 +4952,19 @@ function renderTeachersTable() {
         return;
     tbody.innerHTML = '';
     teachersData.forEach(function (t) {
-        var actions = t.username === 'admin' ? '<span style="color:gray;">مدير النظام الرئيسي</span>' :
-            "<button type=\"button\" class=\"action-btn btn-edit\" style=\"padding:3px 8px; min-width:auto;\" onclick=\"editTeacher('".concat(t.id, "')\">\u062A\u0639\u062F\u064A\u0644</button> <button type=\"button\" class=\"action-btn btn-danger\" style=\"padding:3px 8px; min-width:auto;\" onclick=\"deleteTeacher('").concat(t.id, "')\">\u062D\u0630\u0641</button>");
-        tbody.innerHTML += "<tr><td style=\"font-weight:bold;\">".concat(t.username, "</td><td>").concat(t.password, "</td><td>").concat(t.assignedClass, "</td><td>").concat(t.canWafdeen ? '✅ مسموح' : '—', "</td><td>").concat(t.center, "</td><td>").concat(actions, "</td></tr>");
+        var archived = teacherHasUnsupportedClass_(t);
+        var actions;
+        if (t.username === 'admin') {
+            actions = '<span style="color:gray;">مدير النظام الرئيسي</span>';
+        }
+        else if (archived) {
+            actions = '<span title="بيانات محفوظة دون دعم لهذا الفصل" style="color:gray;">سجل محفوظ</span>';
+        }
+        else {
+            actions = '<button type="button" class="action-btn btn-edit" style="padding:3px 8px; min-width:auto;" onclick="editTeacher(\'' + t.id + '\')">تعديل</button> <button type="button" class="action-btn btn-danger" style="padding:3px 8px; min-width:auto;" onclick="deleteTeacher(\'' + t.id + '\')">حذف</button>';
+        }
+        var classLabel = archived ? 'سجل محفوظ غير مدعوم' : String(t.assignedClass || '');
+        tbody.innerHTML += '<tr><td style="font-weight:bold;">' + t.username + '</td><td>' + t.password + '</td><td>' + classLabel + '</td><td>' + t.center + '</td><td>' + actions + '</td></tr>';
     });
 }
 function deleteTeacher(id) {
@@ -5317,6 +4978,8 @@ function deleteTeacher(id) {
                     teacherToDelete = teachersData.find(function (t) { return t.id.toString() === id.toString(); });
                     if (!teacherToDelete)
                         return [2 /*return*/];
+                    if (teacherHasUnsupportedClass_(teacherToDelete))
+                        return [2 /*return*/, showSiteError('هذا حساب محفوظ مرتبط بفصل متوقف؛ لم يتم حذفه.')];
                     if (teacherToDelete.username === 'admin') {
                         return [2 /*return*/, showMessage('app-msg', 'لا يمكن حذف حساب المدير الرئيسي', 'error')];
                     }
@@ -6440,8 +6103,8 @@ function studentBehaviorReasonText_(record){
     var direct=String(record.behaviorReasonsText || '').trim();
     if(direct) return direct;
     var counts=record.behaviorReasons || {};
-    if(typeof WAFDEEN_BEHAVIOR_REASONS === 'undefined') return '';
-    return WAFDEEN_BEHAVIOR_REASONS.filter(function(r){return (parseInt(counts[r.key],10)||0)>0;}).map(function(r){
+    if(typeof DAILY_BEHAVIOR_REASONS === 'undefined') return '';
+    return DAILY_BEHAVIOR_REASONS.filter(function(r){return (parseInt(counts[r.key],10)||0)>0;}).map(function(r){
         var n=parseInt(counts[r.key],10)||0;
         return r.label+' ×'+n+' (-'+(n*r.points)+')';
     }).join('، ');
@@ -7118,109 +6781,4 @@ function tajweedStar(type, tajweed, totalDays) {
     if (total <= 0)
         return '';
     return (score / (total * 10)) >= 0.70 ? ' ⭐' : '';
-}
-
-
-function wafdeenManagerAuthorized_() {
-  var manager = window.currentTeacher;
-  return !!manager && (manager.username === 'admin' || manager.role === 'admin' || manager.isAdmin === true || String(manager.assignedClass || '') === 'الكل');
-}
-function renderWafdeenManagerGradesReport_(records, usage, start, end) {
-  var body = document.getElementById('wafdeenGradesReportBody');
-  if (!body) return;
-  var rows = (Array.isArray(records) ? records : []).filter(function (r) {
-    var date = String(r.dateISO || '').slice(0, 10);
-    return r && !r._deleted && date >= start && date <= end;
-  }).sort(function (a, b) { return String(b.dateISO || '').localeCompare(String(a.dateISO || '')); });
-  var sessionSecondsByKey = {};
-  (Array.isArray(usage) ? usage : []).filter(function (u) { return u && !u._deleted && u.category === 'quran_session'; }).forEach(function (u) { var key = String(u.dateISO || '').slice(0,10) + '_' + String(u.studentId || ''); sessionSecondsByKey[key] = (sessionSecondsByKey[key] || 0) + (Number(u.sessionSeconds || u.seconds) || 0); });
-  var value = function (x) { return x == null || x === '' ? '—' : escapeHtml(String(x)); };
-  body.innerHTML = rows.map(function (r) {
-    return '<tr><td>' + value(String(r.dateISO || '').slice(0, 10)) + '</td><td>' + value(r.teacherName || r.teacherUsername) + '</td><td>' + value(r.studentName) + '</td>' +
-      '<td>' + value(r.newLesson) + '</td><td>' + value(r.newErrors) + '</td><td>' + value(r.newTopicRecited) + '</td>' +
-      '<td>' + value(r.oldRevision) + '</td><td>' + value(r.oldErrors) + '</td><td>' + value(r.oldTopicRecited) + '</td>' +
-      '<td>' + value(r.recitation) + '</td><td>' + value(r.recitationErrors) + '</td><td>' + value(r.recitationTopicRecited) + '</td>' +
-      '<td>' + (Number(sessionSecondsByKey[String(r.dateISO || '').slice(0,10) + '_' + String(r.studentId || '')] || 0) > 0 ? wafdeenTimeFormatSeconds_(sessionSecondsByKey[String(r.dateISO || '').slice(0,10) + '_' + String(r.studentId || '')]) : '—') + '</td></tr>';
-  }).join('');
-}
-function renderWafdeenManagerEducationRecords_(records, start, end) {
-  var body = document.getElementById('wafdeenEducationRecordsBody');
-  var teacherSelect = document.getElementById('wafdeenEduTeacher');
-  if (!body) return;
-  var rows = (Array.isArray(records) ? records : []).filter(function (r) {
-    var date = String(r.dateISO || '').slice(0, 10);
-    return r && !r._deleted && r.category === 'educational' && date >= start && date <= end;
-  }).sort(function (a, b) { return String(b.dateISO || '').localeCompare(String(a.dateISO || '')); });
-  window.wafdeenEducationReportRows = rows;
-  if (teacherSelect && teacherSelect.options.length <= 1) {
-    var teachers = (window.teachersData || []).filter(function (t) { return t && !t._deleted && (t.canWafdeen === true || String(t.assignedClass || '') === 'الوافدين'); });
-    teacherSelect.innerHTML = '<option value="">اختر المدرس</option>' + teachers.map(function (t) {
-      var name = String(t.username || t.name || t.id || '');
-      return '<option value="' + escapeHtml(String(t.username || t.id || '')) + '">' + escapeHtml(name) + '</option>';
-    }).join('');
-  }
-  body.innerHTML = rows.map(function (r, i) {
-    var mins = Math.round((Number(r.seconds) || 0) / 60);
-    return '<tr><td>' + escapeHtml(String(r.dateISO || '').slice(0, 10)) + '</td><td>' + escapeHtml(String(r.teacherName || r.teacherUsername || 'غير محدد')) + '</td><td>' + escapeHtml(String(r.studentName || '')) + '</td><td>' + escapeHtml(String(r.subject || '')) + '</td><td>' + escapeHtml(wafdeenTimeFormatSeconds_(Number(r.seconds) || 0)) + '</td><td><button class="action-btn btn-save" type="button" onclick="editWafdeenEducationRecordByIndex(' + i + ')">تعديل</button></td></tr>';
-  }).join('');
-  renderWafdeenEduStudents();
-  var dateInput = document.getElementById('wafdeenEduDate');
-  if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
-}
-function renderWafdeenEduStudents() {
-  var teacherSelect = document.getElementById('wafdeenEduTeacher');
-  var studentSelect = document.getElementById('wafdeenEduStudent');
-  if (!studentSelect) return;
-  var teacherUsername = String((teacherSelect && teacherSelect.value) || '');
-  var students = (window.studentsData || []).filter(function (s) {
-    if (!s || s._deleted || String(s.className || s.class || s.assignedClass || s.grade || '') !== 'الوافدين') return false;
-    var owner = String(s.teacherUsername || s.assignedTeacher || s.teacher || '');
-    return !owner || !teacherUsername || owner === teacherUsername;
-  }).sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-  studentSelect.innerHTML = '<option value="">اختر الطالب</option>' + students.map(function (s) {
-    return '<option value="' + escapeHtml(String(s.studentId || s.id || '')) + '">' + escapeHtml(String(s.name || '')) + '</option>';
-  }).join('');
-}
-async function saveWafdeenEducationTimeAsManager() {
-  if (!wafdeenManagerAuthorized_()) return showMessage('wafdeen-manager-msg', 'هذه الوظيفة للمدير فقط.', 'error');
-  var teacherSelect = document.getElementById('wafdeenEduTeacher');
-  var studentSelect = document.getElementById('wafdeenEduStudent');
-  var teacherUsername = String((teacherSelect && teacherSelect.value) || '');
-  var studentId = String((studentSelect && studentSelect.value) || '');
-  var dateISO = String((document.getElementById('wafdeenEduDate') || {}).value || '');
-  var subject = String((document.getElementById('wafdeenEduSubject') || {}).value || '');
-  var minutes = Number((document.getElementById('wafdeenEduMinutes') || {}).value);
-  if (!teacherUsername || !studentId || !/^\d{4}-\d{2}-\d{2}$/.test(dateISO) || !subject || !Number.isFinite(minutes) || minutes <= 0 || minutes > 1440)
-    return showMessage('wafdeen-manager-msg', 'أكمل المدرس والطالب والمادة والتاريخ والمدة (من 1 إلى 1440 دقيقة).', 'error');
-  var teacher = (window.teachersData || []).find(function (t) { return String(t.username || t.id || '') === teacherUsername; });
-  var student = (window.studentsData || []).find(function (s) { return String(s.studentId || s.id || '') === studentId; });
-  if (!teacher || !(teacher.canWafdeen === true || String(teacher.assignedClass || '') === 'الوافدين') || !student || String(student.className || student.class || student.assignedClass || student.grade || '') !== 'الوافدين')
-    return showMessage('wafdeen-manager-msg', 'المدرس أو الطالب غير مخوّل في فصل الوافدين.', 'error');
-  var id = 'wafdeen_edu_' + encodeURIComponent(teacherUsername) + '_' + encodeURIComponent(studentId) + '_' + dateISO + '_' + encodeURIComponent(subject);
-  var record = { id: id, teacherId: String(teacher.id || teacherUsername), teacherUsername: teacherUsername, teacherName: String(teacher.name || teacher.username || teacherUsername), studentId: studentId, studentName: String(student.name || ''), category: 'educational', subject: subject, seconds: Math.round(minutes * 60), dateISO: dateISO, month: dateISO.slice(0, 7), updatedAt: new Date().toISOString(), updatedBy: String((window.currentTeacher || {}).username || 'admin') };
-  try {
-    await window.MajdLocalDataAPI.writeRecord('wafdeenUsage', id, record, { merge: true });
-    showMessage('wafdeen-manager-msg', 'تم حفظ وقت التعليم في السحابة.', 'success');
-    await renderWafdeenTimeReport();
-  } catch (error) {
-    showMessage('wafdeen-manager-msg', 'تعذر حفظ وقت التعليم في السحابة: ' + (error.message || error), 'error');
-  }
-}
-async function editWafdeenEducationRecordByIndex(index) {
-  if (!wafdeenManagerAuthorized_()) return showMessage('wafdeen-manager-msg', 'هذه الوظيفة للمدير فقط.', 'error');
-  var record = (window.wafdeenEducationReportRows || [])[Number(index)];
-  if (!record) return showMessage('wafdeen-manager-msg', 'سجل وقت التعليم غير موجود.', 'error');
-  var previous = (Number(record.seconds) || 0) / 60;
-  var input = window.prompt('أدخل المدة الجديدة بالدقائق:', String(Math.round(previous)));
-  if (input === null) return;
-  var minutes = Number(input);
-  if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 1440) return showMessage('wafdeen-manager-msg', 'أدخل مدة صحيحة من 1 إلى 1440 دقيقة.', 'error');
-  try {
-    var updated = Object.assign({}, record, { seconds: Math.round(minutes * 60), updatedAt: new Date().toISOString(), updatedBy: String((window.currentTeacher || {}).username || 'admin') });
-    await window.MajdLocalDataAPI.writeRecord('wafdeenUsage', String(record.id), updated, { merge: true });
-    showMessage('wafdeen-manager-msg', 'تم تعديل وقت التعليم في السحابة.', 'success');
-    await renderWafdeenTimeReport();
-  } catch (error) {
-    showMessage('wafdeen-manager-msg', 'تعذر تعديل وقت التعليم في السحابة: ' + (error.message || error), 'error');
-  }
 }
