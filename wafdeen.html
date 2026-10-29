@@ -63,15 +63,10 @@
 <div class="wafdeen-overlay" id="wafdeen-menu-overlay" onclick="closeWafdeenMenu()"></div>
 <aside aria-hidden="true" class="wafdeen-drawer" id="wafdeen-drawer">
 <h3>📚 قائمة جلسة الوافدين</h3>
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('daily')" style="width:100%;margin-bottom:8px" type="button">📝 الرصد اليومي</button>
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('grades')" style="width:100%;margin-bottom:8px" type="button">🏆 الدرجات</button>
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('educationTime')" style="width:100%;margin-bottom:8px" type="button">⏱️ وقت التعليم</button>
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('materials')" style="width:100%;margin-bottom:8px" type="button">📚 المواد التعليمية</button>
+<button class="action-btn btn-save" onclick="wafdeenShowPanel('grades')" style="width:100%;margin-bottom:8px" type="button">🏆 درجات الوافدين</button>
 <div id="wafdeen-admin-menu-items">
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('teachers')" style="width:100%;margin-bottom:8px" type="button">👨‍🏫 إضافة / إدارة المعلمين</button>
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('students')" style="width:100%;margin-bottom:8px" type="button">👨‍🎓 إضافة / إدارة الطلاب</button>
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('report')" style="width:100%;margin-bottom:8px" type="button">📊 التقرير الشهري</button>
-<button class="action-btn btn-warning" onclick="wafdeenShowPanel('cloudReview')" style="width:100%;margin-bottom:8px" type="button">☁️ مراجعة أسماء السحابة</button>
+<button class="action-btn btn-save" onclick="wafdeenShowPanel('teachers')" style="width:100%;margin-bottom:8px" type="button">👤 حسابات الوافدين</button>
+<button class="action-btn btn-save" onclick="wafdeenShowPanel('students')" style="width:100%;margin-bottom:8px" type="button">👨‍🎓 طلاب الوافدين</button>
 </div>
 <button class="action-btn" onclick="closeWafdeenMenu()" style="width:100%;margin-top:20px" type="button">إغلاق القائمة ✖</button>
 </aside>
@@ -82,8 +77,9 @@
 </div>
 <button class="action-btn" onclick="wafdeenLogout()" type="button">تسجيل خروج 🚪</button>
 </div>
+<div class="wafdeen-note hidden" id="wafdeen-student-grades-unavailable" role="status">عرض درجات الطالب لنفسه غير متاح حاليًا لعدم توفر ربط آمن بين الحساب وسجل الدرجات.</div>
 <div class="wafdeen-panel hidden wafdeen-daily-panel" id="wafdeen-panel-grades">
-<h3>🏆 الدرجات</h3>
+<h3>🏆 درجات الوافدين</h3>
 <div class="wafdeen-note" id="wafdeen-grades-cloud-status" role="status" aria-live="polite">درجات الرصد لا تُعرض إلا إذا أتاحها مسار API مصرح به.</div>
 <div class="wafdeen-panel">
 <button class="action-btn btn-save" onclick="wafdeenToggleGradesStudents()" style="width:100%;margin-bottom:10px" type="button">👨‍🎓 أسماء الطلاب المسجلين <span id="wafdeen-grades-students-icon">▼</span></button>
@@ -128,7 +124,7 @@
 <div class="wafdeen-grade-period-panel hidden" id="wafdeen-education-time-month"></div>
 </div>
 </div>
-<div class="wafdeen-panel wafdeen-daily-panel" id="wafdeen-panel-daily">
+<div class="wafdeen-panel hidden wafdeen-daily-panel" id="wafdeen-panel-daily">
 <h3>📝 الرصد اليومي</h3>
 <div class="wafdeen-panel">
 <h3>اختيار الطالب</h3>
@@ -283,7 +279,7 @@
 </div>
 <div class="wafdeen-admin-section" id="wafdeen-admin-area">
 <div class="wafdeen-panel hidden" id="wafdeen-panel-teachers">
-<h3>👨‍🏫 إضافة المعلمين المسموح لهم بالدخول</h3>
+<h3>👤 حسابات الوافدين</h3>
 <div class="wafdeen-note" id="wafdeen-teachers-cloud-status" role="status" aria-live="polite">ملخصات الحسابات لا تُحمّل إلا للمدير المخوّل، وتقتصر على اسم المستخدم والفصل والمركز.</div>
 <div class="wafdeen-grid">
 <div class="form-group"><label>اسم المستخدم:</label><input id="wafdeenNewTeacherUser" placeholder="مثال: teacher1" type="text"/></div>
@@ -293,7 +289,7 @@
 <div class="wafdeen-table-wrap" style="margin-top:15px"><table class="wafdeen-table" id="wafdeenTeachersTable"><thead><tr><th>المستخدم</th><th>الفصل</th><th>المركز</th></tr></thead><tbody></tbody></table></div>
 </div>
 <div class="wafdeen-panel hidden" id="wafdeen-panel-students">
-<h3>👨‍🎓 أسماء الطلاب المسجلة</h3>
+<h3>👨‍🎓 طلاب الوافدين</h3>
 <div class="wafdeen-note" id="wafdeen-accounts-cloud-status" role="status" aria-live="polite">يعرض المسار المتاح أسماء الطلاب فقط، وليس حسابات الدخول أو كلمات المرور.</div>
 <div class="wafdeen-grid">
 <div class="form-group"><label>اسم الطالب:</label><input id="wafdeenNewStudentName" placeholder="اسم الطالب / الطالبة" type="text"/></div>

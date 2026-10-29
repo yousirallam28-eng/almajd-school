@@ -310,10 +310,12 @@ function showWafdeenAppScreen() {
     document.getElementById('wafdeen-app-screen').classList.remove('hidden');
     var roleLabel = (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin) ? 'المدير' : (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.role) === 'student' ? 'الطالب' : 'المعلم';
     document.getElementById('wafdeen-teacher-name').innerText = ((currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.username) || '') + ' — ' + roleLabel;
-    document.getElementById('wafdeen-menu-handle').classList.remove('hidden');
+    var isStudent = (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.role) === 'student';
+    document.getElementById('wafdeen-menu-handle').classList.toggle('hidden', isStudent);
     document.getElementById('wafdeen-admin-area').classList.toggle('show', !!(currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin));
     document.getElementById('wafdeen-admin-menu-items').style.display = (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin) ? 'block' : 'none';
-    wafdeenShowPanel((currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.role) === 'student' ? 'materials' : 'daily');
+    document.getElementById('wafdeen-student-grades-unavailable')?.classList.toggle('hidden', !isStudent);
+    if (!isStudent) wafdeenShowPanel('grades');
     wafdeenRenderStudentSelect();
     wafdeenResetTimer();
     wafdeenRenderQuranCounters();
@@ -1639,9 +1641,11 @@ function wafdeenDeleteSelectedCloudDuplicates() {
     });
 }
 function wafdeenShowPanel(name) {
-    var allowed = ['daily', 'materials', 'grades', 'educationTime', 'cloudReview'];
-    if (!allowed.includes(name) && !(currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin))
-        return;
+    var isAdmin = !!(currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin);
+    var isStudent = (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.role) === 'student';
+    if (!['grades', 'teachers', 'students'].includes(name)) return;
+    if (name === 'grades' && isStudent) return;
+    if ((name === 'teachers' || name === 'students') && !isAdmin) return;
     ['daily', 'materials', 'grades', 'educationTime', 'cloudReview', 'teachers', 'students', 'report'].forEach(function (n) { var el = document.getElementById('wafdeen-panel-' + n); if (el)
         el.classList.toggle('hidden', n !== name); });
     closeWafdeenMenu();
