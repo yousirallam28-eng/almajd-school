@@ -1,16 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { wafdeenMockStore } from '../src/features/wafdeen/mockData.js';
+import { existsSync, readFileSync } from 'node:fs';
 import { listWafdeenStudentNames } from '../supabase/functions/majd-api/wafdeen_names.js';
 import { listWafdeenStudentNames as listNamesFromClient } from '../src/api/wafdeen-names.api.js';
 
 const bridge = readFileSync(new URL('../public/legacy/js/inline-28.js', import.meta.url), 'utf8');
 const sourceBridge = readFileSync(new URL('../legacy/js/inline-28.js', import.meta.url), 'utf8');
-const reportFeature = readFileSync(new URL('../src/features/wafdeen/report.js', import.meta.url), 'utf8');
 const reportApiSource = readFileSync(new URL('../src/api/wafdeen-report.api.js', import.meta.url), 'utf8');
-const mockStoreSource = readFileSync(new URL('../src/features/wafdeen/mockData.js', import.meta.url), 'utf8');
+const indexHtml = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const mainEntrySource = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+const routerSource = readFileSync(new URL('../src/app/router.js', import.meta.url), 'utf8');
+const viteSource = readFileSync(new URL('../vite.config.js', import.meta.url), 'utf8');
 const edgeSource = readFileSync(new URL('../supabase/functions/majd-api/index.ts', import.meta.url), 'utf8');
 const namesHelperSource = readFileSync(new URL('../supabase/functions/majd-api/wafdeen_names.js', import.meta.url), 'utf8');
 const adminHelperSource = readFileSync(new URL('../supabase/functions/majd-api/wafdeen_admin.js', import.meta.url), 'utf8');
@@ -35,30 +35,21 @@ test('class-specific cloud hydration and write adapters are no longer exposed', 
   assert.doesNotMatch(bridge, /(?:writeRecord|deleteRecord)\(['"]wafdeen/i, 'the page no longer issues class-specific data mutations');
 });
 
-test('the main client loads a report-only Wafdeen feature and API adapter', () => {
-  assert.match(reportFeature, /loadWafdeenReportData/);
-  assert.match(reportFeature, /canOpenFeature\('wafdeen-report'/);
-  assert.doesNotMatch(reportFeature, /wafdeen-sessions\.api|wafdeen-admin\.api|createWafdeenSession|loadWafdeenSessionData|wafdeen-tab|wafdeen-student-select/);
+test('Wafdeen UI is removed while its existing API adapters and Edge handlers remain unchanged', () => {
+  assert.doesNotMatch(indexHtml, /wafdeen|وافدين|تقرير الشهري الوقتي/i);
+  assert.doesNotMatch(mainEntrySource, /features\/wafdeen/);
+  assert.doesNotMatch(routerSource, /wafdeen|وافدين/i);
+  assert.doesNotMatch(viteSource, /wafdeen|وافدين/i);
+  for (const asset of ['../wafdeen.html', '../src/features/wafdeen', '../public/wafdeen']) {
+    assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} should be removed from the frontend`);
+  }
   assert.match(reportApiSource, /purpose: 'report'/);
   assert.doesNotMatch(reportApiSource, /wafdeen-sessions\.api|createWafdeenSession|purpose: 'daily'|studentName/);
-  assert.match(mainEntrySource, /features\/wafdeen\/report\.js/);
-  assert.doesNotMatch(mainEntrySource, /features\/wafdeen\/index\.js|__MAJD_WAFDEEN_SESSIONS_ENABLED__/);
-  assert.match(mockStoreSource, /isMockOnly: true/);
   assert.doesNotMatch(adminApiSource, /teacher\?\.password|password_hash|password_salt/i);
   const teacherProjection = adminHelperSource.match(/const TEACHER_SELECT = '([^']+)'/)?.[1] || '';
   assert.doesNotMatch(teacherProjection, /password|hash|salt|\*/i);
   assert.match(adminHelperSource, /\.insert\(row\)/);
   assert.doesNotMatch(adminHelperSource, /\.upsert\(|\.delete\(/);
-  assert.doesNotMatch(mockStoreSource, /password|wafdeenStudents/i);
-});
-
-test('mock store fixtures and writes stay local to this module', () => {
-  const students = wafdeenMockStore.list('wafdeenRoster');
-  assert.ok(students.length > 0);
-  assert.ok(students.every((student) => student.name.includes('تجريبي')));
-  assert.ok(students.every((student) => !Object.hasOwn(student, 'password')));
-  wafdeenMockStore.upsert('wafdeenRoster', 'unit-test-only', { id: 'unit-test-only', name: 'اختبار وهمي' });
-  assert.equal(wafdeenMockStore.get('wafdeenRoster', 'unit-test-only').name, 'اختبار وهمي');
 });
 
 test('the authenticated Edge operation projects only studentName from Wafdeen daily records', async () => {

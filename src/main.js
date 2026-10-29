@@ -20,10 +20,6 @@ import('./features/teachers/index.js').catch((error) => {
   console.error('[MajdApp] failed to load teachers feature', error);
 });
 
-import('./features/wafdeen/report.js').catch((error) => {
-  console.error('[MajdApp] failed to load Wafdeen monthly report feature', error);
-});
-
 if (typeof performance !== 'undefined' && performance.mark) {
   performance.mark('majd-modular-entry-ready');
 }

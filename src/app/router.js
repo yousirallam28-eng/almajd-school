@@ -15,8 +15,7 @@ const featureByTab = {
   'payments-tab': 'expenses',
   'payment-report-tab': 'expenses',
   'total-expenses-tab': 'expenses',
-  'sheikh-registration-tab': 'sheikh-recordings',
-  'wafdeen-monthly-report-tab': 'wafdeen-report'
+  'sheikh-registration-tab': 'sheikh-recordings'
 };
 
 const modules = {
@@ -26,8 +25,7 @@ const modules = {
   reports: () => import('../features/reports/index.js'),
   notes: () => import('../features/notes/index.js'),
   expenses: () => import('../features/expenses/index.js'),
-  'sheikh-recordings': () => import('../features/sheikh-recordings/index.js'),
-  'wafdeen-report': () => import('../features/wafdeen/report.js')
+  'sheikh-recordings': () => import('../features/sheikh-recordings/index.js')
 };
 
 export function featureForTab(tabId) { return featureByTab[tabId] || null; }

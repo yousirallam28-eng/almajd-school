@@ -1,3 +1,0 @@
-/* المسار مستقل: تظهر شاشة دخول الوافدين فقط قبل المصادقة. */
-body:not(.wafdeen-mode) #wafdeen-login-screen { display: block !important; }
-body:not(.wafdeen-mode) #wafdeen-app-screen { display: none !important; }

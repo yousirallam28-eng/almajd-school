@@ -47,22 +47,15 @@ const removedAssets = [
 ];
 const removedAssetDirs = ['../legacy/js', '../public/legacy/js', '../legacy/css', '../public/legacy/css', '../public/appearance'];
 
-test('Wafdeen session screens are absent while the monthly report remains in the main portal', () => {
-  assert.doesNotMatch(html, /id="wafdeen-tab"|id="wafdeen-student-select"|id="wafdeen-data-mode"|id="wafdeen-login-btn"|id="wafdeen-entry-screen"/);
-  assert.match(html, /id="wafdeen-monthly-report-tab"/);
-  assert.match(html, /id="wafdeen-monthly-report-tab-btn"/);
-  assert.match(html, /تقرير الشهري الوقتي/);
-  assert.match(html, /id="wafdeen-monthly-report-table"/);
-  assert.match(html, /id="wafdeen-report-mode"/);
-  assert.match(html, /دون أسماء الطلاب أو تعديل السجلات/);
-  assert.match(html, /عدد الجلسات/);
-  assert.match(html, /الساعات \(50 دقيقة\)/);
+test('all Wafdeen pages, sections, forms, lists, and monthly report are absent from the site', () => {
+  assert.doesNotMatch(html, /wafdeen|وافدين|تقرير الشهري الوقتي/i);
+  for (const asset of ['../wafdeen.html', '../src/features/wafdeen', '../public/wafdeen']) {
+    assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} must not ship`);
+  }
   const sidebar = html.match(/<aside[^>]*id="main-menu-drawer"[^>]*>([\s\S]*?)<\/aside>/)?.[1] || '';
   const sheikhSubmenu = sidebar.match(/id="sheikh-recordings-submenu">([\s\S]*?)<\/div>/)?.[1] || '';
-  assert.match(sheikhSubmenu, /wafdeen-monthly-report-tab-btn/);
-  assert.doesNotMatch(sheikhSubmenu, /wafdeen-tab-btn|wafdeen-login-btn|واجهة الوافدين|جلسة الوافدين/);
-  assert.doesNotMatch(html, /open-wafdeen-login-btn|wafdeen-login-screen|wafdeen-app-screen|wafdeen-time-tab|wafdeenTimeReport|wafdeenEducationRecordsTable|wafdeenGradesReportTable|وقت الوافدين|مراجعة الأسماء المسجلة في السحابة|وقت التعليم|المواد التعليمية|firebase|firestore/i);
-  assert.doesNotMatch(html, /wafdeenToggle|showWafdeenLoginScreen|data-inlined-from="\.\/js\/(?:features\/wafdeen-application|compat\/wafdeen-quran-timer-exports)\.js"/);
+  assert.doesNotMatch(sheikhSubmenu, /wafdeen|وافدين/i);
+  assert.doesNotMatch(html, /wafdeen-login-route-btn|wafdeen-monthly-report-tab|openWafdeenMonthlyReport/i);
   assert.equal(html.slice(html.indexOf('</body>') + '</body>'.length).trim(), '</html>', 'all loaded resources must be inside the document body');
   for (const asset of removedAssets) assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} should no longer ship`);
   for (const directory of removedAssetDirs) {

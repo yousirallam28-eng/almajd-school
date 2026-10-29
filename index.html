@@ -116,9 +116,6 @@
 <button class="action-btn student-login-link-btn modern-quick-btn" onclick="showStudentLoginScreen()" style="height: 44px;" type="button">
     👨‍👩‍👧‍👦 متابعة ولي الأمر
   </button>
-<button class="action-btn modern-quick-btn" id="wafdeen-login-route-btn" onclick="window.location.href='./wafdeen.html'" style="height: 44px;" type="button">
-    دخول جلسة الوافدين
-  </button>
 </div>
 <!-- شاشة عرض النتيجة بالكود (بدون تسجيل دخول) -->
 <!-- شاشة النتائج بالكود: فصل كامل بين الطلاب والتمهيدي -->
@@ -228,7 +225,6 @@
 <button class="tab-btn reports-toggle" id="sheikh-recordings-menu-btn" onclick="toggleSheikhRecordingsMenu(event)" type="button">📋 تسجيلات الشيوخ <span class="reports-chevron">⌄</span></button>
 <div class="reports-submenu" id="sheikh-recordings-submenu">
 <button class="tab-btn hidden" id="sheikh-registration-tab-btn" onclick="switchTab('sheikh-registration-tab', event)" type="button">📋 تسجيل الشيوخ</button>
-<button class="tab-btn hidden" id="wafdeen-monthly-report-tab-btn" onclick="openWafdeenMonthlyReport()" type="button">📊 تقرير الشهري الوقتي</button>
 <button class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)" type="button">🗒️ الملاحظات</button>
 </div>
 </div>
@@ -1139,20 +1135,6 @@
 <tbody></tbody>
 </table>
 </div>
-</div>
-</div>
-<div class="tab-content hidden" id="wafdeen-monthly-report-tab">
-<div class="card-view" style="border-top:4px solid var(--accent-gold);">
-<h3 class="card-title">📊 تقرير الشهري الوقتي</h3>
-<p id="wafdeen-report-mode">التقرير الحي يقرأ حقول الجلسات للفترة المحددة من 15 إلى 14 فقط، دون أسماء الطلاب أو تعديل السجلات.</p>
-<div aria-live="polite" class="toast-msg" id="wafdeen-report-message" role="status"></div>
-<div class="form-grid" style="align-items:end;">
-<div class="form-group"><label for="wafdeen-report-month">الشهر:</label><input id="wafdeen-report-month" type="month"></div>
-<div class="form-group"><button class="action-btn btn-save" id="wafdeen-report-refresh" type="button">🔄 تحديث التقرير</button></div>
-<div class="form-group"><button class="action-btn btn-export" id="wafdeen-report-export" type="button">📤 تصدير Excel</button></div>
-</div>
-<p id="wafdeen-report-period"></p><p id="wafdeen-report-count"></p>
-<div class="table-responsive"><table id="wafdeen-monthly-report-table"><thead><tr><th>الشيخ</th><th>عدد الجلسات</th><th>وقت جلسات التسميع</th><th>الساعات (50 دقيقة)</th><th>الساعات (60 دقيقة)</th></tr></thead><tbody></tbody></table></div>
 </div>
 </div>
 <!-- 8. تبويب النسخة الاحتياطية -->
