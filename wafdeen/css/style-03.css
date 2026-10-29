@@ -1,0 +1,142 @@
+:root{--unified-bg:#ffffff;--unified-bg-2:#ffffff;--unified-text:#1d2b25;}
+/* ================= جلسة الوافدين ================= */
+#wafdeen-login-screen,#wafdeen-app-screen{font-family:'Cairo','Segoe UI',sans-serif;}
+.wafdeen-login-card{max-width:620px;margin:24px auto;padding:26px;border:1px solid var(--accent-gold);border-radius:24px;background:var(--unified-bg);box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.wafdeen-title{font-size:1.8rem;text-align:center;color:var(--accent-gold-light);margin:8px 0}
+.wafdeen-subtitle{text-align:center;color:var(--text-muted);margin-bottom:20px}
+.wafdeen-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.wafdeen-type-btn{border:1px solid var(--accent-gold);border-radius:14px;padding:13px;background:var(--unified-bg-2);color:var(--unified-text);font-weight:800;cursor:pointer}
+.wafdeen-type-btn.active{background:linear-gradient(120deg,var(--primary-color),var(--primary-dark));color:#fff}
+.wafdeen-timer-box{margin:18px 0;padding:24px;text-align:center;border:1px solid var(--accent-gold);border-radius:22px;background:var(--unified-bg-2)}
+#wafdeen-timer{font-size:3.3rem;letter-spacing:2px;font-weight:900;color:var(--accent-gold-light);direction:ltr}
+.wafdeen-timer-status{margin-top:6px;color:var(--text-muted)}
+.wafdeen-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.wafdeen-controls button{min-height:50px}
+.wafdeen-selected{font-weight:800;color:var(--accent-gold-light)}
+.wafdeen-app{max-width:1150px;margin:0 auto;padding:16px}
+.wafdeen-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.wafdeen-menu-handle{position:fixed;right:16px;top:82px;z-index:2147483646;border:1px solid var(--accent-gold);border-radius:16px;padding:10px 15px;background:linear-gradient(120deg,var(--primary-color),var(--primary-dark));color:#fff;font-weight:800;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.3)}
+.wafdeen-drawer{position:fixed;top:0;right:0;width:min(360px,88vw);height:100vh;z-index:2147483647;background:var(--unified-bg);border-left:1px solid var(--accent-gold);transform:translateX(110%);transition:.25s;overflow:auto;padding:22px;box-shadow:-15px 0 45px rgba(0,0,0,.45)}
+.wafdeen-drawer.open{transform:translateX(0)}
+.wafdeen-drawer h3{color:var(--accent-gold-light);margin-top:0}
+.wafdeen-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2147483646;display:none}
+.wafdeen-overlay.open{display:block}
+.wafdeen-drawer .action-btn:disabled,.wafdeen-level-card button:disabled{opacity:.45;cursor:not-allowed}
+.wafdeen-admin-section{display:none}
+.wafdeen-admin-section.show{display:block}
+.wafdeen-panel{border:1px solid var(--border-soft-strong);border-radius:18px;padding:18px;margin-bottom:16px;background:var(--unified-bg)}
+.wafdeen-panel h3{color:var(--accent-gold-light);margin-top:0}
+.wafdeen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.wafdeen-table-wrap{overflow:auto}
+.wafdeen-table{width:100%;border-collapse:collapse;min-width:620px}
+.wafdeen-table th,.wafdeen-table td{border:1px solid var(--border-soft);padding:9px;text-align:center;background:var(--unified-bg)!important;color:var(--unified-text)!important}
+.wafdeen-table th{color:var(--accent-gold-light)!important}
+.wafdeen-empty{padding:18px;text-align:center;color:var(--text-muted)}
+.wafdeen-note{font-size:.88rem;color:var(--text-muted);line-height:1.8}
+@media(max-width:650px){.wafdeen-type-grid,.wafdeen-controls{grid-template-columns:1fr}.wafdeen-login-card{margin:12px auto;padding:18px}#wafdeen-timer{font-size:2.7rem}.wafdeen-menu-handle{top:70px}}
+
+/* ================= المواد التعليمية + نظام مستويات الوافدين ================= */
+.wafdeen-materials-layout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0}
+.wafdeen-subject-card{border:1px solid var(--border-soft-strong);border-top:5px solid var(--accent-gold);border-radius:18px;padding:18px;background:var(--surface);cursor:pointer;transition:.2s;box-shadow:0 8px 22px rgba(0,0,0,.25);text-align:center}
+.wafdeen-subject-card:hover{transform:translateY(-3px);border-color:var(--accent-gold)}
+.wafdeen-subject-icon{font-size:2rem;margin-bottom:6px}.wafdeen-subject-name{font-family:'Amiri',serif;color:var(--accent-gold-light);font-size:1.35rem;font-weight:800}
+.wafdeen-levels-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:15px}
+.wafdeen-level-card{border:1px solid var(--border-soft);border-right:4px solid var(--primary-color);border-radius:15px;padding:14px;background:var(--surface);position:relative}
+.wafdeen-level-card.locked{opacity:.62;border-right-color:#777}.wafdeen-level-card.passed{border-right-color:var(--success-color)}
+.wafdeen-level-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:9px}.wafdeen-level-title{color:var(--accent-gold-light);font-weight:900}
+.wafdeen-book-list{display:grid;gap:8px}.wafdeen-book-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface-alt)}
+.wafdeen-book-item button{flex:0 0 auto}.wafdeen-status-pill{display:inline-block;padding:4px 9px;border-radius:999px;font-size:.72em;font-weight:800}.wafdeen-status-open{background:rgba(34,160,107,.16);color:#0f7a4a}.wafdeen-status-lock{background:rgba(217,86,74,.14);color:#a83226}.wafdeen-status-pass{background:rgba(212,175,55,.16);color:var(--accent-gold-dark)}
+.wafdeen-admin-materials{margin-top:18px;border-top:1px dashed var(--accent-gold);padding-top:18px}.wafdeen-book-reader{margin-top:16px;border:1px solid var(--border-soft-strong);border-radius:16px;overflow:hidden;background:var(--surface)}.wafdeen-book-reader iframe{width:100%;height:78vh;min-height:650px;border:0;background:#fff}.wafdeen-book-reader .reader-head a{text-decoration:none}.wafdeen-book-reader .reader-head{padding:11px 14px;background:var(--surface-alt);display:flex;justify-content:space-between;gap:10px;align-items:center}
+.wafdeen-exam-box{margin-top:12px;padding:10px;border:1px dashed var(--border-soft);border-radius:11px;background:rgba(212,175,55,.05)}
+.wafdeen-score{font-weight:900;color:var(--accent-gold-light)}.wafdeen-progress-wrap{margin:12px 0;padding:10px 12px;border:1px solid var(--border-soft);border-radius:12px;background:var(--surface-alt)}.wafdeen-progress-label{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:7px}.wafdeen-progress-track{height:12px;background:rgba(18,58,36,.1);border-radius:999px;overflow:hidden}.wafdeen-progress-bar{height:100%;width:0;background:#20b66b;border-radius:999px;transition:width .25s ease}.wafdeen-upload-percent{font-weight:900;color:#20b66b}.wafdeen-student-only-note{margin:12px 0;padding:11px 13px;border-right:4px solid var(--accent-gold);border-radius:10px;background:rgba(212,175,55,.07);color:var(--text-muted);line-height:1.8}.daily-grade-type-selector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0 12px;}
+.daily-grade-type-btn{border:2px solid var(--border-soft-strong);border-radius:14px;padding:12px 10px;background:var(--surface-alt);color:var(--text);font-weight:900;cursor:pointer;transition:.2s;}
+.daily-grade-type-btn.active{background:var(--primary-color);color:#fff;border-color:var(--primary-color);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08);}
+.daily-type-field-hidden{display:none!important;}
+.daily-type-save-done{opacity:.65!important;cursor:not-allowed!important;}
+.daily-field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+#wafdeen-quran-timer.field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;}
+#wafdeen-daily-scores-panel .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}
+#wafdeen-daily-scores-panel .field-missing-group>label{color:#d32f2f!important;font-weight:900;}
+
+@media(max-width:650px){.daily-grade-type-selector{grid-template-columns:1fr;}}
+.wafdeen-daily-scores{margin-top:16px;border-top:4px solid var(--primary-color)}.wafdeen-daily-scores .form-grid{margin-bottom:14px}.wafdeen-daily-scores input,.wafdeen-daily-scores select{background:#fff}.wafdeen-daily-save{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media(max-width:650px){.wafdeen-daily-save{grid-template-columns:1fr}}
+/* إصلاح ظهور جميع خانات درجات الوافدين على الهاتف وعدم قصها */
+#wafdeen-daily-scores-panel{display:block;visibility:visible;overflow:visible!important;height:auto!important;max-height:none!important;min-height:0!important;}
+#wafdeen-missing-fields{margin-top:12px;padding:12px 14px;border:2px solid #d32f2f;border-radius:12px;background:#fff5f5;color:#b71c1c;font-weight:800;line-height:1.9;}#wafdeen-missing-fields.hidden{display:none!important;}#wafdeen-missing-fields-list{font-weight:700;}#wafdeen-daily-scores-panel .field-missing{border:3px solid #d32f2f!important;box-shadow:0 0 0 2px rgba(211,47,47,.12)!important;background:#fff0f0!important;}#wafdeen-daily-scores-panel .field-missing-group>label{color:#d32f2f!important;font-weight:900;}#wafdeen-daily-scores-panel .field-missing-group{color:#b71c1c;}
+#wafdeen-daily-scores-panel .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;overflow:visible!important;}
+#wafdeen-daily-scores-panel .form-group{display:block!important;visibility:visible!important;min-width:0;}
+#wafdeen-daily-scores-panel .wafdeen-save-type-btn{width:100%;margin-top:10px;min-height:48px;}
+#wafdeen-daily-scores-panel .field-missing,#wafdeen-daily-scores-panel .field-missing-group{border:1px solid transparent!important;box-shadow:none!important;background:inherit!important;color:inherit!important;}
+/* ===== الدرجات بالمعيار: اختيار النوع ثم إظهار خاناته فقط ===== */
+#wafdeen-daily-scores-panel .wafdeen-grade-type-selector{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:16px 0;
+}
+#wafdeen-daily-scores-panel .wafdeen-grade-type-btn{
+  border:1px solid var(--accent-gold);
+  border-radius:14px;
+  padding:13px 10px;
+  min-height:52px;
+  background:linear-gradient(180deg,#1f9b77,#14765c);
+  color:#fff;
+  font-family:'Cairo',sans-serif;
+  font-weight:900;
+  font-size:.98em;
+  cursor:pointer;
+  box-shadow:0 5px 14px rgba(18,80,62,.18);
+  transition:transform .2s ease,box-shadow .2s ease,filter .2s ease,border-color .2s ease;
+}
+#wafdeen-daily-scores-panel .wafdeen-grade-type-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 18px rgba(18,80,62,.24);
+  filter:brightness(1.04);
+}
+#wafdeen-daily-scores-panel .wafdeen-grade-type-btn.active{
+  background:linear-gradient(120deg,var(--primary-color),var(--primary-dark));
+  border-color:var(--accent-gold);
+  box-shadow:0 7px 18px rgba(11,110,92,.35);
+}
+#wafdeen-daily-scores-panel .wafdeen-grade-details{display:none;margin-top:4px;}
+#wafdeen-daily-scores-panel .wafdeen-grade-details.is-visible{display:block;animation:fadeIn .22s ease;}
+#wafdeen-daily-scores-panel .wafdeen-grade-type-fields{display:none;}
+#wafdeen-daily-scores-panel .wafdeen-grade-type-fields.is-visible{
+  display:block;
+  background:var(--surface-alt);
+  border:1px solid var(--border-soft-strong);
+  border-right:4px solid var(--primary-color);
+  border-radius:16px;
+  padding:14px;
+  margin:12px 0 16px;
+  animation:fadeIn .2s ease;
+}
+#wafdeen-daily-scores-panel .wafdeen-grade-type-fields .grade-type-heading{
+  margin:0 0 12px;
+  color:var(--primary-dark);
+  font-family:'Amiri',serif;
+  font-size:1.25em;
+  font-weight:900;
+  border-bottom:1px dashed var(--accent-gold);
+  padding-bottom:7px;
+}
+#wafdeen-daily-scores-panel .wafdeen-grade-type-fields .form-grid{margin-bottom:0;}
+@media(max-width:650px){
+  #wafdeen-daily-scores-panel .wafdeen-grade-type-selector{grid-template-columns:1fr;}
+}
+
+#wafdeen-daily-scores-panel .wafdeen-grade-details.is-visible ~ .wafdeen-score-total,
+#wafdeen-daily-scores-panel .wafdeen-grade-details.is-visible ~ .wafdeen-daily-save,
+#wafdeen-daily-scores-panel .wafdeen-grade-details.is-visible ~ #wafdeen-missing-fields{display:block;}
+#wafdeen-daily-scores-panel .wafdeen-score-total,
+#wafdeen-daily-scores-panel .wafdeen-daily-save,
+#wafdeen-daily-scores-panel #wafdeen-missing-fields{display:none;}
+
+#wafdeen-daily-scores-panel input,#wafdeen-daily-scores-panel select{width:100%;box-sizing:border-box;min-height:54px;}
+@media(max-width:650px){
+  #wafdeen-daily-scores-panel .form-grid{grid-template-columns:1fr!important;}
+  #wafdeen-daily-scores-panel .form-group{width:100%!important;}
+  #wafdeen-daily-scores-panel{margin-bottom:24px;padding-bottom:18px;}
+}
+
+@media(max-width:750px){.wafdeen-materials-layout{grid-template-columns:1fr}.wafdeen-book-reader iframe{height:500px}}

@@ -1,0 +1,11 @@
+.result-display-v17-wrap{display:block;width:100%;margin:18px auto;text-align:right}
+.result-display-v17-title{text-align:center;font-size:1.5rem;font-weight:900;margin:8px 0 14px}
+.result-display-v17-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.result-display-v17-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 16px;border-radius:12px;background:#fff;border:2px solid rgba(0,0,0,.10);box-shadow:0 3px 10px rgba(0,0,0,.06)}
+.result-display-v17-label{font-weight:800;font-size:1rem}
+.result-display-v17-value{font-weight:900;font-size:1.2rem;direction:ltr;text-align:left}
+.result-display-v17-row:nth-child(4) .result-display-v17-value,
+.result-display-v17-row:nth-child(5) .result-display-v17-value,
+.result-display-v17-row:nth-child(6) .result-display-v17-value,
+.result-display-v17-row:nth-child(7) .result-display-v17-value{font-size:1.3rem}
+@media(min-width:650px){.result-display-v17-grid{grid-template-columns:1fr 1fr}.result-display-v17-row:last-child{grid-column:1/-1}}

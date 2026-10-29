@@ -40,7 +40,8 @@ test('Wafdeen standalone site is linked from the main login while cloud adapters
   assert.match(indexHtml, /موقع الوافدين/);
   assert.doesNotMatch(mainEntrySource, /features\/wafdeen/);
   assert.doesNotMatch(routerSource, /wafdeen|وافدين/i);
-  assert.doesNotMatch(viteSource, /wafdeen|وافدين/i);
+  assert.match(viteSource, /wafdeen:\s*resolve\(projectRoot, 'wafdeen\.html'\)/);
+  assert.equal(existsSync(new URL('../wafdeen.html', import.meta.url)), true);
   assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), true);
   assert.match(reportApiSource, /purpose: 'report'/);
   assert.doesNotMatch(reportApiSource, /wafdeen-sessions\.api|createWafdeenSession|purpose: 'daily'|studentName/);

@@ -1,0 +1,179 @@
+/* ===== قائمة القوائم: شكل عصري موحّد مع الحفاظ على كل الأسماء ===== */
+#main-menu-drawer.sidebar-nav{
+  width:min(390px,calc(100vw - 22px)) !important;
+  top:11px !important;
+  right:11px !important;
+  height:calc(100dvh - 22px) !important;
+  padding:22px 17px 24px !important;
+  border:1px solid rgba(201,162,39,.45) !important;
+  border-radius:30px !important;
+  background:
+    radial-gradient(circle at 88% 5%,rgba(201,162,39,.13),transparent 28%),
+    radial-gradient(circle at 15% 85%,rgba(11,110,92,.16),transparent 30%),
+    linear-gradient(180deg,rgba(9,49,39,.98),rgba(5,30,24,.99)) !important;
+  box-shadow:-18px 24px 65px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.08) !important;
+  overflow-x:hidden !important;
+}
+#main-menu-drawer.sidebar-nav::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.22;
+  background-image:
+    linear-gradient(30deg,transparent 47%,rgba(201,162,39,.18) 48%,rgba(201,162,39,.18) 50%,transparent 51%),
+    linear-gradient(150deg,transparent 47%,rgba(201,162,39,.13) 48%,rgba(201,162,39,.13) 50%,transparent 51%);
+  background-size:76px 76px;
+  mask-image:linear-gradient(to bottom,#000,transparent 95%);
+}
+#main-menu-drawer .menu-drawer-head{
+  position:relative;
+  z-index:1;
+  min-height:62px !important;
+  padding:2px 2px 0;
+}
+#main-menu-drawer .menu-drawer-brand{
+  gap:12px !important;
+}
+#main-menu-drawer .menu-brand-icon{
+  width:50px !important;
+  height:50px !important;
+  flex-basis:50px !important;
+  border-radius:17px !important;
+  background:linear-gradient(135deg,#0b6e5c,#075442) !important;
+  border:1px solid rgba(201,162,39,.55) !important;
+  color:#f8e9ad !important;
+  box-shadow:0 9px 22px rgba(0,0,0,.20) !important;
+}
+#main-menu-drawer .menu-drawer-brand strong{
+  font-size:1.42em !important;
+  color:#f6e7ac !important;
+}
+#main-menu-drawer .menu-drawer-brand small{
+  color:#c7d9d0 !important;
+  font-size:.76em !important;
+}
+#main-menu-drawer .sidebar-close-btn{
+  width:44px !important;
+  height:44px !important;
+  border-radius:15px !important;
+  background:#0b6e5c !important;
+  color:#fff !important;
+  border:1px solid rgba(201,162,39,.55) !important;
+  box-shadow:0 8px 18px rgba(0,0,0,.20) !important;
+}
+#main-menu-drawer .sidebar-close-btn:hover{
+  background:#075442 !important;
+  color:#fff !important;
+  transform:rotate(90deg) scale(1.04);
+}
+#main-menu-drawer .menu-drawer-line{
+  position:relative;
+  z-index:1;
+  margin:18px 2px 17px !important;
+  background:linear-gradient(90deg,transparent,rgba(201,162,39,.7),transparent) !important;
+}
+#main-menu-drawer .tabs{
+  position:relative;
+  z-index:1;
+  gap:10px !important;
+}
+#main-menu-drawer .tabs > .tab-btn,
+#main-menu-drawer .reports-menu-wrap > .reports-toggle,
+#main-menu-drawer .reports-submenu .tab-btn{
+  width:100% !important;
+  min-height:56px !important;
+  padding:13px 16px !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  border-radius:17px !important;
+  background:linear-gradient(135deg,#0b6e5c,#075442) !important;
+  color:#fff !important;
+  box-shadow:0 7px 18px rgba(0,0,0,.18) !important;
+  font-size:.95em !important;
+  font-weight:900 !important;
+  text-align:right !important;
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease !important;
+}
+#main-menu-drawer .tabs > .tab-btn:hover,
+#main-menu-drawer .reports-menu-wrap > .reports-toggle:hover,
+#main-menu-drawer .reports-submenu .tab-btn:hover{
+  background:linear-gradient(135deg,#0b6e5c,#075442) !important;
+  color:#fff !important;
+  border-color:rgba(201,162,39,.55) !important;
+  transform:translateX(-3px) !important;
+  box-shadow:0 11px 24px rgba(0,0,0,.24) !important;
+  filter:brightness(1.06);
+}
+#main-menu-drawer .tabs > .tab-btn:active,
+#main-menu-drawer .reports-menu-wrap > .reports-toggle:active,
+#main-menu-drawer .reports-submenu .tab-btn:active{
+  transform:translateX(-1px) scale(.985) !important;
+}
+#main-menu-drawer .tabs > .tab-btn.active,
+#main-menu-drawer .reports-menu-wrap > .reports-toggle.active,
+#main-menu-drawer .reports-submenu .tab-btn.active{
+  background:linear-gradient(135deg,#0b6e5c,#075442) !important;
+  color:#fff !important;
+  border-color:#d8b34b !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.25),inset 0 0 0 1px rgba(255,255,255,.07) !important;
+}
+#main-menu-drawer .tabs > .tab-btn::after{
+  display:none !important;
+}
+#main-menu-drawer .reports-menu-wrap{
+  width:100% !important;
+}
+#main-menu-drawer .reports-submenu{
+  margin:3px 0 2px !important;
+  padding:8px 0 3px 13px !important;
+  border-right:3px solid #c9a227 !important;
+  background:rgba(201,162,39,.055) !important;
+  border-radius:0 12px 12px 0 !important;
+}
+#main-menu-drawer .reports-submenu .tab-btn{
+  min-height:49px !important;
+  font-size:.87em !important;
+}
+#main-menu-drawer .reports-chevron{
+  color:#fff !important;
+}
+#main-menu-handle{
+  background:linear-gradient(135deg,#0b6e5c,#075442) !important;
+  color:#fff !important;
+  border-color:rgba(201,162,39,.55) !important;
+  box-shadow:0 10px 28px rgba(7,84,66,.30) !important;
+}
+#main-menu-handle.open{
+  background:linear-gradient(135deg,#0b6e5c,#075442) !important;
+  color:#fff !important;
+  border-color:#d8b34b !important;
+}
+#main-menu-handle.open .menu-handle-dot{
+  background:#c9a227 !important;
+}
+#main-menu-drawer .tabs .tab-btn *,
+#main-menu-drawer .reports-menu-wrap *,
+#main-menu-drawer .sidebar-close-btn{
+  color:#fff !important;
+}
+#main-menu-drawer .menu-drawer-brand strong,
+#main-menu-drawer .menu-drawer-brand small,
+#main-menu-drawer .menu-brand-icon{
+  color:inherit !important;
+}
+@media(max-width:430px){
+  #main-menu-drawer.sidebar-nav{
+    width:calc(100vw - 12px) !important;
+    right:6px !important;
+    top:6px !important;
+    height:calc(100dvh - 12px) !important;
+    padding:18px 13px 20px !important;
+    border-radius:24px !important;
+  }
+  #main-menu-drawer .tabs{gap:8px !important;}
+  #main-menu-drawer .tabs > .tab-btn,
+  #main-menu-drawer .reports-menu-wrap > .reports-toggle{
+    min-height:52px !important;
+    border-radius:15px !important;
+  }
+}

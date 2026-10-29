@@ -14,12 +14,14 @@ test('the primary site exposes the standalone Wafdeen entry without embedding it
   assert.match(mainHtml, /موقع الوافدين/);
 });
 
-test('the application and build no longer load or publish Wafdeen frontend routes', () => {
+test('the main app remains report-only while Vite publishes a separate Wafdeen page', () => {
   assert.doesNotMatch(mainEntry, /features\/wafdeen/);
   assert.doesNotMatch(router, /wafdeen|وافدين/i);
-  assert.doesNotMatch(vite, /wafdeen|وافدين/i);
+  assert.match(vite, /wafdeen:\s*resolve\(projectRoot, 'wafdeen\.html'\)/);
+  assert.equal(existsSync(new URL('../wafdeen.html', import.meta.url)), true);
   assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../src/features/wafdeen', import.meta.url)), false);
+  assert.equal(existsSync(new URL('../src/features/wafdeen/standalone-entry.js', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../src/features/wafdeen/standalone-policy.js', import.meta.url)), true);
 });
 
 test('the existing Wafdeen API client and bridge remain present and report-scoped', () => {

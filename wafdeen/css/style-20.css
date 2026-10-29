@@ -1,0 +1,9 @@
+.result-display-v16-wrap{margin-top:16px;text-align:right}
+.result-display-v16-title{text-align:center;font-size:1.35rem;font-weight:900;margin:10px 0 14px}
+.result-display-v16-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.result-display-v16-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 15px;border-radius:12px;background:rgba(255,255,255,.96);border:2px solid rgba(21,101,192,.16);box-shadow:0 3px 10px rgba(0,0,0,.06)}
+.result-display-v16-label{font-weight:800}
+.result-display-v16-value{font-size:1.2rem;font-weight:900;direction:ltr}
+.monthly-result-pass .result-display-v16-value{font-size:1.28rem}
+.monthly-result-fail-card .result-display-v16-row{border-color:#d32f2f;background:#fff5f5}
+@media(min-width:600px){.result-display-v16-grid{grid-template-columns:1fr 1fr}.result-display-v16-row:last-child{grid-column:1/-1}}

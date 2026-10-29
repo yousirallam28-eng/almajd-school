@@ -51,7 +51,9 @@ test('the standalone Wafdeen page is linked without embedding its legacy section
   assert.match(html, /href="wafdeen\.html"/);
   assert.match(html, /موقع الوافدين/);
   assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../src/features/wafdeen', import.meta.url)), false);
+  assert.equal(existsSync(new URL('../wafdeen.html', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../src/features/wafdeen/standalone-entry.js', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../src/features/wafdeen/standalone-policy.js', import.meta.url)), true);
   const sidebar = html.match(/<aside[^>]*id="main-menu-drawer"[^>]*>([\s\S]*?)<\/aside>/)?.[1] || '';
   const sheikhSubmenu = sidebar.match(/id="sheikh-recordings-submenu">([\s\S]*?)<\/div>/)?.[1] || '';
   assert.doesNotMatch(sheikhSubmenu, /wafdeen|وافدين/i);
