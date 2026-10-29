@@ -8,8 +8,8 @@ test('router maps heavy tabs to feature chunks', () => {
   assert.equal(featureForTab('payments-tab'), 'expenses');
   assert.equal(featureForTab('notes-tab'), 'notes');
   assert.equal(featureForTab('sheikh-registration-tab'), 'sheikh-recordings');
-  assert.equal(featureForTab('wafdeen-tab'), 'wafdeen');
-  assert.equal(featureForTab('wafdeen-monthly-report-tab'), 'wafdeen');
+  assert.equal(featureForTab('wafdeen-tab'), null);
+  assert.equal(featureForTab('wafdeen-monthly-report-tab'), 'wafdeen-report');
   assert.equal(featureForTab('wafdeen-time-tab'), null);
 });
 

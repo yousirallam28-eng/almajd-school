@@ -73,7 +73,6 @@
 <link rel="stylesheet" href="%BASE_URL%appearance/almajd-global-redesign.css?v=1" id="almajd-global-redesign" media="not all" onerror="this.onerror=null;this.href='public/appearance/almajd-global-redesign.css?v=1'">
 <script id="appearance-bootstrap-head-styles">window.__setAlmajdAppearanceStyles(['modern-almajd-theme','almajd-global-redesign','unified-reference-theme'], window.__almajdSiteAppearance);</script>
 <link rel="stylesheet" href="legacy/css/button-press-feedback.css?v=3" id="button-press-feedback" onerror="this.onerror=null;this.href='public/legacy/css/button-press-feedback.css?v=3'">
-<link rel="stylesheet" href="src/features/wafdeen/wafdeen.css?v=wafdeen-menu-1" id="wafdeen-style">
 </head>
 <body class="login-screen-active" data-standalone="normal">
 <!-- نوافذ الموقع الداخلية: لا تستخدم نوافذ المتصفح confirm/prompt/alert -->
@@ -117,28 +116,6 @@
 <button class="action-btn student-login-link-btn modern-quick-btn" onclick="showStudentLoginScreen()" style="height: 44px;" type="button">
     👨‍👩‍👧‍👦 متابعة ولي الأمر
   </button>
-<button class="action-btn modern-quick-btn hidden" id="wafdeen-login-btn" onclick="showWafdeenEntryScreen()" style="height: 44px;" type="button">
-    🕌 دخول جلسة الوافدين
-  </button>
-</div>
-<div class="login-card hidden" id="wafdeen-entry-screen">
-<img alt="شعار معهد المجد" class="login-logo-img" onerror="handleImgError(this)" src="public/almajd-logo-round.png"/>
-<h2 class="login-header-text" style="font-size:1.55em;">دخول جلسة الوافدين</h2>
-<div class="login-subtitle">سجّل بحساب المعلم المخوّل للدخول إلى الجلسة</div>
-<div class="islamic-divider"><span>❖ 🕮 ❖</span></div>
-<div aria-live="polite" class="toast-msg" id="wafdeen-login-msg" role="status"></div>
-<form id="wafdeen-login-form" onsubmit="event.preventDefault(); submitWafdeenEntryLogin();">
-<div class="form-group" style="margin-bottom: 14px;">
-<label for="wafdeen-login-username">اسم المستخدم:</label>
-<input autocomplete="username" id="wafdeen-login-username" required type="text"/>
-</div>
-<div class="form-group" style="margin-bottom: 22px;">
-<label for="wafdeen-login-password">كلمة المرور:</label>
-<input autocomplete="current-password" id="wafdeen-login-password" required type="password"/>
-</div>
-<button class="action-btn btn-save" id="wafdeen-login-submit" style="width: 100%; font-size: 1em; height: 46px;" type="submit">دخول 🔐</button>
-</form>
-<button class="action-btn" onclick="closeWafdeenEntryScreen()" style="width:100%;background:linear-gradient(135deg,#7f8c8d,#566573);margin-top:12px;" type="button">🔙 رجوع</button>
 </div>
 <!-- شاشة عرض النتيجة بالكود (بدون تسجيل دخول) -->
 <!-- شاشة النتائج بالكود: فصل كامل بين الطلاب والتمهيدي -->
@@ -1159,104 +1136,6 @@
 <tbody></tbody>
 </table>
 </div>
-</div>
-</div>
-<div class="tab-content hidden" id="wafdeen-tab">
-<div class="card-view" id="wafdeen-view" style="border-top:4px solid var(--accent-gold);">
-<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-<h3 class="card-title">🕌 جلسة الوافدين</h3>
-<div class="wafdeen-view-actions">
-<button aria-controls="wafdeen-drawer" aria-expanded="false" class="wafdeen-menu-handle" id="wafdeen-menu-handle" type="button">☰ قائمة الوافدين</button>
-<button class="action-btn btn-save" id="wafdeen-refresh" type="button">🔄 تحديث البيانات</button>
-</div>
-</div>
-<div aria-hidden="true" class="wafdeen-overlay" id="wafdeen-overlay"></div>
-<aside aria-hidden="true" aria-label="قائمة جلسة الوافدين" class="wafdeen-drawer" id="wafdeen-drawer">
-<div class="wafdeen-drawer-head"><h3>📚 قائمة جلسة الوافدين</h3><button aria-label="إغلاق قائمة الوافدين" class="wafdeen-drawer-close" id="wafdeen-menu-close" type="button">×</button></div>
-<button aria-pressed="true" class="action-btn btn-save active" data-wafdeen-panel-button="daily" type="button">📝 الرصد اليومي</button>
-<button aria-pressed="false" class="action-btn btn-save" data-wafdeen-panel-button="grades" type="button">🏆 الدرجات</button>
-<button aria-pressed="false" class="action-btn btn-save hidden" data-wafdeen-admin-only="true" data-wafdeen-panel-button="teachers" type="button">👨‍🏫 إضافة / إدارة المعلمين</button>
-<button aria-pressed="false" class="action-btn btn-save hidden" data-wafdeen-admin-only="true" data-wafdeen-panel-button="students" type="button">👨‍🎓 إضافة / إدارة الطلاب</button>
-</aside>
-<div class="card-view" id="wafdeen-data-mode" style="border:2px solid var(--accent-gold);"><strong>اتصال حي مفعل:</strong> تُقرأ حقول هوية الطالب ووقت جلسات القرآن الضرورية فقط؛ لا تُحمّل الدرجات القديمة ولا تُعدّل السجلات السابقة.</div>
-<div aria-live="polite" class="toast-msg" id="wafdeen-message" role="status"></div>
-<section data-wafdeen-panel="daily">
-<div class="card-view">
-<h4 class="card-title">اختيار الطالب والتاريخ</h4>
-<div class="form-grid">
-<div class="form-group"><label for="wafdeen-student-select">الطالب:</label><select id="wafdeen-student-select"><option value="">اختر الطالب</option></select></div>
-<div class="form-group"><label for="wafdeen-date">تاريخ الرصد:</label><input id="wafdeen-date" type="date"></div>
-</div>
-</div>
-<div class="card-view">
-<h4 class="card-title">⏱️ جلسة التسميع</h4>
-<p>ابدأ المؤقت عند بدء الجلسة، ثم احفظ الدرجة بعد انتهائها. الحد الأقصى للجلسة ساعتان.</p>
-<div aria-live="polite" id="wafdeen-session-time" style="font-size:1.4em;font-weight:800;margin:10px 0;">0 س 0 د 0 ث</div>
-<button class="action-btn btn-save" id="wafdeen-timer-toggle" type="button">بدء جلسة التسميع</button>
-<button class="action-btn btn-danger" id="wafdeen-timer-reset" type="button">تصفير الجلسة</button>
-</div>
-<div class="card-view">
-<h4 class="card-title">📝 رصد القرآن الكريم</h4>
-<div class="btn-group" style="margin-bottom:12px;">
-<button aria-pressed="true" class="action-btn btn-save active" data-wafdeen-grade-type="new" type="button">📖 الجديد</button>
-<button aria-pressed="false" class="action-btn btn-save" data-wafdeen-grade-type="old" type="button">📚 الماضي</button>
-<button aria-pressed="false" class="action-btn btn-save" data-wafdeen-grade-type="recitation" type="button">🎙️ التلاوة</button>
-</div>
-<p>كل خطأ يخصم درجة، وكل تشكيل نصف درجة، وكل تردد ربع درجة.</p>
-<div class="form-grid">
-<div class="form-group"><label>نوع الرصد:</label><strong id="wafdeen-grade-type-label">الجديد</strong></div>
-<div class="form-group"><label>الدرجة من 10:</label><strong aria-live="polite" id="wafdeen-score">10/10</strong></div>
-<div class="form-group"><label for="wafdeen-errors">الأخطاء:</label><input id="wafdeen-errors" min="0" step="1" type="number" value="0"></div>
-<div class="form-group"><label for="wafdeen-tashkeel">التشكيل:</label><input id="wafdeen-tashkeel" min="0" step="1" type="number" value="0"></div>
-<div class="form-group"><label for="wafdeen-repetition">التردد:</label><input id="wafdeen-repetition" min="0" step="1" type="number" value="0"></div>
-<div class="form-group"><label for="wafdeen-pages">عدد الصفحات:</label><input id="wafdeen-pages" inputmode="numeric" min="1" placeholder="عدد الصفحات" type="number"></div>
-<div class="form-group"><label for="wafdeen-topic">المقرر الذي تم تسميعه:</label><input id="wafdeen-topic" placeholder="اكتب المقرر" type="text"></div>
-</div>
-<div class="btn-group">
-<button class="action-btn btn-save" id="wafdeen-save-grade" type="button">حفظ الجديد</button>
-<button class="action-btn btn-danger" id="wafdeen-mark-absent" type="button">🚫 تسجيل غياب</button>
-</div>
-</div>
-</section>
-<section class="hidden" data-wafdeen-panel="grades">
-<div class="card-view">
-<h4 class="card-title">🏆 سجل الطالب المحدد</h4>
-<div class="table-responsive"><table id="wafdeen-history-table"><thead><tr><th>التاريخ</th><th>الحالة / النوع</th><th>الدرجات / وقت الجلسة</th></tr></thead><tbody></tbody></table></div>
-</div>
-</section>
-<section class="hidden" data-wafdeen-panel="students" id="wafdeen-student-admin">
-<div class="card-view">
-<h4 class="card-title">👨‍🎓 إدارة قائمة الطلاب</h4>
-<p>تُضاف أسماء الطلاب كسجلات قائمة جديدة؛ لا تُستبدل أو تُحذف الجلسات والدرجات السابقة.</p>
-<p id="wafdeen-student-admin-notice" role="status">يستطيع المدير إضافة أسماء جديدة فقط. سجلات الجلسات والدرجات السابقة تبقى كما هي.</p>
-<div id="wafdeen-student-admin-actions">
-<div class="form-grid"><div class="form-group"><label for="wafdeen-new-student-name">اسم الطالب:</label><input id="wafdeen-new-student-name" type="text"></div>
-<div class="form-group"><button class="action-btn btn-save" id="wafdeen-add-student" type="button">إضافة الطالب</button></div></div>
-</div>
-<div class="table-responsive"><table id="wafdeen-students-table"><thead><tr><th>الطالب</th><th>الصف المسجل</th><th>الإجراء</th></tr></thead><tbody></tbody></table></div>
-</div>
-</section>
-<section class="hidden" data-wafdeen-panel="teachers" id="wafdeen-teacher-admin">
-<div class="card-view">
-<h4 class="card-title">👨‍🏫 إدارة المعلمين وصلاحية الوافدين</h4>
-<p id="wafdeen-teacher-admin-note" role="status">إضافة معلم تنشئ حسابًا جديدًا بصلاحية الوافدين، ولا تغيّر صلاحيات الحسابات الموجودة. لا تُعرض كلمات المرور المحفوظة.</p>
-<div class="hidden" id="wafdeen-teacher-admin-actions">
-<div class="form-grid">
-<div class="form-group"><label for="wafdeen-new-teacher-user">اسم المستخدم:</label><input autocomplete="username" id="wafdeen-new-teacher-user" maxlength="120" type="text"></div>
-<div class="form-group"><label for="wafdeen-new-teacher-password">كلمة مرور أولية (12 حرفًا على الأقل):</label><input autocomplete="new-password" id="wafdeen-new-teacher-password" minlength="12" maxlength="256" type="password"></div>
-<div class="form-group"><label for="wafdeen-new-teacher-class">الصف:</label><select id="wafdeen-new-teacher-class">
-<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
-<option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option><option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
-<option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option><option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option><option value="أولى شرعي">أولى شرعي</option>
-</select></div>
-<div class="form-group"><label for="wafdeen-new-teacher-center">المركز:</label><select id="wafdeen-new-teacher-center"><option value="رئيسي">معلم رئيسي</option><option value="مساعد">معلم مساعد</option></select></div>
-<div class="form-group"><button class="action-btn btn-save" id="wafdeen-add-teacher" type="button">إضافة المعلم</button></div>
-</div>
-<p>سيُطلب من المعلم تغيير كلمة المرور عند أول دخول.</p>
-</div>
-<div class="table-responsive"><table id="wafdeen-teachers-table"><thead><tr><th>حساب المعلم</th><th>الصف</th><th>المركز</th><th>صلاحية واجهة الوافدين</th></tr></thead><tbody></tbody></table></div>
-</div>
-</section>
 </div>
 </div>
 <div class="tab-content hidden" id="wafdeen-monthly-report-tab">

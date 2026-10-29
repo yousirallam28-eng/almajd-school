@@ -1,62 +1,52 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
-const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const feature = readFileSync(new URL('../src/features/wafdeen/index.js', import.meta.url), 'utf8');
-const loginEntry = readFileSync(new URL('../src/features/wafdeen/login-entry.js', import.meta.url), 'utf8');
+const mainHtml = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const reportFeature = readFileSync(new URL('../src/features/wafdeen/report.js', import.meta.url), 'utf8');
+const reportApi = readFileSync(new URL('../src/api/wafdeen-report.api.js', import.meta.url), 'utf8');
+const mainEntry = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+const router = readFileSync(new URL('../src/app/router.js', import.meta.url), 'utf8');
+const mainBridge = readFileSync(new URL('../legacy/js/inline-28.js', import.meta.url), 'utf8');
+const vite = readFileSync(new URL('../vite.config.js', import.meta.url), 'utf8');
 
-test('Wafdeen login entry is directly below Parent Follow-up on the outer login screen', () => {
-  assert.match(html, /class="action-btn student-login-link-btn modern-quick-btn"[^>]*>[\s\S]*?متابعة ولي الأمر\s*<\/button>\s*<button[^>]*id="wafdeen-login-btn"[^>]*>\s*🕌 دخول جلسة الوافدين\s*<\/button>/);
-  assert.match(html, /id="wafdeen-entry-screen"[\s\S]*?id="wafdeen-login-username"[\s\S]*?id="wafdeen-login-password"/);
-  const sidebar = html.match(/<aside[^>]*id="main-menu-drawer"[^>]*>([\s\S]*?)<\/aside>/)?.[1];
-  assert.ok(sidebar, 'the authenticated sidebar must exist');
-  assert.doesNotMatch(sidebar, /wafdeen-tab-btn|wafdeen-login-btn|openWafdeenTab/);
+test('the primary site keeps the monthly report in Sheikh Recordings without a Wafdeen session page', () => {
+  assert.doesNotMatch(mainHtml, /id="wafdeen-login-btn"|id="wafdeen-entry-screen"|id="wafdeen-tab"/);
+  assert.match(mainHtml, /id="wafdeen-monthly-report-tab-btn"[^>]*>[^<]*تقرير الشهري الوقتي/);
+  assert.match(mainHtml, /id="wafdeen-monthly-report-tab"/);
+  const sidebar = mainHtml.match(/<aside[^>]*id="main-menu-drawer"[^>]*>([\s\S]*?)<\/aside>/)?.[1];
+  assert.ok(sidebar, 'the main authenticated navigation must exist');
   const sheikhSubmenu = sidebar.match(/<div class="reports-submenu" id="sheikh-recordings-submenu">([\s\S]*?)<\/div>/)?.[1] || '';
   assert.match(sheikhSubmenu, /wafdeen-monthly-report-tab-btn/);
   assert.doesNotMatch(sheikhSubmenu, /wafdeen-tab-btn|wafdeen-login-btn|واجهة الوافدين|جلسة الوافدين/);
 });
 
-test('the Wafdeen screen uses its own standalone-style drawer with only retained destinations', () => {
-  const drawer = html.match(/<aside[^>]*id="wafdeen-drawer"[^>]*>([\s\S]*?)<\/aside>/)?.[1];
-  assert.ok(drawer, 'the Wafdeen screen must have its own internal drawer');
-  for (const [id, label] of [
-    ['daily', 'الرصد اليومي'],
-    ['grades', 'الدرجات'],
-    ['teachers', 'إضافة / إدارة المعلمين'],
-    ['students', 'إضافة / إدارة الطلاب']
+test('the main client imports only the report feature and its report-only API path', () => {
+  assert.match(mainEntry, /features\/wafdeen\/report\.js/);
+  assert.doesNotMatch(mainEntry, /features\/wafdeen\/index\.js|__MAJD_WAFDEEN_SESSIONS_ENABLED__/);
+  assert.match(router, /'wafdeen-monthly-report-tab': 'wafdeen-report'/);
+  assert.match(router, /'wafdeen-report': \(\) => import\('\.\.\/features\/wafdeen\/report\.js'\)/);
+  assert.doesNotMatch(router, /features\/wafdeen\/index\.js/);
+  assert.doesNotMatch(reportFeature, /wafdeen-sessions\.api|wafdeen-admin\.api|createWafdeenSession|loadWafdeenSessionData|renderWafdeenView|wafdeen-tab|wafdeen-student-select/);
+  assert.doesNotMatch(reportApi, /wafdeen-sessions\.api|createWafdeenSession|purpose: 'daily'|studentName/);
+  assert.match(reportApi, /purpose: 'report'/);
+});
+
+test('the independent page and its frontend assets are absent from the local project', () => {
+  for (const asset of [
+    '../wafdeen.html',
+    '../src/features/wafdeen/standalone-entry.js',
+    '../src/features/wafdeen/standalone.css',
+    '../src/api/wafdeen-standalone.api.js'
   ]) {
-    assert.match(drawer, new RegExp(`data-wafdeen-panel-button="${id}"`));
-    assert.match(drawer, new RegExp(label));
-    assert.match(html, new RegExp(`data-wafdeen-panel="${id}"`));
+    assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} must not remain`);
   }
-  assert.doesNotMatch(drawer, /تقرير الشهري الوقتي|التقرير الشهري|مراجعة أسماء السحابة|وقت التعليم|المواد التعليمية|Firebase|Firestore/i);
-  assert.match(html, /id="wafdeen-monthly-report-tab-btn"[^>]*>[\s\S]*?تقرير الشهري الوقتي/);
+  assert.doesNotMatch(vite, /wafdeen\.html|standalone-entry/);
 });
 
-test('the Wafdeen drawer replaces the general navigation only while its session tab is active', () => {
-  assert.match(html, /id="main-menu-handle"/);
-  assert.match(html, /id="main-menu-drawer"/);
-  assert.match(html, /id="menu-overlay"/);
-  assert.match(feature, /function setGeneralNavigationVisible\(visible\)/);
-  assert.match(feature, /if \(!visible\) window\.closeMainMenu\?\.\(\)/);
-  assert.match(feature, /if \(tabId === 'wafdeen-tab'\) setGeneralNavigationVisible\(false\)/);
-  assert.match(feature, /setGeneralNavigationVisible\(true\);\s*setWafdeenMenuOpen\(false\)/);
-  assert.match(feature, /setGeneralNavigationVisible\(true\);\s*\}/);
-  assert.match(feature, /if \(byId\('app-screen'\)\?\.classList\.contains\('hidden'\)\) \{\s*setWafdeenMenuOpen\(false\);\s*setGeneralNavigationVisible\(true\);/);
-});
-
-test('Wafdeen login reuses staff authentication and checks the existing permission before opening the session', () => {
-  assert.match(html, /id="wafdeen-login-btn" onclick="showWafdeenEntryScreen\(\)"/);
-  assert.match(feature, /installWafdeenLoginEntry/);
-  assert.match(html, /<link rel="stylesheet" href="src\/features\/wafdeen\/wafdeen\.css\?v=wafdeen-menu-1" id="wafdeen-style">/);
-  assert.doesNotMatch(feature, /import\s+['"][^'"]+\.css['"]/);
-  assert.match(loginEntry, /await window\.handleLogin\(\)/);
-  assert.match(loginEntry, /if \(!canOpenFeature\('wafdeen', teacher\)\)/);
-  assert.match(loginEntry, /openTab\('wafdeen-tab'\)/);
-  assert.match(feature, /window\.openWafdeenTab = \(\) => openTab\('wafdeen-tab'\)/);
-  const openBranch = feature.slice(feature.indexOf("if (tabId === 'wafdeen-tab' || tabId === 'wafdeen-monthly-report-tab')"));
-  const sessionOpenBlock = openBranch.slice(0, openBranch.indexOf('Promise.resolve(window.MajdApp?.loadFeature(tabId))'));
-  assert.doesNotMatch(sessionOpenBlock, /sheikh-recordings-menu/);
-  assert.match(feature, /if \(tabId === 'wafdeen-monthly-report-tab'\) \{\s*byId\('sheikh-recordings-menu-wrap'\)\?\.classList\.add\('open'\);\s*byId\('sheikh-recordings-menu-btn'\)\?\.classList\.add\('active'\);/);
+test('the main-site API bridge remains report-only', () => {
+  assert.match(mainBridge, /listWafdeenSessionData: async function \(options\) \{ if \(!options \|\| options\.purpose !== 'report'/);
+  assert.match(mainBridge, /REPORT_ONLY_IN_MAIN_SITE/);
+  assert.match(mainBridge, /WAFDEEN_APP_ONLY/);
+  assert.doesNotMatch(mainBridge, /createWafdeenSession|addWafdeenStudent|listWafdeenTeachers|createWafdeenTeacher|listWafdeenStudentNames/);
 });

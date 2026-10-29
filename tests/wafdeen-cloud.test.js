@@ -7,7 +7,8 @@ import { listWafdeenStudentNames as listNamesFromClient } from '../src/api/wafde
 
 const bridge = readFileSync(new URL('../public/legacy/js/inline-28.js', import.meta.url), 'utf8');
 const sourceBridge = readFileSync(new URL('../legacy/js/inline-28.js', import.meta.url), 'utf8');
-const wafdeenFeature = readFileSync(new URL('../src/features/wafdeen/index.js', import.meta.url), 'utf8');
+const reportFeature = readFileSync(new URL('../src/features/wafdeen/report.js', import.meta.url), 'utf8');
+const reportApiSource = readFileSync(new URL('../src/api/wafdeen-report.api.js', import.meta.url), 'utf8');
 const mockStoreSource = readFileSync(new URL('../src/features/wafdeen/mockData.js', import.meta.url), 'utf8');
 const mainEntrySource = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 const edgeSource = readFileSync(new URL('../supabase/functions/majd-api/index.ts', import.meta.url), 'utf8');
@@ -34,18 +35,15 @@ test('class-specific cloud hydration and write adapters are no longer exposed', 
   assert.doesNotMatch(bridge, /(?:writeRecord|deleteRecord)\(['"]wafdeen/i, 'the page no longer issues class-specific data mutations');
 });
 
-test('Wafdeen has a local mock fallback and the approved app entrypoint activates only the guarded session API', () => {
-  assert.match(wafdeenFeature, /wafdeenMockStore\.list\('wafdeenDailyRecords'\)/);
-  assert.match(wafdeenFeature, /wafdeenMockStore\.upsert\('wafdeenDailyRecords'/);
-  assert.match(wafdeenFeature, /wafdeenMockStore\.upsert\('wafdeenUsage'/);
-  assert.match(wafdeenFeature, /__MAJD_WAFDEEN_SESSIONS_ENABLED__ === true/);
-  assert.match(wafdeenFeature, /loadWafdeenSessionData/);
-  assert.match(wafdeenFeature, /createWafdeenSession/);
-  assert.match(mainEntrySource, /window\.__MAJD_WAFDEEN_SESSIONS_ENABLED__ = true/);
+test('the main client loads a report-only Wafdeen feature and API adapter', () => {
+  assert.match(reportFeature, /loadWafdeenReportData/);
+  assert.match(reportFeature, /canOpenFeature\('wafdeen-report'/);
+  assert.doesNotMatch(reportFeature, /wafdeen-sessions\.api|wafdeen-admin\.api|createWafdeenSession|loadWafdeenSessionData|wafdeen-tab|wafdeen-student-select/);
+  assert.match(reportApiSource, /purpose: 'report'/);
+  assert.doesNotMatch(reportApiSource, /wafdeen-sessions\.api|createWafdeenSession|purpose: 'daily'|studentName/);
+  assert.match(mainEntrySource, /features\/wafdeen\/report\.js/);
+  assert.doesNotMatch(mainEntrySource, /features\/wafdeen\/index\.js|__MAJD_WAFDEEN_SESSIONS_ENABLED__/);
   assert.match(mockStoreSource, /isMockOnly: true/);
-  assert.doesNotMatch(wafdeenFeature, /cloudClient|MajdLocalDataAPI|fetch\(|teachersData|wafdeenStudents|firebase|firestore/i);
-  assert.doesNotMatch(wafdeenFeature, /(?:teacher|currentTeacher\(\))\.password|password_hash|password_salt/i, 'the UI must not read stored credentials');
-  assert.match(wafdeenFeature, /createWafdeenTeacher\(\{ username, password, assignedClass, center \}\)/, 'only a newly entered initial password is submitted');
   assert.doesNotMatch(adminApiSource, /teacher\?\.password|password_hash|password_salt/i);
   const teacherProjection = adminHelperSource.match(/const TEACHER_SELECT = '([^']+)'/)?.[1] || '';
   assert.doesNotMatch(teacherProjection, /password|hash|salt|\*/i);
@@ -98,6 +96,11 @@ test('the authenticated Edge operation projects only studentName from Wafdeen da
   assert.doesNotMatch(authBlock, /select\("\*"|password_hash|password_salt/);
   assert.ok(edgeSource.indexOf('if (b.op === "listWafdeenSessionData")') > authPosition);
   assert.ok(edgeSource.indexOf('if (b.op === "createWafdeenSession")') > authPosition);
+  const scopeGatePosition = edgeSource.indexOf('if (!authorizeApiOperation(u.sessionScope, b.op, b))');
+  assert.ok(scopeGatePosition > authPosition, 'the signed session scope must be checked after token authentication');
+  assert.ok(scopeGatePosition < edgeSource.indexOf('if (b.op === "addWafdeenStudent")'), 'the scope gate must run before every Wafdeen handler');
+  assert.match(edgeSource, /token: await sign\(a\.id, scope\)/);
+  assert.match(edgeSource, /sessionScope: claims\.scope/);
   assert.match(edgeSource, /Deno\.env\.get\("SUPABASE_SERVICE_ROLE_KEY"\)/);
   assert.doesNotMatch(edgeSource, /SUPABASE_SERVICE_ROLE_KEY\s*=\s*["']/);
 });
@@ -134,19 +137,15 @@ test('the name-only route rejects ungranted staff without querying the database'
   assert.equal(queried, false);
 });
 
-test('source and public bridges expose the same narrow Wafdeen session operations', () => {
-  const readMethod = "listWafdeenSessionData: async function (options) { quota.reads++; options = options || {}; var fields = { purpose: options.purpose === 'report' ? 'report' : 'daily' }; if (fields.purpose === 'report') fields.month = String(options.month || ''); var r = await request('listWafdeenSessionData', fields); if (!Array.isArray(r.students) || !Array.isArray(r.dailySessions) || !Array.isArray(r.usage)) throw new Error('INVALID_WAFDEEN_SESSION_RESPONSE'); return r; },";
-  const createMethod = "createWafdeenSession: async function (session) { quota.writes++; var r = await request('createWafdeenSession', { session: session || {} }); if (!r || r.ok !== true) throw new Error('WAFDEEN_SESSION_NOT_SAVED'); return { ok: true }; },";
-  assert.ok(sourceBridge.includes(readMethod));
-  assert.ok(bridge.includes(readMethod));
-  assert.ok(sourceBridge.includes(createMethod));
-  assert.ok(bridge.includes(createMethod));
-  assert.match(sourceBridge, /createWafdeenSession'\]\.includes\(String\(op\)\)/);
-  assert.match(bridge, /createWafdeenSession'\]\.includes\(String\(op\)\)/);
-  for (const method of ['addWafdeenStudent', 'listWafdeenTeachers', 'createWafdeenTeacher']) {
-    assert.match(sourceBridge, new RegExp(`${method}: async function`));
-    assert.match(bridge, new RegExp(`${method}: async function`));
-  }
+test('the main-site bridge is report-only and Wafdeen Edge operations remain authenticated', () => {
+  assert.match(sourceBridge, /listWafdeenSessionData: async function \(options\) \{ if \(!options \|\| options\.purpose !== 'report'\)/);
+  assert.match(sourceBridge, /REPORT_ONLY_IN_MAIN_SITE/);
+  assert.match(sourceBridge, /WAFDEEN_APP_ONLY/);
+  assert.match(bridge, /listWafdeenSessionData: async function \(options\) \{ if \(!options \|\| options\.purpose !== 'report'\)/);
+  assert.match(bridge, /REPORT_ONLY_IN_MAIN_SITE/);
+  assert.match(bridge, /WAFDEEN_APP_ONLY/);
+  assert.doesNotMatch(sourceBridge, /listWafdeenStudentNames|createWafdeenSession|addWafdeenStudent|listWafdeenTeachers|createWafdeenTeacher/);
+  assert.doesNotMatch(bridge, /listWafdeenStudentNames|createWafdeenSession|addWafdeenStudent|listWafdeenTeachers|createWafdeenTeacher/);
   const authPosition = edgeSource.indexOf('const u = await authenticate(');
   for (const op of ['addWafdeenStudent', 'listWafdeenTeachers', 'createWafdeenTeacher']) {
     const opPosition = edgeSource.indexOf(`if (b.op === "${op}")`);

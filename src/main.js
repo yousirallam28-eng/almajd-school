@@ -4,9 +4,6 @@ import * as domainApis from './api/domain.apis.js';
 import { loadFeatureForTab } from './app/router.js';
 import { getAppState } from './app/state.js';
 
-// User-approved release: the matching authenticated Edge Function is deployed.
-window.__MAJD_WAFDEEN_SESSIONS_ENABLED__ = true;
-
 const app = {
   cloud: cloudClient,
   teachers: teachersApi,
@@ -23,8 +20,8 @@ import('./features/teachers/index.js').catch((error) => {
   console.error('[MajdApp] failed to load teachers feature', error);
 });
 
-import('./features/wafdeen/index.js').catch((error) => {
-  console.error('[MajdApp] failed to load Wafdeen feature', error);
+import('./features/wafdeen/report.js').catch((error) => {
+  console.error('[MajdApp] failed to load Wafdeen monthly report feature', error);
 });
 
 if (typeof performance !== 'undefined' && performance.mark) {

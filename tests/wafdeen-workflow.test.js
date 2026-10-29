@@ -47,17 +47,20 @@ const removedAssets = [
 ];
 const removedAssetDirs = ['../legacy/js', '../public/legacy/js', '../legacy/css', '../public/legacy/css', '../public/appearance'];
 
-test('Wafdeen is integrated into the main portal with the guarded live session path', () => {
-  assert.match(html, /id="wafdeen-tab"/);
+test('Wafdeen session screens are absent while the monthly report remains in the main portal', () => {
+  assert.doesNotMatch(html, /id="wafdeen-tab"|id="wafdeen-student-select"|id="wafdeen-data-mode"|id="wafdeen-login-btn"|id="wafdeen-entry-screen"/);
   assert.match(html, /id="wafdeen-monthly-report-tab"/);
+  assert.match(html, /id="wafdeen-monthly-report-tab-btn"/);
   assert.match(html, /تقرير الشهري الوقتي/);
-  assert.match(html, /id="wafdeen-student-select"/);
   assert.match(html, /id="wafdeen-monthly-report-table"/);
-  assert.match(html, /اتصال حي مفعل/);
-  assert.match(html, /id="wafdeen-data-mode"/);
   assert.match(html, /id="wafdeen-report-mode"/);
-  assert.match(html, /لا تُعدّل السجلات السابقة/);
-  assert.match(html, /الحالة \/ النوع/);
+  assert.match(html, /دون أسماء الطلاب أو تعديل السجلات/);
+  assert.match(html, /عدد الجلسات/);
+  assert.match(html, /الساعات \(50 دقيقة\)/);
+  const sidebar = html.match(/<aside[^>]*id="main-menu-drawer"[^>]*>([\s\S]*?)<\/aside>/)?.[1] || '';
+  const sheikhSubmenu = sidebar.match(/id="sheikh-recordings-submenu">([\s\S]*?)<\/div>/)?.[1] || '';
+  assert.match(sheikhSubmenu, /wafdeen-monthly-report-tab-btn/);
+  assert.doesNotMatch(sheikhSubmenu, /wafdeen-tab-btn|wafdeen-login-btn|واجهة الوافدين|جلسة الوافدين/);
   assert.doesNotMatch(html, /open-wafdeen-login-btn|wafdeen-login-screen|wafdeen-app-screen|wafdeen-time-tab|wafdeenTimeReport|wafdeenEducationRecordsTable|wafdeenGradesReportTable|وقت الوافدين|مراجعة الأسماء المسجلة في السحابة|وقت التعليم|المواد التعليمية|firebase|firestore/i);
   assert.doesNotMatch(html, /wafdeenToggle|showWafdeenLoginScreen|data-inlined-from="\.\/js\/(?:features\/wafdeen-application|compat\/wafdeen-quran-timer-exports)\.js"/);
   assert.equal(html.slice(html.indexOf('</body>') + '</body>'.length).trim(), '</html>', 'all loaded resources must be inside the document body');
@@ -130,9 +133,12 @@ test('removing class support does not add a client-side deletion of historical r
   assert.match(storage, /writeRecord: async function/);
   assert.match(storage, /deleteRecord: async function/);
   assert.match(storage, /hydrateMain\(\)/);
-  const storageWithoutScopedTeacherList = storage.replace(/^\s*listWafdeenTeachers: async function \(\) \{[^\n]*\},\n/gm, '');
-  assert.match(storage, /listWafdeenTeachers: async function/);
-  assert.doesNotMatch(storageWithoutScopedTeacherList, /wafdeenLogin|hydrateWafdeen|refreshWafdeenViews|findWafdeenRecord|saveWafdeenUsage|loadWafdeen|getWafdeenMonthlyReports|wafdeenTeachers|wafdeenStudents|wafdeenDailyRecords|wafdeenUsage/i);
+  for (const bridge of [storage, publicStorage]) {
+    assert.match(bridge, /listWafdeenSessionData: async function/);
+    assert.match(bridge, /purpose !== 'report'/);
+    assert.doesNotMatch(bridge, /listWafdeenStudentNames|createWafdeenSession|addWafdeenStudent|listWafdeenTeachers|createWafdeenTeacher/);
+    assert.doesNotMatch(bridge, /wafdeenLogin|hydrateWafdeen|refreshWafdeenViews|findWafdeenRecord|saveWafdeenUsage|loadWafdeen|getWafdeenMonthlyReports|wafdeenTeachers|wafdeenStudents|wafdeenDailyRecords|wafdeenUsage/i);
+  }
   assert.doesNotMatch(optionalCompat, /wafdeen|الوافدين/i);
   assert.doesNotMatch(main, /(?:writeRecord|deleteRecord)\(['"]wafdeen/i);
   assert.doesNotMatch(publicMain, /(?:writeRecord|deleteRecord)\(['"]wafdeen/i);

@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { listWafdeenStudentNames } from "./wafdeen_names.js";
 import { createWafdeenSession, listWafdeenSessionData } from "./wafdeen_sessions.js";
 import { createWafdeenStudent, createWafdeenTeacher, listWafdeenTeachers } from "./wafdeen_admin.js";
+import { authorizeApiOperation, selectAccountForLogin, sessionScopeForLoginMode, signSessionToken, verifySessionToken } from "./session_scope.js";
 
 const URL = Deno.env.get("SUPABASE_URL") ?? "";
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -40,12 +41,6 @@ function b64(a: Uint8Array) {
 }
 function un64(s: string) {
   return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
-}
-function u64(a: Uint8Array) {
-  return b64(a).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-}
-function fromU64(s: string) {
-  return un64(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4));
 }
 function norm(s: unknown) {
   return String(s ?? "").trim().toLocaleLowerCase();
@@ -91,22 +86,15 @@ async function passOK(password: string, salt: string, expected: string) {
   for (let i = 0; i < a.length; i++) d |= a[i] ^ b[i];
   return d === 0;
 }
-async function sign(id: string) {
-  const k = await crypto.subtle.importKey("raw", enc.encode(KEY), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const p = u64(enc.encode(JSON.stringify({ sub: id, exp: Math.floor(Date.now() / 1000) + TTL })));
-  const s = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(p)));
-  return p + "." + u64(s);
+async function sign(id: string, scope: string) {
+  return await signSessionToken(id, scope, KEY, TTL);
 }
 async function authenticate(token: string) {
   try {
-    const [p, s] = token.split(".");
-    if (!p || !s) return null;
-    const k = await crypto.subtle.importKey("raw", enc.encode(KEY), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
-    if (!await crypto.subtle.verify("HMAC", k, fromU64(s), enc.encode(p))) return null;
-    const c = JSON.parse(new TextDecoder().decode(fromU64(p)));
-    if (!c.sub || c.exp < Date.now() / 1000) return null;
-    const { data, error } = await db!.from("majd_accounts").select("id,username,username_norm,account_type,profile,is_active").eq("id", String(c.sub)).maybeSingle();
-    return error || !data?.is_active ? null : data;
+    const claims = await verifySessionToken(token, KEY);
+    if (!claims) return null;
+    const { data, error } = await db!.from("majd_accounts").select("id,username,username_norm,account_type,profile,is_active").eq("id", String(claims.sub)).maybeSingle();
+    return error || !data?.is_active ? null : { ...data, sessionScope: claims.scope };
   } catch {
     return null;
   }
@@ -154,13 +142,13 @@ async function login(body: any) {
   const password = String(body.password ?? "");
   const key = norm(username);
   if (!key || !password || password.length > 256) return respond({ error: "INVALID_CREDENTIALS" }, 401);
-  const { data: matches, error } = await db!.from("majd_accounts").select("*").eq("username_norm", key).order("account_type").limit(10);
   const mode = String(body.mode || "staff");
+  const scope = sessionScopeForLoginMode(mode);
+  if (!scope) return respond({ error: "INVALID_LOGIN_MODE" }, 400);
+  const { data: matches, error } = await db!.from("majd_accounts").select("*").eq("username_norm", key).order("account_type").limit(10);
   if (error || !matches?.length) return respond({ error: "INVALID_CREDENTIALS" }, 401);
   const active = (matches || []).filter((x: any) => x.is_active);
-  const a = mode === "wafdeen"
-    ? (active.find((x: any) => x.account_type === "wafdeen_teacher") || active.find((x: any) => x.account_type === "wafdeen_student") || active.find((x: any) => x.account_type === "staff" && (admin(x) || x.profile?.canWafdeen)))
-    : mode === "staff" ? active.find((x: any) => x.account_type === "staff") : active[0];
+  const a = selectAccountForLogin(mode, active, admin);
   if (!a) return respond({ error: "INVALID_CREDENTIALS" }, 401);
   if (a.locked_until && Date.parse(a.locked_until) > Date.now()) return respond({ error: "ACCOUNT_TEMPORARILY_LOCKED" }, 429);
   if (!await passOK(password, a.password_salt, a.password_hash)) {
@@ -169,7 +157,7 @@ async function login(body: any) {
     return respond({ error: "INVALID_CREDENTIALS" }, 401);
   }
   await db!.from("majd_accounts").update({ failed_attempts: 0, locked_until: null, updated_at: new Date().toISOString() }).eq("id", a.id);
-  return respond({ token: await sign(a.id), user: accountView(a), mustChangePassword: !!a.password_change_required });
+  return respond({ token: await sign(a.id, scope), user: accountView(a), mustChangePassword: !!a.password_change_required });
 }
 async function records(u: any, c: string) {
   if (accountTypes[c]) {
@@ -238,6 +226,7 @@ async function handle(req: Request) {
   const auth = req.headers.get("authorization") || "";
   const u = await authenticate(auth.startsWith("Bearer ") ? auth.slice(7) : "");
   if (!u) return respond({ error: "UNAUTHORIZED" }, 401);
+  if (!authorizeApiOperation(u.sessionScope, b.op, b)) return respond({ error: "SESSION_SCOPE_FORBIDDEN" }, 403);
 
   if (b.op === "addWafdeenStudent") {
     const result = await createWafdeenStudent(db!, u, admin, { studentName: b.studentName });
