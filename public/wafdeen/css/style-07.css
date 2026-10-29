@@ -1,0 +1,11 @@
+/* لا تظهر لوحة الإدارة داخل تحليل البيانات */
+#analysis-section #admin-tab,
+#analysis-section #backup-tab,
+#analysis-section #manager-tab,
+#analysis-section .admin-panel,
+#analysis-section .admin-section,
+#analysis-section [data-tab="admin"],
+#analysis-section [data-tab="backup"],
+#analysis-section [data-tab="manager"] {
+  display: none !important;
+}

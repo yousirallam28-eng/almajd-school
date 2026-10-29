@@ -1,0 +1,49 @@
+/* توحيد لون جميع أزرار الموقع */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+label.action-btn,
+.action-btn,
+.tab-btn,
+.top-period-btn,
+.wafdeen-type-btn,
+.wafdeen-edu-box,
+.result-link-btn,
+.student-login-link-btn,
+.sidebar-close-btn,
+.main-menu-handle {
+  background: var(--primary-color) !important;
+  color: #fff !important;
+  border-color: var(--primary-color) !important;
+}
+button:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover,
+label.action-btn:hover,
+.action-btn:hover,
+.tab-btn:hover,
+.top-period-btn:hover,
+.wafdeen-type-btn:hover,
+.wafdeen-edu-box:hover,
+.result-link-btn:hover,
+.student-login-link-btn:hover,
+.sidebar-close-btn:hover,
+.main-menu-handle:hover {
+  background: var(--primary-dark) !important;
+  color: #fff !important;
+  border-color: var(--primary-dark) !important;
+}
+button:active,
+input[type="button"]:active,
+input[type="submit"]:active,
+input[type="reset"]:active,
+.action-btn:active,
+.tab-btn:active,
+.top-period-btn:active,
+.wafdeen-type-btn:active,
+.wafdeen-edu-box:active {
+  background: var(--primary-dark) !important;
+  color: #fff !important;
+}

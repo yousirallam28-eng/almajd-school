@@ -10,7 +10,7 @@ const router = readFileSync(new URL('../src/app/router.js', import.meta.url), 'u
 const mainBridge = readFileSync(new URL('../legacy/js/inline-28.js', import.meta.url), 'utf8');
 const vite = readFileSync(new URL('../vite.config.js', import.meta.url), 'utf8');
 
-test('the primary site keeps the monthly report in Sheikh Recordings without a Wafdeen session page', () => {
+test('the primary site keeps its monthly report in Sheikh Recordings and Wafdeen sign-in separate', () => {
   assert.doesNotMatch(mainHtml, /id="wafdeen-login-btn"|id="wafdeen-entry-screen"|id="wafdeen-tab"/);
   assert.match(mainHtml, /id="wafdeen-monthly-report-tab-btn"[^>]*>[^<]*تقرير الشهري الوقتي/);
   assert.match(mainHtml, /id="wafdeen-monthly-report-tab"/);
@@ -32,16 +32,16 @@ test('the main client imports only the report feature and its report-only API pa
   assert.match(reportApi, /purpose: 'report'/);
 });
 
-test('the independent page and its frontend assets are absent from the local project', () => {
+test('the independent page and its frontend assets exist under a dedicated route', () => {
   for (const asset of [
     '../wafdeen.html',
     '../src/features/wafdeen/standalone-entry.js',
-    '../src/features/wafdeen/standalone.css',
-    '../src/api/wafdeen-standalone.api.js'
+    '../src/features/wafdeen/standalone-policy.js',
+    '../public/wafdeen/css/route.css'
   ]) {
-    assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} must not remain`);
+    assert.equal(existsSync(new URL(asset, import.meta.url)), true, `${asset} must exist`);
   }
-  assert.doesNotMatch(vite, /wafdeen\.html|standalone-entry/);
+  assert.match(vite, /wafdeen\.html/);
 });
 
 test('the main-site API bridge remains report-only', () => {

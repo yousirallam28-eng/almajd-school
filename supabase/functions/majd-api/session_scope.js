@@ -6,6 +6,8 @@ const WAFDEEN_OPERATIONS = new Set([
   'listWafdeenTeachers',
   'createWafdeenTeacher',
   'listWafdeenStudentNames',
+  'listWafdeenAccounts',
+  'listWafdeenGrades',
   'createWafdeenSession'
 ]);
 

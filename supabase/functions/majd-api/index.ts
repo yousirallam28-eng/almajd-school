@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { listWafdeenStudentNames } from "./wafdeen_names.js";
 import { createWafdeenSession, listWafdeenSessionData } from "./wafdeen_sessions.js";
 import { createWafdeenStudent, createWafdeenTeacher, listWafdeenTeachers } from "./wafdeen_admin.js";
+import { listWafdeenAccounts, listWafdeenGrades } from "./wafdeen_access.js";
 import { authorizeApiOperation, selectAccountForLogin, sessionScopeForLoginMode, signSessionToken, verifySessionToken } from "./session_scope.js";
 
 const URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -256,6 +257,18 @@ async function handle(req: Request) {
     const result = await listWafdeenSessionData(db!, u, admin, { purpose: String(b.purpose || "daily"), month: String(b.month || "") });
     if (result.status !== 200) return respond({ error: result.error }, result.status);
     return respond({ students: result.students, dailySessions: result.dailySessions, usage: result.usage });
+  }
+
+  if (b.op === "listWafdeenAccounts") {
+    const result = await listWafdeenAccounts(db!, u, admin);
+    if (result.status !== 200) return respond({ error: result.error }, result.status);
+    return respond({ accounts: result.accounts });
+  }
+
+  if (b.op === "listWafdeenGrades") {
+    const result = await listWafdeenGrades(db!, u, admin);
+    if (result.status !== 200) return respond({ error: result.error }, result.status);
+    return respond({ grades: result.grades });
   }
 
   if (b.op === "createWafdeenSession") {
