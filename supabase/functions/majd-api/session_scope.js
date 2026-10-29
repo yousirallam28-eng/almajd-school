@@ -59,7 +59,9 @@ export function authorizeApiOperation(scope, operation, body = {}) {
 
   if (op === 'listWafdeenSessionData') {
     const purpose = String(body.purpose || 'daily');
-    if (purpose === 'report') return scope === SITE_SESSION_SCOPE;
+    // The report helper still enforces the admin role; this only lets an admin's
+    // dedicated Wafdeen session use the same read-only report route.
+    if (purpose === 'report') return scope === SITE_SESSION_SCOPE || scope === WAFDEEN_SESSION_SCOPE;
     return purpose === 'daily' && scope === WAFDEEN_SESSION_SCOPE;
   }
 

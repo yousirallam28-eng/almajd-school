@@ -15,10 +15,16 @@ export function createWafdeenStandaloneBridge(request, isAvailable = () => true)
   return Object.freeze({
     isAvailable: () => Boolean(isAvailable()),
     listWafdeenSessionData(options) {
-      if (options?.purpose !== 'daily') {
-        return Promise.reject(new Error('WAFDEEN_REPORT_UNAVAILABLE'));
+      const purpose = options?.purpose === 'report' ? 'report' : 'daily';
+      if (purpose === 'report') {
+        const month = asText(options?.month);
+        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return Promise.reject(new Error('INVALID_REPORT_MONTH'));
+        return invoke({ op: 'listWafdeenSessionData', purpose, month });
       }
-      return invoke({ op: 'listWafdeenSessionData', purpose: 'daily' });
+      return invoke({ op: 'listWafdeenSessionData', purpose });
+    },
+    listWafdeenGrades() {
+      return invoke({ op: 'listWafdeenGrades' });
     },
     createWafdeenSession(session) {
       return invoke({

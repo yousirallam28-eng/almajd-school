@@ -2548,13 +2548,13 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <aside aria-hidden="true" class="wafdeen-drawer" id="wafdeen-drawer">
 <h3>📚 قائمة جلسة الوافدين</h3>
 <button class="action-btn btn-save" onclick="wafdeenShowPanel('daily')" style="width:100%;margin-bottom:8px" type="button">📝 الرصد اليومي</button>
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('grades')" style="width:100%;margin-bottom:8px" type="button" disabled title="غير متاح: لا توجد واجهة API معتمدة لعرض الدرجات التاريخية.">🏆 الدرجات التاريخية (غير متاحة)</button>
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('educationTime')" style="width:100%;margin-bottom:8px" type="button" disabled title="غير متاح: لا توجد واجهة API معتمدة لعرض تقارير وقت التعليم.">⏱️ تقارير وقت التعليم (غير متاحة)</button>
+<button class="action-btn btn-save" id="wafdeen-open-grades" onclick="wafdeenShowPanel('grades')" style="width:100%;margin-bottom:8px" type="button">🏆 الدرجات التاريخية — قراءة فقط</button>
+<button class="action-btn btn-save" id="wafdeen-open-education-time" onclick="wafdeenShowPanel('educationTime')" style="width:100%;margin-bottom:8px" type="button">⏱️ ملخص وقت المواد (للمدير)</button>
 <button class="action-btn btn-save" onclick="wafdeenShowPanel('materials')" style="width:100%;margin-bottom:8px" type="button">📚 المواد التعليمية</button>
 <div id="wafdeen-admin-menu-items">
 <button class="action-btn btn-save" onclick="wafdeenShowPanel('teachers')" style="width:100%;margin-bottom:8px" type="button">👨‍🏫 إضافة / إدارة المعلمين</button>
 <button class="action-btn btn-save" onclick="wafdeenShowPanel('students')" style="width:100%;margin-bottom:8px" type="button">👨‍🎓 إضافة / إدارة الطلاب</button>
-<button class="action-btn btn-save" onclick="wafdeenShowPanel('report')" style="width:100%;margin-bottom:8px" type="button" disabled title="غير متاح: تقارير هذه الصفحة غير مدعومة عبر API المصرح به.">📊 التقارير (غير متاحة هنا)</button>
+<button class="action-btn btn-save" id="wafdeen-open-report" onclick="wafdeenShowPanel('report')" style="width:100%;margin-bottom:8px" type="button">📊 التقارير التاريخية — للمدير</button>
 </div>
 <button class="action-btn" onclick="closeWafdeenMenu()" style="width:100%;margin-top:20px" type="button">إغلاق القائمة ✖</button>
 </aside>
@@ -2565,8 +2565,23 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 </div>
 <button class="action-btn" onclick="wafdeenLogout()" type="button">تسجيل خروج 🚪</button>
 </div>
-<div class="wafdeen-panel hidden wafdeen-daily-panel" id="wafdeen-panel-grades"><h3>🏆 الدرجات التاريخية</h3><div class="wafdeen-note">عرض الدرجات التاريخية وتصديرها غير متاح من هذه الصفحة؛ واجهة API المعتمدة هنا لا تُرجع درجات الطلاب.</div></div>
-<div class="wafdeen-panel hidden wafdeen-daily-panel" id="wafdeen-panel-educationTime"><h3>⏱️ تقارير وقت التعليم</h3><div class="wafdeen-note">تقارير الاستخدام التاريخية غير متاحة من هذه الصفحة؛ لا يتم تحميل أو حذف بيانات الاستخدام هنا.</div></div>
+<div class="wafdeen-panel hidden wafdeen-daily-panel" id="wafdeen-panel-grades">
+<h3>🏆 الدرجات التاريخية — قراءة فقط</h3>
+<div class="wafdeen-note">تُعرض فقط الحقول التي يعيدها مسار الدرجات الحالي. لا يعيد المسار معرّف السجل أو الحقول التفصيلية، لذلك لا يمكن التعديل أو الحذف من هذه اللوحة.</div>
+<div class="wafdeen-note" id="wafdeen-grades-status">لم تُحمّل الدرجات بعد.</div>
+<label for="wafdeen-grades-filter">تصفية باسم الطالب:</label>
+<input id="wafdeen-grades-filter" type="search" placeholder="اكتب اسم الطالب" style="width:100%;margin:8px 0 12px"/>
+<div class="table-responsive"><table class="wafdeen-table" id="wafdeen-historical-grades-table"><thead><tr><th>الطالب</th><th>التاريخ</th><th>النوع</th><th>الجديد</th><th>الماضي</th><th>التلاوة</th><th>الإجمالي</th></tr></thead><tbody><tr><td colspan="7">لا توجد بيانات محملة.</td></tr></tbody></table></div>
+</div>
+<div class="wafdeen-panel hidden wafdeen-daily-panel" id="wafdeen-panel-educationTime">
+<h3>⏱️ ملخص وقت المواد التعليمية</h3>
+<div class="wafdeen-note">قراءة إدارية مجمعة من بيانات الاستخدام التي يعيدها Edge API. المسار لا يعيد اسم المادة أو معرف الطالب، ولا يتيح حفظ وقت جديد من هذه اللوحة.</div>
+<label for="wafdeen-education-time-month">فترة التقرير (من 15 إلى 14 من الشهر التالي):</label>
+<input id="wafdeen-education-time-month" type="month" style="width:100%;margin:8px 0"/>
+<button class="action-btn btn-save" id="wafdeen-education-time-refresh" type="button">تحديث التقرير</button>
+<div class="wafdeen-note" id="wafdeen-education-time-status">لم يُحمّل التقرير بعد.</div>
+<div id="wafdeen-education-time-results"></div>
+</div>
 <div class="wafdeen-panel wafdeen-daily-panel" id="wafdeen-panel-daily">
 <h3>📝 الرصد اليومي</h3>
 <div class="wafdeen-panel">
@@ -2730,7 +2745,20 @@ th{background:linear-gradient(135deg,#176B55,#0F3D33);color:#F2E6C5;border-botto
 <button class="action-btn btn-save" onclick="addWafdeenStudent()" type="button">+ حفظ الطالب</button>
 <div class="wafdeen-table-wrap" style="margin-top:15px"><table class="wafdeen-table" id="wafdeenStudentsTable"><thead><tr><th>اسم الطالب / الطالبة</th></tr></thead><tbody></tbody></table></div>
 </div>
-<div class="wafdeen-panel hidden" id="wafdeen-panel-report"><h3>📊 التقارير التاريخية</h3><div class="wafdeen-note">التقارير اليومية والأسبوعية والشهرية غير متاحة في صفحة الوافدين المستقلة؛ مسار التقرير المصرح به مخصص للموقع الرئيسي. لم تُحمّل أي تقارير أو بيانات درجات.</div></div>
+<div class="wafdeen-panel hidden" id="wafdeen-panel-report">
+<h3>📊 التقارير التاريخية — قراءة مجمعة</h3>
+<div class="wafdeen-note">متاح للمدير فقط عبر مسار التقرير الحالي، الذي يعيد مجاميع زمن القرآن والمواد خلال فترة 15–14. لا يتضمن المسار أسماء الطلاب أو معرفات سجلات قابلة للتعديل.</div>
+<label for="wafdeen-report-month">فترة التقرير (من 15 إلى 14 من الشهر التالي):</label>
+<input id="wafdeen-report-month" type="month" style="width:100%;margin:8px 0"/>
+<div class="wafdeen-grade-period-tabs" role="group" aria-label="طريقة عرض التقرير">
+<button class="wafdeen-grade-period-btn active" data-wafdeen-report-view="month" aria-pressed="true" type="button">شهري حسب المعلم</button>
+<button class="wafdeen-grade-period-btn" data-wafdeen-report-view="week" aria-pressed="false" type="button">أسبوعي</button>
+<button class="wafdeen-grade-period-btn" data-wafdeen-report-view="day" aria-pressed="false" type="button">يومي</button>
+</div>
+<button class="action-btn btn-save" id="wafdeen-report-refresh" type="button">تحديث التقرير</button>
+<div class="wafdeen-note" id="wafdeen-report-status">لم يُحمّل التقرير بعد.</div>
+<div id="wafdeen-report-results"></div>
+</div>
 </div>
 </div>
 <!-- شاشة عرض النتيجة بالكود (بدون تسجيل دخول) -->

@@ -72,14 +72,16 @@ test('ordinary site sessions are denied every Wafdeen session, student, and teac
   assert.equal(authorizeApiOperation(SITE_SESSION_SCOPE, 'listWafdeenSessionData'), false, 'default daily reads require Wafdeen scope');
   assert.equal(authorizeApiOperation(SITE_SESSION_SCOPE, 'listWafdeenSessionData', { purpose: 'daily' }), false);
   assert.equal(authorizeApiOperation(WAFDEEN_SESSION_SCOPE, 'listWafdeenSessionData', { purpose: 'daily' }), true);
-  assert.equal(authorizeApiOperation(WAFDEEN_SESSION_SCOPE, 'listWafdeenSessionData', { purpose: 'report', month: '2026-10' }), false);
+  assert.equal(authorizeApiOperation(WAFDEEN_SESSION_SCOPE, 'listWafdeenSessionData', { purpose: 'report', month: '2026-10' }), true);
   assert.equal(authorizeApiOperation(SITE_SESSION_SCOPE, 'listWafdeenAccounts'), false);
   assert.equal(authorizeApiOperation(SITE_SESSION_SCOPE, 'listWafdeenGrades'), false);
 });
 
-test('authorized main-site admins retain the report path while generic Wafdeen record routes stay blocked', () => {
+test('report reads are routed through either authenticated scope while generic Wafdeen record routes stay blocked', () => {
   assert.equal(authorizeApiOperation(SITE_SESSION_SCOPE, 'listWafdeenSessionData', { purpose: 'report', month: '2026-10' }), true);
+  assert.equal(authorizeApiOperation(WAFDEEN_SESSION_SCOPE, 'listWafdeenSessionData', { purpose: 'report', month: '2026-10' }), true);
   assert.equal(authorizeApiOperation(SITE_SESSION_SCOPE, 'listWafdeenSessionData', { purpose: 'unknown' }), false);
+  assert.equal(authorizeApiOperation(WAFDEEN_SESSION_SCOPE, 'listWafdeenSessionData', { purpose: 'unknown' }), false);
 
   for (const collection of ['wafdeenRoster', 'wafdeenDailyRecords', 'wafdeenStudents', 'wafdeenTeachers', 'wafdeenUsage']) {
     assert.equal(authorizeApiOperation(SITE_SESSION_SCOPE, 'list', { collection }), false, `site list blocked for ${collection}`);

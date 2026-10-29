@@ -1,4 +1,7 @@
 import { createWafdeenSession, loadWafdeenSessionData } from '../../api/wafdeen-sessions.api.js';
+import { loadWafdeenGrades } from '../../api/wafdeen-grades.api.js';
+import { loadWafdeenReportData } from '../../api/wafdeen-report.api.js';
+import { reportPeriodBounds, reportPeriodKeyForDate, summarizeWafdeenUsage } from './read-only-reports.js';
 
 const LABEL_TO_GRADE = Object.freeze({ الجديد: 'new', الماضي: 'old', التلاوة: 'recitation' });
 const TYPE_FIELDS = Object.freeze({
@@ -6,6 +9,8 @@ const TYPE_FIELDS = Object.freeze({
   الماضي: { score: 'oldRevision', pages: 'oldPagesCount', topic: 'oldTopicRecited', prefix: 'old' },
   التلاوة: { score: 'recitation', pages: 'recitationPagesCount', topic: 'recitationTopicRecited', prefix: 'recitation' }
 });
+const reportCache = new Map();
+let activeReportView = 'month';
 
 function text(value) {
   return String(value ?? '').trim();
@@ -27,7 +32,7 @@ function showNotice(message, type = 'error') {
 }
 
 function disableUnsupportedControls() {
-  const disabledHandler = /wafdeenShowPanel\(['"](?:grades|educationTime|report|cloudReview)['"]\)|wafdeen(?:GuardedDailySave|DeleteGrade|DeleteDailyReport|DeleteWeeklyReport|DeleteMonthlyReport|DeleteSelectedCloudDuplicates|DeleteCloudStudent|DeleteUsageRecords|SaveExam|DeleteExam|EduStopTimer)|deleteWafdeen(?:Teacher|Student)|saveWafdeenMonthlyReportToGoogleSheets|markWafdeenAbsent|saveWafdeenDailyRecord/i;
+  const disabledHandler = /wafdeenShowPanel\(['"](?:cloudReview)['"]\)|wafdeen(?:GuardedDailySave|DeleteGrade|DeleteDailyReport|DeleteWeeklyReport|DeleteMonthlyReport|DeleteSelectedCloudDuplicates|DeleteCloudStudent|DeleteUsageRecords|SaveExam|DeleteExam|EduStopTimer)|deleteWafdeen(?:Teacher|Student)|saveWafdeenMonthlyReportToGoogleSheets|markWafdeenAbsent|saveWafdeenDailyRecord/i;
   const apply = (root = document) => {
     root.querySelectorAll?.('button[onclick],input[onclick],a[onclick]').forEach((element) => {
       const handler = element.getAttribute('onclick') || '';
@@ -52,6 +57,148 @@ function setStatus(id, value) {
   if (element) element.textContent = value;
 }
 
+function canReadWafdeenGrades(user = window.currentWafdeenTeacher) {
+  return !!user && (user.isAdmin === true || (user.accountType === 'staff' && user.center !== 'مشرف' &&
+    (user.canWafdeen === true || user.canWafdeen === 1)));
+}
+
+function renderHistoricalGrades() {
+  const body = document.querySelector('#wafdeen-historical-grades-table tbody');
+  if (!body) return;
+  const filter = text(document.getElementById('wafdeen-grades-filter')?.value).toLocaleLowerCase('ar');
+  const grades = (window.wafdeenHistoricalGrades_ || [])
+    .filter((row) => !filter || String(row.studentName || '').toLocaleLowerCase('ar').includes(filter))
+    .sort((a, b) => String(b.dateISO).localeCompare(String(a.dateISO)) || String(a.studentName).localeCompare(String(b.studentName), 'ar'));
+  body.innerHTML = grades.map((row) => `<tr><td>${escapeHtml(row.studentName)}</td><td>${escapeHtml(row.dateISO)}</td><td>${escapeHtml(row.sessionType || '—')}</td><td>${escapeHtml(row.newLesson ?? '—')}</td><td>${escapeHtml(row.oldRevision ?? '—')}</td><td>${escapeHtml(row.recitation ?? '—')}</td><td>${escapeHtml(row.total ?? '—')}</td></tr>`).join('') || '<tr><td colspan="7">لا توجد درجات مطابقة في الحقول التاريخية المسموح بها.</td></tr>';
+}
+
+async function loadHistoricalGrades() {
+  if (!canReadWafdeenGrades()) {
+    setStatus('wafdeen-grades-status', 'هذه القراءة متاحة للمدير أو لموظف مخوّل للوافدين فقط.');
+    return false;
+  }
+  setStatus('wafdeen-grades-status', 'جارٍ تحميل الدرجات التاريخية المسموح بها…');
+  try {
+    window.wafdeenHistoricalGrades_ = await loadWafdeenGrades();
+    setStatus('wafdeen-grades-status', `تم تحميل ${window.wafdeenHistoricalGrades_.length} سجلًا للقراءة فقط؛ لا تتضمن الاستجابة معرفات سجلات أو بيانات تعديل.`);
+    renderHistoricalGrades();
+    return true;
+  } catch (error) {
+    window.wafdeenHistoricalGrades_ = [];
+    setStatus('wafdeen-grades-status', window.majdApiErrorMessage_?.(error) || 'تعذر تحميل الدرجات التاريخية.');
+    renderHistoricalGrades();
+    return false;
+  }
+}
+
+function formatReportDuration(value) {
+  const seconds = Math.max(0, Math.floor(Number(value) || 0));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return [hours, minutes, remainder].map((part) => String(part).padStart(2, '0')).join(':');
+}
+
+function renderReportTable(target, headers, rows) {
+  if (!target) return;
+  if (!rows.length) {
+    target.innerHTML = '<div class="wafdeen-note">لا توجد بيانات وقت مسجلة في الفترة المحددة.</div>';
+    return;
+  }
+  target.innerHTML = `<div class="table-responsive"><table><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+async function loadReadOnlyReport(section) {
+  const prefix = section === 'report' ? 'wafdeen-report' : 'wafdeen-education-time';
+  const statusId = `${prefix}-status`;
+  if (window.currentWafdeenTeacher?.isAdmin !== true) {
+    setStatus(statusId, 'هذا التقرير للمدير فقط.');
+    return false;
+  }
+  const monthInput = document.getElementById(`${prefix}-month`);
+  const target = document.getElementById(`${prefix}-results`);
+  if (!monthInput || !target) return false;
+  if (!monthInput.value) monthInput.value = reportPeriodKeyForDate(new Date());
+  const bounds = reportPeriodBounds(monthInput.value);
+  if (!bounds) {
+    setStatus(statusId, 'اختر فترة تقرير صالحة.');
+    return false;
+  }
+  setStatus(statusId, 'جارٍ تحميل ملخص الاستخدام المصرح به…');
+  target.innerHTML = '';
+  try {
+    let report = reportCache.get(monthInput.value);
+    if (!report) {
+      const loaded = await loadWafdeenReportData(monthInput.value);
+      report = { usage: loaded.usage.map((row) => ({
+        teacherUsername: row.teacherUsername,
+        dateISO: row.dateISO,
+        category: row.category,
+        seconds: row.seconds
+      })) };
+      reportCache.set(monthInput.value, report);
+    }
+    const summary = summarizeWafdeenUsage(report.usage);
+    if (section === 'report') {
+      const view = ['day', 'week', 'month'].includes(activeReportView) ? activeReportView : 'month';
+      const resultRows = view === 'day' ? summary.byDate : view === 'week' ? summary.byWeek : summary.byTeacher;
+      const rows = resultRows.map((row) => [row.label, formatReportDuration(row.quranSeconds), formatReportDuration(row.educationSeconds), formatReportDuration(row.totalSeconds)]);
+      const firstColumn = view === 'month' ? 'المعلم' : view === 'week' ? 'الأسبوع (السبت–الجمعة)' : 'التاريخ';
+      renderReportTable(target, [firstColumn, 'وقت القرآن', 'وقت المواد التعليمية', 'الإجمالي'], rows);
+    } else {
+      const teachers = summary.byTeacher.filter((row) => row.educationSeconds > 0)
+        .map((row) => [row.label, formatReportDuration(row.educationSeconds)]);
+      const days = summary.byDate.filter((row) => row.educationSeconds > 0)
+        .map((row) => [row.label, formatReportDuration(row.educationSeconds)]);
+      target.innerHTML = '<h4>الإجمالي حسب المعلم</h4><div id="wafdeen-education-teachers"></div><h4>الإجمالي حسب اليوم</h4><div id="wafdeen-education-days"></div><div class="wafdeen-note">لا يتضمن مسار القراءة الحالي اسم المادة أو معرف الطالب؛ لذلك يُعرض الوقت التعليمي مجمعًا فقط.</div>';
+      renderReportTable(target.querySelector('#wafdeen-education-teachers'), ['المعلم', 'وقت المواد'], teachers);
+      renderReportTable(target.querySelector('#wafdeen-education-days'), ['اليوم', 'وقت المواد'], days);
+    }
+    setStatus(statusId, `فترة التقرير: ${bounds.start} إلى ${bounds.end}. القراءة للمدير فقط ولا تتيح التعديل أو الحذف.`);
+    return true;
+  } catch (error) {
+    target.innerHTML = '';
+    setStatus(statusId, window.majdApiErrorMessage_?.(error) || 'تعذر تحميل التقرير؛ لم يُعرض أي تقرير محلي قديم على أنه بيانات سحابية.');
+    return false;
+  }
+}
+
+function bindReadOnlyControls() {
+  const filter = document.getElementById('wafdeen-grades-filter');
+  if (filter && filter.dataset.bound !== 'true') {
+    filter.dataset.bound = 'true';
+    filter.addEventListener('input', renderHistoricalGrades);
+  }
+  for (const [section, prefix] of [['report', 'wafdeen-report'], ['educationTime', 'wafdeen-education-time']]) {
+    const monthInput = document.getElementById(`${prefix}-month`);
+    if (monthInput && monthInput.dataset.bound !== 'true') {
+      monthInput.dataset.bound = 'true';
+      monthInput.addEventListener('change', () => loadReadOnlyReport(section));
+    }
+    const refresh = document.getElementById(`${prefix}-refresh`);
+    if (refresh && refresh.dataset.bound !== 'true') {
+      refresh.dataset.bound = 'true';
+      refresh.addEventListener('click', () => {
+        if (monthInput?.value) reportCache.delete(monthInput.value);
+        loadReadOnlyReport(section);
+      });
+    }
+  }
+  document.querySelectorAll('[data-wafdeen-report-view]').forEach((button) => {
+    if (button.dataset.bound === 'true') return;
+    button.dataset.bound = 'true';
+    button.addEventListener('click', () => {
+      activeReportView = button.dataset.wafdeenReportView;
+      document.querySelectorAll('[data-wafdeen-report-view]').forEach((item) => {
+        const active = item === button;
+        item.classList.toggle('active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+      loadReadOnlyReport('report');
+    });
+  });
+}
+
 function callRequest(body) {
   if (!window.MajdLocalDataAPI?.isAvailable?.()) throw new Error('يجب تسجيل الدخول أولاً.');
   return window.majdAuthenticatedRequest_(body);
@@ -59,6 +206,8 @@ function callRequest(body) {
 
 export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
   if (!bridge) throw new Error('واجهة Wafdeen المعتمدة غير متاحة.');
+  bindReadOnlyControls();
+  window.wafdeenLoadHistoricalGrades = loadHistoricalGrades;
 
   window.wafdeenLoadCloud = async function () {
     if (typeof window.wafdeenLoadBooksFromGoogleDrive === 'function') {
@@ -104,9 +253,8 @@ export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
 
       window.wafdeenRenderStudentSelect?.();
       window.wafdeenRenderStudentsTable?.();
-      window.wafdeenRenderGrades?.();
       setStatus('wafdeen-accounts-cloud-status', 'تم تحميل أسماء الطلاب ومعرّفات القائمة المصرح بها فقط؛ لم تُحمّل كلمات مرور أو حسابات طلاب.');
-      setStatus('wafdeen-grades-cloud-status', 'الواجهة الحالية لا تعرض درجات الطلاب التاريخية؛ الحفظ المتاح يقتصر على جلسة جديدة من نوع واحد.');
+      setStatus('wafdeen-grades-cloud-status', 'الدرجات التاريخية تُعرض للقراءة فقط عبر قائمة الحقول المسموح بها.');
       return data;
     } catch (error) {
       window.wafdeenStudentsData = [];
@@ -117,7 +265,7 @@ export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
       window.wafdeenRenderStudentsTable?.();
       window.wafdeenRenderTeachersTable?.();
       setStatus('wafdeen-accounts-cloud-status', window.majdApiErrorMessage_?.(error) || 'تعذر تحميل بيانات الوافدين المصرح بها.');
-      setStatus('wafdeen-grades-cloud-status', 'لم تُحمّل درجات؛ واجهة API لا تعيد الدرجات التاريخية لهذه الصفحة.');
+      setStatus('wafdeen-grades-cloud-status', 'تعذر تحميل بيانات الوافدين؛ لا يتم عرض نسخة محلية على أنها بيانات سحابية.');
       console.warn('تعذر تحميل بيانات الوافدين المصرح بها:', error);
       return null;
     }
@@ -298,13 +446,34 @@ export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
   window.deleteSupabaseRecord = async function () { throw new Error('WAFDEEN_FEATURE_DISABLED'); };
   window.wafdeenEduStopTimer = unavailable('حفظ وقت المواد التعليمية');
 
-  const originalShowPanel = window.wafdeenShowPanel;
   window.wafdeenShowPanel = function (name) {
-    if (['grades', 'educationTime', 'report', 'cloudReview'].includes(String(name))) {
-      showNotice('هذا القسم غير متاح هنا لأن واجهة API الحالية لا تسمح بقراءة هذه البيانات.');
+    const panelName = String(name);
+    const user = window.currentWafdeenTeacher;
+    const isAdmin = user?.isAdmin === true;
+    const canReadGrades = canReadWafdeenGrades(user);
+    document.getElementById('wafdeen-open-grades')?.classList.toggle('hidden', !canReadGrades);
+    document.getElementById('wafdeen-open-education-time')?.classList.toggle('hidden', !isAdmin);
+    if (panelName === 'grades' && !canReadGrades) {
+      showNotice('الدرجات التاريخية متاحة للمدير أو لموظف مخوّل للوافدين فقط.');
       return false;
     }
-    return originalShowPanel?.apply(this, arguments);
+    if ((panelName === 'report' || panelName === 'educationTime') && !isAdmin) {
+      showNotice('التقارير التاريخية متاحة للمدير المخوّل فقط.');
+      return false;
+    }
+    if (['teachers', 'students'].includes(panelName) && !isAdmin) return false;
+    const allowedPanels = new Set(['daily', 'materials', 'grades', 'educationTime', 'report', 'teachers', 'students']);
+    if (!allowedPanels.has(panelName)) return false;
+    for (const panel of allowedPanels) {
+      document.getElementById(`wafdeen-panel-${panel}`)?.classList.toggle('hidden', panel !== panelName);
+    }
+    window.closeWafdeenMenu?.();
+    if (panelName === 'grades') loadHistoricalGrades();
+    if (panelName === 'report' || panelName === 'educationTime') loadReadOnlyReport(panelName);
+    if (panelName === 'teachers') window.wafdeenRenderTeachersTable?.();
+    if (panelName === 'students') window.wafdeenRenderStudentsTable?.();
+    if (panelName === 'materials') window.wafdeenRenderMaterials?.(window.wafdeenSelectedSubject);
+    return true;
   };
 
   disableUnsupportedControls();

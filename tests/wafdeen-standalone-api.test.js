@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createWafdeenStandaloneBridge } from '../src/features/wafdeen/standalone-api.js';
 import { loadWafdeenSessionData, createWafdeenSession } from '../src/api/wafdeen-sessions.api.js';
+import { loadWafdeenGrades } from '../src/api/wafdeen-grades.api.js';
 import { isAllowedWafdeenStandaloneOperation } from '../src/features/wafdeen/standalone-policy.js';
 
 const fixture = {
@@ -12,12 +13,17 @@ const fixture = {
   }],
   usage: []
 };
+const gradesFixture = { grades: [{
+  studentName: 'طالب تجريبي', dateISO: '2026-10-28', sessionType: 'الجديد', newLesson: '9', total: 9,
+  record_id: 'private-record-id', privateNote: 'must not be projected'
+}] };
 
 test('the standalone API bridge calls only allowlisted operations with bounded fields', async () => {
   const calls = [];
   const fakeRequest = async (body) => {
     calls.push(structuredClone(body));
     if (body.op === 'listWafdeenSessionData') return fixture;
+    if (body.op === 'listWafdeenGrades') return gradesFixture;
     if (body.op === 'createWafdeenSession') return { ok: true };
     if (body.op === 'addWafdeenStudent') return { student: { id: 'roster-test-2', studentId: 'roster-test-2', studentName: body.studentName } };
     if (body.op === 'listWafdeenTeachers') return { teachers: [{ id: 'teacher-test-1', username: 'teacher-test', assignedClass: 'أولى - أولاد', center: 'رئيسي' }] };
@@ -40,6 +46,8 @@ test('the standalone API bridge calls only allowlisted operations with bounded f
       gradeType: 'new', pages: 'صفحتان', topic: 'مقرر تجريبي', errors: 1,
       tashkeel: 2, repetition: 0, sessionSeconds: 75, privateNote: 'must not be sent'
     });
+    const grades = await loadWafdeenGrades();
+    assert.deepEqual(grades, [{ studentName: 'طالب تجريبي', dateISO: '2026-10-28', sessionType: 'الجديد', newLesson: 9, total: 9 }]);
     await bridge.addWafdeenStudent('طالب جديد تجريبي');
     await bridge.listWafdeenTeachers();
     await bridge.createWafdeenTeacher({
@@ -54,6 +62,7 @@ test('the standalone API bridge calls only allowlisted operations with bounded f
         gradeType: 'new', pages: 'صفحتان', topic: 'مقرر تجريبي', errors: 1,
         tashkeel: 2, repetition: 0, sessionSeconds: 75
       } },
+      { op: 'listWafdeenGrades' },
       { op: 'addWafdeenStudent', studentName: 'طالب جديد تجريبي' },
       { op: 'listWafdeenTeachers' },
       { op: 'createWafdeenTeacher', teacher: {
@@ -64,10 +73,17 @@ test('the standalone API bridge calls only allowlisted operations with bounded f
     assert.equal(bridge.isAvailable(), true);
     assert.equal(bridge.deleteWafdeenStudent, undefined);
     assert.equal(bridge.deleteRecord, undefined);
-    await assert.rejects(bridge.listWafdeenSessionData({ purpose: 'report' }), /WAFDEEN_REPORT_UNAVAILABLE/);
-    await assert.rejects(loadWafdeenSessionData({ purpose: 'report', month: '2026-10' }), /WAFDEEN_REPORT_UNAVAILABLE/);
+    await assert.rejects(bridge.listWafdeenSessionData({ purpose: 'report', month: '2026-10' }), /WAFDEEN_FEATURE_DISABLED/);
+    await assert.rejects(loadWafdeenSessionData({ purpose: 'report', month: '2026-10' }), /WAFDEEN_FEATURE_DISABLED/);
+    await assert.rejects(bridge.listWafdeenSessionData({ purpose: 'report', month: 'October 2026' }), /INVALID_REPORT_MONTH/);
     assert.equal(isAllowedWafdeenStandaloneOperation({ op: 'deleteWafdeenStudent' }), false);
-    assert.equal(isAllowedWafdeenStandaloneOperation({ op: 'listWafdeenGrades' }), false);
+    assert.equal(isAllowedWafdeenStandaloneOperation({ op: 'listWafdeenGrades' }), true);
+
+    globalThis.window.currentWafdeenTeacher = { isAdmin: true };
+    assert.equal(isAllowedWafdeenStandaloneOperation({ op: 'listWafdeenSessionData', purpose: 'report', month: '2026-10' }), true);
+    assert.deepEqual(await bridge.listWafdeenSessionData({ purpose: 'report', month: '2026-10' }), fixture);
+    assert.deepEqual(calls.at(-1), { op: 'listWafdeenSessionData', purpose: 'report', month: '2026-10' });
+    assert.equal(isAllowedWafdeenStandaloneOperation({ op: 'listWafdeenSessionData', purpose: 'report', month: 'October 2026' }), false);
   } finally {
     if (previousWindow === undefined) delete globalThis.window;
     else globalThis.window = previousWindow;

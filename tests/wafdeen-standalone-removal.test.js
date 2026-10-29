@@ -48,7 +48,12 @@ test('the Wafdeen page and all of its local assets exclude the old cloud impleme
   assert.match(read('wafdeen/js/script-09.js'), /__WAFDEEN_CLASSIC_ASSETS_READY__/);
   assert.doesNotMatch(html, /wafdeen-panel-cloudReview/);
   assert.match(html, /الدرجات التاريخية/);
-  assert.match(html, /التقارير اليومية والأسبوعية والشهرية غير متاحة/);
+  assert.match(html, /wafdeen-open-grades/);
+  assert.match(html, /wafdeen-historical-grades-table/);
+  assert.match(html, /wafdeen-open-report/);
+  assert.match(html, /لا يتضمن المسار أسماء الطلاب/);
+  assert.match(html, /المسار لا يعيد اسم المادة أو معرف الطالب/);
+  assert.doesNotMatch(html, /التقارير اليومية والأسبوعية والشهرية غير متاحة/);
   assert.match(html, /تُضاف الأسماء إلى قائمة الوافدين فقط/);
   assert.doesNotMatch(html, /wafdeenNewStudentPass/);
   assert.match(html, /wafdeenNewTeacherClass/);
