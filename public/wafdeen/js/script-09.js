@@ -151,3 +151,5 @@ if (typeof window.wafdeenExamsData === 'undefined')
     window.wafdeenExamsData = [];
 if (typeof window.wafdeenMonthlyImportedReports === 'undefined')
     window.wafdeenMonthlyImportedReports = [];
+window.__WAFDEEN_CLASSIC_ASSETS_READY__ = true;
+window.dispatchEvent(new Event('wafdeen-classic-assets-ready'));
