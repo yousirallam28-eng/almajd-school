@@ -47,11 +47,11 @@ const removedAssets = [
 ];
 const removedAssetDirs = ['../legacy/js', '../public/legacy/js', '../legacy/css', '../public/legacy/css', '../public/appearance'];
 
-test('all Wafdeen pages, sections, forms, lists, and monthly report are absent from the site', () => {
-  assert.doesNotMatch(html, /wafdeen|وافدين|تقرير الشهري الوقتي/i);
-  for (const asset of ['../wafdeen.html', '../src/features/wafdeen', '../public/wafdeen']) {
-    assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} must not ship`);
-  }
+test('the standalone Wafdeen page is linked without embedding its legacy sections in the main site', () => {
+  assert.match(html, /href="wafdeen\.html"/);
+  assert.match(html, /موقع الوافدين/);
+  assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../src/features/wafdeen', import.meta.url)), false);
   const sidebar = html.match(/<aside[^>]*id="main-menu-drawer"[^>]*>([\s\S]*?)<\/aside>/)?.[1] || '';
   const sheikhSubmenu = sidebar.match(/id="sheikh-recordings-submenu">([\s\S]*?)<\/div>/)?.[1] || '';
   assert.doesNotMatch(sheikhSubmenu, /wafdeen|وافدين/i);

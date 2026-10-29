@@ -9,17 +9,17 @@ const router = readFileSync(new URL('../src/app/router.js', import.meta.url), 'u
 const mainBridge = readFileSync(new URL('../legacy/js/inline-28.js', import.meta.url), 'utf8');
 const vite = readFileSync(new URL('../vite.config.js', import.meta.url), 'utf8');
 
-test('the primary site has no Wafdeen login, navigation, report tab, or report controls', () => {
-  assert.doesNotMatch(mainHtml, /wafdeen|وافدين|تقرير الشهري الوقتي/i);
+test('the primary site exposes the standalone Wafdeen entry without embedding its legacy UI', () => {
+  assert.match(mainHtml, /href="wafdeen\.html"/);
+  assert.match(mainHtml, /موقع الوافدين/);
 });
 
 test('the application and build no longer load or publish Wafdeen frontend routes', () => {
   assert.doesNotMatch(mainEntry, /features\/wafdeen/);
   assert.doesNotMatch(router, /wafdeen|وافدين/i);
   assert.doesNotMatch(vite, /wafdeen|وافدين/i);
-  for (const asset of ['../wafdeen.html', '../src/features/wafdeen', '../public/wafdeen']) {
-    assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} must not remain`);
-  }
+  assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../src/features/wafdeen', import.meta.url)), false);
 });
 
 test('the existing Wafdeen API client and bridge remain present and report-scoped', () => {

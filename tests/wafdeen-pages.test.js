@@ -5,14 +5,14 @@ import viteConfig from '../vite.config.js';
 
 const indexHtml = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
-test('the main site contains no Wafdeen entry, section, form, or monthly report', () => {
-  assert.doesNotMatch(indexHtml, /wafdeen|وافدين|تقرير الشهري الوقتي/i);
+test('the main site contains a standalone Wafdeen entry without embedding its legacy forms', () => {
+  assert.match(indexHtml, /href="wafdeen\.html"/);
+  assert.match(indexHtml, /موقع الوافدين/);
 });
 
-test('the standalone Wafdeen page, frontend modules, and public assets are removed', () => {
-  for (const asset of ['../wafdeen.html', '../src/features/wafdeen', '../public/wafdeen']) {
-    assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} must not remain in the site`);
-  }
+test('the standalone Wafdeen page is published while no embedded feature module is added', () => {
+  assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../src/features/wafdeen', import.meta.url)), false);
 });
 
 test('Vite builds only the main site and has no Wafdeen path rewrite', () => {

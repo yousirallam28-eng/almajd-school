@@ -35,14 +35,13 @@ test('class-specific cloud hydration and write adapters are no longer exposed', 
   assert.doesNotMatch(bridge, /(?:writeRecord|deleteRecord)\(['"]wafdeen/i, 'the page no longer issues class-specific data mutations');
 });
 
-test('Wafdeen UI is removed while its existing API adapters and Edge handlers remain unchanged', () => {
-  assert.doesNotMatch(indexHtml, /wafdeen|وافدين|تقرير الشهري الوقتي/i);
+test('Wafdeen standalone site is linked from the main login while cloud adapters remain protected', () => {
+  assert.match(indexHtml, /href="wafdeen\.html"/);
+  assert.match(indexHtml, /موقع الوافدين/);
   assert.doesNotMatch(mainEntrySource, /features\/wafdeen/);
   assert.doesNotMatch(routerSource, /wafdeen|وافدين/i);
   assert.doesNotMatch(viteSource, /wafdeen|وافدين/i);
-  for (const asset of ['../wafdeen.html', '../src/features/wafdeen', '../public/wafdeen']) {
-    assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} should be removed from the frontend`);
-  }
+  assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), true);
   assert.match(reportApiSource, /purpose: 'report'/);
   assert.doesNotMatch(reportApiSource, /wafdeen-sessions\.api|createWafdeenSession|purpose: 'daily'|studentName/);
   assert.doesNotMatch(adminApiSource, /teacher\?\.password|password_hash|password_salt/i);
