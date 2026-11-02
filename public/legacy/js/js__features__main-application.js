@@ -4462,15 +4462,16 @@ function renderBehaviorTopStudents() {
     var periodRecords = dailyRecords.filter(function (r) { return r.dateISO && dates.includes(r.dateISO); });
     container.innerHTML = '';
     GENERAL_CLASSES.forEach(function (className) {
-        var classStudents = studentsData.filter(function (s) { return s.className === className; });
-        var ranked = classStudents.map(function (student) {
-            var records = periodRecords.filter(function (r) { return r.className === className && r.studentName === student.name; });
-            return {
-                name: student.name,
-                behaviorTotal: records.reduce(function (sum, r) { return sum + Number(r.behavior || 0); }, 0),
-                recordsCount: records.length
-            };
-        }).filter(function (student) { return student.recordsCount > 0; }).sort(function (a, b) {
+        var classRecords = periodRecords.filter(function (r) { return r.className === className && r.studentName; });
+        var studentsByName = {};
+        classRecords.forEach(function (record) {
+            var name = String(record.studentName).trim();
+            if (!studentsByName[name])
+                studentsByName[name] = { name: name, behaviorTotal: 0, recordsCount: 0 };
+            studentsByName[name].behaviorTotal += Number(record.behavior || 0);
+            studentsByName[name].recordsCount += 1;
+        });
+        var ranked = Object.keys(studentsByName).map(function (name) { return studentsByName[name]; }).sort(function (a, b) {
             if (b.behaviorTotal !== a.behaviorTotal)
                 return b.behaviorTotal - a.behaviorTotal;
             return a.name.localeCompare(b.name, 'ar');
