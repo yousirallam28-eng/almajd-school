@@ -4356,6 +4356,8 @@ function getStudentGradeColorClass(value, maxValue) {
     return 'grade-red';
 }
 function renderTopStudents() {
+    if (typeof renderBehaviorTopStudents === 'function')
+        renderBehaviorTopStudents();
     if (shouldDeferHeavyRender_(['top-students', 'topStudents'])) return;
     var container = document.getElementById('topStudentsClasses');
     var titleEl = document.getElementById('topStudentsPeriodTitle');
