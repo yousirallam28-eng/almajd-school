@@ -4477,8 +4477,8 @@ function renderBehaviorTopStudents() {
             return a.name.localeCompare(b.name, 'ar');
         });
         var top = ranked[0];
-        var rows = top ? '<div class="top-student-row behavior-top-student-row"><div class="top-student-rank">🥇</div><div><div class="top-student-name">' + top.name + '</div><div class="top-student-meta">مجموع السلوك: ' + top.behaviorTotal + ' / ' + (dates.length * 10) + ' — عدد الأيام: ' + top.recordsCount + '</div></div><div class="top-student-score">' + top.behaviorTotal + '</div></div>' : '<div class="top-student-empty">لا توجد درجات سلوك مسجلة لهذا الفصل في الفترة المحددة.</div>';
-        container.innerHTML += "\n      <div class=\"top-student-card\">\n        <h4>📚 ".concat(className, "</h4>\n        ").concat(rows, "\n      </div>\n    ");
+        var rows = top ? '<div class="behavior-top-winner"><div class="behavior-top-medal">🥇</div><div class="behavior-top-winner-content"><div class="behavior-top-label">الطالب الأعلى سلوكًا</div><div class="behavior-top-name">' + top.name + '</div><div class="behavior-top-total">مجموع السلوك: <strong>' + top.behaviorTotal + '</strong> / ' + (dates.length * 10) + '</div><div class="behavior-top-days">عدد الأيام المسجلة: ' + top.recordsCount + '</div></div></div>' : '<div class="behavior-top-empty">لا توجد درجات سلوك مسجلة لهذا الفصل في الفترة المحددة.</div>';
+        container.innerHTML += "\n      <div class=\"top-student-card behavior-top-card\">\n        <h4>📚 ".concat(className, "</h4>\n        ").concat(rows, "\n      </div>\n    ");
     });
 }
 function switchManagerClass(className, event) {

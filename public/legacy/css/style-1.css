@@ -709,6 +709,43 @@ body.supervisor-mode #notes-tab #notesExportBtn{display:none!important}
 .behavior-top-student-row .top-student-score {
   color: var(--primary-color);
 }
+.behavior-top-card {
+  min-height: 150px;
+}
+.behavior-top-winner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-soft-strong);
+}
+.behavior-top-medal {
+  font-size: 2em;
+  line-height: 1;
+}
+.behavior-top-label,
+.behavior-top-days {
+  color: var(--text-muted);
+  font-size: .82em;
+}
+.behavior-top-name {
+  color: var(--primary-dark);
+  font-weight: 900;
+  font-size: 1.12em;
+  margin: 2px 0 4px;
+}
+.behavior-top-total {
+  color: var(--primary-color);
+  font-weight: 800;
+}
+.behavior-top-empty {
+  padding: 20px 8px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .9em;
+}
 
 
 .student-grade-box.grade-red {
