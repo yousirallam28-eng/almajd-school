@@ -657,8 +657,15 @@ window.onload = function () {
         document.getElementById('topStudentsWeekDate').value = todayISO;
         document.getElementById('topStudentsMonth').value = now.getMonth();
         document.getElementById('topStudentsYear').value = now.getFullYear();
+        var behaviorWeekDateEl = document.getElementById('behaviorTopWeekDate');
+        var behaviorMonthEl = document.getElementById('behaviorTopMonth');
+        var behaviorYearEl = document.getElementById('behaviorTopYear');
+        if (behaviorWeekDateEl) behaviorWeekDateEl.value = todayISO;
+        if (behaviorMonthEl) behaviorMonthEl.value = now.getMonth();
+        if (behaviorYearEl) behaviorYearEl.value = now.getFullYear();
     }
     renderTopStudents();
+    renderBehaviorTopStudents();
     document.getElementById('mgrMonthSelect').value = new Date().getMonth();
     document.getElementById('mgrYearSelect').value = new Date().getFullYear();
     checkWeeklyAutoBackup();
@@ -4398,6 +4405,79 @@ function renderTopStudents() {
             return "\n        <div class=\"top-student-row\">\n          <div class=\"top-student-rank\">".concat(rankIcon, "</div>\n          <div>\n            <div class=\"top-student-name\">").concat(student.name, "</div>\n            <div class=\"top-student-meta\">\n              \u0645\u062A\u0648\u0633\u0637 \u0627\u0644\u062F\u0631\u062C\u0627\u062A: ").concat(student.average.toFixed(1), " / ").concat(getDailyMax(className), "\n              \u2014 \u0627\u0644\u062A\u062C\u0648\u064A\u062F: ").concat(student.tajweedAverage.toFixed(1), " / 10 (").concat(tajweedPercent, "%)\n            </div>\n          </div>\n          <div class=\"top-student-score\">").concat(student.average.toFixed(1), "</div>\n        </div>\n      ");
         }).join('') : '<div class="top-student-empty">لا يوجد طلاب مسجلون في هذا الفصل.</div>';
         container.innerHTML += "\n      <div class=\"top-student-card\">\n        <h4>\uD83D\uDCDA ".concat(className, "</h4>\n        ").concat(rows, "\n      </div>\n    ");
+    });
+}
+function getBehaviorTopPeriod() {
+    var active = document.querySelector('#top-students-tab .behavior-top-switcher .top-period-btn.active');
+    return active && active.textContent.includes('الشهر') ? 'month' : 'week';
+}
+function switchBehaviorTopPeriod(period, event) {
+    document.querySelectorAll('#top-students-tab .behavior-top-switcher .top-period-btn').forEach(function (btn) { return btn.classList.remove('active'); });
+    if (event && event.currentTarget)
+        event.currentTarget.classList.add('active');
+    document.querySelectorAll('#top-students-tab [id^="behavior-top-period-"]').forEach(function (panel) { return panel.classList.add('hidden'); });
+    var panel = document.getElementById("behavior-top-period-".concat(period));
+    if (panel)
+        panel.classList.remove('hidden');
+    renderBehaviorTopStudents();
+}
+function getBehaviorTopPeriodDates() {
+    var _a, _b, _c;
+    var period = getBehaviorTopPeriod();
+    var weekEl = document.getElementById('behaviorTopWeekDate');
+    var monthEl = document.getElementById('behaviorTopMonth');
+    var yearEl = document.getElementById('behaviorTopYear');
+    if (period === 'week') {
+        var selectedISO = (weekEl === null || weekEl === void 0 ? void 0 : weekEl.value) || getISODateOnly(new Date());
+        var selected = new Date(selectedISO + 'T00:00:00');
+        var day = selected.getDay();
+        var start = new Date(selected);
+        start.setDate(selected.getDate() - day);
+        var dates = [];
+        for (var i = 0; i < 7; i++) {
+            var d = new Date(start);
+            d.setDate(start.getDate() + i);
+            dates.push(getISODateOnly(d));
+        }
+        return { period: period, dates: dates, title: "أوائل السلوك للأسبوع (".concat(dates[0], " إلى ").concat(dates[6], ")") };
+    }
+    var month = Number((_a = monthEl === null || monthEl === void 0 ? void 0 : monthEl.value) !== null && _a !== void 0 ? _a : new Date().getMonth());
+    var year = Number((_b = yearEl === null || yearEl === void 0 ? void 0 : yearEl.value) !== null && _b !== void 0 ? _b : new Date().getFullYear());
+    var workingDays = getMonthWorkingDays(year, month) || [];
+    var monthName = ((_c = monthEl === null || monthEl === void 0 ? void 0 : monthEl.options[monthEl.selectedIndex]) === null || _c === void 0 ? void 0 : _c.text) || '';
+    return { period: period, dates: workingDays.map(function (w) { return w.dateISO; }), title: "أوائل السلوك لشهر ".concat(monthName, " ").concat(year) };
+}
+function renderBehaviorTopStudents() {
+    var container = document.getElementById('behaviorTopStudentsClasses');
+    var titleEl = document.getElementById('behaviorTopPeriodTitle');
+    if (!container)
+        return;
+    var _a = getBehaviorTopPeriodDates(), dates = _a.dates, title = _a.title;
+    if (titleEl)
+        titleEl.textContent = title;
+    if (!dates.length) {
+        container.innerHTML = '<div class="card-view"><div class="top-student-empty">لا توجد أيام عمل في الفترة المحددة.</div></div>';
+        return;
+    }
+    var periodRecords = dailyRecords.filter(function (r) { return r.dateISO && dates.includes(r.dateISO); });
+    container.innerHTML = '';
+    GENERAL_CLASSES.forEach(function (className) {
+        var classStudents = studentsData.filter(function (s) { return s.className === className; });
+        var ranked = classStudents.map(function (student) {
+            var records = periodRecords.filter(function (r) { return r.className === className && r.studentName === student.name; });
+            return {
+                name: student.name,
+                behaviorTotal: records.reduce(function (sum, r) { return sum + Number(r.behavior || 0); }, 0),
+                recordsCount: records.length
+            };
+        }).filter(function (student) { return student.recordsCount > 0; }).sort(function (a, b) {
+            if (b.behaviorTotal !== a.behaviorTotal)
+                return b.behaviorTotal - a.behaviorTotal;
+            return a.name.localeCompare(b.name, 'ar');
+        });
+        var top = ranked[0];
+        var rows = top ? '<div class="top-student-row behavior-top-student-row"><div class="top-student-rank">🥇</div><div><div class="top-student-name">' + top.name + '</div><div class="top-student-meta">مجموع السلوك: ' + top.behaviorTotal + ' / ' + (dates.length * 10) + ' — عدد الأيام: ' + top.recordsCount + '</div></div><div class="top-student-score">' + top.behaviorTotal + '</div></div>' : '<div class="top-student-empty">لا توجد درجات سلوك مسجلة لهذا الفصل في الفترة المحددة.</div>';
+        container.innerHTML += "\n      <div class=\"top-student-card\">\n        <h4>📚 ".concat(className, "</h4>\n        ").concat(rows, "\n      </div>\n    ");
     });
 }
 function switchManagerClass(className, event) {

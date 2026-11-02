@@ -698,6 +698,17 @@ body.supervisor-mode #notes-tab #notesExportBtn{display:none!important}
   color: var(--accent-gold-light);
   margin:8px 0 14px;
 }
+.behavior-top-help {
+  margin: -8px 0 14px;
+  color: var(--text-muted);
+  font-size: .92em;
+}
+.behavior-top-students-card {
+  border-top-color: var(--primary-color);
+}
+.behavior-top-student-row .top-student-score {
+  color: var(--primary-color);
+}
 
 
 .student-grade-box.grade-red {

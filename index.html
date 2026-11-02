@@ -730,6 +730,44 @@
 <div class="top-period-title" id="topStudentsPeriodTitle"></div>
 <div class="classes-cards-grid" id="topStudentsClasses"></div>
 </div>
+<div class="card-view behavior-top-students-card">
+<h3 class="card-title">⭐ أوائل السلوك</h3>
+<p class="behavior-top-help">يظهر طالب واحد فقط من كل فصل حسب أعلى مجموع لدرجات السلوك في الفترة المحددة.</p>
+<div class="top-students-switcher behavior-top-switcher">
+<button class="top-period-btn active" onclick="switchBehaviorTopPeriod('week', event)" type="button">📆 سلوك الأسبوع</button>
+<button class="top-period-btn" onclick="switchBehaviorTopPeriod('month', event)" type="button">🗓️ سلوك الشهر</button>
+</div>
+<div class="top-period-panel" id="behavior-top-period-week">
+<div class="form-grid">
+<div class="form-group">
+<label>الأسبوع:</label>
+<input id="behaviorTopWeekDate" onchange="renderBehaviorTopStudents()" type="date"/>
+</div>
+</div>
+</div>
+<div class="top-period-panel hidden" id="behavior-top-period-month">
+<div class="form-grid">
+<div class="form-group">
+<label>الشهر:</label>
+<select id="behaviorTopMonth" onchange="renderBehaviorTopStudents()">
+<option value="0">يناير</option><option value="1">فبراير</option><option value="2">مارس</option>
+<option value="3">أبريل</option><option value="4">مايو</option><option value="5">يونيو</option>
+<option value="6">يوليو</option><option value="7">أغسطس</option><option value="8">سبتمبر</option>
+<option value="9">أكتوبر</option><option value="10">نوفمبر</option><option value="11">ديسمبر</option>
+</select>
+</div>
+<div class="form-group">
+<label>السنة:</label>
+<input id="behaviorTopYear" onchange="renderBehaviorTopStudents()" type="number" value="2026"/>
+</div>
+</div>
+</div>
+<div class="btn-group">
+<button class="action-btn btn-save" onclick="renderBehaviorTopStudents()" type="button">🔄 تحديث أوائل السلوك</button>
+</div>
+<div class="top-period-title" id="behaviorTopPeriodTitle"></div>
+<div class="classes-cards-grid" id="behaviorTopStudentsClasses"></div>
+</div>
 </div>
 <!-- 7. تبويب الملاحظات -->
 <div class="tab-content" id="notes-tab">
