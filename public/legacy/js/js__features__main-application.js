@@ -619,6 +619,31 @@ function ensureStudentLoginCodes(list) {
         return s;
     });
 }
+function persistStudentLoginCodes(records) {
+    if (!currentTeacher || currentTeacher.username !== 'admin')
+        return Promise.resolve(0);
+    var api = window.MajdLocalDataAPI;
+    if (!api || typeof api.writeRecord !== 'function' || (typeof api.isAvailable === 'function' && !api.isAvailable()))
+        return Promise.reject(new Error('اتصال السحابة غير متاح لحفظ أكواد الطلاب.'));
+    var validRecords = (records || []).filter(function (student) { return student && student.id != null && String(student.loginCode || '').trim(); });
+    return validRecords.reduce(function (queue, student) {
+        return queue.then(function () {
+            return api.writeRecord('students', String(student.id), student, { merge: true }).then(function (result) {
+                if (!result)
+                    throw new Error('لم يؤكد الخادم حفظ كود الطالب.');
+            });
+        });
+    }, Promise.resolve()).then(function () { return validRecords.length; });
+}
+function persistChangedStudentLoginCodes(previousCodes) {
+    var changed = (studentsData || []).filter(function (student) {
+        if (!student || student.id == null)
+            return false;
+        var previous = previousCodes[String(student.id)] || {};
+        return String(previous.loginCode || '') !== String(student.loginCode || '') || String(previous.loginCodeMonth || '') !== String(student.loginCodeMonth || '');
+    });
+    return persistStudentLoginCodes(changed);
+}
 function migrateOldData() {
     // Local-only: localRecords هو المصدر الوحيد للبيانات.
     teachersData = []; studentsData = []; dailyRecords = []; shariaGradesData = []; notesData = []; resultsData = [];
@@ -1418,8 +1443,19 @@ function showAppScreen() {
             populateAnalysisStudents();
             populateAnalysisWeeks();
         }
+        var previousLoginCodes = Object.create(null);
+        (studentsData || []).forEach(function (student) {
+            if (student && student.id != null)
+                previousLoginCodes[String(student.id)] = { loginCode: student.loginCode, loginCodeMonth: student.loginCodeMonth };
+        });
         studentsData = ensureStudentLoginCodes(studentsData);
         memoryStorage.setItem('studentsData', JSON.stringify(studentsData));
+        if (isAdminUser) {
+            persistChangedStudentLoginCodes(previousLoginCodes).catch(function (error) {
+                console.error('[student-codes] cloud sync failed', error);
+                showMessage('student-codes-msg', 'تم تجهيز الأكواد محلياً لكن تعذر رفعها للسحابة. تحقق من الاتصال ثم أعد المحاولة من توليد الأكواد.', 'error');
+            });
+        }
         renderStudentsTable();
         renderClassCards();
     }
@@ -4917,9 +4953,14 @@ function generateMissingStudentCodes() {
                     monthKey = getCurrentLoginCodeMonth();
                     missing = pool.filter(function (s) { return !s.loginCode; });
                     if (!missing.length) {
-                        renderStudentCodesTable();
-                        scopeLabel = scopeClass === 'الكل' ? '' : " \u0641\u064A \u0635\u0641 ".concat(scopeClass);
-                        return [2 /*return*/, showMessage('student-codes-msg', "\u0643\u0644 \u0627\u0644\u0637\u0644\u0627\u0628".concat(scopeLabel, " \u0644\u062F\u064A\u0647\u0645 \u0623\u0643\u0648\u0627\u062F \u0628\u0627\u0644\u0641\u0639\u0644 \u2705"), 'info')];
+                        return [2 /*return*/, persistStudentLoginCodes(pool).then(function () {
+                                renderStudentCodesTable();
+                                scopeLabel = scopeClass === 'الكل' ? '' : " (صف ".concat(scopeClass, ")");
+                                showMessage('student-codes-msg', "تم رفع أكواد الطلاب الحالية إلى السحابة بنجاح".concat(scopeLabel), 'success');
+                            }).catch(function (error) {
+                                console.error('[student-codes] cloud upload failed', error);
+                                showMessage('student-codes-msg', 'تعذر رفع الأكواد إلى السحابة. تحقق من الاتصال ثم أعد المحاولة.', 'error');
+                            })];
                     }
                     _b.label = 1;
                 case 1:
