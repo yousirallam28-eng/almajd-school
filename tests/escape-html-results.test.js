@@ -4,8 +4,10 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const applicationFiles = [
-  ['source', new URL('../legacy/js/js__features__main-application.js', import.meta.url)],
-  ['published fallback', new URL('../public/legacy/js/js__features__main-application.js', import.meta.url)]
+  ['main source', new URL('../legacy/js/js__features__main-application.js', import.meta.url)],
+  ['main published fallback', new URL('../public/legacy/js/js__features__main-application.js', import.meta.url)],
+  ['Wafdeen source bundle', new URL('../wafdeen/js/script-03.js', import.meta.url)],
+  ['Wafdeen published bundle', new URL('../public/wafdeen/js/script-03.js', import.meta.url)]
 ];
 
 for (const [label, fileUrl] of applicationFiles) {
