@@ -356,20 +356,20 @@
       memoryStorage.setItem('currentTeacher', JSON.stringify(w.currentTeacher));
       var ticket = ++loadGeneration;
       w.showAppScreen();
-      showLoadingCard('تم الدخول؛ جارٍ تحميل بيانات الطلاب...');
-      setLoadStatus('app-screen', 'تم تسجيل الدخول؛ جارٍ تحميل البيانات في الخلفية.', false);
-      hideLoadingCard();
-      hydrateMain().then(function () {
+      showLoadingCard('جارٍ تحميل بيانات الموقع من السحابة، يرجى الانتظار...');
+      setLoadStatus('app-screen', 'تم تسجيل الدخول؛ جارٍ تحميل البيانات من السحابة.', false);
+      try {
+        await hydrateMain();
         if (ticket !== loadGeneration || !w.currentTeacher) return;
         refreshMainViews();
         setLoadStatus('app-screen', '', false);
         hideLoadingCard();
-      }).catch(function (e) {
+      } catch (e) {
         if (ticket !== loadGeneration || !w.currentTeacher) return;
         console.error('تحميل بيانات الموقع بعد الدخول:', e);
         hideLoadingCard();
         setLoadStatus('app-screen', 'تم الدخول، لكن تعذر تحميل البيانات الآن. تحقق من الاتصال ثم أعد المحاولة.', true);
-      });
+      }
     } catch (e) {
       hideLoadingCard();
       sessionToken = '';
@@ -380,6 +380,7 @@
     var ok = await w.siteConfirm('تأكيد تسجيل الخروج', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟', 'تسجيل الخروج', true);
     if (!ok) return;
     loadGeneration++;
+    hideLoadingCard();
       sessionToken = ''; try { sessionStorage.removeItem('majdSessionToken'); } catch (_) {} w.currentTeacher = null;
     memoryStorage.removeItem('currentTeacher');
     w.showLoginScreen();

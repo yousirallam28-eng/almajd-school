@@ -610,7 +610,7 @@ body, body.login-screen-active, body:not(.login-screen-active) {
 .login-logo-img { padding: 6px !important; }
 .menu-brand-icon { padding: 4px !important; overflow: hidden !important; }
 .menu-brand-icon img { width: 100% !important; height: 100% !important; border: 0 !important; box-shadow: none !important; }
-#app-screen :is(.btn-group, .form-grid, .classes-cards-grid, .modal-grid, .behavior-reason-grid, .summary-grid, .stats-grid, .analysis-summary-grid, .top-period-panel, .quick-registration-toolbar, .quick-entry-gate, .quick-registration-note, .daily-score-note, .student-portal-fullscreen-toolbar, .report-summary, .filters-row, .toolbar, .pagination, .empty-state) {
+#app-screen :is(.btn-group, .form-grid, .classes-cards-grid, .modal-grid, .behavior-reason-grid, .summary-grid, .stats-grid, .analysis-summary-grid, .top-period-panel, .quick-registration-toolbar, .quick-entry-gate, .quick-registration-note, .daily-score-note, .report-summary, .filters-row, .toolbar, .pagination, .empty-state) {
   background: linear-gradient(145deg, rgba(255,255,255,.17), rgba(255,255,255,.055)) !important;
   border: 1px solid rgba(255,255,255,.28) !important;
   border-radius: 16px !important;
@@ -1446,7 +1446,7 @@ body, body.login-screen-active, body:not(.login-screen-active) {
 .login-logo-img { padding: 6px !important; }
 .menu-brand-icon { padding: 4px !important; overflow: hidden !important; }
 .menu-brand-icon img { width: 100% !important; height: 100% !important; border: 0 !important; box-shadow: none !important; }
-#app-screen :is(.btn-group, .form-grid, .classes-cards-grid, .modal-grid, .behavior-reason-grid, .summary-grid, .stats-grid, .analysis-summary-grid, .top-period-panel, .quick-registration-toolbar, .quick-entry-gate, .quick-registration-note, .daily-score-note, .student-portal-fullscreen-toolbar, .report-summary, .filters-row, .toolbar, .pagination, .empty-state) {
+#app-screen :is(.btn-group, .form-grid, .classes-cards-grid, .modal-grid, .behavior-reason-grid, .summary-grid, .stats-grid, .analysis-summary-grid, .top-period-panel, .quick-registration-toolbar, .quick-entry-gate, .quick-registration-note, .daily-score-note, .report-summary, .filters-row, .toolbar, .pagination, .empty-state) {
   background: linear-gradient(145deg, rgba(255,255,255,.17), rgba(255,255,255,.055)) !important;
   border: 1px solid rgba(255,255,255,.28) !important;
   border-radius: 16px !important;

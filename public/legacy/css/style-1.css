@@ -1334,35 +1334,6 @@ body.fifth-selected .fifth-hide-on-class { display: none !important; }
 }
 .missing-cell::before { content:'⚠️'; }
 
-/* شاشة تسجيل الطالب بالكود: كشف درجات كامل الشاشة */
-.student-portal-fullscreen {
-  position: fixed !important;
-  inset: 0;
-  z-index: 10000;
-  overflow-y: auto;
-  overflow-x: hidden;
-  width: 100vw !important;
-  max-width: none !important;
-  height: 100vh;
-  margin: 0 !important;
-  padding: 18px clamp(10px, 3vw, 42px) 42px !important;
-  background: var(--background, #f5f7f7) !important;
-  box-sizing: border-box;
-}
-.student-portal-fullscreen-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: -18px 0 16px;
-  padding: 12px 0;
-  background: var(--background, #f5f7f7);
-  border-bottom: 1px solid var(--border-soft);
-  color: var(--primary-dark);
-}
 .student-full-grade-section { margin-top: 18px; }
 .student-full-grade-table { overflow-x: auto; }
 .student-full-grade-table table { min-width: 980px; width: 100%; }
@@ -1386,8 +1357,3 @@ body.fifth-selected .fifth-hide-on-class { display: none !important; }
 .student-behavior-reason-date { color: var(--text-muted); margin-top: 5px; }
 .student-behavior-reason-text { margin-top: 14px; padding: 12px; border-radius: 10px; background: rgba(217, 86, 74, .1); font-weight: 700; }
 .student-empty-grade-row { text-align: center !important; padding: 24px !important; color: var(--text-muted); }
-@media (max-width: 600px) {
-  .student-portal-fullscreen { padding-inline: 8px !important; }
-  .student-portal-fullscreen-toolbar { margin-inline: 0; }
-  .student-portal-fullscreen-toolbar .action-btn { padding: 6px 9px; font-size: .78em; }
-}

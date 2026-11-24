@@ -1,6 +1,6 @@
 <!-- نسخة محلية مستقلة --><!DOCTYPE html>
 
-<html dir="rtl" lang="ar">
+<html data-site-appearance="old" dir="rtl" lang="ar">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
@@ -11,33 +11,6 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="معهد المجد" name="apple-mobile-web-app-title"/>
-<script id="appearance-bootstrap">
-(function () {
-  var appearance = 'new';
-  try { appearance = window.localStorage.getItem('almajd-site-appearance') === 'old' ? 'old' : 'new'; } catch (error) {}
-  document.documentElement.setAttribute('data-site-appearance', appearance);
-  window.__almajdSiteAppearance = appearance;
-  window.__setAlmajdAppearanceStyles = function (ids, mode) {
-    var media = mode === 'old' ? 'not all' : 'all';
-    ids.forEach(function (id) { var stylesheet = document.getElementById(id); if (stylesheet) stylesheet.media = media; });
-  };
-})();
-</script>
-<style id="appearance-first-paint-style">
-  html { background-color: #F7FAF8; }
-  html[data-site-appearance="new"] { background-color: #062f35; }
-  html[data-site-appearance="new"] body.login-screen-active {
-    background:
-      radial-gradient(circle at 12% 18%, rgba(72,224,178,.72), transparent 25%),
-      radial-gradient(circle at 88% 10%, rgba(255,199,92,.62), transparent 24%),
-      radial-gradient(circle at 78% 88%, rgba(39,133,255,.44), transparent 30%),
-      radial-gradient(circle at 18% 92%, rgba(214,78,176,.38), transparent 27%),
-      linear-gradient(145deg, #062f35 0%, #0b514a 42%, #123a54 100%);
-    background-attachment: fixed;
-  }
-</style>
-<link rel="preload" as="style" href="%BASE_URL%appearance/liquid-glass-theme.css?v=glass-7">
-<link rel="preload" as="style" href="%BASE_URL%appearance/final-contrast-overrides.css?v=17">
 <!-- خطوط عربية أصيلة -->
 <!-- مكتبة تصدير الإكسل SheetJS -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -61,7 +34,6 @@
 <link rel="stylesheet" href="legacy/css/style-14.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/style-15.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/style-16.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="legacy/css/modern-almajd-theme.js.css?v=theme-color-1" id="modern-almajd-theme" media="not all" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/style-18.css" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/monthly-result-v15-fix.js.css" id="monthly-result-v15-fix" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/result-display-v16.js.css" id="result-display-v16" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
@@ -69,9 +41,6 @@
 <meta content="V26" name="result-excel-reader-version">
 <link rel="stylesheet" href="legacy/css/sharia-mode-style.js.css" id="sharia-mode-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/sharia-simple-daily-style.js.css" id="sharia-simple-daily-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="%BASE_URL%appearance/unified-reference-theme.css?v=5" id="unified-reference-theme" media="not all" onerror="this.onerror=null;this.href='public/appearance/unified-reference-theme.css?v=5'">
-<link rel="stylesheet" href="%BASE_URL%appearance/almajd-global-redesign.css?v=1" id="almajd-global-redesign" media="not all" onerror="this.onerror=null;this.href='public/appearance/almajd-global-redesign.css?v=1'">
-<script id="appearance-bootstrap-head-styles">window.__setAlmajdAppearanceStyles(['modern-almajd-theme','almajd-global-redesign','unified-reference-theme'], window.__almajdSiteAppearance);</script>
 <link rel="stylesheet" href="legacy/css/button-press-feedback.css?v=3" id="button-press-feedback" onerror="this.onerror=null;this.href='public/legacy/css/button-press-feedback.css?v=3'">
 </head>
 <body class="login-screen-active" data-standalone="normal">
@@ -194,11 +163,6 @@
 <span class="menu-handle-text">القوائم</span>
 <span aria-hidden="true" class="menu-handle-dot"></span>
 </button>
-<button aria-label="تغيير المظهر: الشكل الجديد" aria-pressed="true" class="theme-switcher" id="theme-switcher" onclick="toggleSiteAppearance()" type="button">
-<span aria-hidden="true" class="theme-switcher-icon">◐</span>
-<span>تغيير المظهر</span>
-<span class="theme-switcher-current" id="theme-switcher-current">الشكل الجديد</span>
-</button>
 <div class="app-main-layout">
 <aside aria-hidden="true" class="sidebar-nav" id="main-menu-drawer">
 <div class="menu-drawer-head">
@@ -229,7 +193,7 @@
 <button class="tab-btn" id="notes-tab-btn" onclick="switchTab('notes-tab', event)" type="button">🗒️ الملاحظات</button>
 </div>
 </div>
-<button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ لوحة الإدارة</button>
+<button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab', event)" style="background-color: var(--warning-color); color: white;" type="button">⚙️ الإدارة</button>
 
 <div class="reports-menu-wrap hidden" id="expenses-menu-wrap">
 <button class="tab-btn reports-toggle" id="payments-tab-btn" onclick="toggleExpensesMenu(event)" type="button" style="background-color:#0d9488;color:white;">💰 المصاريف <span class="reports-chevron">⌄</span></button>
@@ -907,7 +871,6 @@
 <h3 class="card-title" style="margin-bottom:6px;">📊 تحليل مستوى الطالب</h3>
 <div class="student-analysis-muted" id="analysis-period-title"></div>
 </div>
-<button class="action-btn modal-cancel" onclick="closeStudentDataAnalysis()" style="flex:none;min-width:110px;" type="button">إغلاق</button>
 </div>
 <div class="student-analysis-filters">
 <div class="form-group">
@@ -943,7 +906,7 @@
 </table>
 </div>
 </div>
-<div class="analysis-charts-title">📈 الرسوم البيانية للدرجات — أسبوعياً</div>
+<div class="analysis-charts-title">📈 الرسوم البيانية للدرجات — أيام الأسبوع المختار</div>
 <div class="analysis-charts-grid" id="analysis-charts-grid"></div>
 <div class="analysis-week-comparison">
 <h4>🔎 مقارنة الأسبوع الحالي بالأسبوع السابق</h4>
@@ -962,9 +925,29 @@
 </table>
 </div>
 </div>
+<div class="analysis-time-card" style="margin-top:18px;">
+<h4>🗂️ شيتة الأسبوع للطالب المختار</h4>
+<div id="weekly-sheet-selected-student" class="student-analysis-muted">اختر الطالب والأسبوع من أعلى التحليل، أو حدد تاريخًا لعرض يوم واحد.</div>
+<div class="form-grid" style="grid-template-columns:minmax(220px,320px) minmax(200px,1fr);align-items:end;margin-top:12px;">
+<div class="form-group">
+<label for="weeklySheetDateFilter">تاريخ يوم محدد (اليوم والشهر)</label>
+<input id="weeklySheetDateFilter" type="date" onchange="renderWeeklySheetTable()"/>
+</div>
+<div class="form-group">
+<button class="action-btn modal-cancel" onclick="clearWeeklySheetDateFilter()" type="button">عرض الأسبوع كاملًا</button>
 </div>
 </div>
-/section&gt;
+<div class="btn-group">
+<button class="action-btn btn-save" onclick="renderWeeklySheetTable()" type="button">🔄 تحديث الشيت</button>
+<button class="action-btn btn-export" onclick="exportToExcel('weeklySheetTable', 'شيتة_الأسبوع')" type="button">📊 تصدير إكسل</button>
+<button class="action-btn btn-warning" onclick="window.print()" type="button">🖨️ طباعة</button>
+</div>
+<div class="table-responsive">
+<table class="analysis-table" id="weeklySheetTable"><thead></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+</div>
 
 <div style="background: #eef7f2; padding: 18px; border-radius: 12px; margin-bottom: 22px; border: 1px solid #bce1ce; border-top: 4px solid var(--primary-color);">
 <h3 style="margin-top: 0; font-size: 1.15em; color: var(--primary-dark); font-family:'Amiri', serif;">📥 إضافة الطلاب (نسخ ولصق قائمة أسماء)</h3>
@@ -1246,9 +1229,6 @@
 
 
 <link rel="stylesheet" href="legacy/css/quick-registration-style.js.css" id="quick-registration-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<link rel="stylesheet" href="%BASE_URL%appearance/liquid-glass-theme.css?v=glass-7" id="liquid-glass-theme" media="not all" onerror="this.onerror=null;this.href='public/appearance/liquid-glass-theme.css?v=glass-7'">
-<link rel="stylesheet" href="%BASE_URL%appearance/final-contrast-overrides.css?v=17" id="final-contrast-overrides" media="not all" onerror="this.onerror=null;this.href='public/appearance/final-contrast-overrides.css?v=17'">
-<script id="appearance-bootstrap-body-styles">window.__setAlmajdAppearanceStyles(['liquid-glass-theme','final-contrast-overrides'], window.__almajdSiteAppearance);</script>
 <script id="quick-registration-feature" data-inlined-from="./js/features/quick-registration.js" src="legacy/js/js__features__quick-registration.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 
 
@@ -1269,8 +1249,6 @@
 <script src="legacy/js/inline-28.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script id="total-expenses-report" src="legacy/js/total-expenses-report.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script id="numeric-pages-only" src="legacy/js/numeric-pages-only.js" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
-<link rel="stylesheet" href="legacy/css/theme-switcher.css?v=1" id="theme-switcher-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
-<script src="legacy/js/theme-switcher.js?v=3" onerror="this.onerror=null;this.src='public/'+this.getAttribute('src')"></script>
 <script id="majd-button-sounds" src="legacy/js/button-sounds.js" onerror="this.onerror=null;this.src='public/legacy/js/button-sounds.js'"></script>
 <script type="module" src="src/main.js"></script>
 </body>

@@ -276,6 +276,13 @@ async function wafdeenLogin() {
     var u = String((document.getElementById('wafdeenUsername') || {}).value || '').trim();
     var p = String((document.getElementById('wafdeenPassword') || {}).value || '').trim();
     if (!u || !p) return showMessage('wafdeen-login-msg', 'يرجى إدخال اسم المستخدم وكلمة المرور', 'error');
+    var btn = document.querySelector('#wafdeen-login-screen button[onclick*="wafdeenLogin"]');
+    if (btn) {
+        btn.disabled = true;
+        btn.dataset.oldText = btn.textContent;
+        btn.textContent = '⏳ جارٍ التحقق...';
+    }
+    wafdeenSetLoginLoading_(true, 'جارٍ التحقق من بيانات الدخول...');
     stopSupabaseSession_();
     try {
         // هذا المسار يطلب من الخادم توقيع جلسة نطاقها wafdeen؛ لا نستخدم جلسة الموقع أو بدائلها.
@@ -296,12 +303,37 @@ async function wafdeenLogin() {
         currentWafdeenTeacher = Object.assign({}, user, { isAdmin: !!user.isAdmin });
         memoryStorage.setItem('currentWafdeenTeacher', JSON.stringify(currentWafdeenTeacher));
         showWafdeenAppScreen();
-        wafdeenLoadCloud();
+        wafdeenSetLoginLoading_(true, 'جارٍ تحميل بيانات الوافدين من السحابة...');
+        await wafdeenLoadCloud();
     } catch (err) {
         stopSupabaseSession_();
         console.error('Supabase Wafdeen login failed:', err);
         showMessage('wafdeen-login-msg', majdApiErrorMessage_(err), 'error');
+    } finally {
+        wafdeenSetLoginLoading_(false);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = btn.dataset.oldText || 'دخول جلسة الوافدين 🔐';
+        }
     }
+}
+function wafdeenSetLoginLoading_(visible, message) {
+    var overlay = document.getElementById('wafdeen-loading-overlay');
+    if (!visible) {
+        if (overlay) overlay.remove();
+        return;
+    }
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'wafdeen-loading-overlay';
+        overlay.className = 'wafdeen-loading-overlay';
+        overlay.setAttribute('role', 'status');
+        overlay.setAttribute('aria-live', 'polite');
+        overlay.innerHTML = '<div class="wafdeen-loading-card"><div class="wafdeen-loading-spinner" aria-hidden="true"></div><strong class="wafdeen-loading-message"></strong></div>';
+        document.body.appendChild(overlay);
+    }
+    var label = overlay.querySelector('.wafdeen-loading-message');
+    if (label) label.textContent = message || 'جارٍ التحميل...';
 }
 function showWafdeenAppScreen() {
     document.body.classList.remove('login-screen-active');
@@ -315,7 +347,8 @@ function showWafdeenAppScreen() {
     document.getElementById('wafdeen-admin-area').classList.toggle('show', !!(currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin));
     document.getElementById('wafdeen-admin-menu-items').style.display = (currentWafdeenTeacher === null || currentWafdeenTeacher === void 0 ? void 0 : currentWafdeenTeacher.isAdmin) ? 'block' : 'none';
     document.getElementById('wafdeen-student-grades-unavailable')?.classList.toggle('hidden', !isStudent);
-    if (!isStudent) wafdeenShowPanel('grades');
+    if (isStudent) wafdeenShowPanel('materials');
+    else wafdeenShowPanel('daily');
     wafdeenRenderStudentSelect();
     wafdeenResetTimer();
     wafdeenRenderQuranCounters();

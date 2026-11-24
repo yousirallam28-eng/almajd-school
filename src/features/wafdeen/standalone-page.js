@@ -57,6 +57,31 @@ function setStatus(id, value) {
   if (element) element.textContent = value;
 }
 
+function setCloudState_(state, message) {
+  const element = document.getElementById('wafdeen-cloud-status');
+  if (!element) return;
+  element.dataset.state = state;
+  element.textContent = message;
+}
+
+async function withButtonBusy_(button, busyText, action) {
+  if (!button) return action();
+  if (button.disabled) return false;
+  const previousText = button.textContent;
+  button.disabled = true;
+  button.dataset.wafdeenBusy = 'true';
+  button.setAttribute('aria-busy', 'true');
+  button.textContent = busyText;
+  try {
+    return await action();
+  } finally {
+    button.disabled = false;
+    delete button.dataset.wafdeenBusy;
+    button.removeAttribute('aria-busy');
+    button.textContent = previousText;
+  }
+}
+
 function canReadWafdeenGrades(user = window.currentWafdeenTeacher) {
   return !!user && (user.isAdmin === true || (user.accountType === 'staff' && user.center !== 'مشرف' &&
     (user.canWafdeen === true || user.canWafdeen === 1)));
@@ -75,17 +100,25 @@ function renderHistoricalGrades() {
 async function loadHistoricalGrades() {
   if (!canReadWafdeenGrades()) {
     setStatus('wafdeen-grades-status', 'هذه القراءة متاحة للمدير أو لموظف مخوّل للوافدين فقط.');
+    setStatus('wafdeen-grades-cloud-status', 'لا يملك هذا الحساب صلاحية قراءة درجات الوافدين.');
+    document.getElementById('wafdeen-grades-cloud-status')?.setAttribute('data-state', 'error');
     return false;
   }
   setStatus('wafdeen-grades-status', 'جارٍ تحميل الدرجات التاريخية المسموح بها…');
+  setStatus('wafdeen-grades-cloud-status', 'جارٍ تحميل الدرجات من السحابة…');
+  document.getElementById('wafdeen-grades-cloud-status')?.setAttribute('data-state', 'loading');
   try {
     window.wafdeenHistoricalGrades_ = await loadWafdeenGrades();
     setStatus('wafdeen-grades-status', `تم تحميل ${window.wafdeenHistoricalGrades_.length} سجلًا للقراءة فقط؛ لا تتضمن الاستجابة معرفات سجلات أو بيانات تعديل.`);
+    setStatus('wafdeen-grades-cloud-status', `اكتمل تحميل ${window.wafdeenHistoricalGrades_.length} سجلًا من السحابة.`);
+    document.getElementById('wafdeen-grades-cloud-status')?.setAttribute('data-state', 'ready');
     renderHistoricalGrades();
     return true;
   } catch (error) {
     window.wafdeenHistoricalGrades_ = [];
     setStatus('wafdeen-grades-status', window.majdApiErrorMessage_?.(error) || 'تعذر تحميل الدرجات التاريخية.');
+    setStatus('wafdeen-grades-cloud-status', 'تعذر تحميل الدرجات من السحابة.');
+    document.getElementById('wafdeen-grades-cloud-status')?.setAttribute('data-state', 'error');
     renderHistoricalGrades();
     return false;
   }
@@ -122,9 +155,11 @@ async function loadReadOnlyReport(section) {
   const bounds = reportPeriodBounds(monthInput.value);
   if (!bounds) {
     setStatus(statusId, 'اختر فترة تقرير صالحة.');
+    document.getElementById(statusId)?.setAttribute('data-state', 'error');
     return false;
   }
   setStatus(statusId, 'جارٍ تحميل ملخص الاستخدام المصرح به…');
+  document.getElementById(statusId)?.setAttribute('data-state', 'loading');
   target.innerHTML = '';
   try {
     let report = reportCache.get(monthInput.value);
@@ -155,10 +190,12 @@ async function loadReadOnlyReport(section) {
       renderReportTable(target.querySelector('#wafdeen-education-days'), ['اليوم', 'وقت المواد'], days);
     }
     setStatus(statusId, `فترة التقرير: ${bounds.start} إلى ${bounds.end}. القراءة للمدير فقط ولا تتيح التعديل أو الحذف.`);
+    document.getElementById(statusId)?.setAttribute('data-state', 'ready');
     return true;
   } catch (error) {
     target.innerHTML = '';
     setStatus(statusId, window.majdApiErrorMessage_?.(error) || 'تعذر تحميل التقرير؛ لم يُعرض أي تقرير محلي قديم على أنه بيانات سحابية.');
+    document.getElementById(statusId)?.setAttribute('data-state', 'error');
     return false;
   }
 }
@@ -168,6 +205,11 @@ function bindReadOnlyControls() {
   if (filter && filter.dataset.bound !== 'true') {
     filter.dataset.bound = 'true';
     filter.addEventListener('input', renderHistoricalGrades);
+  }
+  const gradesRefresh = document.getElementById('wafdeen-grades-refresh');
+  if (gradesRefresh && gradesRefresh.dataset.bound !== 'true') {
+    gradesRefresh.dataset.bound = 'true';
+    gradesRefresh.addEventListener('click', () => loadHistoricalGrades());
   }
   for (const [section, prefix] of [['report', 'wafdeen-report'], ['educationTime', 'wafdeen-education-time']]) {
     const monthInput = document.getElementById(`${prefix}-month`);
@@ -210,18 +252,23 @@ export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
   window.wafdeenLoadHistoricalGrades = loadHistoricalGrades;
 
   window.wafdeenLoadCloud = async function () {
-    if (typeof window.wafdeenLoadBooksFromGoogleDrive === 'function') {
-      window.wafdeenLoadBooksFromGoogleDrive().then((books) => {
+    setCloudState_('loading', 'جارٍ تحميل بيانات الوافدين من السحابة…');
+    const booksPromise = typeof window.wafdeenLoadBooksFromGoogleDrive === 'function'
+      ? Promise.resolve().then(() => window.wafdeenLoadBooksFromGoogleDrive()).then((books) => {
         if (!Array.isArray(books)) return;
         window.wafdeenBooksData = books;
         window.wafdeenPersistLocal?.();
         if (!document.getElementById('wafdeen-panel-materials')?.classList.contains('hidden')) {
           window.wafdeenRenderMaterials?.(window.wafdeenSelectedSubject);
         }
-      }).catch((error) => console.warn('تعذر تحميل الكتب:', error));
-    }
+      }).catch((error) => console.warn('تعذر تحميل الكتب:', error))
+      : Promise.resolve();
 
-    if (!bridge.isAvailable()) return;
+    if (!bridge.isAvailable()) {
+      setCloudState_('error', 'تعذر الاتصال بالسحابة؛ سجّل الدخول مجددًا.');
+      await booksPromise;
+      return null;
+    }
     window.wafdeenStudentsData = [];
     window.wafdeenTeachersData = [];
     window.wafdeenDailyRecords = [];
@@ -255,6 +302,11 @@ export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
       window.wafdeenRenderStudentsTable?.();
       setStatus('wafdeen-accounts-cloud-status', 'تم تحميل أسماء الطلاب ومعرّفات القائمة المصرح بها فقط؛ لم تُحمّل كلمات مرور أو حسابات طلاب.');
       setStatus('wafdeen-grades-cloud-status', 'الدرجات التاريخية تُعرض للقراءة فقط عبر قائمة الحقول المسموح بها.');
+      document.getElementById('wafdeen-accounts-cloud-status')?.setAttribute('data-state', 'ready');
+      document.getElementById('wafdeen-teachers-cloud-status')?.setAttribute('data-state', 'ready');
+      document.getElementById('wafdeen-grades-cloud-status')?.setAttribute('data-state', 'ready');
+      setCloudState_('ready', 'متصل بالسحابة — بيانات الوافدين محدّثة');
+      await booksPromise;
       return data;
     } catch (error) {
       window.wafdeenStudentsData = [];
@@ -266,7 +318,12 @@ export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
       window.wafdeenRenderTeachersTable?.();
       setStatus('wafdeen-accounts-cloud-status', window.majdApiErrorMessage_?.(error) || 'تعذر تحميل بيانات الوافدين المصرح بها.');
       setStatus('wafdeen-grades-cloud-status', 'تعذر تحميل بيانات الوافدين؛ لا يتم عرض نسخة محلية على أنها بيانات سحابية.');
+      document.getElementById('wafdeen-accounts-cloud-status')?.setAttribute('data-state', 'error');
+      document.getElementById('wafdeen-teachers-cloud-status')?.setAttribute('data-state', 'error');
+      document.getElementById('wafdeen-grades-cloud-status')?.setAttribute('data-state', 'error');
+      setCloudState_('error', 'تعذر الاتصال بالسحابة أو تحميل بيانات الوافدين');
       console.warn('تعذر تحميل بيانات الوافدين المصرح بها:', error);
+      await booksPromise;
       return null;
     }
   };
@@ -284,43 +341,72 @@ export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
     const nameField = document.getElementById('wafdeenNewStudentName');
     const name = text(nameField?.value);
     if (!name) return showNotice('اكتب اسم الطالب.');
-    try {
-      const result = await bridge.addWafdeenStudent(name);
-      const record = result?.student;
-      if (!record?.studentId || !record?.studentName) throw new Error('استجابة إضافة الطالب غير صالحة.');
-      const student = { id: text(record.studentId), name: text(record.studentName) };
-      window.wafdeenStudentsData = [...(window.wafdeenStudentsData || []).filter((row) => row.id !== student.id), student];
-      if (nameField) nameField.value = '';
-      window.wafdeenRenderStudentSelect?.();
-      window.wafdeenRenderStudentsTable?.();
-      showNotice('تمت إضافة اسم الطالب إلى قائمة الوافدين المعتمدة.', 'success');
-    } catch (error) {
-      showNotice(window.majdApiErrorMessage_?.(error) || 'تعذرت إضافة اسم الطالب.');
-    }
+    const button = document.querySelector('#wafdeen-panel-students button[onclick*="addWafdeenStudent"]');
+    return withButtonBusy_(button, 'جارٍ الحفظ على السحابة…', async () => {
+      try {
+        const result = await bridge.addWafdeenStudent(name);
+        const record = result?.student;
+        if (!record?.studentId || !record?.studentName) throw new Error('استجابة إضافة الطالب غير صالحة.');
+        const student = { id: text(record.studentId), name: text(record.studentName) };
+        window.wafdeenStudentsData = [...(window.wafdeenStudentsData || []).filter((row) => row.id !== student.id), student];
+        if (nameField) nameField.value = '';
+        window.wafdeenRenderStudentSelect?.();
+        window.wafdeenRenderStudentsTable?.();
+        setStatus('wafdeen-accounts-cloud-status', 'تم حفظ اسم الطالب في السحابة وتحديث قائمة الطلاب.');
+        document.getElementById('wafdeen-accounts-cloud-status')?.setAttribute('data-state', 'ready');
+        showNotice('تم حفظ اسم الطالب في السحابة.', 'success');
+      } catch (error) {
+        setStatus('wafdeen-accounts-cloud-status', window.majdApiErrorMessage_?.(error) || 'تعذرت إضافة الطالب إلى السحابة.');
+        document.getElementById('wafdeen-accounts-cloud-status')?.setAttribute('data-state', 'error');
+        showNotice(window.majdApiErrorMessage_?.(error) || 'تعذرت إضافة اسم الطالب.');
+      }
+    });
   };
 
   window.addWafdeenTeacher = async function () {
     if (!window.currentWafdeenTeacher?.isAdmin) return showNotice('هذه العملية متاحة للمدير المخوّل فقط.');
     const username = text(document.getElementById('wafdeenNewTeacherUser')?.value);
-    const password = String(document.getElementById('wafdeenNewTeacherPass')?.value || '');
+    const password = String(document.getElementById('wafdeenNewTeacherPass')?.value || '').trim();
     const assignedClass = text(document.getElementById('wafdeenNewTeacherClass')?.value);
     const center = text(document.getElementById('wafdeenNewTeacherCenter')?.value);
     if (!username || password.length < 12 || !assignedClass || !center) {
       return showNotice('أدخل اسم المستخدم وكلمة مرور من 12 حرفًا على الأقل، واختر الفصل والمركز.');
     }
-    try {
-      await bridge.createWafdeenTeacher({ username, password, assignedClass, center });
-      const [teacherResult] = await Promise.all([bridge.listWafdeenTeachers()]);
-      window.wafdeenTeachersData = (Array.isArray(teacherResult?.teachers) ? teacherResult.teachers : []).map((teacher) => ({
-        id: text(teacher?.id), username: text(teacher?.username), assignedClass: text(teacher?.assignedClass), center: text(teacher?.center)
-      })).filter((teacher) => teacher.id && teacher.username);
-      document.getElementById('wafdeenNewTeacherUser').value = '';
-      document.getElementById('wafdeenNewTeacherPass').value = '';
-      window.wafdeenRenderTeachersTable?.();
-      showNotice('تم إنشاء حساب المعلم عبر المسار المعتمد. سيُطلب منه تغيير كلمة المرور عند أول دخول.', 'success');
-    } catch (error) {
-      showNotice(window.majdApiErrorMessage_?.(error) || 'تعذر إنشاء حساب المعلم.');
-    }
+    const button = document.querySelector('#wafdeen-panel-teachers button[onclick*="addWafdeenTeacher"]');
+    return withButtonBusy_(button, 'جارٍ إنشاء الحساب على السحابة…', async () => {
+      try {
+        const result = await bridge.createWafdeenTeacher({ username, password, assignedClass, center });
+        const createdTeacher = result?.teacher;
+        if (!createdTeacher?.id || !createdTeacher?.username) throw new Error('لم يؤكد الخادم إنشاء حساب المعلم.');
+        const newTeacher = {
+          id: text(createdTeacher.id), username: text(createdTeacher.username),
+          assignedClass: text(createdTeacher.assignedClass), center: text(createdTeacher.center)
+        };
+        window.wafdeenTeachersData = [...(window.wafdeenTeachersData || []).filter((teacher) => teacher.id !== newTeacher.id), newTeacher];
+        document.getElementById('wafdeenNewTeacherUser').value = '';
+        document.getElementById('wafdeenNewTeacherPass').value = '';
+        window.wafdeenRenderTeachersTable?.();
+        setStatus('wafdeen-teachers-cloud-status', 'تم إنشاء الحساب في السحابة. سيُطلب من المعلم تغيير كلمة المرور عند أول دخول.');
+        document.getElementById('wafdeen-teachers-cloud-status')?.setAttribute('data-state', 'ready');
+        showNotice('تم إنشاء حساب المعلم في السحابة.', 'success');
+        try {
+          const teacherResult = await bridge.listWafdeenTeachers();
+          window.wafdeenTeachersData = (Array.isArray(teacherResult?.teachers) ? teacherResult.teachers : []).map((teacher) => ({
+            id: text(teacher?.id), username: text(teacher?.username), assignedClass: text(teacher?.assignedClass), center: text(teacher?.center)
+          })).filter((teacher) => teacher.id && teacher.username);
+          window.wafdeenRenderTeachersTable?.();
+          setStatus('wafdeen-teachers-cloud-status', 'تم إنشاء الحساب وتحديث قائمة المعلمين من السحابة. سيُطلب من المعلم تغيير كلمة المرور عند أول دخول.');
+        } catch {
+          setStatus('wafdeen-teachers-cloud-status', 'تم إنشاء الحساب في السحابة، لكن تعذر تحديث القائمة الآن. أعد فتح القائمة للمزامنة.');
+          document.getElementById('wafdeen-teachers-cloud-status')?.setAttribute('data-state', 'error');
+          showNotice('تم إنشاء الحساب في السحابة، لكن تعذر تحديث القائمة الآن.', 'info');
+        }
+      } catch (error) {
+        setStatus('wafdeen-teachers-cloud-status', window.majdApiErrorMessage_?.(error) || 'تعذر إنشاء حساب المعلم في السحابة.');
+        document.getElementById('wafdeen-teachers-cloud-status')?.setAttribute('data-state', 'error');
+        showNotice(window.majdApiErrorMessage_?.(error) || 'تعذر إنشاء حساب المعلم.');
+      }
+    });
   };
 
   window.wafdeenSaveGradeType = async function (type) {
@@ -397,6 +483,9 @@ export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
       window.memoryStorage?.setItem('wafdeenDailyRecords', JSON.stringify(window.wafdeenDailyRecords));
       window.wafdeenRenderGrades?.();
       window.wafdeenUpdateDailySaveButton?.();
+      setCloudState_('ready', `تم حفظ جلسة ${type} في السحابة`);
+      setStatus('wafdeen-grades-cloud-status', `تم حفظ جلسة ${type} في السحابة؛ ستظهر في الدرجات التاريخية عند تحديثها.`);
+      document.getElementById('wafdeen-grades-cloud-status')?.setAttribute('data-state', 'ready');
       showNotice(`تم حفظ جلسة ${type} عبر واجهة الوافدين المعتمدة. لا يمكن تعديلها أو حذفها من هذه الصفحة.`, 'success');
 
       const resetIds = type === 'الجديد' ? ['wafdeenNewLesson', 'wafdeenNewPagesCount', 'wafdeenNewTopicRecited']
@@ -420,6 +509,10 @@ export function wireWafdeenStandalonePage(bridge = window.MajdLocalDataAPI) {
         ? 'سبق تسجيل هذا النوع من الجلسات في التاريخ المحدد؛ لا تدعم هذه الصفحة التعديل أو الحذف.'
         : (window.majdApiErrorMessage_?.(error) || 'تعذر حفظ الجلسة؛ لم يُعرض الحفظ على أنه ناجح.'));
     }
+  };
+
+  window.wafdeenSaveGradeAndTime = function (type, button) {
+    return withButtonBusy_(button, 'جارٍ حفظ الدرجة في السحابة…', () => window.wafdeenSaveGradeType(type));
   };
 
   const unavailable = (label) => async () => {

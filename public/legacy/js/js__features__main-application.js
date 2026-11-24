@@ -1645,6 +1645,7 @@ function populateAnalysisStudents() {
         : '<option value="">لا يوجد طلاب في هذا الصف</option>';
     if (names.includes(old))
         select.value = old;
+    populateAnalysisWeeks();
 }
 function getAnalysisWeekDates(weekKey) {
     if (!weekKey)
@@ -1675,7 +1676,10 @@ function populateAnalysisWeeks() {
     if (!select)
         return;
     var weeks = new Set();
-    dailyRecords.forEach(function (r) {
+    var className = (document.getElementById('analysisClassSelect') || {}).value || '';
+    var analysisSource = shariaIsClass_(className) ? (shariaGradesData || []) : dailyRecords;
+    analysisSource.forEach(function (r) {
+        if (className && r.className !== className) return;
         if (r.dateISO)
             weeks.add(getWeekKey(r.dateISO));
     });
@@ -1694,10 +1698,26 @@ function populateAnalysisWeeks() {
 }
 function getAnalysisRecords(studentName, className, weekKey) {
     var dates = new Set(getAnalysisWeekDates(weekKey));
-    return dailyRecords.filter(function (r) {
+    var sourceRecords = shariaIsClass_(className) ? (shariaGradesData || []) : dailyRecords;
+    return sourceRecords.filter(function (r) {
         return r.studentName === studentName &&
             r.className === className &&
-            dates.has(r.dateISO);
+            dates.has(String(r.dateISO || '').slice(0, 10)) && !r._deleted;
+    }).map(function (r) {
+        return shariaIsClass_(className)
+            ? Object.assign({}, r, { isAbsent: !!r.absent, attendanceStatus: r.absent ? 'absent' : 'present' })
+            : r;
+    });
+}
+function getAnalysisRecordsForDate(studentName, className, dateISO) {
+    var sourceRecords = shariaIsClass_(className) ? (shariaGradesData || []) : dailyRecords;
+    return sourceRecords.filter(function (r) {
+        return r.studentName === studentName && r.className === className &&
+            String(r.dateISO || '').slice(0, 10) === String(dateISO || '').slice(0, 10) && !r._deleted;
+    }).map(function (r) {
+        return shariaIsClass_(className)
+            ? Object.assign({}, r, { isAbsent: !!r.absent, attendanceStatus: r.absent ? 'absent' : 'present' })
+            : r;
     });
 }
 function analysisAverage(records, field) {
@@ -1726,13 +1746,14 @@ function analysisFormatMinutes(seconds) {
     var sec = s % 60;
     return "".concat(min, " \u062F ").concat(String(sec).padStart(2, '0'), " \u062B");
 }
-function analysisGradeTrend(current, previous) {
+function analysisGradeTrend(current, previous, max) {
     if (!previous || previous.recordsCount === 0 || current.recordsCount === 0)
         return { label: 'لا توجد مقارنة كافية', cls: 'analysis-status-neutral' };
     var diff = current.average - previous.average;
-    if (diff > 0.25)
+    var threshold = Number(max) > 10 ? Number(max) * 0.025 : 0.25;
+    if (diff > threshold)
         return { label: "\u062A\u062D\u0633\u0646 +".concat(diff.toFixed(1)), cls: 'analysis-status-good' };
-    if (diff < -0.25)
+    if (diff < -threshold)
         return { label: "\u0636\u0639\u0641 ".concat(diff.toFixed(1)), cls: 'analysis-status-bad' };
     return { label: 'مستقر تقريباً', cls: 'analysis-status-neutral' };
 }
@@ -1748,6 +1769,13 @@ function analysisSpeedTrend(currentSecondsPerPage, previousSecondsPerPage) {
     return { label: 'سرعته مستقرة', cls: 'analysis-status-neutral' };
 }
 function getAnalysisGradeDefs(className) {
+    if (shariaIsClass_(className)) {
+        return [
+            { key: 'attendance', label: 'الحضور', max: 10 },
+            { key: 'behavior', label: 'السلوك', max: 10 },
+            { key: 'examScore', label: 'درجة الامتحان', max: 100 }
+        ];
+    }
     var fifth = isFifthClass(className);
     var defs = [
         { key: 'attendance', label: 'الحضور', max: 10 },
@@ -1774,7 +1802,7 @@ function renderAnalysisSummary(studentName, className, currentRecords, previousR
     gradeDefs.forEach(function (d) {
         var cur = { average: analysisAverage(currentRecords, d.key), recordsCount: currentRecords.length };
         var prev = { average: analysisAverage(previousRecords, d.key), recordsCount: previousRecords.length };
-        var tr = analysisGradeTrend(cur, prev);
+        var tr = analysisGradeTrend(cur, prev, d.max);
         if (tr.cls === 'analysis-status-good')
             improved++;
         else if (tr.cls === 'analysis-status-bad')
@@ -1789,25 +1817,32 @@ function renderAnalysisSummary(studentName, className, currentRecords, previousR
         { key: 'new', label: 'الجديد', time: 'newLessonTimeSeconds', pages: 'newPagesCount' },
         { key: 'old', label: 'الماضي', time: 'oldRevisionTimeSeconds', pages: 'oldPagesCount' },
         { key: 'recitation', label: 'التلاوة', time: 'recitationTimeSeconds', pages: 'recitationPagesCount' }
-    ].filter(function (d) { return !(isFifthClass(className) && (d.key === 'new' || d.key === 'old')); });
+    ].filter(function (d) { return !shariaIsClass_(className) && !(isFifthClass(className) && (d.key === 'new' || d.key === 'old')); });
     var currentTimes = timeDefs.map(function (d) { return analysisTimePerPage(currentRecords, d.time, d.pages); }).filter(function (v) { return v > 0; });
     var avgSecPerPage = currentTimes.length ? currentTimes.reduce(function (a, b) { return a + b; }, 0) / currentTimes.length : 0;
     box.innerHTML = "\n    <div class=\"analysis-summary-card\">\n      <div class=\"a-label\">\u0645\u062A\u0648\u0633\u0637 \u0627\u0644\u0645\u062C\u0645\u0648\u0639 \u0647\u0630\u0627 \u0627\u0644\u0623\u0633\u0628\u0648\u0639</div>\n      <div class=\"a-value\">".concat(currentTotal.toFixed(1), " / ").concat(getDailyMax(className), "</div>\n      <div class=\"a-sub\">\u0627\u0644\u0641\u0631\u0642: ").concat(totalDiff >= 0 ? '+' : '').concat(totalDiff.toFixed(1), "</div>\n    </div>\n    <div class=\"analysis-summary-card\">\n      <div class=\"a-label\">\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u062A\u062D\u0633\u0646</div>\n      <div class=\"a-value analysis-status-good\">").concat(improved, "</div>\n      <div class=\"a-sub\">\u0645\u0646 ").concat(gradeDefs.length, " \u062F\u0631\u062C\u0627\u062A</div>\n    </div>\n    <div class=\"analysis-summary-card\">\n      <div class=\"a-label\">\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u0636\u0639\u0641</div>\n      <div class=\"a-value analysis-status-bad\">").concat(declined, "</div>\n      <div class=\"a-sub\">\u0645\u0646 ").concat(gradeDefs.length, " \u062F\u0631\u062C\u0627\u062A</div>\n    </div>\n    <div class=\"analysis-summary-card\">\n      <div class=\"a-label\">\u0645\u062A\u0648\u0633\u0637 \u0632\u0645\u0646 \u0627\u0644\u0635\u0641\u062D\u0629</div>\n      <div class=\"a-value\">").concat(avgSecPerPage ? analysisFormatMinutes(avgSecPerPage) : '-', "</div>\n      <div class=\"a-sub\">\u0643\u0644\u0645\u0627 \u0642\u0644 \u0627\u0644\u0648\u0642\u062A \u0632\u0627\u062F\u062A \u0627\u0644\u0633\u0631\u0639\u0629</div>\n    </div>\n  ");
+    if (shariaIsClass_(className)) {
+        var summaryCards = box.querySelectorAll('.analysis-summary-card');
+        if (summaryCards[0]) summaryCards[0].querySelector('.a-label').textContent = 'متوسط درجة الامتحان هذا الأسبوع';
+        if (summaryCards[3]) summaryCards[3].innerHTML = '<div class="a-label">أيام الرصد هذا الأسبوع</div><div class="a-value">' + currentRecords.length + ' / 5</div><div class="a-sub">الحضور والسلوك ودرجة الامتحان</div>';
+    }
     var weak = [];
     var strong = [];
     gradeDefs.forEach(function (d) {
         var cur = analysisAverage(currentRecords, d.key);
         var prev = analysisAverage(previousRecords, d.key);
-        if (currentRecords.length && cur < 6)
-            weak.push("".concat(d.label, " (").concat(cur.toFixed(1), "/10)"));
-        if (previousRecords.length && cur - prev > 0.25)
+        var threshold = d.max > 10 ? d.max * 0.025 : 0.25;
+        if (currentRecords.length && cur < d.max * 0.6)
+            weak.push("".concat(d.label, " (").concat(cur.toFixed(1), "/").concat(d.max, ")"));
+        if (previousRecords.length && cur - prev > threshold)
             strong.push("".concat(d.label, " (+").concat((cur - prev).toFixed(1), ")"));
-        if (previousRecords.length && cur - prev < -0.25)
+        if (previousRecords.length && cur - prev < -threshold)
             weak.push("".concat(d.label, " (\u0627\u0646\u062E\u0641\u0636 ").concat((prev - cur).toFixed(1), ")"));
     });
     var speedText = avgSecPerPage
         ? " \u0648\u0645\u062A\u0648\u0633\u0637 \u0633\u0631\u0639\u0629 \u0627\u0644\u0635\u0641\u062D\u0629 \u0627\u0644\u062D\u0627\u0644\u064A\u0629 ".concat(analysisFormatMinutes(avgSecPerPage))
         : '';
+    if (shariaIsClass_(className)) speedText = " ومتوسط درجة الامتحان ".concat(analysisAverage(currentRecords, 'examScore').toFixed(1), "/100");
     diagnosis.innerHTML = "\n    <strong>\u062A\u0642\u064A\u064A\u0645 \u0627\u0644\u0637\u0627\u0644\u0628 ".concat(studentName, ":</strong>\n    ").concat(!currentRecords.length
         ? 'لا توجد درجات مسجلة في الأسبوع المحدد.'
         : "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 ".concat(currentRecords.length, " \u064A\u0648\u0645/\u0623\u064A\u0627\u0645. ").concat(improved > declined
@@ -1820,6 +1855,20 @@ function renderAnalysisTimeTable(className, currentRecords, previousRecords) {
     var body = document.getElementById('analysis-time-body');
     if (!body)
         return;
+    var card = body.closest('.analysis-time-card');
+    var tableHead = body.closest('table') && body.closest('table').querySelector('thead');
+    if (shariaIsClass_(className)) {
+        if (card && card.querySelector('h4')) card.querySelector('h4').textContent = '📋 تفاصيل الرصد الشرعي للأسبوع المختار';
+        if (tableHead) tableHead.innerHTML = '<tr><th>التاريخ</th><th>الحضور / 10</th><th>السلوك / 10</th><th>المقرر</th><th>درجة الامتحان / 100</th></tr>';
+        body.innerHTML = currentRecords.slice().sort(function (a, b) { return String(a.dateISO || '').localeCompare(String(b.dateISO || '')); }).map(function (r) {
+            return '<tr><td>' + escapeHtml(String(r.dateISO || '').slice(0, 10) || '-') + '</td><td>' +
+                escapeHtml(r.attendance == null ? 0 : r.attendance) + '</td><td>' + escapeHtml(r.behavior == null ? 0 : r.behavior) +
+                '</td><td>' + escapeHtml(r.subject || '-') + '</td><td>' + escapeHtml(r.examScore == null ? 0 : r.examScore) + '</td></tr>';
+        }).join('') || '<tr><td colspan="5">لا توجد بيانات شرعي لهذا الأسبوع.</td></tr>';
+        return;
+    }
+    if (card && card.querySelector('h4')) card.querySelector('h4').textContent = '⏱️ تحليل وقت التسميع وسرعة الصفحة';
+    if (tableHead) tableHead.innerHTML = '<tr><th>المقرر</th><th>متوسط الدرجة</th><th>إجمالي وقت التسميع</th><th>عدد الصفحات/الأجزاء</th><th>متوسط وقت الصفحة</th><th>التقييم</th></tr>';
     var defs = [
         { key: 'new', label: 'الجديد', grade: 'newLesson', time: 'newLessonTimeSeconds', pages: 'newPagesCount' },
         { key: 'old', label: 'الماضي', grade: 'oldRevision', time: 'oldRevisionTimeSeconds', pages: 'oldPagesCount' },
@@ -1852,7 +1901,7 @@ function renderAnalysisComparison(className, currentRecords, previousRecords) {
             ? (previousRecords.length ? previousRecords.reduce(function (s, r) { return s + getDailyTotal(r); }, 0) / previousRecords.length : 0)
             : analysisAverage(previousRecords, d.key);
         var diff = cur - prev;
-        var trend = analysisGradeTrend({ average: cur, recordsCount: currentRecords.length }, { average: prev, recordsCount: previousRecords.length });
+        var trend = analysisGradeTrend({ average: cur, recordsCount: currentRecords.length }, { average: prev, recordsCount: previousRecords.length }, d.max);
         var max = d.max;
         body.innerHTML += "\n      <tr>\n        <td><strong>".concat(d.label, "</strong></td>\n        <td>").concat(previousRecords.length ? prev.toFixed(1) : '-', "</td>\n        <td>").concat(currentRecords.length ? cur.toFixed(1) : '-', "</td>\n        <td>").concat(previousRecords.length && currentRecords.length ? "".concat(diff >= 0 ? '+' : '').concat(diff.toFixed(1)) : '-', "</td>\n        <td class=\"").concat(trend.cls, "\">").concat(trend.label, "</td>\n      </tr>\n    ");
     });
@@ -1871,24 +1920,17 @@ function renderAnalysisCharts(studentName, className, selectedWeekKey) {
     analysisChartInstances = {};
     grid.innerHTML = '';
     var defs = getAnalysisGradeDefs(className).filter(function (d) { return d.key !== 'total'; });
-    var weeks = [];
-    var allWeekKeys = Array.from(new Set(dailyRecords
-        .filter(function (r) { return r.studentName === studentName && r.className === className && r.dateISO; })
-        .map(function (r) { return getWeekKey(r.dateISO); }))).sort();
-    var selectedIndex = allWeekKeys.indexOf(selectedWeekKey);
-    var endIndex = selectedIndex >= 0 ? selectedIndex : allWeekKeys.length - 1;
-    var startIndex = Math.max(0, endIndex - 7);
-    var chartWeeks = allWeekKeys.slice(startIndex, endIndex + 1);
+    var chartDates = getAnalysisWeekDates(selectedWeekKey);
+    var dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
     defs.forEach(function (d, index) {
         var id = "analysisChart_".concat(index, "_").concat(Date.now());
-        grid.innerHTML += "\n      <div class=\"analysis-chart-card\">\n        <h4>".concat(d.label, "</h4>\n        <div class=\"analysis-chart-wrap\"><canvas id=\"").concat(id, "\"></canvas></div>\n      </div>\n    ");
-        var labels = chartWeeks.map(function (w) {
-            var p = w.split('_');
-            return "".concat(p[0].slice(5), " \u2192 ").concat(p[1].slice(5));
+        grid.insertAdjacentHTML('beforeend', "\n      <div class=\"analysis-chart-card\">\n        <h4>".concat(d.label, "</h4>\n        <div class=\"analysis-chart-wrap\"><canvas id=\"").concat(id, "\"></canvas></div>\n      </div>\n    "));
+        var labels = chartDates.map(function (date, dayIndex) {
+            return "".concat(dayNames[dayIndex], " ").concat(date.slice(8, 10), "/").concat(date.slice(5, 7));
         });
-        var data = chartWeeks.map(function (w) {
-            var recs = getAnalysisRecords(studentName, className, w);
-            return Number(analysisAverage(recs, d.key).toFixed(2));
+        var data = chartDates.map(function (date) {
+            var recs = getAnalysisRecordsForDate(studentName, className, date);
+            return recs.length ? Number(analysisAverage(recs, d.key).toFixed(2)) : null;
         });
         var canvas = document.getElementById(id);
         if (!canvas || typeof Chart === 'undefined')
@@ -1898,7 +1940,7 @@ function renderAnalysisCharts(studentName, className, selectedWeekKey) {
             data: {
                 labels: labels,
                 datasets: [{
-                        label: "".concat(d.label, " / 10"),
+                        label: "".concat(d.label, " / ").concat(d.max),
                         data: data,
                         fill: false,
                         tension: .28,
@@ -1930,8 +1972,8 @@ function renderAnalysisCharts(studentName, className, selectedWeekKey) {
                     },
                     y: {
                         min: 0,
-                        max: 10,
-                        ticks: { stepSize: 1, color: '#f2f6f6' },
+                        max: d.max,
+                        ticks: { stepSize: d.max > 10 ? 10 : 1, color: '#f2f6f6' },
                         grid: { color: useNewAppearance ? 'rgba(242,246,246,.14)' : undefined }
                     }
                 }
@@ -1981,6 +2023,7 @@ function renderStudentDataAnalysis() {
         var title_1 = document.getElementById('analysis-period-title');
         if (title_1)
             title_1.textContent = 'اختر الصف والطالب والأسبوع لعرض التحليل.';
+        renderWeeklySheetTable();
         return;
     }
     var currentRecords = getAnalysisRecords(studentName, className, weekKey);
@@ -1993,6 +2036,7 @@ function renderStudentDataAnalysis() {
     renderAnalysisSummary(studentName, className, currentRecords, previousRecords);
     renderAnalysisTimeTable(className, currentRecords, previousRecords);
     renderAnalysisComparison(className, currentRecords, previousRecords);
+    renderWeeklySheetTable();
     renderAnalysisCharts(studentName, className, weekKey);
 }
 
@@ -2578,6 +2622,7 @@ function isFifthClass(className) {
     return typeof className === 'string' && className.indexOf('خامسة') === 0;
 }
 function getDailyMax(className) {
+    if (typeof shariaIsClass_ === 'function' && shariaIsClass_(className)) return 100;
     return isFifthClass(className) ? 50 : 70;
 }
 function updateFifthGradeFields(className) {
@@ -2596,6 +2641,7 @@ function clampGrade(val) {
     return n;
 }
 function getDailyTotal(record) {
+    if (record && typeof shariaIsClass_ === 'function' && shariaIsClass_(record.className)) return Number(record.examScore) || 0;
     return (record.attendance || 0) + (record.behavior || 0) + (record.newLesson || 0) +
         (record.oldRevision || 0) + (record.recitation || 0) + (record.homework || 0) + (record.tajweed || 0);
 }
@@ -2781,19 +2827,38 @@ function selectDailyTimerType(type) {
     renderDailyTimer();
     selectDailyGradeType(type);
 }
-// حفظ مؤقت فوري لدرجات الجديد والماضي والتلاوة والعدادات أثناء التسجيل.
-// المفتاح مرتبط بالطالب والتاريخ حتى لا تختلط درجات طالب بآخر.
-function dailyDraftKey_() {
-    var _a, _b;
-    var student = ((_a = document.getElementById('studentNameSelect')) === null || _a === void 0 ? void 0 : _a.value) || '';
-    var date = ((_b = document.getElementById('recordDate')) === null || _b === void 0 ? void 0 : _b.value) || '';
-    // Keep the original namespace so already-saved drafts remain available.
-    return 'wafdeenDailyDraft:' + student + ':' + date;
+// تحفظ المسودة فورياً في ذاكرة الصفحة وlocalStorage حتى لا تختفي عند تحديث الصفحة.
+// المفتاح مرتبط بالمعلم والفصل والطالب والتاريخ لمنع اختلاط بيانات الرصد.
+var dailyDraftRestoreInProgress_ = false;
+function dailyDraftKey_(studentName, className, dateISO, teacherName) {
+    var student = studentName == null ? ((document.getElementById('studentNameSelect') || {}).value || '') : String(studentName);
+    var cls = className == null ? ((document.getElementById('classSelect') || {}).value || '') : String(className);
+    var date = dateISO == null ? ((document.getElementById('recordDate') || {}).value || '') : String(dateISO);
+    var teacher = teacherName == null ? ((currentTeacher && currentTeacher.username) || 'guest') : String(teacherName);
+    return 'wafdeenDailyDraft:v2:' + encodeURIComponent(teacher) + ':' + encodeURIComponent(cls) + ':' + encodeURIComponent(student) + ':' + date;
+}
+// The main record cache stays in memory; incomplete daily entries persist locally until replaced or cleared.
+function dailyDraftStorageGet_(key) {
+    try { var value = window.localStorage.getItem(key); if (value !== null) return value; } catch (_) { }
+    try { return memoryStorage.getItem(key); } catch (_) { return null; }
+}
+function dailyDraftStorageSet_(key, value) {
+    try { memoryStorage.setItem(key, value); } catch (_) { }
+    try { window.localStorage.setItem(key, value); } catch (_) { }
+}
+function dailyDraftStorageRemove_(key) {
+    try { memoryStorage.removeItem(key); } catch (_) { }
+    try { window.localStorage.removeItem(key); } catch (_) { }
+}
+function dailyRemoveDraftForContext_(studentName, className, dateISO, teacherName) {
+    dailyDraftStorageRemove_(dailyDraftKey_(studentName, className, dateISO, teacherName));
 }
 function saveDailyDraft_() {
+    if (dailyDraftRestoreInProgress_) return;
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     try {
         var draft = {
+            savedAt: Date.now(),
             newLesson: ((_a = document.getElementById('newLesson')) === null || _a === void 0 ? void 0 : _a.value) || '',
             oldRevision: ((_b = document.getElementById('oldRevision')) === null || _b === void 0 ? void 0 : _b.value) || '',
             recitation: ((_c = document.getElementById('recitation')) === null || _c === void 0 ? void 0 : _c.value) || '',
@@ -2811,19 +2876,19 @@ function saveDailyDraft_() {
         };
         ['attendance', 'behavior', 'tajweed', 'homework', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount',
             'oldTopicToday', 'oldPagesCount', 'oldTopicRecited', 'oldRecitationCount', 'recitationTopicToday',
-            'recitationPagesCount', 'recitationTopicRecited', 'recitationRecitationCount'].forEach(function (id) {
+            'recitationPagesCount', 'recitationTopicRecited', 'recitationRecitationCount', 'shariaNormalSubject', 'shariaNormalExam'].forEach(function (id) {
             var el = document.getElementById(id);
             if (el)
                 draft[id] = el.value;
         });
-        memoryStorage.setItem(dailyDraftKey_(), JSON.stringify(draft));
+        dailyDraftStorageSet_(dailyDraftKey_(), JSON.stringify(draft));
     }
     catch (_) { }
 }
 function bindDailyDraftInputs_() {
     ['attendance', 'behavior', 'tajweed', 'homework', 'newLesson', 'oldRevision', 'recitation', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount',
         'oldTopicToday', 'oldPagesCount', 'oldTopicRecited', 'oldRecitationCount', 'recitationTopicToday', 'recitationPagesCount',
-        'recitationTopicRecited', 'recitationRecitationCount'].forEach(function (id) {
+        'recitationTopicRecited', 'recitationRecitationCount', 'shariaNormalSubject', 'shariaNormalExam'].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el || el.dataset.dailyDraftBound === '1') return;
         el.addEventListener('input', saveDailyDraft_);
@@ -2833,12 +2898,20 @@ function bindDailyDraftInputs_() {
 }
 function restoreDailyDraft_() {
     try {
-        var draft_1 = JSON.parse(memoryStorage.getItem(dailyDraftKey_()) || 'null');
+        var draftKey = dailyDraftKey_();
+        var draft_1 = JSON.parse(dailyDraftStorageGet_(draftKey) || 'null');
         if (!draft_1)
             return;
+        var savedRecord = typeof hasDailyRecordForSelectedStudent_ === 'function' ? hasDailyRecordForSelectedStudent_() : null;
+        var draftSavedAt = Number(draft_1.savedAt || 0);
+        var recordSavedAt = Date.parse(savedRecord && (savedRecord.updatedAt || savedRecord.timeRecordedAt || savedRecord.recordedAt) || '');
+        if (draftSavedAt && Number.isFinite(recordSavedAt) && recordSavedAt > draftSavedAt) {
+            dailyDraftStorageRemove_(draftKey);
+            return;
+        }
         ['newLesson', 'oldRevision', 'recitation', 'attendance', 'behavior', 'tajweed', 'homework', 'newTopicToday', 'newPagesCount', 'newTopicRecited', 'newRecitationCount',
             'oldTopicToday', 'oldPagesCount', 'oldTopicRecited', 'oldRecitationCount', 'recitationTopicToday', 'recitationPagesCount',
-            'recitationTopicRecited', 'recitationRecitationCount'].forEach(function (id) {
+            'recitationTopicRecited', 'recitationRecitationCount', 'shariaNormalSubject', 'shariaNormalExam'].forEach(function (id) {
             var el = document.getElementById(id);
             if (el && draft_1[id] !== undefined)
                 el.value = draft_1[id];
@@ -2852,6 +2925,9 @@ function restoreDailyDraft_() {
             dailyCounterType = draft_1.counterType;
         dailyRenderCounters();
         resetBehaviorState('daily', draft_1.behaviorCounts || {});
+        var behaviorInput = document.getElementById('behavior');
+        if (behaviorInput && draft_1.behavior !== undefined)
+            behaviorInput.value = draft_1.behavior;
     }
     catch (_) { }
 }
@@ -2870,6 +2946,11 @@ function dailyCalculateGrade(type) {
     var gradeEl = document.getElementById(gradeId);
     if (!gradeEl)
         return '';
+    var selectedRecord = typeof hasDailyRecordForSelectedStudent_ === 'function' ? hasDailyRecordForSelectedStudent_() : null;
+    if (selectedRecord && (selectedRecord.isAbsent || String(selectedRecord.attendanceStatus || '') === 'absent')) {
+        gradeEl.value = 0;
+        return 0;
+    }
     var base = dailyGradeFromRecitationCount(countEl === null || countEl === void 0 ? void 0 : countEl.value);
     if (base === '') {
         gradeEl.value = '';
@@ -2899,7 +2980,6 @@ function dailyRenderCounters() {
         if (el)
             el.textContent = String(Math.max(0, parseInt(c[k], 10) || 0));
     });
-    ['new', 'old', 'recitation'].forEach(function (type) { return dailyCalculateGrade(type); });
 }
 function dailyIncrementCounter(kind) {
     var c = dailyCounterSet();
@@ -2907,6 +2987,7 @@ function dailyIncrementCounter(kind) {
         return false;
     c[kind] = (parseInt(c[kind], 10) || 0) + 1;
     dailyRenderCounters();
+    dailyCalculateGrade(dailyCounterType || dailyTimerType);
     saveDailyDraft_();
     dailyAnimateCounter(kind);
     return false;
@@ -2917,6 +2998,7 @@ function dailyDecrementCounter(kind) {
         return false;
     c[kind] = Math.max(0, (parseInt(c[kind], 10) || 0) - 1);
     dailyRenderCounters();
+    dailyCalculateGrade(dailyCounterType || dailyTimerType);
     saveDailyDraft_();
     dailyAnimateCounter(kind);
     return false;
@@ -3049,15 +3131,21 @@ function showDailyStudentWorkspace() {
     clearInterval(dailyTimerInterval);
     dailyTimerInterval = null;
     dailyActiveStudentKey_ = nextKey;
-    resetDailyExtraFieldsFromRecord(existing || {});
+    dailyDraftRestoreInProgress_ = true;
     dailyLoadCountersFromRecord(existing || {});
+    resetDailyExtraFieldsFromRecord(existing || {});
     dailyRenderCounters();
     resetBehaviorState('daily', (existing === null || existing === void 0 ? void 0 : existing.behaviorReasons) || {});
+    var savedBehavior = document.getElementById('behavior');
+    if (savedBehavior && existing && existing.behavior !== undefined && existing.behavior !== null)
+        savedBehavior.value = String(existing.behavior);
     try {
         restoreDailyDraft_();
     }
     catch (_) { }
     dailyRenderCounters();
+    dailyDraftRestoreInProgress_ = false;
+    saveDailyDraft_();
     updateDailyTypeTimes();
     renderDailyTimer();
 }
@@ -3173,6 +3261,7 @@ async function markAbsent() {
         memoryStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
     }
     catch (_) { }
+    dailyRemoveDraftForContext_(studentName, className, dateISO, (currentTeacher && currentTeacher.username) || '');
     ['attendance', 'behavior', 'tajweed', 'oldRevision', 'newLesson', 'recitation', 'homework'].forEach(function (id) { var el = document.getElementById(id); if (el)
         el.value = 0; });
     ['newRecitationCount', 'oldRecitationCount', 'recitationRecitationCount', 'newPagesCount', 'oldPagesCount', 'recitationPagesCount'].forEach(function (id) { var el = document.getElementById(id); if (el)
@@ -3252,13 +3341,28 @@ function enforceDailyRecitationGrade(type) {
         gradeEl.value = '';
 }
 function resetDailyExtraFieldsFromRecord(record) {
+    var absent = !!(record && (record.isAbsent || String(record.attendanceStatus || '') === 'absent'));
+    function valueOr_(key, fallback) {
+        return record && record[key] !== undefined && record[key] !== null && record[key] !== '' ? record[key] : fallback;
+    }
     var fields = [
-        ['newPagesCount', (record === null || record === void 0 ? void 0 : record.newPagesCount) || ''],
-        ['oldPagesCount', (record === null || record === void 0 ? void 0 : record.oldPagesCount) || ''],
-        ['recitationPagesCount', (record === null || record === void 0 ? void 0 : record.recitationPagesCount) || ''],
-        ['newRecitationCount', (record === null || record === void 0 ? void 0 : record.newRecitationCount) || '1'],
-        ['oldRecitationCount', (record === null || record === void 0 ? void 0 : record.oldRecitationCount) || '1'],
-        ['recitationRecitationCount', (record === null || record === void 0 ? void 0 : record.recitationRecitationCount) || '1']
+        ['attendance', valueOr_('attendance', '')],
+        ['tajweed', valueOr_('tajweed', '')],
+        ['homework', valueOr_('homework', '')],
+        ['newTopicToday', valueOr_('newTopicToday', valueOr_('newTopicText', ''))],
+        ['newPagesCount', valueOr_('newPagesCount', '')],
+        ['newTopicRecited', valueOr_('newTopicRecited', '')],
+        ['newRecitationCount', valueOr_('newRecitationCount', absent ? '' : '1')],
+        ['oldTopicToday', valueOr_('oldTopicToday', valueOr_('oldTopicText', ''))],
+        ['oldPagesCount', valueOr_('oldPagesCount', '')],
+        ['oldTopicRecited', valueOr_('oldTopicRecited', '')],
+        ['oldRecitationCount', valueOr_('oldRecitationCount', absent ? '' : '1')],
+        ['recitationTopicToday', valueOr_('recitationTopicToday', valueOr_('recitationTopic', ''))],
+        ['recitationPagesCount', valueOr_('recitationPagesCount', '')],
+        ['recitationTopicRecited', valueOr_('recitationTopicRecited', '')],
+        ['recitationRecitationCount', valueOr_('recitationRecitationCount', absent ? '' : '1')],
+        ['shariaNormalSubject', valueOr_('subject', '')],
+        ['shariaNormalExam', valueOr_('examScore', '')]
     ];
     fields.forEach(function (_a) {
         var _b = __read(_a, 2), id = _b[0], val = _b[1];
@@ -3266,9 +3370,13 @@ function resetDailyExtraFieldsFromRecord(record) {
         if (el)
             el.value = String(val);
     });
+    var gradeIds = { new: 'newLesson', old: 'oldRevision', recitation: 'recitation' };
     ['new', 'old', 'recitation'].forEach(function (type) {
         updateDailyRecitationGrade(type);
-        dailyCalculateGrade(type);
+        var gradeEl = document.getElementById(gradeIds[type]);
+        var savedGrade = record && record[gradeIds[type]];
+        if (gradeEl && savedGrade !== undefined && savedGrade !== null && savedGrade !== '')
+            gradeEl.value = String(savedGrade);
     });
 }
 var dailySelectedGradeType = 'new';
@@ -3704,6 +3812,7 @@ function deleteRecord(id) {
                             var removedDailyName = String(record.studentName || '').trim();
                             var removedDailyClass = String(record.className || '');
                             var removedDailyDate = String(record.dateISO || '').slice(0, 10);
+                            dailyRemoveDraftForContext_(removedDailyName, removedDailyClass, removedDailyDate, (currentTeacher && currentTeacher.username) || '');
                             var sameDayDailyRecordRemains = dailyRecords.some(function (r) {
                                 return !r._deleted && String(r.studentName || '').trim() === removedDailyName && String(r.className || '') === removedDailyClass && String(r.dateISO || '').slice(0, 10) === removedDailyDate;
                             });
@@ -3767,7 +3876,7 @@ function resetDailyEntryForm_() {
     if (summary)
         summary.textContent = 'تم الحفظ بنجاح. الخانات جاهزة لرصد طالب آخر أو رصد جديد.';
     try {
-        memoryStorage.removeItem(dailyDraftKey_());
+        dailyDraftStorageRemove_(dailyDraftKey_());
     }
     catch (_) { }
 }
@@ -3878,6 +3987,7 @@ function editRecord(id) {
                             if (values.some(function (v, i) { var originals = fifth ? [record.attendance, record.behavior, record.recitation, record.homework, record.tajweed] : [record.attendance, record.behavior, record.newLesson, record.oldRevision, record.recitation, record.homework, record.tajweed]; var originalValue = originals[i]; var baseline = originalValue == null ? 0 : originalValue; return String(v) !== String(baseline) && (v === '' || !isFinite(Number(v)) || Number(v) < 0 || Number(v) > 10); })) { return [2 /*return*/, showSiteError('الدرجة التي تعدّلها يجب أن تكون بين 0 و10.')]; }
                             var scoreForEdit = function (value, original) { var baseline = original == null ? 0 : original; return String(value) === String(baseline) ? original : clampGrade(value); }; dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
                             updatedRecord = __assign(__assign({}, record), { dateISO: dateISO, dayName: dayNames[new Date(dateISO + 'T00:00:00').getDay()], recitationTopicToday: recitationTopicToday, recitationTopicRecited: recitationTopicRecited, recitationTopic: recitationTopicToday, oldTopicToday: fifth ? '' : oldTopicToday, oldTopicRecited: fifth ? '' : oldTopicRecited, newTopicToday: fifth ? '' : newTopicToday, newTopicRecited: fifth ? '' : newTopicRecited, oldTopicText: fifth ? '' : oldTopicToday, newTopicText: fifth ? '' : newTopicToday, attendance: scoreForEdit(values[0], record.attendance), behavior: scoreForEdit(values[1], record.behavior), behaviorReasons: __assign({}, (dailyBehaviorState.modal || {})), behaviorReasonsText: dailyBehaviorSummaryText('modal'), newLesson: fifth ? 0 : scoreForEdit(values[2], record.newLesson), oldRevision: fifth ? 0 : scoreForEdit(values[3], record.oldRevision), recitation: fifth ? scoreForEdit(values[2], record.recitation) : scoreForEdit(values[4], record.recitation), homework: fifth ? scoreForEdit(values[3], record.homework) : scoreForEdit(values[5], record.homework), tajweed: fifth ? scoreForEdit(values[4], record.tajweed) : scoreForEdit(values[6], record.tajweed), newLessonTimeSeconds: Number(record.newLessonTimeSeconds || 0), oldRevisionTimeSeconds: Number(record.oldRevisionTimeSeconds || 0), recitationTimeSeconds: Number(record.recitationTimeSeconds || 0), recitation1: 0, recitation2: 0, recitation3: 0, recitation4: 0 });
+                            updatedRecord.updatedAt = new Date().toISOString();
                             newId = dailyStableRecordId_(record.studentId || dailyStudentId_(record.studentName, record.className), record.className, dateISO);
                             updatedRecord.id = newId;
                             updatedRecord.studentId = String(record.studentId || dailyStudentId_(record.studentName, record.className));
@@ -3902,6 +4012,9 @@ function editRecord(id) {
                                     dailyRecords.push(updatedRecord);
                             }
                             memoryStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
+                            var editingTeacherName = (currentTeacher && currentTeacher.username) || record.teacherName || '';
+                            dailyRemoveDraftForContext_(record.studentName, record.className, String(record.dateISO || '').slice(0, 10), editingTeacherName);
+                            dailyRemoveDraftForContext_(updatedRecord.studentName, updatedRecord.className, String(updatedRecord.dateISO || '').slice(0, 10), editingTeacherName);
                             populateWeeks();
                             renderDailyTable();
                             renderAttendanceTable();
@@ -4216,6 +4329,157 @@ function renderWeeklyTable() {
         chartData.push(parseFloat(weeklyAverage));
     });
     renderBarChart('weeklyReportChart', function (c) { return weeklyReportChartInstance = c; }, function () { return weeklyReportChartInstance; }, chartLabels, chartData, 'متوسط الأسبوع (على 5 أيام)');
+}
+var weeklySheetRows_ = [];
+function showWeeklySheetBehaviorReason(index) {
+    var record = weeklySheetRows_[Number(index)];
+    if (!record)
+        return;
+    var score = Number(record.behavior == null ? 0 : record.behavior);
+    var reason = studentBehaviorReasonText_(record);
+    if (!reason && score < 10)
+        reason = "تم خصم ".concat(Math.max(0, 10 - score), " درجات من السلوك دون تسجيل سبب تفصيلي.");
+    showBehaviorReasons(reason);
+}
+function renderWeeklySheetTable() {
+    var table = document.getElementById('weeklySheetTable');
+    var classSelect = document.getElementById('analysisClassSelect');
+    var studentSelect = document.getElementById('analysisStudentSelect');
+    var weekSelect = document.getElementById('analysisWeekSelect');
+    var selectedStudentLabel = document.getElementById('weekly-sheet-selected-student');
+    if (!table || !classSelect || !studentSelect || !weekSelect)
+        return;
+    var thead = table.querySelector('thead');
+    var tbody = table.querySelector('tbody');
+    if (!thead || !tbody)
+        return;
+    var selectedWeekKey = weekSelect.value;
+    var selectedClass = classSelect.value;
+    var studentName = studentSelect.value;
+    var selectedDate = (document.getElementById('weeklySheetDateFilter') || {}).value || '';
+    if (!selectedClass || !studentName || (!selectedWeekKey && !selectedDate)) {
+        weeklySheetRows_ = [];
+        if (selectedStudentLabel)
+            selectedStudentLabel.textContent = 'اختر الطالب من أعلى التحليل والأسبوع، أو حدد تاريخًا لعرض يوم واحد.';
+        thead.innerHTML = '';
+        tbody.innerHTML = '<tr><td>اختر الطالب والأسبوع لعرض شيتة الأسبوع.</td></tr>';
+        return;
+    }
+    var weekParts = selectedWeekKey.split('_');
+    if (selectedStudentLabel)
+        selectedStudentLabel.textContent = selectedDate
+            ? "الطالب المختار: ".concat(studentName, " — ").concat(selectedClass, " — اليوم المحدد: ").concat(selectedDate.split('-').reverse().join('/'))
+            : "الطالب المختار: ".concat(studentName, " — ").concat(selectedClass, " — الأسبوع: ").concat(weekParts[0] || '', " إلى ").concat(weekParts[1] || '');
+    if (shariaIsClass_(selectedClass)) {
+        var shariaWeekKey = selectedDate ? getWeekKey(selectedDate) : selectedWeekKey;
+        weeklySheetRows_ = getAnalysisRecords(studentName, selectedClass, shariaWeekKey).filter(function (record) {
+            return !selectedDate || String(record.dateISO || '').slice(0, 10) === selectedDate;
+        }).sort(function (a, b) { return String(a.dateISO || '').localeCompare(String(b.dateISO || '')); });
+        var shariaHeaders = ['التاريخ', 'اليوم', 'اسم الطالب/الطالبة', 'الحضور / 10', 'السلوك / 10', 'المقرر', 'درجة الامتحان / 100'];
+        thead.innerHTML = '<tr>' + shariaHeaders.map(function (label) { return '<th>' + escapeHtml(label) + '</th>'; }).join('') + '</tr>';
+        if (!weeklySheetRows_.length) {
+            tbody.innerHTML = '<tr><td colspan="7">' + (selectedDate ? 'لا توجد تسجيلات في هذا اليوم للطالب المختار.' : 'لا توجد تسجيلات لهذا الأسبوع للطالب المختار.') + '</td></tr>';
+            return;
+        }
+        var shariaDayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        tbody.innerHTML = weeklySheetRows_.map(function (record) {
+            var dateValue = String(record.dateISO || '').slice(0, 10);
+            var parsedDate = new Date(dateValue + 'T12:00:00');
+            var dayName = record.dayName || (Number.isFinite(parsedDate.getTime()) ? shariaDayNames[parsedDate.getDay()] : '-');
+            var isAbsent = !!record.absent || Number(record.attendance || 0) === 0;
+            var absenceStyle = isAbsent ? ' style="color:#c62828;font-weight:900;background:#fff3f3;"' : '';
+            return '<tr><td' + absenceStyle + '>' + escapeHtml(dateValue || '-') + '</td><td' + absenceStyle + '><strong>' +
+                escapeHtml(isAbsent ? dayName + ' (غياب)' : dayName) + '</strong></td><td><strong>' + escapeHtml(record.studentName || '-') +
+                '</strong></td><td>' + escapeHtml(record.attendance == null ? 0 : record.attendance) + '</td><td>' +
+                escapeHtml(record.behavior == null ? 0 : record.behavior) + '</td><td>' + escapeHtml(record.subject || '-') + '</td><td>' +
+                escapeHtml(record.examScore == null ? 0 : record.examScore) + '</td></tr>';
+        }).join('');
+        return;
+    }
+    var fifth = isFifthClass(selectedClass);
+    var displayRecordedValue = function (value) { return value == null || String(value).trim() === '' ? '-' : value; };
+    var fixedColumns = [
+        { key: 'attendance', label: 'الحضور / 10', read: function (r) { return r.attendance == null ? 0 : r.attendance; } },
+        { key: 'behavior', label: 'السلوك / 10', read: function (r) { return r.behavior == null ? 0 : r.behavior; } }
+    ];
+    var studyGroups = [];
+    if (!fifth) {
+        studyGroups.push({
+            columns: [
+                { key: 'newLesson', label: 'الجديد / 10', read: function (r) { return r.newLesson == null ? 0 : r.newLesson; } },
+                { key: 'newTopicToday', label: 'مقرر الجديد اليوم', read: function (r) { return displayRecordedValue(r.newTopicToday || r.newTopicText); } },
+                { key: 'newTopicRecited', label: 'مقرر الجديد الذي تم تسميعه', read: function (r) { return displayRecordedValue(r.newTopicRecited); } },
+                { key: 'newPagesCount', label: 'صفحات الجديد', read: function (r) { return displayRecordedValue(r.newPagesCount); } },
+                { key: 'newRecitationCount', label: 'مرات تسميع الجديد', read: function (r) { return displayRecordedValue(r.newRecitationCount); } }
+            ]
+        });
+        studyGroups.push({
+            columns: [
+                { key: 'oldRevision', label: 'الماضي / 10', read: function (r) { return r.oldRevision == null ? 0 : r.oldRevision; } },
+                { key: 'oldTopicToday', label: 'مقرر الماضي اليوم', read: function (r) { return displayRecordedValue(r.oldTopicToday || r.oldTopicText); } },
+                { key: 'oldTopicRecited', label: 'مقرر الماضي الذي تم تسميعه', read: function (r) { return displayRecordedValue(r.oldTopicRecited); } },
+                { key: 'oldPagesCount', label: 'صفحات الماضي', read: function (r) { return displayRecordedValue(r.oldPagesCount); } },
+                { key: 'oldRecitationCount', label: 'مرات تسميع الماضي', read: function (r) { return displayRecordedValue(r.oldRecitationCount); } }
+            ]
+        });
+    }
+    studyGroups.push({
+        columns: [
+            { key: 'recitation', label: 'التلاوة / 10', read: function (r) { return r.recitation == null ? 0 : r.recitation; } },
+            { key: 'recitationTopicToday', label: 'مقرر التلاوة اليوم', read: function (r) { return displayRecordedValue(r.recitationTopicToday || r.recitationTopic); } },
+            { key: 'recitationTopicRecited', label: 'مقرر التلاوة الذي تم تسميعه', read: function (r) { return displayRecordedValue(r.recitationTopicRecited); } },
+            { key: 'recitationPagesCount', label: 'صفحات/أجزاء التلاوة', read: function (r) { return displayRecordedValue(r.recitationPagesCount); } },
+            { key: 'recitationRecitationCount', label: 'مرات تسميع التلاوة', read: function (r) { return displayRecordedValue(r.recitationRecitationCount); } }
+        ]
+    });
+    var tailColumns = [
+        { key: 'homework', label: 'الواجب / 10', read: function (r) { return r.homework == null ? 0 : r.homework; } },
+        { key: 'tajweed', label: 'التجويد / 10', read: function (r) { return r.tajweed == null ? 0 : r.tajweed; } },
+        { key: 'total', label: 'المجموع', read: function (r) { return "".concat(getDailyTotal(r), " / ").concat(getDailyMax(selectedClass)); } }
+    ];
+    var groupedColumns = studyGroups.reduce(function (all, group) { return all.concat(group.columns); }, []);
+    var columns = fixedColumns.concat(groupedColumns, tailColumns);
+    var headers = ['التاريخ', 'اليوم', 'اسم الطالب/الطالبة'];
+    headers = headers.concat(columns.map(function (column) { return column.label; }));
+    thead.innerHTML = '<tr>' + headers.map(function (label) { return '<th>' + escapeHtml(label) + '</th>'; }).join('') + '</tr>';
+    weeklySheetRows_ = dailyRecords.filter(function (record) {
+        return record.className === selectedClass && record.studentName === studentName && record.dateISO &&
+            (selectedDate ? String(record.dateISO) === selectedDate : getWeekKey(record.dateISO) === selectedWeekKey);
+    }).slice().sort(function (a, b) {
+        return String(a.dateISO).localeCompare(String(b.dateISO)) || String(a.studentName || '').localeCompare(String(b.studentName || ''), 'ar');
+    });
+    if (!weeklySheetRows_.length) {
+        tbody.innerHTML = '<tr><td colspan="' + (3 + columns.length) + '">' +
+            (selectedDate ? 'لا توجد تسجيلات في هذا اليوم للطالب المختار.' : 'لا توجد تسجيلات لهذا الأسبوع للطالب المختار.') + '</td></tr>';
+        return;
+    }
+    var dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    tbody.innerHTML = weeklySheetRows_.map(function (record, index) {
+        var dateValue = String(record.dateISO || '');
+        var parsedDate = new Date(dateValue + 'T12:00:00');
+        var dayName = record.dayName || (Number.isFinite(parsedDate.getTime()) ? dayNames[parsedDate.getDay()] : '-');
+        var isAbsent = !!record.isAbsent || !!record.absent || String(record.attendanceStatus || '').toLowerCase() === 'absent';
+        var absenceStyle = isAbsent ? ' style="color:#c62828;font-weight:900;background:#fff3f3;"' : '';
+        var displayedDayName = isAbsent ? "".concat(dayName, " (غياب)") : dayName;
+        var cells = columns.map(function (column) {
+            var value = column.read(record);
+            if (column.key !== 'behavior')
+                return '<td>' + escapeHtml(value) + '</td>';
+            var behaviorScore = Number(value) || 0;
+            var reason = studentBehaviorReasonText_(record);
+            var reasonButton = reason || behaviorScore < 10
+                ? '<button type="button" class="behavior-reason-icon" title="عرض سبب خصم السلوك" aria-label="عرض سبب خصم السلوك" style="appearance:none;border:0!important;background:transparent!important;padding:0 3px;color:#2563eb!important;font:inherit;" onclick="showWeeklySheetBehaviorReason(' + index + ')">ⓘ</button>'
+                : '';
+            return '<td>' + escapeHtml(value) + reasonButton + '</td>';
+        }).join('');
+        return '<tr><td' + absenceStyle + '>' + escapeHtml(dateValue || '-') + '</td><td' + absenceStyle + '><strong>' + escapeHtml(displayedDayName) + '</strong></td><td><strong>' +
+            escapeHtml(record.studentName || '-') + '</strong></td>' + cells + '</tr>';
+    }).join('');
+}
+function clearWeeklySheetDateFilter() {
+    var dateFilter = document.getElementById('weeklySheetDateFilter');
+    if (dateFilter) dateFilter.value = '';
+    renderWeeklySheetTable();
 }
 function getMonthWorkingDays(year, month) {
     var workingDays = [];
@@ -6256,10 +6520,6 @@ function studentBehaviorHistoryMarkup_(records){
         '<div style="font-size:.8em;color:var(--danger-color);margin-top:4px;">'+studentEscapeHtml_(reason || ('تم خصم '+Math.max(0,10-score)+' درجات'))+'</div></div>';
     }).join('')+'</div>';
 }
-function closeStudentPortalFullscreen_() {
-    var area = document.getElementById('studentPortalArea');
-    if (area) area.classList.remove('student-portal-fullscreen');
-}
 function showStudentBehaviorReason_(dateValue, scoreValue, encodedReason) {
     var reason = '';
     try { reason = decodeURIComponent(encodedReason || ''); } catch (_) { reason = encodedReason || ''; }
@@ -6303,8 +6563,7 @@ function renderStudentPortalGradeTable_(area, stats) {
     }
     var weekTable = tableMarkup(stats.weekRecords, '📅 درجات الأسبوع الحالي', 'لا توجد درجات مسجلة خلال الأسبوع الحالي.');
     var monthTable = tableMarkup(stats.monthRecords, '📊 درجات الشهر الحالي', 'لا توجد درجات مسجلة خلال الشهر الحالي.');
-    area.insertAdjacentHTML('afterbegin', '<div class="student-portal-fullscreen-toolbar"><strong>كشف درجات الطالب</strong><button type="button" class="action-btn btn-danger" onclick="closeStudentPortalFullscreen_()">✕ إغلاق العرض الكامل</button></div>' + weekTable + monthTable);
-    area.classList.add('student-portal-fullscreen');
+    area.insertAdjacentHTML('beforeend', weekTable + monthTable);
 }
 function studentLogin() {
     var input = document.getElementById('studentLoginCode');
