@@ -928,10 +928,11 @@
 <div class="analysis-time-card" style="margin-top:18px;">
 <h4>🗂️ شيتة الأسبوع للطالب المختار</h4>
 <div id="weekly-sheet-selected-student" class="student-analysis-muted">اختر الطالب والأسبوع من أعلى التحليل، أو حدد تاريخًا لعرض يوم واحد.</div>
-<div class="form-grid" style="grid-template-columns:minmax(220px,320px) minmax(200px,1fr);align-items:end;margin-top:12px;">
+<div class="form-grid weekly-sheet-controls">
 <div class="form-group">
 <label for="weeklySheetDateFilter">تاريخ يوم محدد (اليوم والشهر)</label>
-<input id="weeklySheetDateFilter" type="date" onchange="renderWeeklySheetTable()"/>
+<input id="weeklySheetDateFilter" type="date" aria-label="اختر تاريخ اليوم المطلوب عرضه" onchange="renderWeeklySheetTable()"/>
+<small class="weekly-sheet-date-hint" id="weeklySheetDateHint" aria-live="polite">اختر تاريخًا لعرض يوم واحد، واترك الحقل فارغًا لعرض الأسبوع كاملًا.</small>
 </div>
 <div class="form-group">
 <button class="action-btn modal-cancel" onclick="clearWeeklySheetDateFilter()" type="button">عرض الأسبوع كاملًا</button>

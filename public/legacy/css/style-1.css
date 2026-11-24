@@ -644,6 +644,14 @@ body.supervisor-mode #notes-tab #notesExportBtn{display:none!important}
 .analysis-table{min-width:780px;width:100%;border-collapse:collapse;}
 .analysis-table th, .analysis-table td{padding:9px 8px;border-bottom:1px solid var(--border-soft);text-align:center;}
 .analysis-table th{position:static;}
+.weekly-sheet-controls{grid-template-columns:minmax(0,320px) minmax(0,1fr);align-items:end;margin-top:12px;}
+.weekly-sheet-controls .form-group{min-width:0;}
+.weekly-sheet-controls .action-btn{width:100%;min-width:0;white-space:normal;line-height:1.5;}
+.weekly-sheet-controls input[type="date"]{display:block;width:100%;min-width:0;min-height:48px;box-sizing:border-box;direction:ltr;text-align:left;color:var(--ink);color-scheme:light;}
+.weekly-sheet-date-hint{display:block;margin-top:6px;color:var(--text-muted);font-size:.78rem;line-height:1.6;}
+#weeklySheetTable{direction:rtl;}
+#weeklySheetTable th:first-child,#weeklySheetTable td:first-child{position:sticky;right:0;z-index:2;min-width:118px;background:var(--surface);box-shadow:-4px 0 8px rgba(15,61,51,.1);}
+#weeklySheetTable thead th:first-child{z-index:3;background:linear-gradient(135deg,var(--brand-dark-2),var(--primary-dark));color:var(--on-dark-gold);}
 .analysis-charts-title{margin:22px 0 12px;color:var(--accent-gold-light);font-family:'Amiri',serif;font-size:1.35em;font-weight:800;border-bottom:1px dashed var(--accent-gold);padding-bottom:7px;}
 .analysis-charts-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
 .analysis-chart-card{background:var(--surface);border:1px solid var(--border-soft);border-top:4px solid var(--primary-color);border-radius:16px;padding:12px;min-width:0;}
@@ -658,6 +666,7 @@ body.supervisor-mode #notes-tab #notesExportBtn{display:none!important}
   .student-analysis-filters{grid-template-columns:1fr 1fr;}
   .analysis-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .analysis-charts-grid{grid-template-columns:1fr;}
+  .weekly-sheet-controls{grid-template-columns:minmax(0,1fr);}
 }
 @media(max-width:430px){
   .student-analysis-filters{grid-template-columns:1fr;}

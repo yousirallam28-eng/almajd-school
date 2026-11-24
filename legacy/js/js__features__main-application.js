@@ -4350,6 +4350,11 @@ function renderWeeklySheetTable() {
     var selectedClass = classSelect.value;
     var studentName = studentSelect.value;
     var selectedDate = (document.getElementById('weeklySheetDateFilter') || {}).value || '';
+    var dateHint = document.getElementById('weeklySheetDateHint');
+    if (dateHint)
+        dateHint.textContent = selectedDate
+            ? "التاريخ المحدد: ".concat(selectedDate.split('-').reverse().join('/'))
+            : 'لا يوجد يوم محدد — يتم عرض الأسبوع كاملًا.';
     if (!selectedClass || !studentName || (!selectedWeekKey && !selectedDate)) {
         weeklySheetRows_ = [];
         if (selectedStudentLabel)
