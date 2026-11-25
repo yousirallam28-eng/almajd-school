@@ -11,6 +11,8 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="معهد المجد" name="apple-mobile-web-app-title"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="almajd-logo-round.png"/>
 <!-- خطوط عربية أصيلة -->
 <!-- مكتبة تصدير الإكسل SheetJS -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -42,8 +44,10 @@
 <link rel="stylesheet" href="legacy/css/sharia-mode-style.js.css" id="sharia-mode-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/sharia-simple-daily-style.js.css" id="sharia-simple-daily-style" onerror="this.onerror=null;this.href='public/'+this.getAttribute('href')">
 <link rel="stylesheet" href="legacy/css/button-press-feedback.css?v=3" id="button-press-feedback" onerror="this.onerror=null;this.href='public/legacy/css/button-press-feedback.css?v=3'">
+<link rel="stylesheet" href="legacy/css/install-app-prompt.css" id="install-app-prompt-style" onerror="this.onerror=null;this.href='public/legacy/css/install-app-prompt.css'">
 </head>
 <body class="login-screen-active" data-standalone="normal">
+<button aria-label="تثبيت التطبيق" class="install-app-btn" hidden id="installAppBtn" onclick="installSiteApp()" type="button">📲 تثبيت التطبيق</button>
 <!-- نوافذ الموقع الداخلية: لا تستخدم نوافذ المتصفح confirm/prompt/alert -->
 <div aria-hidden="true" class="site-modal" id="siteModal">
 <div aria-modal="true" class="site-modal-box" role="dialog">

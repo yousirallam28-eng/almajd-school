@@ -123,3 +123,22 @@ test('buttons use orange feedback in the new appearance and golden yellow in the
   assert.equal(fallbackFeedback, feedback);
   assert.match(feedback, /:focus-visible/);
 });
+
+test('PWA install control is available on desktop and mobile and hides after installation', () => {
+  const manifest = readFileSync(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8');
+  const serviceWorker = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
+  const installCode = readFileSync(new URL('../public/legacy/js/js__features__install-app-prompt.js', import.meta.url), 'utf8');
+  const installStyles = readFileSync(new URL('../public/legacy/css/install-app-prompt.css', import.meta.url), 'utf8');
+  assert.match(html, /rel="manifest" href="manifest\.webmanifest"/);
+  assert.match(html, /class="install-app-btn"[^>]*hidden/);
+  assert.match(manifest, /"display": "standalone"/);
+  assert.match(manifest, /"start_url": "\.\/"/);
+  assert.match(serviceWorker, /addEventListener\('fetch'/);
+  assert.match(installCode, /beforeinstallprompt/);
+  assert.match(installCode, /btn\.hidden = installed/);
+  assert.match(installCode, /appinstalled/);
+  assert.match(installCode, /serviceWorker\.register\('sw\.js'/);
+  assert.match(installStyles, /position: fixed/);
+  assert.match(installStyles, /left: max/);
+  assert.match(installStyles, /@media \(max-width: 600px\)/);
+});
