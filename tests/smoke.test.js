@@ -35,6 +35,18 @@ test('selected sheikh date range skips Friday and Saturday', () => {
   assert.match(sheikhCode, /dayOfWeek !== 5 && dayOfWeek !== 6/);
 });
 
+test('sheikh Excel exports include daily details, times, and orange incomplete rows', () => {
+  const publicCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  const liveCode = readFileSync(new URL('../legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  assert.match(publicCode, /function formatSheikhExcelTime_\(seconds\)/);
+  assert.match(publicCode, /'وقت الجديد'.*'وقت الماضي'.*'وقت التلاوة'/s);
+  assert.match(publicCode, /'حالة التفاصيل'/);
+  assert.match(publicCode, /FCE4D6/);
+  assert.match(publicCode, /makeSheikhDetailedExcelSheet_\(rows\)/);
+  const exportSection = (code) => code.slice(code.indexOf('function exportSheikhRegistrationExcel() {'), code.indexOf('function isFifthClass(className) {'));
+  assert.equal(exportSection(publicCode), exportSection(liveCode), 'Excel export sections must stay synchronized');
+});
+
 test('student code portal shows full-screen daily grades and behavior reason action', () => {
   const portalCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
   const styles = readFileSync(new URL('../public/legacy/css/style-1.css', import.meta.url), 'utf8');
