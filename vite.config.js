@@ -11,8 +11,7 @@ export default defineConfig({
     assetsInlineLimit: 4096,
     rollupOptions: {
       input: {
-        main: resolve(projectRoot, 'index.html'),
-        wafdeen: resolve(projectRoot, 'wafdeen.html')
+        main: resolve(projectRoot, 'index.html')
       },
       output: {
         manualChunks: {

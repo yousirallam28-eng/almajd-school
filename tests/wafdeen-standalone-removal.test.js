@@ -1,22 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
-const html = read('wafdeen.html');
-const publicHtml = read('public/wafdeen.html');
 const config = read('wafdeen/js/supabase-config.js');
-const sourceAssets = readdirSync(resolve(root, 'wafdeen/js')).filter((name) => name.endsWith('.js'));
-const publicAssets = readdirSync(resolve(root, 'public/wafdeen/js')).filter((name) => name.endsWith('.js'));
-const legacyPatterns = [
-  new RegExp(['fire', 'base'].join(''), 'i'),
-  new RegExp(['fire', 'store'].join(''), 'i'),
-  new RegExp(['fire', 'base', 'storage'].join(''), 'i')
-];
 
 function settingLine(source, name) {
   return source.match(new RegExp(`^var ${name} = .+$`, 'm'))?.[0] || '';
@@ -31,33 +22,13 @@ const verifiedSettingDigests = Object.freeze({
   SUPABASE_RECORDS_TABLE: '802d5aa10c485eb8fd6b479426c7913866c0281b0651100bc3dd0c089978a902'
 });
 
-test('the Wafdeen page and all of its local assets exclude the old cloud implementation', () => {
-  assert.equal(html, publicHtml, 'source and public page copies must stay identical');
-  const files = [
-    ['wafdeen.html', html],
-    ['public/wafdeen.html', publicHtml],
-    ...sourceAssets.map((name) => [`wafdeen/js/${name}`, read(`wafdeen/js/${name}`)]),
-    ...publicAssets.map((name) => [`public/wafdeen/js/${name}`, read(`public/wafdeen/js/${name}`)])
-  ];
-  for (const [filename, contents] of files) {
-    for (const pattern of legacyPatterns) assert.doesNotMatch(contents, pattern, `${filename} contains a removed cloud marker`);
-  }
-  assert.match(html, /@supabase\/supabase-js@2/);
-  assert.match(html, /src="\.\/src\/features\/wafdeen\/standalone-entry\.js"/);
-  assert.match(read('src/features/wafdeen/standalone-entry.js'), /wafdeen-classic-assets-ready/);
-  assert.match(read('wafdeen/js/script-09.js'), /__WAFDEEN_CLASSIC_ASSETS_READY__/);
-  assert.doesNotMatch(html, /wafdeen-panel-cloudReview/);
-  assert.match(html, /الدرجات التاريخية/);
-  assert.match(html, /wafdeen-open-grades/);
-  assert.match(html, /wafdeen-historical-grades-table/);
-  assert.match(html, /wafdeen-open-report/);
-  assert.match(html, /لا يتضمن المسار أسماء الطلاب/);
-  assert.match(html, /المسار لا يعيد اسم المادة أو معرف الطالب/);
-  assert.doesNotMatch(html, /التقارير اليومية والأسبوعية والشهرية غير متاحة/);
-  assert.match(html, /تُضاف الأسماء إلى قائمة الوافدين فقط/);
-  assert.doesNotMatch(html, /wafdeenNewStudentPass/);
-  assert.match(html, /wafdeenNewTeacherClass/);
-  assert.match(html, /wafdeenNewTeacherCenter/);
+test('the Wafdeen page has been removed from navigation and build inputs', () => {
+  const index = read('index.html');
+  const vite = read('vite.config.js');
+  assert.doesNotMatch(index, /href="wafdeen\.html"|موقع الوافدين/);
+  assert.equal(existsSync(resolve(root, 'wafdeen.html')), false);
+  assert.equal(existsSync(resolve(root, 'public/wafdeen.html')), false);
+  assert.doesNotMatch(vite, /wafdeen:\s*resolve\(projectRoot, 'wafdeen\.html'\)/);
 });
 
 test('the Supabase URL, key and table settings retain the verified main values', () => {
@@ -68,15 +39,15 @@ test('the Supabase URL, key and table settings retain the verified main values',
   }
   assert.match(config, /window\.supabase\.createClient\(SUPABASE_URL, SUPABASE_ANON_KEY\)/);
   assert.equal(read('wafdeen/js/supabase-config.js'), read('public/wafdeen/js/supabase-config.js'));
-  assert.match(html, /https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2/);
 });
 
-test('teacher account form offers only class and center options accepted by the current API', () => {
+test('Wafdeen account API retains its supported teacher classes and centers', () => {
   const admin = read('supabase/functions/majd-api/wafdeen_admin.js');
   const classesBlock = admin.match(/const ALLOWED_CLASSES = new Set\(\[([\s\S]*?)\]\);/)?.[1] || '';
   const centersBlock = admin.match(/const ALLOWED_CENTERS = new Set\(\[([\s\S]*?)\]\);/)?.[1] || '';
   const allowedClasses = [...classesBlock.matchAll(/'([^']+)'/g)].map((match) => match[1]);
   const allowedCenters = [...centersBlock.matchAll(/'([^']+)'/g)].map((match) => match[1]);
   assert.ok(allowedClasses.length > 0 && allowedCenters.length > 0);
-  for (const value of [...allowedClasses, ...allowedCenters]) assert.ok(html.includes(`>${value}</option>`), `missing supported option ${value}`);
+  assert.match(admin, /ALLOWED_CLASSES/);
+  assert.match(admin, /ALLOWED_CENTERS/);
 });

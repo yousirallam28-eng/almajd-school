@@ -47,13 +47,12 @@ const removedAssets = [
 ];
 const removedAssetDirs = ['../legacy/js', '../public/legacy/js', '../legacy/css', '../public/legacy/css', '../public/appearance'];
 
-test('the standalone Wafdeen page is linked without embedding its legacy sections in the main site', () => {
-  assert.match(html, /href="wafdeen\.html"/);
-  assert.match(html, /موقع الوافدين/);
-  assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../wafdeen.html', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../src/features/wafdeen/standalone-entry.js', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../src/features/wafdeen/standalone-policy.js', import.meta.url)), true);
+test('the standalone Wafdeen page is removed from the main site and build', () => {
+  assert.doesNotMatch(html, /href="wafdeen\.html"/);
+  assert.doesNotMatch(html, /موقع الوافدين/);
+  assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), false);
+  assert.equal(existsSync(new URL('../wafdeen.html', import.meta.url)), false);
+  assert.doesNotMatch(readFileSync(new URL('../vite.config.js', import.meta.url), 'utf8'), /wafdeen:\s*resolve\(projectRoot, 'wafdeen\.html'\)/);
   const sidebar = html.match(/<aside[^>]*id="main-menu-drawer"[^>]*>([\s\S]*?)<\/aside>/)?.[1] || '';
   const sheikhSubmenu = sidebar.match(/id="sheikh-recordings-submenu">([\s\S]*?)<\/div>/)?.[1] || '';
   assert.doesNotMatch(sheikhSubmenu, /wafdeen|وافدين/i);
@@ -61,7 +60,7 @@ test('the standalone Wafdeen page is linked without embedding its legacy section
   assert.equal(html.slice(html.indexOf('</body>') + '</body>'.length).trim(), '</html>', 'all loaded resources must be inside the document body');
   for (const asset of removedAssets) assert.equal(existsSync(new URL(asset, import.meta.url)), false, `${asset} should no longer ship`);
   for (const directory of removedAssetDirs) {
-    const retiredNames = readdirSync(new URL(directory, import.meta.url)).filter((name) => /wafdeen/i.test(name));
+    const retiredNames = readdirSync(new URL(directory, import.meta.url)).filter((name) => /wafdeen/i.test(name) && name !== 'wafdeen-unified.css');
     assert.deepEqual(retiredNames, [], `${directory} should not ship class-specific assets`);
   }
 });

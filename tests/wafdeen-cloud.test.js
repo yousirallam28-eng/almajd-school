@@ -35,14 +35,14 @@ test('class-specific cloud hydration and write adapters are no longer exposed', 
   assert.doesNotMatch(bridge, /(?:writeRecord|deleteRecord)\(['"]wafdeen/i, 'the page no longer issues class-specific data mutations');
 });
 
-test('Wafdeen standalone site is linked from the main login while cloud adapters remain protected', () => {
-  assert.match(indexHtml, /href="wafdeen\.html"/);
-  assert.match(indexHtml, /موقع الوافدين/);
+test('Wafdeen page is removed from navigation while cloud adapters remain protected', () => {
+  assert.doesNotMatch(indexHtml, /href="wafdeen\.html"/);
+  assert.doesNotMatch(indexHtml, /موقع الوافدين/);
   assert.doesNotMatch(mainEntrySource, /features\/wafdeen/);
   assert.doesNotMatch(routerSource, /wafdeen|وافدين/i);
-  assert.match(viteSource, /wafdeen:\s*resolve\(projectRoot, 'wafdeen\.html'\)/);
-  assert.equal(existsSync(new URL('../wafdeen.html', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), true);
+  assert.doesNotMatch(viteSource, /wafdeen:\s*resolve\(projectRoot, 'wafdeen\.html'\)/);
+  assert.equal(existsSync(new URL('../wafdeen.html', import.meta.url)), false);
+  assert.equal(existsSync(new URL('../public/wafdeen.html', import.meta.url)), false);
   assert.match(reportApiSource, /purpose: 'report'/);
   assert.doesNotMatch(reportApiSource, /wafdeen-sessions\.api|createWafdeenSession|purpose: 'daily'|studentName/);
   assert.doesNotMatch(adminApiSource, /teacher\?\.password|password_hash|password_salt/i);
