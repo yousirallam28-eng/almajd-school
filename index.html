@@ -277,14 +277,16 @@
 <button class="daily-type-btn" data-type="recitation" onclick="selectDailyTimerType('recitation')" type="button">التلاوة<span class="daily-type-time" id="dailyTypeTime-recitation">لم يُسجل بعد</span></button>
 </div>
 <div class="daily-selected-timer-box" id="dailySelectedTimerBox">
-<div class="daily-selected-timer-label" id="dailySelectedTimerLabel">⏱️ تايمر الجديد</div>
+<div class="daily-selected-timer-label" id="dailySelectedTimerLabel">✍️ وقت الجديد</div>
 <div class="daily-timer-display daily-selected-timer-display" id="dailyTimerDisplay">00:00:00</div>
+<div aria-label="إدخال وقت التسميع يدويًا" class="daily-manual-time-fields" dir="ltr">
+<label class="daily-manual-time-field" for="dailyTimeHours"><span>ساعة</span><input id="dailyTimeHours" inputmode="numeric" max="99" min="0" oninput="updateDailyManualTime()" step="1" type="number" value="0"/></label>
+<label class="daily-manual-time-field" for="dailyTimeMinutes"><span>دقيقة</span><input id="dailyTimeMinutes" inputmode="numeric" max="59" min="0" oninput="updateDailyManualTime()" step="1" type="number" value="0"/></label>
+<label class="daily-manual-time-field" for="dailyTimeSeconds"><span>ثانية</span><input id="dailyTimeSeconds" inputmode="numeric" max="59" min="0" oninput="updateDailyManualTime()" step="1" type="number" value="0"/></label>
+</div>
+<div class="daily-score-note" style="text-align:center;">اكتب وقت التسميع يدويًا بالساعات والدقائق والثواني، ثم احفظ الدرجة.</div>
 </div>
 <div class="daily-type-status" id="dailyTimerStatus">جاهز لتسميع الجديد</div>
-<div class="daily-timer-actions">
-<button class="action-btn btn-save" onclick="startDailyTimer()" type="button">بدء</button>
-<button class="action-btn btn-warning" onclick="pauseDailyTimer()" type="button">استراحة</button>
-</div>
 </div>
 <div class="daily-scores-card">
 <h3 class="daily-scores-title">📝 الدرجات العادية</h3>

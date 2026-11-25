@@ -2748,6 +2748,7 @@ var dailyTimerStartedAt = 0;
 var dailyTimerBaseSeconds = 0;
 var dailyTimerInterval = null;
 var dailyTimerSeconds = { new: 0, old: 0, recitation: 0 };
+var dailyManualTimeInvalid_ = false;
 var dailyActiveStudentKey_ = '';
 var dailyTimerDrafts_ = {};
 var dailyErrorCounters = {
@@ -2785,12 +2786,53 @@ function renderDailyTimer() {
     var display = document.getElementById('dailyTimerDisplay');
     if (display)
         display.textContent = formatTimerSeconds(now);
+    var hoursInput = document.getElementById('dailyTimeHours');
+    var minutesInput = document.getElementById('dailyTimeMinutes');
+    var secondsInput = document.getElementById('dailyTimeSeconds');
+    var parts = [Math.floor(now / 3600), Math.floor((now % 3600) / 60), now % 60];
+    [hoursInput, minutesInput, secondsInput].forEach(function (input, index) {
+        if (input && document.activeElement !== input) input.value = String(parts[index]);
+        if (input && !dailyManualTimeInvalid_) input.setAttribute('aria-invalid', 'false');
+    });
     var label = document.getElementById('dailySelectedTimerLabel');
     if (label)
-        label.textContent = "\u23F1\uFE0F \u062A\u0627\u064A\u0645\u0631 ".concat(selectedName);
+        label.textContent = "\u270D\uFE0F \u0648\u0642\u062A ".concat(selectedName);
     var status = document.getElementById('dailyTimerStatus');
     if (status)
-        status.textContent = dailyTimerRunning ? "\u23F1\uFE0F \u062C\u0627\u0631\u064D \u0627\u062D\u062A\u0633\u0627\u0628 \u0648\u0642\u062A ".concat(selectedName) : (now > 0 ? "\u23F8\uFE0F \u0648\u0642\u062A ".concat(selectedName, " \u0645\u062A\u0648\u0642\u0641 \u0645\u0624\u0642\u062A\u064B\u0627") : "\u062C\u0627\u0647\u0632 \u0644\u062A\u0633\u0645\u064A\u0639 ".concat(selectedName));
+        status.textContent = now > 0 ? "\u2705 \u0627\u0644\u0648\u0642\u062A \u0627\u0644\u0645\u0643\u062A\u0648\u0628: ".concat(formatTimerSeconds(now), " \u2014 \u0633\u064A\u064F\u062D\u0641\u0638 \u0645\u0639 \u0627\u0644\u062F\u0631\u062C\u0629") : "\u0627\u0643\u062A\u0628 \u0648\u0642\u062A ".concat(selectedName, " \u064A\u062F\u0648\u064A\u064B\u0627");
+}
+function updateDailyManualTime() {
+    var fields = [
+        document.getElementById('dailyTimeHours'),
+        document.getElementById('dailyTimeMinutes'),
+        document.getElementById('dailyTimeSeconds')
+    ];
+    var values = fields.map(function (field) { return field ? String(field.value || '').trim() : ''; });
+    var limits = [99, 59, 59];
+    var invalid = values.some(function (value, index) {
+        if (!value) return false;
+        var number = Number(value);
+        return !/^\d+$/.test(value) || !Number.isInteger(number) || number < 0 || number > limits[index];
+    });
+    dailyManualTimeInvalid_ = invalid;
+    fields.forEach(function (field) { if (field) field.setAttribute('aria-invalid', String(invalid)); });
+    var status = document.getElementById('dailyTimerStatus');
+    if (invalid) {
+        if (status) status.textContent = '\u0627\u0644\u0633\u0627\u0639\u0627\u062A \u062D\u062A\u0649 99\u060C \u0648\u0627\u0644\u062F\u0642\u0627\u0626\u0642 \u0648\u0627\u0644\u062B\u0648\u0627\u0646\u064A \u0628\u064A\u0646 0 \u064859.';
+        return false;
+    }
+    var parts = values.map(function (value) { return value ? Number(value) : 0; });
+    var total = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    dailyTimerSeconds[dailyTimerType] = total;
+    dailyTimerBaseSeconds = total;
+    var display = document.getElementById('dailyTimerDisplay');
+    if (display) display.textContent = formatTimerSeconds(total);
+    dailySaveTimerDraft_();
+    updateDailyTypeTimes();
+    var summary = document.getElementById('daily-score-time-summary');
+    if (summary) summary.textContent = "\u0627\u0644\u062C\u062F\u064A\u062F: ".concat(formatTimerSeconds(dailyTimerSeconds.new || 0), " | \u0627\u0644\u0645\u0627\u0636\u064A: ").concat(formatTimerSeconds(dailyTimerSeconds.old || 0), " | \u0627\u0644\u062A\u0644\u0627\u0648\u0629: ").concat(formatTimerSeconds(dailyTimerSeconds.recitation || 0));
+    if (status) status.textContent = total ? "\u2705 \u0627\u0644\u0648\u0642\u062A \u0627\u0644\u0645\u0643\u062A\u0648\u0628: ".concat(formatTimerSeconds(total), " \u2014 \u0633\u064A\u064F\u062D\u0641\u0638 \u0645\u0639 \u0627\u0644\u062F\u0631\u062C\u0629") : "\u0627\u0643\u062A\u0628 \u0648\u0642\u062A ".concat(dailyTypeLabel_(dailyTimerType), " \u064A\u062F\u0648\u064A\u064B\u0627");
+    return true;
 }
 function updateDailyTypeTimes() {
     Object.keys(dailyTimerSeconds).forEach(function (type) {
@@ -2805,6 +2847,7 @@ function updateDailyTypeTimes() {
     });
 }
 function selectDailyTimerType(type) {
+    if (dailyManualTimeInvalid_) return showMessage('app-msg', '\u0635\u062D\u062D \u0627\u0644\u0648\u0642\u062A \u0627\u0644\u0645\u0643\u062A\u0648\u0628 \u0642\u0628\u0644 \u062A\u063A\u064A\u064A\u0631 \u0646\u0648\u0639 \u0627\u0644\u062A\u0633\u0645\u064A\u0639.', 'error');
     if (!['new', 'old', 'recitation'].includes(type))
         type = 'new';
     // السماح بالتنقل بين الجديد والماضي والتلاوة أثناء تشغيل التايمر.
@@ -3096,6 +3139,7 @@ function showDailyStudentWorkspace() {
     if (dailyActiveStudentKey_ && nextKey !== dailyActiveStudentKey_) {
         dailyPauseForStudentSwitch_();
     }
+    dailyManualTimeInvalid_ = false;
     var ws = document.getElementById('daily-workspace');
     if (!student) {
         if (ws)
@@ -3150,17 +3194,7 @@ function showDailyStudentWorkspace() {
     renderDailyTimer();
 }
 function startDailyTimer() {
-    var _a;
-    if (!((_a = document.getElementById('studentNameSelect')) === null || _a === void 0 ? void 0 : _a.value))
-        return showMessage('app-msg', 'اختر اسم الطالب أولاً.', 'error');
-    if (dailyTimerRunning)
-        return;
-    dailyTimerBaseSeconds = dailyTimerSeconds[dailyTimerType] || dailyTimerBaseSeconds || 0;
-    dailyTimerStartedAt = Date.now();
-    dailyTimerRunning = true;
-    clearInterval(dailyTimerInterval);
-    dailyTimerInterval = setInterval(renderDailyTimer, 1000);
-    renderDailyTimer();
+    return showMessage('app-msg', '\u0643\u062A\u0627\u0628\u0629 \u0648\u0642\u062A \u0627\u0644\u062A\u0633\u0645\u064A\u0639 \u062A\u062A\u0645 \u064A\u062F\u0648\u064A\u064B\u0627 \u0645\u0646 \u062E\u0627\u0646\u0627\u062A \u0627\u0644\u0633\u0627\u0639\u0629 \u0648\u0627\u0644\u062F\u0642\u064A\u0642\u0629 \u0648\u0627\u0644\u062B\u0627\u0646\u064A\u0629.', 'error');
 }
 function keepDailyScroll_() {
     // الحفاظ على موضع الرصد اليومي عند الحفظ أو الاستراحة، حتى لا تقفز الصفحة إلى بدايتها.
@@ -3269,6 +3303,7 @@ async function markAbsent() {
     ['newTopicToday', 'newTopicRecited', 'oldTopicToday', 'oldTopicRecited', 'recitationTopicToday', 'recitationTopicRecited'].forEach(function (id) { var el = document.getElementById(id); if (el)
         el.value = '-'; });
     dailyTimerSeconds = { new: 0, old: 0, recitation: 0 };
+    dailyManualTimeInvalid_ = false;
     dailyTimerRunning = false;
     dailyTimerStartedAt = 0;
     dailyTimerBaseSeconds = 0;
@@ -3410,6 +3445,7 @@ function isDailyTypeSaved_(record, type) {
     return record[key] !== undefined && record[key] !== null && record[key] !== '';
 }
 function selectDailyGradeType(type) {
+    if (dailyManualTimeInvalid_) return showMessage('app-msg', '\u0635\u062D\u062D \u0627\u0644\u0648\u0642\u062A \u0627\u0644\u0645\u0643\u062A\u0648\u0628 \u0642\u0628\u0644 \u062A\u063A\u064A\u064A\u0631 \u0646\u0648\u0639 \u0627\u0644\u062A\u0633\u0645\u064A\u0639.', 'error');
     if (!['new', 'old', 'recitation'].includes(type))
         type = 'new';
     // يمكن فتح أي خانة أثناء تشغيل الوقت، مع فصل زمن كل نوع عن الآخر.
@@ -3488,9 +3524,9 @@ function validateDailyRequiredFields_(type){
     });
     var timer=document.getElementById('dailySelectedTimerBox');
     if(timer) timer.classList.remove('daily-field-missing');
-    if(Number(dailyTimerSeconds[type]||0)<=0){
+    if(dailyManualTimeInvalid_ || Number(dailyTimerSeconds[type]||0)<=0){
         if(timer) timer.classList.add('daily-field-missing');
-        missing.unshift('وقت التسميع (التايمر)');
+        missing.unshift(dailyManualTimeInvalid_ ? 'وقت التسميع (صحح الساعة أو الدقيقة أو الثانية)' : 'وقت التسميع (اكتبه يدويًا)');
     }
     if(missing.length){
         // احتفظ بنسخة قبل إظهار الرسالة، ثم أعدها بعد أي تحديث متأخر للواجهة.
@@ -3860,6 +3896,7 @@ function resetDailyEntryForm_() {
         el.classList.add('daily-auto-grade');
     } });
     dailyTimerSeconds = { new: 0, old: 0, recitation: 0 };
+    dailyManualTimeInvalid_ = false;
     dailyTimerType = 'new';
     dailyCounterType = '';
     dailyTimerRunning = false;
