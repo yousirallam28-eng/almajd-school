@@ -695,31 +695,61 @@ window.onload = function () {
     document.getElementById('mgrYearSelect').value = new Date().getFullYear();
     checkWeeklyAutoBackup();
 };
+function applySheetaExcelStyles_(table, ws) {
+    var colors = {
+        green: { fill: 'E5F6E9', font: '176B37' },
+        yellow: { fill: 'FFF6CF', font: '805D00' },
+        red: { fill: 'FFE5E2', font: 'A51D16' }
+    };
+    Array.from(table.querySelectorAll('tbody tr')).forEach(function (row, rowIndex) {
+        var band = row.classList.contains('sheeta-row-green') ? 'green' : row.classList.contains('sheeta-row-yellow') ? 'yellow' : row.classList.contains('sheeta-row-red') ? 'red' : null;
+        if (!band) return;
+        var color = colors[band];
+        Array.from(row.cells).forEach(function (_, columnIndex) {
+            var cell = ws[XLSX.utils.encode_cell({ r: rowIndex + 1, c: columnIndex })];
+            if (!cell) return;
+            cell.s = Object.assign({}, cell.s || {}, {
+                fill: { patternType: 'solid', fgColor: { rgb: color.fill } },
+                font: Object.assign({}, cell.s && cell.s.font || {}, { color: { rgb: color.font } })
+            });
+        });
+    });
+}
 function exportToExcel(tableId, filename) {
     var table = document.getElementById(tableId);
     var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
-    if (tableId === 'sheetaTable') {
-        var ws = wb.Sheets.Sheet1;
-        var colors = {
-            green: { fill: 'E5F6E9', font: '176B37' },
-            yellow: { fill: 'FFF6CF', font: '805D00' },
-            red: { fill: 'FFE5E2', font: 'A51D16' }
-        };
-        Array.from(table.querySelectorAll('tbody tr')).forEach(function (row, rowIndex) {
-            var band = row.classList.contains('sheeta-row-green') ? 'green' : row.classList.contains('sheeta-row-yellow') ? 'yellow' : row.classList.contains('sheeta-row-red') ? 'red' : null;
-            if (!band) return;
-            var color = colors[band];
-            Array.from(row.cells).forEach(function (_, columnIndex) {
-                var cell = ws[XLSX.utils.encode_cell({ r: rowIndex + 1, c: columnIndex })];
-                if (!cell) return;
-                cell.s = Object.assign({}, cell.s || {}, {
-                    fill: { patternType: 'solid', fgColor: { rgb: color.fill } },
-                    font: Object.assign({}, cell.s && cell.s.font || {}, { color: { rgb: color.font } })
-                });
-            });
-        });
-    }
+    if (tableId === 'sheetaTable') applySheetaExcelStyles_(table, wb.Sheets.Sheet1);
     XLSX.writeFile(wb, filename + ".xlsx");
+}
+function exportSheetaAllClassesExcel() {
+    var table = document.getElementById('sheetaTable');
+    var classSelect = document.getElementById('sheetaClassSelect');
+    if (!table || !classSelect) return;
+    var previousClass = classSelect.value;
+    var classes = (typeof GENERAL_CLASSES !== 'undefined' && Array.isArray(GENERAL_CLASSES) ? GENERAL_CLASSES : Array.from(classSelect.options).map(function (option) { return option.value; })).filter(Boolean);
+    var wb = XLSX.utils.book_new();
+    var usedNames = Object.create(null);
+    try {
+        classes.forEach(function (className, index) {
+            classSelect.value = className;
+            renderSheetaTable();
+            var ws = XLSX.utils.table_to_sheet(table);
+            applySheetaExcelStyles_(table, ws);
+            var baseName = String(className).replace(/[\\/*?:[\]]/g, '-').slice(0, 31) || ('فصل ' + (index + 1));
+            var sheetName = baseName;
+            var suffix = 2;
+            while (usedNames[sheetName]) {
+                var suffixText = '-' + suffix++;
+                sheetName = baseName.slice(0, 31 - suffixText.length) + suffixText;
+            }
+            usedNames[sheetName] = true;
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        });
+    } finally {
+        classSelect.value = previousClass;
+        renderSheetaTable();
+    }
+    XLSX.writeFile(wb, 'الشيتة_المجمعة.xlsx');
 }
 function initCurrentDate() {
     var tzoffset = (new Date()).getTimezoneOffset() * 60000;

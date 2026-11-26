@@ -82,6 +82,11 @@ test('sheeta tab shows all students by day, week, or month with percentage bands
   assert.match(publicCode, /E5F6E9/);
   assert.match(publicCode, /FFF6CF/);
   assert.match(publicCode, /FFE5E2/);
+  assert.match(html, /onclick="exportSheetaAllClassesExcel\(\)"/);
+  assert.match(publicCode, /function exportSheetaAllClassesExcel\(\)/);
+  assert.match(publicCode, /XLSX\.utils\.book_new\(\)/);
+  assert.match(publicCode, /XLSX\.utils\.book_append_sheet\(wb, ws, sheetName\)/);
+  assert.match(publicCode, /applySheetaExcelStyles_\(table, ws\)/);
   const sheetaSection = (code) => code.slice(code.indexOf('function populateSheetaWeekOptions_()'), code.indexOf('var weeklySheetRows_ = []'));
   assert.equal(sheetaSection(publicCode), sheetaSection(liveCode), 'sheeta logic must stay synchronized');
   const exportSection = (code) => code.slice(code.indexOf('function exportToExcel(tableId, filename) {'), code.indexOf('function initCurrentDate() {'));
