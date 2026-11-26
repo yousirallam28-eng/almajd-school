@@ -6,16 +6,20 @@
   var EDGE_URL = PROJECT_URL + '/functions/v1/majd-api';
   var PUBLIC_EDGE_URL = PROJECT_URL + '/functions/v1/majd-public';
   var BOOKS_URL = PROJECT_URL + '/functions/v1/majd-books';
+  function keepLoginEnabled_() {
+    var checkbox = document.getElementById('keepLogin');
+    return !checkbox || checkbox.checked;
+  }
   function readSessionToken_() {
     try {
-      return sessionStorage.getItem('majdSessionToken') || '';
+      return localStorage.getItem('majdSessionToken') || sessionStorage.getItem('majdSessionToken') || '';
     } catch (_) { return ''; }
   }
   function storeSessionToken_(token) {
     try {
       sessionStorage.setItem('majdSessionToken', token || '');
-      // Remove tokens created by older versions that offered persistent login.
-      localStorage.removeItem('majdSessionToken');
+      if (keepLoginEnabled_()) localStorage.setItem('majdSessionToken', token || '');
+      else localStorage.removeItem('majdSessionToken');
     } catch (_) { }
   }
   function clearSessionToken_() {
@@ -193,6 +197,7 @@
   }
   window.showLoadingCard = showLoadingCard;
   window.hideLoadingCard = hideLoadingCard;
+  window.setCloudLoadStatus = function (text, isError) { setLoadStatus('app-screen', text, !!isError); };
   function localMatches(record, filters) {
     return (filters || []).every(function (f) {
       var value = String(f.field || '').split('.').reduce(function (v, k) { return v == null ? undefined : v[k]; }, record);

@@ -11,20 +11,23 @@ test('legacy assets are externalized and modular entry is present', () => {
   assert.ok(!html.includes('function addTeacher()'));
 });
 
-test('login session is not persisted across browser tabs', () => {
-  assert.doesNotMatch(html, /keepLogin|إبقاء تسجيل الدخول/);
+test('keep-login reloads cloud data with a visible loading state', () => {
+  assert.match(html, /checked[^>]*id="keepLogin"/);
   const authCore = readFileSync(new URL('../public/legacy/js/js__core__admin-analysis-visibility.js', import.meta.url), 'utf8');
   const bridge = readFileSync(new URL('../public/legacy/js/inline-28.js', import.meta.url), 'utf8');
+  const main = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  assert.match(authCore, /window\.localStorage/);
   assert.match(authCore, /window\.sessionStorage/);
-  assert.doesNotMatch(authCore, /keepLogin/);
-  assert.match(authCore, /setIn\(sessionStore, key, serialized\)/);
-  assert.match(bridge, /return sessionStorage\.getItem\('majdSessionToken'\)/);
-  assert.doesNotMatch(bridge, /localStorage\.setItem\('majdSessionToken'/);
-  assert.match(bridge, /localStorage\.removeItem\('majdSessionToken'\)/);
-  assert.match(bridge, /clearSessionToken_\(\)/);
-  assert.match(bridge, /persistentAuthStorage\.setItem\('currentTeacher'/);
+  assert.match(authCore, /keepLogin/);
+  assert.match(authCore, /setIn\(target, key, serialized\)/);
+  assert.match(bridge, /localStorage\.getItem\('majdSessionToken'\) \|\| sessionStorage\.getItem/);
+  assert.match(bridge, /localStorage\.setItem\('majdSessionToken'/);
+  assert.match(bridge, /setCloudLoadStatus/);
   assert.match(bridge, /syncDataFromLocal = async function/);
-  assert.match(bridge, /localIsAvailable = function \(\) \{ return !!sessionToken; \}/);
+  assert.match(main, /window\.onload = async function/);
+  assert.match(main, /إبقاء تسجيل الدخول؛ جارٍ تحميل البيانات من السحابة/);
+  assert.match(main, /await syncDataFromLocal\(\)/);
+  assert.match(main, /window\.hideLoadingCard/);
 });
 
 test('sheikh registration only exports supported classes', () => {

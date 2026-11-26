@@ -656,19 +656,32 @@ function initResultMonthField() {
         el.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
     }
 }
-window.onload = function () {
+window.onload = async function () {
     initResultMonthField();
-    // Local-only: لا توجد مرحلة تحميل من الجهاز.
-    if (localIsAvailable())
-        if (typeof syncDataFromLocal === 'function') syncDataFromLocal();
     if (currentTeacher) {
         currentTeacher = applyDataMapping(currentTeacher);
-        var updatedTeacher = teachersData.find(function (t) { return t.username === currentTeacher.username; });
-        if (updatedTeacher) {
-            currentTeacher = updatedTeacher;
-            persistentAuthStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
-        }
         showAppScreen();
+        var canReloadCloudData = localIsAvailable() && typeof syncDataFromLocal === 'function';
+        if (canReloadCloudData) {
+            if (window.showLoadingCard) window.showLoadingCard('جارٍ تحميل بيانات الموقع من السحابة، يرجى الانتظار...');
+            if (window.setCloudLoadStatus) window.setCloudLoadStatus('تم إبقاء تسجيل الدخول؛ جارٍ تحميل البيانات من السحابة.', false);
+            try {
+                await syncDataFromLocal();
+                var updatedTeacher = teachersData.find(function (t) { return t.username === currentTeacher.username; });
+                if (updatedTeacher) {
+                    currentTeacher = updatedTeacher;
+                    persistentAuthStorage.setItem('currentTeacher', JSON.stringify(currentTeacher));
+                }
+                if (window.setCloudLoadStatus) window.setCloudLoadStatus('', false);
+            }
+            catch (e) {
+                console.error('تحميل بيانات الموقع بعد إبقاء تسجيل الدخول:', e);
+                if (window.setCloudLoadStatus) window.setCloudLoadStatus('تم إبقاء تسجيل الدخول، لكن تعذر تحميل البيانات من السحابة. تحقق من الاتصال ثم أعد المحاولة.', true);
+            }
+            finally {
+                if (window.hideLoadingCard) window.hideLoadingCard();
+            }
+        }
     }
     else {
         showLoginScreen();
