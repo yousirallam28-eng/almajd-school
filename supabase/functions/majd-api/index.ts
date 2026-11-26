@@ -21,9 +21,9 @@ const accountTypes: Record<string, string> = {
 const collections = new Set([
   "teachers", "students", "dailyRecords", "dailyRecordsArchive", "shariaGrades", "notes", "results", "payments",
   "wafdeenTeachers", "wafdeenStudents", "wafdeenDailyRecords", "wafdeenExams", "wafdeenSettings", "wafdeenUsage",
-  "wafdeenMonthlyReports", "books"
+  "wafdeenMonthlyReports", "books", "appControl", "appPresence"
 ]);
-const adminOnly = new Set(["teachers", "dailyRecordsArchive", "wafdeenTeachers", "wafdeenStudents", "wafdeenSettings", "wafdeenMonthlyReports", "books"]);
+const adminOnly = new Set(["teachers", "dailyRecordsArchive", "wafdeenTeachers", "wafdeenStudents", "wafdeenSettings", "wafdeenMonthlyReports", "books", "appControl", "appPresence"]);
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, apikey, content-type",
@@ -111,6 +111,8 @@ function ownerScope(user: any, row: any) {
 }
 function canRead(u: any, c: string, r: any) {
   if (admin(u)) return true;
+  if (c === "appControl") return u.account_type === "staff";
+  if (c === "appPresence") return false;
   if (u.account_type === "wafdeen_student") return c === "wafdeenDailyRecords" && ownerScope(u, r);
   if (u.account_type === "wafdeen_teacher" || u.profile?.canWafdeen) {
     if (c === "wafdeenStudents") return true;
@@ -122,9 +124,51 @@ function canRead(u: any, c: string, r: any) {
 }
 function canWrite(u: any, c: string, r: any) {
   if (admin(u)) return true;
+  if (c === "appPresence") return u.account_type === "staff";
+  if (c === "appControl") return false;
   if (u.account_type === "wafdeen_teacher" || u.profile?.canWafdeen) return ["wafdeenDailyRecords", "wafdeenUsage", "wafdeenExams"].includes(c) && ownerScope(u, r);
   if (u.account_type === "staff") return ["students", "dailyRecords", "shariaGrades", "notes", "payments"].includes(c) && ownerScope(u, r);
   return false;
+}
+function validDeviceId(value: unknown) {
+  const id = String(value ?? "").trim();
+  return /^[A-Za-z0-9._:-]{8,160}$/.test(id) ? id : "";
+}
+async function appStatus(u: any) {
+  const { data: control, error: controlError } = await db!.from("majd_records").select("data").eq("collection", "appControl").eq("record_id", "current").maybeSingle();
+  if (controlError) throw controlError;
+  const result: any = { config: clean(control?.data || { requiredVersion: 0, releaseName: "" }) };
+  if (admin(u)) {
+    const { data: rows, error } = await db!.from("majd_records").select("record_id,data").eq("collection", "appPresence").limit(10000);
+    if (error) throw error;
+    const all = rows || [];
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    result.reportedDevices = all.length;
+    result.activeDevices = all.filter((row: any) => Date.parse(String(row?.data?.lastSeenAt || "")) >= cutoff).length;
+    result.lastSeenAt = all.map((row: any) => String(row?.data?.lastSeenAt || "")).sort().pop() || null;
+  }
+  return result;
+}
+async function recordAppPresence(u: any, body: any) {
+  const deviceId = validDeviceId(body.deviceId);
+  if (!deviceId) return respond({ error: "INVALID_DEVICE_ID" }, 400);
+  const digest = await crypto.subtle.digest("SHA-256", enc.encode(deviceId));
+  const hash = Array.from(new Uint8Array(digest)).map((x) => x.toString(16).padStart(2, "0")).join("").slice(0, 40);
+  const now = new Date().toISOString();
+  const data = { id: `device_${hash}`, deviceKey: hash, accountType: u.account_type, appVersion: Math.max(0, Number(body.appVersion) || 0), installed: body.installed === true, standalone: body.standalone === true, lastSeenAt: now };
+  const { error } = await db!.from("majd_records").upsert({ collection: "appPresence", record_id: data.id, data, updated_by: "system", updated_at: now }, { onConflict: "collection,record_id" });
+  if (error) throw error;
+  return respond({ ok: true });
+}
+async function forceAppUpdate(u: any, body: any) {
+  if (!admin(u)) return respond({ error: "FORBIDDEN" }, 403);
+  const version = Math.floor(Number(body.version) || 0);
+  if (!version || version > 9999999999) return respond({ error: "INVALID_APP_VERSION" }, 400);
+  const now = new Date().toISOString();
+  const data = { id: "current", requiredVersion: version, releaseName: String(body.releaseName || "").slice(0, 80), forcedAt: now, forcedBy: u.username };
+  const { error } = await db!.from("majd_records").upsert({ collection: "appControl", record_id: "current", data, updated_by: u.username, updated_at: now }, { onConflict: "collection,record_id" });
+  if (error) throw error;
+  return respond({ ok: true, config: data });
 }
 async function readRows(c: string, maxRows = 10000) {
   const out: any[] = [];
@@ -307,6 +351,10 @@ async function handle(req: Request) {
     if (e) throw e;
     return respond({ ok: true });
   }
+
+  if (b.op === "getAppStatus") return await appStatus(u);
+  if (b.op === "heartbeatApp") return await recordAppPresence(u, b);
+  if (b.op === "forceAppUpdate") return await forceAppUpdate(u, b);
 
   const c = String(b.collection || "");
   if (!collections.has(c)) return respond({ error: "UNKNOWN_COLLECTION" }, 400);

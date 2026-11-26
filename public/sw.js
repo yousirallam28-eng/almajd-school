@@ -1,11 +1,14 @@
-const CACHE_NAME = 'almajd-app-v1';
+const CACHE_NAME = 'almajd-app-v2026112601';
 
 self.addEventListener('install', function(){
   self.skipWaiting();
 });
 
 self.addEventListener('activate', function(event){
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(Promise.all([
+    self.clients.claim(),
+    caches.keys().then(function(names){ return Promise.all(names.filter(function(name){ return name.indexOf('almajd-app-') === 0 && name !== CACHE_NAME; }).map(function(name){ return caches.delete(name); })); })
+  ]));
 });
 
 self.addEventListener('fetch', function(event){

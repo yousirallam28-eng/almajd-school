@@ -47,12 +47,9 @@
       if (t) headers.Authorization = 'Bearer ' + t;
       var controller = typeof AbortController === 'function' ? new AbortController() : null;
       var timeout = controller ? setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS) : null;
-      var response, payload = {};
+      var response;
       try {
         response = await fetch(EDGE_URL, { method: 'POST', headers: headers, body: JSON.stringify(Object.assign({ op: op }, fields || {})), signal: controller ? controller.signal : undefined });
-        try { payload = await response.json(); } catch (bodyError) {
-          if (controller && controller.signal.aborted) throw bodyError;
-        }
       } catch (networkError) {
         var networkMessage = networkError && networkError.name === 'AbortError' ? 'انتهت مهلة الاتصال بقاعدة البيانات.' : 'تعذر الاتصال بقاعدة البيانات. تحقق من الإنترنت وحاول مرة أخرى.';
         var connectionError = new Error(networkMessage);
@@ -60,6 +57,8 @@
         lastConnectionError = connectionError;
         throw connectionError;
       } finally { if (timeout) clearTimeout(timeout); }
+      var payload = {};
+      try { payload = await response.json(); } catch (_) {}
       if (!response.ok) {
         var err = new Error(payload.error || ('HTTP_' + response.status));
         err.status = response.status;
@@ -381,6 +380,7 @@
     try {
       w.currentTeacher = await doLogin(username.trim(), password, 'staff');
       persistentAuthStorage.setItem('currentTeacher', JSON.stringify(w.currentTeacher));
+      if (typeof w.checkMandatoryAppUpdate === 'function' && !(await w.checkMandatoryAppUpdate())) return;
       var ticket = ++loadGeneration;
       w.showAppScreen();
       showLoadingCard('جارٍ تحميل بيانات الموقع من السحابة، يرجى الانتظار...');

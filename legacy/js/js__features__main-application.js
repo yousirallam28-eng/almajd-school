@@ -660,6 +660,7 @@ window.onload = async function () {
     initResultMonthField();
     if (currentTeacher) {
         currentTeacher = applyDataMapping(currentTeacher);
+        if (window.checkMandatoryAppUpdate && !(await window.checkMandatoryAppUpdate())) return;
         showAppScreen();
         var canReloadCloudData = localIsAvailable() && typeof syncDataFromLocal === 'function';
         if (canReloadCloudData) {

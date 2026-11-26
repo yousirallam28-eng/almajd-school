@@ -380,6 +380,7 @@
     try {
       w.currentTeacher = await doLogin(username.trim(), password, 'staff');
       persistentAuthStorage.setItem('currentTeacher', JSON.stringify(w.currentTeacher));
+      if (typeof w.checkMandatoryAppUpdate === 'function' && !(await w.checkMandatoryAppUpdate())) return;
       var ticket = ++loadGeneration;
       w.showAppScreen();
       showLoadingCard('جارٍ تحميل بيانات الموقع من السحابة، يرجى الانتظار...');

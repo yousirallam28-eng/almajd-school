@@ -191,6 +191,24 @@ test('buttons use orange feedback in the new appearance and golden yellow in the
   assert.match(feedback, /:focus-visible/);
 });
 
+test('admin app version control reports devices and supports forced updates', () => {
+  const feature = readFileSync(new URL('../public/legacy/js/js__features__app-version-control.js', import.meta.url), 'utf8');
+  const api = readFileSync(new URL('../supabase/functions/majd-api/index.ts', import.meta.url), 'utf8');
+  assert.match(html, /id="app-version-control"/);
+  assert.match(feature, /إرسال تحديث إجباري للجميع/);
+  assert.match(feature, /heartbeatApp/);
+  assert.match(feature, /requiredVersion/);
+  assert.match(api, /b\.op === "forceAppUpdate"/);
+  assert.match(api, /b\.op === "heartbeatApp"/);
+  assert.match(api, /activeDevices/);
+});
+
+test('service worker rotates and removes old app caches', () => {
+  const serviceWorker = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
+  assert.match(serviceWorker, /almajd-app-v2026112601/);
+  assert.match(serviceWorker, /caches\.delete/);
+});
+
 test('PWA install control is available on desktop and mobile and hides after installation', () => {
   const manifest = readFileSync(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8');
   const serviceWorker = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
