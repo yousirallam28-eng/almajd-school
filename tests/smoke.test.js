@@ -59,8 +59,14 @@ test('sheeta tab shows all students by day, week, or month with percentage bands
   assert.match(publicCode, /function renderSheetaTable\(\)/);
   assert.match(publicCode, /percentage >= 70/);
   assert.match(publicCode, /percentage >= 50/);
+  assert.match(publicCode, /tableId === 'sheetaTable'/);
+  assert.match(publicCode, /E5F6E9/);
+  assert.match(publicCode, /FFF6CF/);
+  assert.match(publicCode, /FFE5E2/);
   const sheetaSection = (code) => code.slice(code.indexOf('function populateSheetaWeekOptions_()'), code.indexOf('var weeklySheetRows_ = []'));
   assert.equal(sheetaSection(publicCode), sheetaSection(liveCode), 'sheeta logic must stay synchronized');
+  const exportSection = (code) => code.slice(code.indexOf('function exportToExcel(tableId, filename) {'), code.indexOf('function initCurrentDate() {'));
+  assert.equal(exportSection(publicCode), exportSection(liveCode), 'sheeta Excel color export must stay synchronized');
 });
 
 test('student code portal shows full-screen daily grades and behavior reason action', () => {

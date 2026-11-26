@@ -691,6 +691,27 @@ window.onload = function () {
 function exportToExcel(tableId, filename) {
     var table = document.getElementById(tableId);
     var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+    if (tableId === 'sheetaTable') {
+        var ws = wb.Sheets.Sheet1;
+        var colors = {
+            green: { fill: 'E5F6E9', font: '176B37' },
+            yellow: { fill: 'FFF6CF', font: '805D00' },
+            red: { fill: 'FFE5E2', font: 'A51D16' }
+        };
+        Array.from(table.querySelectorAll('tbody tr')).forEach(function (row, rowIndex) {
+            var band = row.classList.contains('sheeta-row-green') ? 'green' : row.classList.contains('sheeta-row-yellow') ? 'yellow' : row.classList.contains('sheeta-row-red') ? 'red' : null;
+            if (!band) return;
+            var color = colors[band];
+            Array.from(row.cells).forEach(function (_, columnIndex) {
+                var cell = ws[XLSX.utils.encode_cell({ r: rowIndex + 1, c: columnIndex })];
+                if (!cell) return;
+                cell.s = Object.assign({}, cell.s || {}, {
+                    fill: { patternType: 'solid', fgColor: { rgb: color.fill } },
+                    font: Object.assign({}, cell.s && cell.s.font || {}, { color: { rgb: color.font } })
+                });
+            });
+        });
+    }
     XLSX.writeFile(wb, filename + ".xlsx");
 }
 function initCurrentDate() {
