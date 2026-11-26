@@ -11,9 +11,8 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 /* =========================================================
-   Local storage policy
-   Keep the teacher session on this device when the user selects
-   "إبقاء تسجيل الدخول"; otherwise keep it for the current tab only.
+   Session storage policy
+   Keep the teacher session for the current tab only.
    ========================================================= */
 var memoryStorage = (function () {
     var store = Object.create(null);
@@ -72,16 +71,13 @@ var persistentAuthStorage = (function () {
     }
     return {
         getItem: function (key) {
-            return getFrom(localStore, key) || getFrom(sessionStore, key) || memoryStorage.getItem(key);
+            return getFrom(sessionStore, key) || memoryStorage.getItem(key);
         },
         setItem: function (key, value) {
             var serialized = key === 'currentTeacher' ? authValueWithoutPassword(value) : String(value);
             if (key === 'currentTeacher') {
                 removeFrom(localStore, key);
-                removeFrom(sessionStore, key);
-                var remember = document.getElementById('keepLogin');
-                var target = !remember || remember.checked ? localStore : sessionStore;
-                if (setIn(target, key, serialized)) return;
+                if (setIn(sessionStore, key, serialized)) return;
             }
             memoryStorage.setItem(key, serialized);
         },
@@ -91,7 +87,7 @@ var persistentAuthStorage = (function () {
             memoryStorage.removeItem(key);
         },
         clear: function () {
-            try { if (localStore) localStore.clear(); } catch (_) { }
+            try { if (localStore) localStore.removeItem('currentTeacher'); } catch (_) { }
             try { if (sessionStore) sessionStore.clear(); } catch (_) { }
             memoryStorage.clear();
         }

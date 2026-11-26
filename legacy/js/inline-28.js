@@ -6,20 +6,16 @@
   var EDGE_URL = PROJECT_URL + '/functions/v1/majd-api';
   var PUBLIC_EDGE_URL = PROJECT_URL + '/functions/v1/majd-public';
   var BOOKS_URL = PROJECT_URL + '/functions/v1/majd-books';
-  function keepLoginEnabled_() {
-    var checkbox = document.getElementById('keepLogin');
-    return !checkbox || checkbox.checked;
-  }
   function readSessionToken_() {
     try {
-      return localStorage.getItem('majdSessionToken') || sessionStorage.getItem('majdSessionToken') || '';
+      return sessionStorage.getItem('majdSessionToken') || '';
     } catch (_) { return ''; }
   }
   function storeSessionToken_(token) {
     try {
       sessionStorage.setItem('majdSessionToken', token || '');
-      if (keepLoginEnabled_()) localStorage.setItem('majdSessionToken', token || '');
-      else localStorage.removeItem('majdSessionToken');
+      // Remove tokens created by older versions that offered persistent login.
+      localStorage.removeItem('majdSessionToken');
     } catch (_) { }
   }
   function clearSessionToken_() {
