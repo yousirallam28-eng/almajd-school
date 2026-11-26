@@ -50,6 +50,8 @@ test('sheikh Excel exports include daily details, times, and orange incomplete r
 test('sheeta tab shows all students by day, week, or month with percentage bands', () => {
   assert.match(html, /id="sheeta-tab-btn"[^>]*>🗂️ الشيتة/);
   assert.match(html, /id="sheetaPeriodSelect"/);
+  assert.match(html, /id="sheetaClassSelect"/);
+  assert.match(html, /option value="">كل الفصول/);
   assert.match(html, /option value="day">شيتة اليوم/);
   assert.match(html, /option value="week">شيتة الأسبوع/);
   assert.match(html, /option value="month">شيتة الشهر/);
@@ -59,6 +61,8 @@ test('sheeta tab shows all students by day, week, or month with percentage bands
   assert.match(publicCode, /function renderSheetaTable\(\)/);
   assert.match(publicCode, /percentage >= 70/);
   assert.match(publicCode, /percentage >= 50/);
+  assert.match(publicCode, /sheetaClassSelect/);
+  assert.match(publicCode, /!selectedClass \|\| student\.className === selectedClass/);
   assert.match(publicCode, /tableId === 'sheetaTable'/);
   assert.match(publicCode, /E5F6E9/);
   assert.match(publicCode, /FFF6CF/);

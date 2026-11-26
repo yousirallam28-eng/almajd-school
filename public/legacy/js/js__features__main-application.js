@@ -4491,6 +4491,7 @@ function renderSheetaTable() {
     }
     var periodSelect = document.getElementById('sheetaPeriodSelect');
     var period = periodSelect ? periodSelect.value : 'day';
+    var selectedClass = (document.getElementById('sheetaClassSelect') || {}).value || '';
     populateSheetaWeekOptions_();
     document.querySelectorAll('.sheeta-period-control').forEach(function (control) {
         control.classList.toggle('hidden', control.getAttribute('data-sheeta-period') !== period && !(period === 'month' && control.getAttribute('data-sheeta-period') === 'month'));
@@ -4499,7 +4500,7 @@ function renderSheetaTable() {
     var tbody = table.querySelector('tbody');
     var summary = document.getElementById('sheetaSummary');
     if (!tbody || !dates.length) return;
-    var rows = (studentsData || []).filter(function (student) { return student && student.name && !student._deleted && student.className; }).map(function (student) {
+    var rows = (studentsData || []).filter(function (student) { return student && student.name && !student._deleted && student.className && (!selectedClass || student.className === selectedClass); }).map(function (student) {
         var studentRecords = (dailyRecords || []).filter(function (record) {
             return record && !record._deleted && record.className === student.className && (record.studentId === student.id || record.studentId === student.studentId || record.studentName === student.name) && dates.indexOf(String(record.dateISO || '').slice(0, 10)) !== -1;
         });

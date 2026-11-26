@@ -532,6 +532,17 @@
 <p style="margin-top:-8px;color:var(--text-muted);">جميع الطلاب مرتبين حسب نسبة الدرجات: أخضر من 70% إلى 100%، أصفر من 50% إلى أقل من 70%، وأحمر من 0% إلى أقل من 50%.</p>
 <div class="form-grid sheeta-controls">
 <div class="form-group">
+<label for="sheetaClassSelect">الفصل:</label>
+<select id="sheetaClassSelect" onchange="renderSheetaTable()">
+<option value="">كل الفصول</option>
+<option value="تمهيدي">تمهيدي</option><option value="أولى - أولاد">أولى - أولاد</option><option value="أولى - بنات">أولى - بنات</option>
+<option value="ثانية - أولاد">ثانية - أولاد</option><option value="ثانية - بنات">ثانية - بنات</option>
+<option value="ثالثة - أولاد">ثالثة - أولاد</option><option value="ثالثة - بنات">ثالثة - بنات</option>
+<option value="رابعة - أولاد">رابعة - أولاد</option><option value="رابعة - بنات">رابعة - بنات</option>
+<option value="خامسة - أولاد">خامسة - أولاد</option><option value="خامسة - بنات">خامسة - بنات</option><option value="أولى شرعي">أولى شرعي</option>
+</select>
+</div>
+<div class="form-group">
 <label for="sheetaPeriodSelect">الفترة:</label>
 <select id="sheetaPeriodSelect" onchange="renderSheetaTable()">
 <option value="day">شيتة اليوم</option>
