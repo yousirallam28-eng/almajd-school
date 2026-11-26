@@ -6,7 +6,27 @@
   var EDGE_URL = PROJECT_URL + '/functions/v1/majd-api';
   var PUBLIC_EDGE_URL = PROJECT_URL + '/functions/v1/majd-public';
   var BOOKS_URL = PROJECT_URL + '/functions/v1/majd-books';
-  var sessionToken = (function () { try { return sessionStorage.getItem('majdSessionToken') || ''; } catch (_) { return ''; } })();
+  function keepLoginEnabled_() {
+    var checkbox = document.getElementById('keepLogin');
+    return !checkbox || checkbox.checked;
+  }
+  function readSessionToken_() {
+    try {
+      return localStorage.getItem('majdSessionToken') || sessionStorage.getItem('majdSessionToken') || '';
+    } catch (_) { return ''; }
+  }
+  function storeSessionToken_(token) {
+    try {
+      sessionStorage.setItem('majdSessionToken', token || '');
+      if (keepLoginEnabled_()) localStorage.setItem('majdSessionToken', token || '');
+      else localStorage.removeItem('majdSessionToken');
+    } catch (_) { }
+  }
+  function clearSessionToken_() {
+    try { sessionStorage.removeItem('majdSessionToken'); } catch (_) { }
+    try { localStorage.removeItem('majdSessionToken'); } catch (_) { }
+  }
+  var sessionToken = readSessionToken_();
   var loadGeneration = 0;
   var saveToastTimer = null;
   var REQUEST_TIMEOUT_MS = 20000;
@@ -285,7 +305,7 @@
   async function doLogin(username, password, mode) {
     var result = await request('login', { username: username, password: password, mode: mode || 'staff' }, '');
     sessionToken = result.token;
-    try { sessionStorage.setItem('majdSessionToken', sessionToken); } catch (_) {}
+    storeSessionToken_(sessionToken);
     if (result.mustChangePassword) await changeInitialPassword(password);
     return typeof w.applyDataMapping === 'function' ? w.applyDataMapping(result.user) : result.user;
   }
@@ -301,8 +321,14 @@
   w.defaultTeachers = [];
   w.__MAJD_LOCAL_DISABLED__ = false;
   w.uselocaldata = true;
-  w.localIsAvailable = function () { return true; };
+  w.localIsAvailable = function () { return !!sessionToken; };
   w.localDatabase = function () { return { collection: collection }; };
+  w.syncDataFromLocal = async function () {
+    if (!sessionToken || !w.currentTeacher) return false;
+    await hydrateMain();
+    refreshMainViews();
+    return true;
+  };
   w.MajdDailyLocalAdapter = {
     isAvailable: function () { return !!sessionToken; },
     save: async function (record) { var r = await request('upsert', { collection: 'dailyRecords', id: String(record.id || record.recordId), data: record, merge: true }); return r.record || record; },
@@ -353,7 +379,7 @@
     showLoadingCard('جارٍ التحقق من بيانات الدخول...');
     try {
       w.currentTeacher = await doLogin(username.trim(), password, 'staff');
-      memoryStorage.setItem('currentTeacher', JSON.stringify(w.currentTeacher));
+      persistentAuthStorage.setItem('currentTeacher', JSON.stringify(w.currentTeacher));
       var ticket = ++loadGeneration;
       w.showAppScreen();
       showLoadingCard('جارٍ تحميل بيانات الموقع من السحابة، يرجى الانتظار...');
@@ -381,8 +407,8 @@
     if (!ok) return;
     loadGeneration++;
     hideLoadingCard();
-      sessionToken = ''; try { sessionStorage.removeItem('majdSessionToken'); } catch (_) {} w.currentTeacher = null;
-    memoryStorage.removeItem('currentTeacher');
+      sessionToken = ''; clearSessionToken_(); w.currentTeacher = null;
+    persistentAuthStorage.removeItem('currentTeacher');
     w.showLoginScreen();
   };
   w.MajdLocalDataAPI.flushLocalRenderQueue = function () { return Promise.resolve(true); };

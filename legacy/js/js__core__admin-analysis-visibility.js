@@ -11,10 +11,9 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 /* =========================================================
-   Local in-memory storage policy
-   No memoryStorage/memoryStorage/IndexedDB persistence is used.
-   This store exists only in RAM and is cleared when the page closes
-   or is refreshed. No remote database is configured.
+   Local storage policy
+   Keep the teacher session on this device when the user selects
+   "إبقاء تسجيل الدخول"; otherwise keep it for the current tab only.
    ========================================================= */
 var memoryStorage = (function () {
     var store = Object.create(null);
@@ -46,8 +45,58 @@ var memoryStorage = (function () {
         }
     };
 })();
-/* لا يوجد تخزين دائم؛ جلسة الدخول محفوظة في الذاكرة حتى إعادة تحميل الصفحة فقط. */
-var persistentAuthStorage = memoryStorage;
+var persistentAuthStorage = (function () {
+    var localStore = null;
+    var sessionStore = null;
+    try { localStore = window.localStorage; } catch (_) { }
+    try { sessionStore = window.sessionStorage; } catch (_) { }
+    function removeFrom(store, key) {
+        try { if (store) store.removeItem(key); } catch (_) { }
+    }
+    function getFrom(store, key) {
+        try { return store ? store.getItem(key) : null; } catch (_) { return null; }
+    }
+    function setIn(store, key, value) {
+        try { if (store) store.setItem(key, value); return !!store; } catch (_) { return false; }
+    }
+    function authValueWithoutPassword(value) {
+        if (value == null) return value;
+        try {
+            var parsed = JSON.parse(String(value));
+            if (parsed && typeof parsed === 'object' && Object.prototype.hasOwnProperty.call(parsed, 'password')) {
+                delete parsed.password;
+                return JSON.stringify(parsed);
+            }
+        } catch (_) { }
+        return String(value);
+    }
+    return {
+        getItem: function (key) {
+            return getFrom(localStore, key) || getFrom(sessionStore, key) || memoryStorage.getItem(key);
+        },
+        setItem: function (key, value) {
+            var serialized = key === 'currentTeacher' ? authValueWithoutPassword(value) : String(value);
+            if (key === 'currentTeacher') {
+                removeFrom(localStore, key);
+                removeFrom(sessionStore, key);
+                var remember = document.getElementById('keepLogin');
+                var target = !remember || remember.checked ? localStore : sessionStore;
+                if (setIn(target, key, serialized)) return;
+            }
+            memoryStorage.setItem(key, serialized);
+        },
+        removeItem: function (key) {
+            removeFrom(localStore, key);
+            removeFrom(sessionStore, key);
+            memoryStorage.removeItem(key);
+        },
+        clear: function () {
+            try { if (localStore) localStore.clear(); } catch (_) { }
+            try { if (sessionStore) sessionStore.clear(); } catch (_) { }
+            memoryStorage.clear();
+        }
+    };
+})();
 (function () {
     function hideAdminInsideAnalysis() {
         var analysis = document.querySelector('#analysis-section, .student-analysis-section, [id*="analysis"]');

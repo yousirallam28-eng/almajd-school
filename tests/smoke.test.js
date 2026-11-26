@@ -11,6 +11,21 @@ test('legacy assets are externalized and modular entry is present', () => {
   assert.ok(!html.includes('function addTeacher()'));
 });
 
+test('keep-login preserves the Supabase session and reloads cloud data', () => {
+  assert.match(html, /checked[^>]*id="keepLogin"/);
+  const authCore = readFileSync(new URL('../public/legacy/js/js__core__admin-analysis-visibility.js', import.meta.url), 'utf8');
+  const bridge = readFileSync(new URL('../public/legacy/js/inline-28.js', import.meta.url), 'utf8');
+  assert.match(authCore, /window\.localStorage/);
+  assert.match(authCore, /window\.sessionStorage/);
+  assert.match(authCore, /keepLogin/);
+  assert.match(bridge, /readSessionToken_\(\)/);
+  assert.match(bridge, /localStorage\.setItem\('majdSessionToken'/);
+  assert.match(bridge, /clearSessionToken_\(\)/);
+  assert.match(bridge, /persistentAuthStorage\.setItem\('currentTeacher'/);
+  assert.match(bridge, /syncDataFromLocal = async function/);
+  assert.match(bridge, /localIsAvailable = function \(\) \{ return !!sessionToken; \}/);
+});
+
 test('sheikh registration only exports supported classes', () => {
   const sheikhClasses = html.match(/<select id="sheikhRegClassSelect"[^>]*>([\s\S]*?)<\/select>/)?.[1] || '';
   assert.ok(sheikhClasses, 'the Sheikh registration class picker must exist');
