@@ -71,6 +71,7 @@ test('sheeta tab shows all students by day, week, or month with percentage bands
   assert.match(html, /option value="day">شيتة اليوم/);
   assert.match(html, /option value="week">شيتة الأسبوع/);
   assert.match(html, /option value="month">شيتة الشهر/);
+  assert.match(html, /option value="all">كل الأيام — من أول يوم تسجيل/);
   assert.match(html, /id="sheetaTable"/);
   const publicCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
   const liveCode = readFileSync(new URL('../legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
@@ -84,7 +85,11 @@ test('sheeta tab shows all students by day, week, or month with percentage bands
   assert.match(publicCode, /FFF6CF/);
   assert.match(publicCode, /FFE5E2/);
   assert.match(html, /onclick="exportSheetaAllClassesExcel\(\)"/);
+  assert.match(html, /onclick="exportSheetaFinalReportExcel\(\)"/);
   assert.match(publicCode, /function exportSheetaAllClassesExcel\(\)/);
+  assert.match(publicCode, /function exportSheetaFinalReportExcel\(\)/);
+  assert.match(publicCode, /التقرير النهائي/);
+  assert.match(publicCode, /sheetaAllDates_\(\)/);
   assert.match(publicCode, /XLSX\.utils\.book_new\(\)/);
   assert.match(publicCode, /XLSX\.utils\.book_append_sheet\(wb, ws, sheetName\)/);
   assert.match(publicCode, /applySheetaExcelStyles_\(table, ws\)/);

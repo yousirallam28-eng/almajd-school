@@ -4475,8 +4475,19 @@ function populateSheetaWeekOptions_() {
     }).join('');
     select.value = weeks.has(currentValue) ? currentValue : getWeekKey(currentDate);
 }
+function sheetaAllDates_() {
+    var dates = Object.create(null);
+    (dailyRecords || []).forEach(function (record) {
+        if (!record || record._deleted || !record.dateISO) return;
+        var dateISO = String(record.dateISO).slice(0, 10);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateISO)) dates[dateISO] = true;
+    });
+    var result = Object.keys(dates).sort();
+    return result.length ? result : [getISODateOnly(new Date())];
+}
 function sheetaPeriodDates_(period) {
     var currentDate = (document.getElementById('sheetaDate') || {}).value || (document.getElementById('recordDate') || {}).value || getISODateOnly(new Date());
+    if (period === 'all') return sheetaAllDates_();
     if (period === 'day') return [currentDate];
     if (period === 'week') {
         var weekKey = (document.getElementById('sheetaWeekSelect') || {}).value || getWeekKey(currentDate);
@@ -4495,6 +4506,24 @@ function sheetaBand_(percentage) {
     if (percentage >= 70) return { key: 'green', label: 'أخضر — 70% إلى 100%' };
     if (percentage >= 50) return { key: 'yellow', label: 'أصفر — 50% إلى أقل من 70%' };
     return { key: 'red', label: 'أحمر — أقل من 50%' };
+}
+function sheetaRows_(dates, selectedClass) {
+    return (studentsData || []).filter(function (student) { return student && student.name && !student._deleted && student.className && (!selectedClass || student.className === selectedClass); }).map(function (student) {
+        var studentRecords = (dailyRecords || []).filter(function (record) {
+            return record && !record._deleted && record.className === student.className && (record.studentId === student.id || record.studentId === student.studentId || record.studentName === student.name) && dates.indexOf(String(record.dateISO || '').slice(0, 10)) !== -1;
+        });
+        var score = 0;
+        var maximum = dates.reduce(function (sum) { return sum + getDailyMax(student.className); }, 0);
+        dates.forEach(function (dateISO) {
+            var record = studentRecords.find(function (item) { return String(item.dateISO || '').slice(0, 10) === dateISO; });
+            if (record) score += (!!record.isAbsent || !!record.absent || String(record.attendanceStatus || '').toLowerCase() === 'absent') ? 0 : Number(getDailyTotal(record)) || 0;
+        });
+        var percentage = maximum > 0 ? (score / maximum) * 100 : 0;
+        return { name: student.name, className: student.className, score: score, maximum: maximum, percentage: percentage, recordedDays: studentRecords.length, band: sheetaBand_(percentage) };
+    }).sort(function (a, b) {
+        var bandOrder = { green: 0, yellow: 1, red: 2 };
+        return bandOrder[a.band.key] - bandOrder[b.band.key] || b.percentage - a.percentage || a.className.localeCompare(b.className, 'ar') || a.name.localeCompare(b.name, 'ar');
+    });
 }
 function renderSheetaTable() {
     var table = document.getElementById('sheetaTable');
@@ -4523,31 +4552,66 @@ function renderSheetaTable() {
     var tbody = table.querySelector('tbody');
     var summary = document.getElementById('sheetaSummary');
     if (!tbody || !dates.length) return;
-    var rows = (studentsData || []).filter(function (student) { return student && student.name && !student._deleted && student.className && (!selectedClass || student.className === selectedClass); }).map(function (student) {
-        var studentRecords = (dailyRecords || []).filter(function (record) {
-            return record && !record._deleted && record.className === student.className && (record.studentId === student.id || record.studentId === student.studentId || record.studentName === student.name) && dates.indexOf(String(record.dateISO || '').slice(0, 10)) !== -1;
-        });
-        var score = 0;
-        var maximum = dates.reduce(function (sum) { return sum + getDailyMax(student.className); }, 0);
-        dates.forEach(function (dateISO) {
-            var record = studentRecords.find(function (item) { return String(item.dateISO || '').slice(0, 10) === dateISO; });
-            if (record) score += (!!record.isAbsent || !!record.absent || String(record.attendanceStatus || '').toLowerCase() === 'absent') ? 0 : Number(getDailyTotal(record)) || 0;
-        });
-        var percentage = maximum > 0 ? (score / maximum) * 100 : 0;
-        var band = sheetaBand_(percentage);
-        return { name: student.name, className: student.className, score: score, maximum: maximum, percentage: percentage, recordedDays: studentRecords.length, band: band };
-    }).sort(function (a, b) {
-        var bandOrder = { green: 0, yellow: 1, red: 2 };
-        return bandOrder[a.band.key] - bandOrder[b.band.key] || b.percentage - a.percentage || a.className.localeCompare(b.className, 'ar') || a.name.localeCompare(b.name, 'ar');
-    });
+    var rows = sheetaRows_(dates, selectedClass);
     var counts = rows.reduce(function (result, row) { result[row.band.key] += 1; return result; }, { green: 0, yellow: 0, red: 0 });
     if (summary) summary.innerHTML = '<strong>عدد الطلاب: ' + rows.length + '</strong> &nbsp; | &nbsp; <span style="color:#167c3a;font-weight:800;">أخضر: ' + counts.green + '</span> &nbsp; <span style="color:#9a6a00;font-weight:800;">أصفر: ' + counts.yellow + '</span> &nbsp; <span style="color:#b42318;font-weight:800;">أحمر: ' + counts.red + '</span>';
     tbody.innerHTML = rows.length ? rows.map(function (row, index) {
         var rowStyle = row.band.key === 'green' ? 'background:#e5f6e9;color:#176b37;' : row.band.key === 'yellow' ? 'background:#fff6cf;color:#805d00;' : 'background:#ffe5e2;color:#a51d16;';
         return '<tr class="sheeta-row-' + row.band.key + '" style="' + rowStyle + '"><td>' + (index + 1) + '</td><td class="sheeta-student-name" style="font-weight:800;">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.className) + '</td><td><strong>' + row.score.toFixed(1).replace('.0', '') + ' / ' + row.maximum + '</strong></td><td><strong>' + row.percentage.toFixed(1) + '%</strong></td><td>' + row.recordedDays + ' / ' + dates.length + '</td><td>' + escapeHtml(row.band.label) + '</td></tr>';
     }).join('') : '<tr><td colspan="7">لا توجد أسماء طلاب لعرضها.</td></tr>';
-    var periodSelectLabel = period === 'day' ? 'اليوم' : period === 'week' ? 'الأسبوع' : 'الشهر';
+    var periodSelectLabel = period === 'day' ? 'اليوم' : period === 'week' ? 'الأسبوع' : period === 'month' ? 'الشهر' : 'كل الأيام';
     if (summary) summary.setAttribute('data-period-label', periodSelectLabel);
+}
+function sheetaExcelPercent_(value, total) {
+    return total ? (value / total * 100) : 0;
+}
+function sheetaExcelBandStyle_(cell, bandKey) {
+    if (!cell || !bandKey) return;
+    var colors = { green: ['E5F6E9', '176B37'], yellow: ['FFF6CF', '805D00'], red: ['FFE5E2', 'A51D16'] };
+    var color = colors[bandKey];
+    if (!color) return;
+    cell.s = Object.assign({}, cell.s || {}, { fill: { patternType: 'solid', fgColor: { rgb: color[0] } }, font: Object.assign({}, cell.s && cell.s.font || {}, { color: { rgb: color[1] }, bold: true }) });
+}
+function exportSheetaFinalReportExcel() {
+    var dates = sheetaAllDates_();
+    var rows = sheetaRows_(dates, '');
+    var counts = rows.reduce(function (result, row) { result[row.band.key] += 1; return result; }, { green: 0, yellow: 0, red: 0 });
+    var classes = (typeof GENERAL_CLASSES !== 'undefined' && Array.isArray(GENERAL_CLASSES) ? GENERAL_CLASSES.slice() : []).filter(Boolean);
+    rows.forEach(function (row) { if (classes.indexOf(row.className) === -1) classes.push(row.className); });
+    var aoa = [
+        ['التقرير النهائي — نسب الطلاب مجمعة'],
+        ['الفترة', 'من أول يوم تسجيل: ' + dates[0] + ' حتى: ' + dates[dates.length - 1]],
+        [],
+        ['التصنيف', 'عدد الطلاب', 'النسبة من إجمالي الطلاب'],
+        ['أخضر', counts.green, sheetaExcelPercent_(counts.green, rows.length).toFixed(1) + '%'],
+        ['أصفر', counts.yellow, sheetaExcelPercent_(counts.yellow, rows.length).toFixed(1) + '%'],
+        ['أحمر', counts.red, sheetaExcelPercent_(counts.red, rows.length).toFixed(1) + '%'],
+        [],
+        ['الفصل', 'عدد الطلاب', 'أخضر — عدد', 'أخضر — نسبة', 'أصفر — عدد', 'أصفر — نسبة', 'أحمر — عدد', 'أحمر — نسبة', 'متوسط نسبة الفصل']
+    ];
+    classes.forEach(function (className) {
+        var classRows = rows.filter(function (row) { return row.className === className; });
+        var classCounts = classRows.reduce(function (result, row) { result[row.band.key] += 1; return result; }, { green: 0, yellow: 0, red: 0 });
+        var average = classRows.length ? classRows.reduce(function (sum, row) { return sum + row.percentage; }, 0) / classRows.length : 0;
+        aoa.push([className, classRows.length, classCounts.green, sheetaExcelPercent_(classCounts.green, classRows.length).toFixed(1) + '%', classCounts.yellow, sheetaExcelPercent_(classCounts.yellow, classRows.length).toFixed(1) + '%', classCounts.red, sheetaExcelPercent_(classCounts.red, classRows.length).toFixed(1) + '%', average.toFixed(1) + '%']);
+    });
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 20 }];
+    ['A5', 'A6', 'A7'].forEach(function (address, index) { sheetaExcelBandStyle_(ws[address], ['green', 'yellow', 'red'][index]); });
+    var classStartRow = 10;
+    classes.forEach(function (className, index) {
+        var classRows = rows.filter(function (row) { return row.className === className; });
+        var classCounts = classRows.reduce(function (result, row) { result[row.band.key] += 1; return result; }, { green: 0, yellow: 0, red: 0 });
+        var rowNumber = classStartRow + index;
+        sheetaExcelBandStyle_(ws['D' + rowNumber], 'green');
+        sheetaExcelBandStyle_(ws['F' + rowNumber], 'yellow');
+        sheetaExcelBandStyle_(ws['H' + rowNumber], 'red');
+        var average = classRows.length ? classRows.reduce(function (sum, row) { return sum + row.percentage; }, 0) / classRows.length : 0;
+        sheetaExcelBandStyle_(ws['I' + rowNumber], sheetaBand_(average).key);
+    });
+    XLSX.utils.book_append_sheet(wb, ws, 'التقرير النهائي');
+    XLSX.writeFile(wb, 'التقرير_النهائي.xlsx');
 }
 var weeklySheetRows_ = [];
 function showWeeklySheetBehaviorReason(index) {
