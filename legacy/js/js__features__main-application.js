@@ -4521,6 +4521,29 @@ function sheetaBand_(percentage) {
     if (percentage >= 50) return { key: 'yellow', label: 'أصفر — 50% إلى أقل من 70%' };
     return { key: 'red', label: 'أحمر — أقل من 50%' };
 }
+function sheetaWeaknessReasons_(records) {
+    var metrics = [
+        { key: 'newLesson', label: 'الجديد' },
+        { key: 'oldRevision', label: 'الماضي' },
+        { key: 'recitation', label: 'التلاوة' },
+        { key: 'attendance', label: 'الحضور' },
+        { key: 'behavior', label: 'السلوك' }
+    ];
+    return metrics.map(function (metric, order) {
+        var scores = (records || []).map(function (record) {
+            if (!record) return null;
+            var absent = !!record.isAbsent || !!record.absent || String(record.attendanceStatus || '').toLowerCase() === 'absent';
+            if (metric.key === 'attendance' && absent) return 0;
+            var value = record[metric.key];
+            if (value === null || value === undefined || String(value).trim() === '') return null;
+            var score = Number(value);
+            return Number.isFinite(score) ? Math.max(0, Math.min(10, score)) : null;
+        }).filter(function (score) { return score !== null; });
+        if (!scores.length) return null;
+        var percentage = Math.round(scores.reduce(function (sum, score) { return sum + score; }, 0) / (scores.length * 10) * 1000) / 10;
+        return percentage < 70 ? { label: metric.label, percentage: percentage, order: order } : null;
+    }).filter(Boolean).sort(function (a, b) { return a.percentage - b.percentage || a.order - b.order; }).slice(0, 3);
+}
 function sheetaRows_(dates, selectedClass) {
     return (studentsData || []).filter(function (student) { return student && student.name && !student._deleted && student.className && (!selectedClass || student.className === selectedClass); }).map(function (student) {
         var studentRecords = (dailyRecords || []).filter(function (record) {
@@ -4533,7 +4556,7 @@ function sheetaRows_(dates, selectedClass) {
             if (record) score += (!!record.isAbsent || !!record.absent || String(record.attendanceStatus || '').toLowerCase() === 'absent') ? 0 : Number(getDailyTotal(record)) || 0;
         });
         var percentage = maximum > 0 ? (score / maximum) * 100 : 0;
-        return { name: student.name, className: student.className, score: score, maximum: maximum, percentage: percentage, recordedDays: studentRecords.length, band: sheetaBand_(percentage) };
+        return { name: student.name, className: student.className, score: score, maximum: maximum, percentage: percentage, recordedDays: studentRecords.length, weaknessReasons: sheetaWeaknessReasons_(studentRecords), band: sheetaBand_(percentage) };
     }).sort(function (a, b) {
         var bandOrder = { green: 0, yellow: 1, red: 2 };
         return bandOrder[a.band.key] - bandOrder[b.band.key] || b.percentage - a.percentage || a.className.localeCompare(b.className, 'ar') || a.name.localeCompare(b.name, 'ar');
@@ -4571,8 +4594,9 @@ function renderSheetaTable() {
     if (summary) summary.innerHTML = '<strong>عدد الطلاب: ' + rows.length + '</strong> &nbsp; | &nbsp; <span style="color:#167c3a;font-weight:800;">أخضر: ' + counts.green + '</span> &nbsp; <span style="color:#9a6a00;font-weight:800;">أصفر: ' + counts.yellow + '</span> &nbsp; <span style="color:#b42318;font-weight:800;">أحمر: ' + counts.red + '</span>';
     tbody.innerHTML = rows.length ? rows.map(function (row, index) {
         var rowStyle = row.band.key === 'green' ? 'background:#e5f6e9;color:#176b37;' : row.band.key === 'yellow' ? 'background:#fff6cf;color:#805d00;' : 'background:#ffe5e2;color:#a51d16;';
-        return '<tr class="sheeta-row-' + row.band.key + '" style="' + rowStyle + '"><td>' + (index + 1) + '</td><td class="sheeta-student-name" style="font-weight:800;">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.className) + '</td><td><strong>' + row.score.toFixed(1).replace('.0', '') + ' / ' + row.maximum + '</strong></td><td><strong>' + row.percentage.toFixed(1) + '%</strong></td><td>' + row.recordedDays + ' / ' + dates.length + '</td><td>' + escapeHtml(row.band.label) + '</td></tr>';
-    }).join('') : '<tr><td colspan="7">لا توجد أسماء طلاب لعرضها.</td></tr>';
+        var weakness = row.band.key === 'green' ? '—' : row.weaknessReasons.length ? row.weaknessReasons.map(function (reason) { return reason.label + ' ' + reason.percentage.toFixed(0) + '%'; }).join('، ') : 'لا يوجد مجال منفرد أقل من ٧٠٪';
+        return '<tr class="sheeta-row-' + row.band.key + '" style="' + rowStyle + '"><td>' + (index + 1) + '</td><td class="sheeta-student-name" style="font-weight:800;">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.className) + '</td><td><strong>' + row.score.toFixed(1).replace('.0', '') + ' / ' + row.maximum + '</strong></td><td><strong>' + row.percentage.toFixed(1) + '%</strong></td><td>' + row.recordedDays + ' / ' + dates.length + '</td><td>' + escapeHtml(row.band.label) + '</td><td>' + escapeHtml(weakness) + '</td></tr>';
+    }).join('') : '<tr><td colspan="8">لا توجد أسماء طلاب لعرضها.</td></tr>';
     var periodSelectLabel = period === 'day' ? 'اليوم' : period === 'week' ? 'الأسبوع' : period === 'month' ? 'الشهر' : 'كل الأيام';
     if (summary) summary.setAttribute('data-period-label', periodSelectLabel);
 }
@@ -4625,6 +4649,16 @@ function exportSheetaFinalReportExcel() {
         sheetaExcelBandStyle_(ws['I' + rowNumber], sheetaBand_(average).key);
     });
     XLSX.utils.book_append_sheet(wb, ws, 'التقرير النهائي');
+    var followUpRows = rows.filter(function (row) { return row.band.key === 'yellow' || row.band.key === 'red'; });
+    var followUpAoa = [['اسم الطالب', 'الفصل', 'التصنيف', 'النسبة الإجمالية', 'أيام الرصد', 'أسباب الضعف (حتى 3)']];
+    followUpRows.forEach(function (row) {
+        var reasons = row.weaknessReasons.map(function (reason) { return reason.label + ' أقل من ٧٠٪ (' + reason.percentage.toFixed(1) + '%)'; });
+        followUpAoa.push([row.name, row.className, row.band.label, row.percentage.toFixed(1) + '%', row.recordedDays + ' / ' + dates.length, reasons.length ? reasons.join('، ') : 'لا يوجد مجال منفرد أقل من ٧٠٪ ضمن السجلات المتاحة']);
+    });
+    var followUpWs = XLSX.utils.aoa_to_sheet(followUpAoa);
+    followUpWs['!cols'] = [{ wch: 28 }, { wch: 18 }, { wch: 28 }, { wch: 18 }, { wch: 16 }, { wch: 64 }];
+    followUpRows.forEach(function (row, index) { sheetaExcelBandStyle_(followUpWs['C' + (index + 2)], row.band.key); });
+    XLSX.utils.book_append_sheet(wb, followUpWs, 'أسباب الضعف');
     XLSX.writeFile(wb, 'التقرير_النهائي.xlsx');
 }
 var weeklySheetRows_ = [];
