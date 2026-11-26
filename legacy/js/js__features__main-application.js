@@ -1417,6 +1417,7 @@ function showAppScreen() {
         (_p = document.getElementById('analysis-tab-btn')) === null || _p === void 0 ? void 0 : _p.classList.remove('hidden');
         managerBtn.classList.remove('hidden');
         document.getElementById('top-students-tab-btn').classList.remove('hidden');
+        document.getElementById('sheeta-tab-btn')?.classList.remove('hidden');
         weeklyBtn.classList.remove('hidden');
         reportsBtn.classList.remove('hidden');
         reportsMenuWrap.classList.remove('hidden');
@@ -1462,6 +1463,7 @@ function showAppScreen() {
         document.getElementById('payment-report-tab-btn')?.classList.add('hidden');
         document.getElementById('total-expenses-tab-btn')?.classList.add('hidden');
         managerBtn.classList.add('hidden');
+        document.getElementById('sheeta-tab-btn')?.classList.add('hidden');
         weeklyBtn.classList.add('hidden');
         reportsBtn.classList.add('hidden');
         reportsMenuWrap.classList.add('hidden');
@@ -2041,7 +2043,7 @@ function switchTab(tabId, event) {
     }
     if (tabId === 'localdata-usage-tab') return;
     // المشرف يستطيع فقط مشاهدة: حالة إنجاز الرصد، الملاحظات، الأوائل، المصروفات، ومقرر الدفع.
-    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'payments-tab', 'payment-report-tab', 'total-expenses-tab'].includes(tabId)) {
+    if ((currentTeacher === null || currentTeacher === void 0 ? void 0 : currentTeacher.center) === 'مشرف' && !['status-tab', 'notes-tab', 'top-students-tab', 'sheeta-tab', 'payments-tab', 'payment-report-tab', 'total-expenses-tab'].includes(tabId)) {
         tabId = 'status-tab';
     }
     if (tabId !== 'admin-tab') {
@@ -2059,7 +2061,7 @@ function switchTab(tabId, event) {
     if (clicked && clicked.classList.contains('tab-btn'))
         clicked.classList.add('active');
     document.getElementById(tabId).classList.add('active');
-    if (tabId === 'weekly-tab' || tabId === 'reports-tab' || tabId === 'manager-tab' || tabId === 'attendance-tab' || tabId === 'top-students-tab' || tabId === 'analysis-tab') {
+    if (tabId === 'weekly-tab' || tabId === 'sheeta-tab' || tabId === 'reports-tab' || tabId === 'manager-tab' || tabId === 'attendance-tab' || tabId === 'top-students-tab' || tabId === 'analysis-tab') {
         document.getElementById('reports-menu-wrap').classList.add('open');
         document.getElementById('reports-main-btn').classList.add('active');
     }
@@ -3357,6 +3359,7 @@ async function markAbsent() {
     renderAttendanceTable();
     renderWeeklyTable();
     renderMonthlyReport();
+    renderSheetaTable();
     renderManagerView();
     renderClassStatusTable();
     if (typeof renderSheikhRegistrationView === 'function' && document.getElementById('sheikh-registration-tab') && document.getElementById('sheikh-registration-tab').classList.contains('active')) {
@@ -4406,6 +4409,93 @@ function renderWeeklyTable() {
         chartData.push(parseFloat(weeklyAverage));
     });
     renderBarChart('weeklyReportChart', function (c) { return weeklyReportChartInstance = c; }, function () { return weeklyReportChartInstance; }, chartLabels, chartData, 'متوسط الأسبوع (على 5 أيام)');
+}
+function populateSheetaWeekOptions_() {
+    var select = document.getElementById('sheetaWeekSelect');
+    if (!select) return;
+    var currentDate = (document.getElementById('recordDate') || {}).value || getISODateOnly(new Date());
+    var weeks = new Set([getWeekKey(currentDate)]);
+    (dailyRecords || []).forEach(function (record) {
+        if (record && record.dateISO) weeks.add(getWeekKey(record.dateISO));
+    });
+    var currentValue = select.value;
+    select.innerHTML = Array.from(weeks).sort().reverse().map(function (weekKey) {
+        return '<option value="' + escapeHtml(weekKey) + '">الأسبوع: ' + escapeHtml(weekKey.replace('_', ' إلى ')) + '</option>';
+    }).join('');
+    select.value = weeks.has(currentValue) ? currentValue : getWeekKey(currentDate);
+}
+function sheetaPeriodDates_(period) {
+    var currentDate = (document.getElementById('sheetaDate') || {}).value || (document.getElementById('recordDate') || {}).value || getISODateOnly(new Date());
+    if (period === 'day') return [currentDate];
+    if (period === 'week') {
+        var weekKey = (document.getElementById('sheetaWeekSelect') || {}).value || getWeekKey(currentDate);
+        var start = new Date(weekKey.split('_')[0] + 'T12:00:00');
+        return Array.from({ length: 5 }, function (_, index) {
+            var date = new Date(start);
+            date.setDate(start.getDate() + index);
+            return getISODateOnly(date);
+        });
+    }
+    var month = Number((document.getElementById('sheetaMonth') || {}).value);
+    var year = Number((document.getElementById('sheetaYear') || {}).value);
+    return getMonthWorkingDays(Number.isFinite(year) && year ? year : new Date().getFullYear(), Number.isFinite(month) ? month : new Date().getMonth()).map(function (item) { return item.dateISO; });
+}
+function sheetaBand_(percentage) {
+    if (percentage >= 70) return { key: 'green', label: 'أخضر — 70% إلى 100%' };
+    if (percentage >= 50) return { key: 'yellow', label: 'أصفر — 50% إلى أقل من 70%' };
+    return { key: 'red', label: 'أحمر — أقل من 50%' };
+}
+function renderSheetaTable() {
+    var table = document.getElementById('sheetaTable');
+    if (!table) return;
+    var todayISO = getISODateOnly(new Date());
+    var dateInput = document.getElementById('sheetaDate');
+    var monthInput = document.getElementById('sheetaMonth');
+    var yearInput = document.getElementById('sheetaYear');
+    if (dateInput && !dateInput.value) dateInput.value = (document.getElementById('recordDate') || {}).value || todayISO;
+    if (monthInput && monthInput.dataset.initialized !== 'true') {
+        monthInput.value = String(new Date().getMonth());
+        monthInput.dataset.initialized = 'true';
+    }
+    if (yearInput && yearInput.dataset.initialized !== 'true') {
+        yearInput.value = String(new Date().getFullYear());
+        yearInput.dataset.initialized = 'true';
+    }
+    var periodSelect = document.getElementById('sheetaPeriodSelect');
+    var period = periodSelect ? periodSelect.value : 'day';
+    populateSheetaWeekOptions_();
+    document.querySelectorAll('.sheeta-period-control').forEach(function (control) {
+        control.classList.toggle('hidden', control.getAttribute('data-sheeta-period') !== period && !(period === 'month' && control.getAttribute('data-sheeta-period') === 'month'));
+    });
+    var dates = sheetaPeriodDates_(period);
+    var tbody = table.querySelector('tbody');
+    var summary = document.getElementById('sheetaSummary');
+    if (!tbody || !dates.length) return;
+    var rows = (studentsData || []).filter(function (student) { return student && student.name && !student._deleted && student.className; }).map(function (student) {
+        var studentRecords = (dailyRecords || []).filter(function (record) {
+            return record && !record._deleted && record.className === student.className && (record.studentId === student.id || record.studentId === student.studentId || record.studentName === student.name) && dates.indexOf(String(record.dateISO || '').slice(0, 10)) !== -1;
+        });
+        var score = 0;
+        var maximum = dates.reduce(function (sum) { return sum + getDailyMax(student.className); }, 0);
+        dates.forEach(function (dateISO) {
+            var record = studentRecords.find(function (item) { return String(item.dateISO || '').slice(0, 10) === dateISO; });
+            if (record) score += (!!record.isAbsent || !!record.absent || String(record.attendanceStatus || '').toLowerCase() === 'absent') ? 0 : Number(getDailyTotal(record)) || 0;
+        });
+        var percentage = maximum > 0 ? (score / maximum) * 100 : 0;
+        var band = sheetaBand_(percentage);
+        return { name: student.name, className: student.className, score: score, maximum: maximum, percentage: percentage, recordedDays: studentRecords.length, band: band };
+    }).sort(function (a, b) {
+        var bandOrder = { green: 0, yellow: 1, red: 2 };
+        return bandOrder[a.band.key] - bandOrder[b.band.key] || b.percentage - a.percentage || a.className.localeCompare(b.className, 'ar') || a.name.localeCompare(b.name, 'ar');
+    });
+    var counts = rows.reduce(function (result, row) { result[row.band.key] += 1; return result; }, { green: 0, yellow: 0, red: 0 });
+    if (summary) summary.innerHTML = '<strong>عدد الطلاب: ' + rows.length + '</strong> &nbsp; | &nbsp; <span style="color:#167c3a;font-weight:800;">أخضر: ' + counts.green + '</span> &nbsp; <span style="color:#9a6a00;font-weight:800;">أصفر: ' + counts.yellow + '</span> &nbsp; <span style="color:#b42318;font-weight:800;">أحمر: ' + counts.red + '</span>';
+    tbody.innerHTML = rows.length ? rows.map(function (row, index) {
+        var rowStyle = row.band.key === 'green' ? 'background:#e5f6e9;color:#176b37;' : row.band.key === 'yellow' ? 'background:#fff6cf;color:#805d00;' : 'background:#ffe5e2;color:#a51d16;';
+        return '<tr class="sheeta-row-' + row.band.key + '" style="' + rowStyle + '"><td>' + (index + 1) + '</td><td class="sheeta-student-name" style="font-weight:800;">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.className) + '</td><td><strong>' + row.score.toFixed(1).replace('.0', '') + ' / ' + row.maximum + '</strong></td><td><strong>' + row.percentage.toFixed(1) + '%</strong></td><td>' + row.recordedDays + ' / ' + dates.length + '</td><td>' + escapeHtml(row.band.label) + '</td></tr>';
+    }).join('') : '<tr><td colspan="7">لا توجد أسماء طلاب لعرضها.</td></tr>';
+    var periodSelectLabel = period === 'day' ? 'اليوم' : period === 'week' ? 'الأسبوع' : 'الشهر';
+    if (summary) summary.setAttribute('data-period-label', periodSelectLabel);
 }
 var weeklySheetRows_ = [];
 function showWeeklySheetBehaviorReason(index) {

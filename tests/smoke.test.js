@@ -47,6 +47,22 @@ test('sheikh Excel exports include daily details, times, and orange incomplete r
   assert.equal(exportSection(publicCode), exportSection(liveCode), 'Excel export sections must stay synchronized');
 });
 
+test('sheeta tab shows all students by day, week, or month with percentage bands', () => {
+  assert.match(html, /id="sheeta-tab-btn"[^>]*>🗂️ الشيتة/);
+  assert.match(html, /id="sheetaPeriodSelect"/);
+  assert.match(html, /option value="day">شيتة اليوم/);
+  assert.match(html, /option value="week">شيتة الأسبوع/);
+  assert.match(html, /option value="month">شيتة الشهر/);
+  assert.match(html, /id="sheetaTable"/);
+  const publicCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  const liveCode = readFileSync(new URL('../legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
+  assert.match(publicCode, /function renderSheetaTable\(\)/);
+  assert.match(publicCode, /percentage >= 70/);
+  assert.match(publicCode, /percentage >= 50/);
+  const sheetaSection = (code) => code.slice(code.indexOf('function populateSheetaWeekOptions_()'), code.indexOf('var weeklySheetRows_ = []'));
+  assert.equal(sheetaSection(publicCode), sheetaSection(liveCode), 'sheeta logic must stay synchronized');
+});
+
 test('student code portal shows full-screen daily grades and behavior reason action', () => {
   const portalCode = readFileSync(new URL('../public/legacy/js/js__features__main-application.js', import.meta.url), 'utf8');
   const styles = readFileSync(new URL('../public/legacy/css/style-1.css', import.meta.url), 'utf8');
